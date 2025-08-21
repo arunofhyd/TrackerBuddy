@@ -2,13 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>TrackerBuddy - Coming Soon</title>
     
     <!-- Google Fonts: League Spartan -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,37 +20,13 @@
     <style>
         body {
             font-family: 'League Spartan', sans-serif;
-            background-color: #0c0a18; /* Fallback color if image fails */
-            cursor: none; /* Hide the default system cursor */
+            background-color: #0c0a18; /* Fallback color if video fails */
             overflow: hidden; /* Prevent all scrollbars */
         }
-        
-        /* Ensure interactive elements also hide the default cursor */
-        a, button, img, .scrolling-text-container {
-            cursor: none;
-        }
-
-        /* --- Custom Cursor Styles --- */
-        #cursor-dot, #cursor-border {
-            pointer-events: none;
-            position: fixed;
-            border-radius: 50%;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
-        }
-        #cursor-dot { width: 8px; height: 8px; background-color: white; }
-        #cursor-border { width: 28px; height: 28px; border: 1px solid rgba(255, 255, 255, 0.7); }
 
         /* --- Scrolling Text (Marquee) Styles --- */
         .scrolling-text-container { width: 100vw; overflow: hidden; }
         .scroll-text {
-            /* clamp(MIN, VAL, MAX)
-              - MIN (3rem): The smallest the font can get (for mobile).
-              - VAL (10vw): The font scales with the viewport width.
-              - MAX (6rem): The largest the font can get (for desktop).
-              I've reduced the MAX value from 8rem to 6rem.
-            */
             font-size: clamp(3rem, 10vw, 6rem); 
             font-weight: 800;
             letter-spacing: -0.07em;
@@ -69,28 +48,30 @@
         .scroll-right { animation: scrollRight 40s linear infinite; }
         .animate-fade-in-logo { animation: fadeInLogo 1.2s ease-out forwards, subtlePulse 5s ease-in-out infinite 1.2s; }
 
-        /* --- Background Image Layer --- */
-        #background-layer {
+        /* --- Background Video Layer --- */
+        #background-video {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('assets/splashbg.png');
-            background-size: cover;
-            background-position: center;
-            z-index: 1; /* Bottom-most layer */
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* --- Footer Styles --- */
+        .footer-link {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Adds shadow for readability */
         }
     </style>
 </head>
 <body class="text-white">
 
-    <!-- Custom Cursor Elements -->
-    <div id="cursor-dot"></div>
-    <div id="cursor-border"></div>
-
-    <!-- Background Image Layer -->
-    <div id="background-layer"></div>
+    <!-- Background Video Layer -->
+    <video autoplay loop muted playsinline id="background-video">
+        <source src="assets/splashbg.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 
     <!-- Main container for the splash screen content -->
     <div class="min-h-screen flex flex-col items-center justify-center relative z-10">
@@ -122,53 +103,13 @@
         </div>
     </div>
 
-    <script>
-        // --- Smooth Follower Cursor Logic ---
-        const cursorDot = document.getElementById('cursor-dot');
-        const cursorBorder = document.getElementById('cursor-border');
-        const interactiveElements = document.querySelectorAll('.scrolling-text-container, #logo');
-        const mousePosition = { x: 0, y: 0 };
-        const dotPosition = { x: 0, y: 0 };
-        const borderPosition = { x: 0, y: 0 };
-        const DOT_SMOOTHNESS = 0.2;
-        const BORDER_DOT_SMOOTHNESS = 0.1;
+    <!-- Footer Contact Link -->
+    <footer class="fixed bottom-0 left-0 w-full p-4 flex justify-center items-center z-20">
+        <a href="mailto:arunthomas04042001@gmail.com" class="footer-link text-gray-300 hover:text-white transition-colors duration-300 flex items-center gap-2 text-sm">
+            <i class="fas fa-envelope"></i>
+            <span>Reach out to the dev</span>
+        </a>
+    </footer>
 
-        window.addEventListener('mousemove', e => {
-            mousePosition.x = e.clientX;
-            mousePosition.y = e.clientY;
-        });
-
-        const lerp = (start, end, factor) => start + (end - start) * factor;
-
-        const animateCursor = () => {
-            dotPosition.x = lerp(dotPosition.x, mousePosition.x, DOT_SMOOTHNESS);
-            dotPosition.y = lerp(dotPosition.y, mousePosition.y, DOT_SMOOTHNESS);
-            borderPosition.x = lerp(borderPosition.x, mousePosition.x, BORDER_DOT_SMOOTHNESS);
-            borderPosition.y = lerp(borderPosition.y, mousePosition.y, BORDER_DOT_SMOOTHNESS);
-            cursorDot.style.left = `${dotPosition.x}px`;
-            cursorDot.style.top = `${dotPosition.y}px`;
-            cursorBorder.style.left = `${borderPosition.x}px`;
-            cursorBorder.style.top = `${borderPosition.y}px`;
-            requestAnimationFrame(animateCursor);
-        };
-        requestAnimationFrame(animateCursor);
-
-        const handleMouseEnter = () => {
-            cursorBorder.style.width = '44px';
-            cursorBorder.style.height = '44px';
-            cursorBorder.style.borderColor = 'rgba(255, 255, 255, 1)';
-            cursorDot.style.backgroundColor = '#0c0a18';
-        };
-        const handleMouseLeave = () => {
-            cursorBorder.style.width = '28px';
-            cursorBorder.style.height = '28px';
-            cursorBorder.style.borderColor = 'rgba(255, 255, 255, 0.7)';
-            cursorDot.style.backgroundColor = 'white';
-        };
-        interactiveElements.forEach(el => {
-            el.addEventListener('mouseenter', handleMouseEnter);
-            el.addEventListener('mouseleave', handleMouseLeave);
-        });
-    </script>
 </body>
 </html>
