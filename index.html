@@ -42,7 +42,13 @@
         /* --- Scrolling Text (Marquee) Styles --- */
         .scrolling-text-container { width: 100vw; overflow: hidden; }
         .scroll-text {
-            font-size: clamp(3rem, 10vw, 8rem);
+            /* clamp(MIN, VAL, MAX)
+              - MIN (3rem): The smallest the font can get (for mobile).
+              - VAL (10vw): The font scales with the viewport width.
+              - MAX (6rem): The largest the font can get (for desktop).
+              I've reduced the MAX value from 8rem to 6rem.
+            */
+            font-size: clamp(3rem, 10vw, 6rem); 
             font-weight: 800;
             letter-spacing: -0.07em;
             line-height: 90%;
@@ -57,7 +63,6 @@
         @keyframes scrollRight { from { transform: translateX(-100%); } to { transform: translateX(0%); } }
         @keyframes fadeInLogo { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes subtlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        @keyframes twinkle { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
 
         /* Animation Utility Classes */
         .scroll-left { animation: scrollLeft 40s linear infinite; }
@@ -76,58 +81,6 @@
             background-position: center;
             z-index: 1; /* Bottom-most layer */
         }
-
-        /* --- Decorative Header/Footer Styles --- */
-        .decorative-container {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 320px; /* h-80 */
-            overflow: hidden;
-            z-index: 5; /* Above background, below content */
-            pointer-events: none;
-            mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, white, transparent 85%);
-        }
-        .decorative-top { top: 0; }
-        .decorative-bottom { bottom: 0; transform: rotate(180deg); }
-
-        /* Glow effect */
-        .decorative-container::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 100%, #369eff, transparent 90%);
-            opacity: 0.7;
-        }
-        /* Large arc effect */
-        .decorative-container::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: -50%;
-            width: 200%;
-            aspect-ratio: 1 / 1.8;
-            border-radius: 50%;
-            border-bottom: 2px solid #7876c566;
-            background: #18181b50; /* Similar to zinc-900 with transparency */
-        }
-        /* Grid overlay */
-        .grid-overlay {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(to right, #ffffff10 1px, transparent 1px), linear-gradient(to bottom, #ffffff10 1px, transparent 1px);
-            background-size: 70px 80px;
-        }
-        
-        /* Sparkles */
-        .sparkle {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation-name: twinkle;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-        }
     </style>
 </head>
 <body class="text-white">
@@ -138,12 +91,6 @@
 
     <!-- Background Image Layer -->
     <div id="background-layer"></div>
-
-    <!-- Decorative Top Element -->
-    <div class="decorative-container decorative-top">
-        <div class="grid-overlay"></div>
-        <div id="sparkles-top" class="absolute inset-0"></div>
-    </div>
 
     <!-- Main container for the splash screen content -->
     <div class="min-h-screen flex flex-col items-center justify-center relative z-10">
@@ -173,12 +120,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Decorative Bottom Element -->
-    <div class="decorative-container decorative-bottom">
-        <div class="grid-overlay"></div>
-        <div id="sparkles-bottom" class="absolute inset-0"></div>
     </div>
 
     <script>
@@ -228,29 +169,6 @@
             el.addEventListener('mouseenter', handleMouseEnter);
             el.addEventListener('mouseleave', handleMouseLeave);
         });
-
-        // --- Sparkle Generation Logic ---
-        function createSparkles(containerId, density) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            const count = Math.floor(container.offsetWidth / 100 * density);
-            for (let i = 0; i < count; i++) {
-                const sparkle = document.createElement('div');
-                sparkle.className = 'sparkle';
-                const size = Math.random() * 1.5 + 0.5; // size: 1.4
-                sparkle.style.width = `${size}px`;
-                sparkle.style.height = `${size}px`;
-                sparkle.style.top = `${Math.random() * 100}%`;
-                sparkle.style.left = `${Math.random() * 100}%`;
-                sparkle.style.animationDuration = `${Math.random() * 3 + 2}s`;
-                sparkle.style.animationDelay = `${Math.random() * 3}s`;
-                container.appendChild(sparkle);
-            }
-        }
-        // Create sparkles in both containers
-        createSparkles('sparkles-top', 20); // Density adjusted for visual balance
-        createSparkles('sparkles-bottom', 20);
-
     </script>
 </body>
 </html>
