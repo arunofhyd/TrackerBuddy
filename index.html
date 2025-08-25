@@ -171,9 +171,11 @@
         .calendar-day-cell:hover { background-color: #e2e8f0; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .day-number { font-weight: 600; font-size: 1.2em; margin-bottom: 4px; color: #2d3748; }
         .calendar-day-cell.other-month .day-number { color: #a0aec0; }
-        .calendar-day-cell.is-sunday .day-number { 
+        .calendar-day-cell.is-sunday .day-number {
             color: #ef4444;
-            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+            text-shadow: none; /* Remove any old shadow effects */
+            -webkit-text-stroke: 2px #fff; /* Adds a clean 1px white outline */
+            paint-order: stroke fill; /* Ensures the outline doesn't overlap the text color */
         }
         .calendar-day-cell.is-today .day-number { color: #3b82f6; font-weight: 700; }
         .day-note-container { height: 14px; width: 100%; display: flex; align-items: center; justify-content: center; }
@@ -267,8 +269,9 @@
         body.dark .calendar-day-cell:hover { background-color: #374151; }
         body.dark .calendar-day-cell.selected-day { background-color: #2563eb; }
         body.dark .calendar-day-cell.is-today { border: 2px solid #3b82f6; }
-        body.dark .calendar-day-cell.is-sunday .day-number {
-            text-shadow: -1px -1px 0 #374151, 1px -1px 0 #374151, -1px 1px 0 #374151, 1px 1px 0 #374151;
+       body.dark .calendar-day-cell.is-sunday .day-number {
+            /* In dark mode, we'll change the outline color to match the dark background */
+            -webkit-text-stroke-color: #1f2937;
         }
         body.dark .calendar-day-cell.has-activity { box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); }
         body.dark .day-number { color: #e2e8f0; }
