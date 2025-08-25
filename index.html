@@ -2,114 +2,2085 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
-    <title>TrackerBuddy - Coming Soon</title>
-    
-    <!-- Google Fonts: League Spartan -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome for Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="iExbroKtO4ZRq3ZjUsyY8JJowXvx-yHOy4yQq0iS6vY" />
+    <title>TrackerBuddy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Standard Favicon for browsers -->
+    <link rel="icon" href="assets/logo.png" type="image/png">
+    <link rel="shortcut icon" href="assets/logo.png">
+
+    <!-- Apple Touch Icon for iOS homescreen -->
+    <link rel="apple-touch-icon" href="assets/logo.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/logo.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png">
+
+    <!-- PWA and Homescreen Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
+    <meta name="application-name" content="TrackerBuddy">
     
-    <!-- Custom Styles and Animations -->
+    <!-- Microsoft Tiles for Windows Start Screen -->
+    <meta name="msapplication-TileImage" content="assets/logo.png">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+
+    <!-- Theme Color for Mobile Browsers -->
+    <meta name="theme-color" content="#3b82f6">
+
     <style>
+        /* --- Base and Font Styles --- */
         body {
-            font-family: 'League Spartan', sans-serif;
-            background-color: #0c0a18; /* Fallback color if video fails */
-            overflow: hidden; /* Prevent all scrollbars */
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #2d3748;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
         }
 
-        /* --- Scrolling Text (Marquee) Styles --- */
-        .scrolling-text-container { width: 100vw; overflow: hidden; }
-        .scroll-text {
-            font-size: clamp(3rem, 10vw, 6rem); 
-            font-weight: 800;
-            letter-spacing: -0.07em;
-            line-height: 90%;
-            text-transform: uppercase;
-            white-space: nowrap;
-            display: flex;
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0f172a;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            z-index: 100; transition: opacity 0.5s ease; cursor: pointer; overflow: hidden;
         }
-        .scroll-text span { padding: 0 2rem; }
-
-        /* --- Keyframe animations --- */
-        @keyframes scrollLeft { from { transform: translateX(0%); } to { transform: translateX(-100%); } }
-        @keyframes scrollRight { from { transform: translateX(-100%); } to { transform: translateX(0%); } }
-        @keyframes fadeInLogo { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes subtlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-
-        /* Animation Utility Classes */
-        .scroll-left { animation: scrollLeft 40s linear infinite; }
-        .scroll-right { animation: scrollRight 40s linear infinite; }
-        .animate-fade-in-logo { animation: fadeInLogo 1.2s ease-out forwards, subtlePulse 5s ease-in-out infinite 1.2s; }
-
-        /* --- Background Video Layer --- */
-        #background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        #splash-video {
+            position: absolute; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 10;
             object-fit: cover;
-            z-index: 1;
+        }
+        .splash-text {
+            width: 80%; max-width: 300px; z-index: 20;
+            animation: fadeInSplash 1s ease-out forwards;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .splash-screen.zooming-out .splash-text { transform: scale(15); opacity: 0; }
+        .splash-screen.hiding { opacity: 0; transition: opacity 0.5s ease 0.5s; }
+        
+        .splash-loading {
+            position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 16px; color: white; z-index: 20;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%; border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 16px; font-weight: 500; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
+        
+        .tap-to-begin {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            color: white; font-size: 18px; font-weight: 600; text-align: center;
+            opacity: 0; animation: bounceIn 1s ease-out 0.5s forwards;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); pointer-events: none; user-select: none; z-index: 20;
+        }
+        @keyframes bounceIn { from { opacity: 0; transform: translateX(-50%) translateY(30px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        .tap-icon { display: block; font-size: 24px; margin-bottom: 8px; animation: tap-pulse 2s ease-in-out infinite; }
+        @keyframes tap-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        .splash-footer-link {
+            font-family: 'League Spartan', sans-serif;
         }
 
-        /* --- Footer Styles --- */
-        .footer-link {
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Adds shadow for readability */
+        /* --- Layout Containers --- */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Default for login and loading */
+            min-height: 100vh;
+            padding: 1rem;
         }
+        .main-container.is-app-view {
+            justify-content: space-between; /* For app view */
+        }
+        
+        /* --- Initial Load & View Transitions --- */
+        #content-wrapper, #main-footer {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .view-container {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* --- Calendar Styles --- */
+        .calendar-day-cell {
+            position: relative;
+            height: 0;
+            padding-top: 100%;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden; /* Ensure leave indicators don't overflow */
+        }
+        .calendar-day-content {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 8px;
+            z-index: 10; /* Keep content above leave indicators */
+        }
+        .leave-indicator {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            z-index: 5;
+            transition: height 0.2s ease-in-out;
+        }
+        .leave-indicator.full-day { height: 100%; }
+        .leave-indicator.half-day { height: 50%; }
+        .calendar-day-cell.leave-selecting {
+            outline: 2px dashed #3b82f6;
+            outline-offset: -2px; 
+            background-color: #eff6ff;
+        }
+        .calendar-day-cell.is-today.leave-selecting {
+            border-color: transparent; /* Hide solid border to show only dotted outline */
+        }
+
+
+        @media (min-width: 768px) {
+            .calendar-day-cell {
+                min-height: 100px; height: auto; padding-top: 0; padding: 12px;
+                display: flex; flex-direction: column;
+            }
+            .calendar-day-content {
+                position: static; width: 100%; height: 100%; padding: 0;
+            }
+        }
+        .calendar-day-cell.current-month { background-color: #ffffff; border: 1px solid #e2e8f0; }
+        .calendar-day-cell.other-month { background-color: #f8fafc; color: #a0aec0; border: 1px solid #edf2f7; }
+        .calendar-day-cell.has-activity { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .calendar-day-cell.is-today { border: 2px solid #3b82f6; }
+        .calendar-day-cell.selected-day { background-color: #eff6ff; border: 2px solid #3b82f6; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.15); }
+        .calendar-day-cell:hover { background-color: #e2e8f0; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .day-number { font-weight: 600; font-size: 1.2em; margin-bottom: 4px; color: #2d3748; }
+        .calendar-day-cell.other-month .day-number { color: #a0aec0; }
+        .calendar-day-cell.is-sunday .day-number { 
+            color: #ef4444;
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
+        .calendar-day-cell.is-today .day-number { color: #3b82f6; font-weight: 700; }
+        .day-note-container { height: 14px; width: 100%; display: flex; align-items: center; justify-content: center; }
+        .day-note { font-size: 0.65rem; color: #6b7280; line-height: 1; font-weight: 500; letter-spacing: 0.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .activity-indicator { width: 10px; height: 10px; background-color: #3b82f6; border-radius: 50%; margin-top: 4px; }
+
+        /* --- Leave Pills Scrollbar --- */
+        #leave-pills-container::-webkit-scrollbar { display: none; }
+        #leave-pills-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+        /* --- General UI Components --- */
+        #daily-view-container { overflow-x: auto; }
+        .btn-primary { background-color: #3b82f6; color: #ffffff; border: 1px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-primary:hover { background-color: #2563eb; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .btn-secondary { background-color: #e2e8f0; color: #4a5568; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-secondary:hover { background-color: #cbd5e0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .btn-danger { background-color: #e53e3e; color: #ffffff; border: 1px solid #e53e3e; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-danger:hover { background-color: #c53030; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .icon-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid transparent; color: #4a5568; }
+        .icon-btn:hover { background-color: #e2e8f0; border-color: #cbd5e0; }
+        .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+        #message-display { position: fixed; bottom: 20px; right: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        #message-display.show { opacity: 1; visibility: visible; }
+        .modal-backdrop { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .activity-text-editable, .time-editable { min-height: 24px; outline: none; padding-bottom: 2px; cursor: text; border-bottom: 1px dashed #d1d5db; }
+        .activity-text-editable:focus, .time-editable:focus { border-bottom: 1px solid #3b82f6; background-color: #f0f8ff; }
+
+        /* --- Double-Click Confirmation Style --- */
+        .confirm-action {
+            background-color: #fef2f2 !important; /* light red */
+            border-color: #ef4444 !important; /* red */
+            color: #ef4444 !important;
+        }
+        body.dark .confirm-action {
+            background-color: #3f1a1a !important;
+            border-color: #ef4444 !important;
+            color: #fca5a5 !important;
+        }
+        body.dark #reset-data-btn {
+        border-color: #ef4444;
+        }
+        
+        /* --- Day Type Toggle Switch --- */
+        .day-type-toggle .toggle-btn.active {
+            color: white;
+        }
+        .day-type-toggle .toggle-btn:not(.active) {
+            color: #4a5568;
+        }
+        body.dark .day-type-toggle .toggle-btn:not(.active) {
+            color: #d1d5db;
+        }
+        body.dark .day-type-toggle {
+            background-color: #374151;
+        }
+
+        /* --- Custom Theming --- */
+        .balance-box { background-color: #3b82f6 !important; }
+        .balance-box p { color: white !important; }
+        .balance-box .stats-label { color: #dbeafe !important; }
+
+
+        @media (max-width: 767px) {
+            .main-container { padding: 1rem; }
+            #calendar-view { gap: 0.25rem; }
+            .day-number { font-size: 0.875em; margin-bottom: 2px; }
+            .activity-indicator { width: 6px; height: 6px; margin-top: 2px; }
+            .day-note-container { height: 12px; }
+            .day-note { font-size: 0.6rem; }
+            .daily-activity-table-body td { padding-left: 10px; padding-right: 10px; }
+        }
+
+        /* --- DARK MODE STYLES --- */
+        body.dark { background-color: #000000; color: #e2e8f0; }
+        body.dark .bg-white { background-color: #111827; border-color: #374151; }
+        body.dark .text-gray-800, body.dark .text-gray-900 { color: #f9fafb; }
+        body.dark .text-gray-600, body.dark .text-gray-700 { color: #9ca3af; }
+        body.dark .text-gray-500 { color: #9ca3af; }
+        body.dark .text-gray-400 { color: #6b7280; }
+        body.dark .border-gray-200, body.dark .border-gray-300 { border-color: #4b5563; }
+        body.dark .bg-gray-50 { background-color: #1f2937; }
+        body.dark .bg-gray-100 { background-color: #374151; }
+        body.dark .btn-secondary { background-color: #374151; color: #e2e8f0; border-color: #4b5563; }
+        body.dark .btn-secondary:hover { background-color: #4b5563; }
+        body.dark #today-btn-day { background-color: #374151; border-color: #4b5563; color: #e2e8f0; }
+        body.dark #today-btn-day:hover { background-color: #4b5563; }
+        body.dark #month-view-controls { background-color: #111827; border-color: #4b5563; }
+        body.dark .calendar-day-cell.current-month { background-color: #1f2937; border-color: #374151; }
+        body.dark .calendar-day-cell.other-month { background-color: #111827; border-color: #1f2937; }
+        body.dark .calendar-day-cell:hover { background-color: #374151; }
+        body.dark .calendar-day-cell.selected-day { background-color: #2563eb; }
+        body.dark .calendar-day-cell.is-today { border: 2px solid #3b82f6; }
+        body.dark .calendar-day-cell.is-sunday .day-number {
+            text-shadow: -1px -1px 0 #374151, 1px -1px 0 #374151, -1px 1px 0 #374151, 1px 1px 0 #374151;
+        }
+        body.dark .calendar-day-cell.has-activity { box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); }
+        body.dark .day-number { color: #e2e8f0; }
+        body.dark .day-note { color: #9ca3af; }
+        body.dark .icon-btn { color: #9ca3af; }
+        body.dark .icon-btn:hover { background-color: #374151; border-color: #6b7280; }
+        body.dark .activity-text-editable:focus, body.dark .time-editable:focus { background-color: #374151; }
+        body.dark .hover\:bg-gray-100:hover { background-color: #1f2937; }
+        body.dark footer a { color: #9ca3af; }
+        body.dark footer a:hover { color: #f9fafb; }
+        body.dark #month-grid .bg-gray-100 { background-color: #374151; color: #f9fafb; }
+        body.dark #month-grid .hover\:bg-blue-100:hover { background-color: #4b5563; }
+        body.dark #month-grid .bg-blue-500 { background-color: #2563eb; color: #ffffff; }
+        body.dark thead th { color: #f9fafb; }
+        body.dark #google-signin-btn { color: #f9fafb; background-color: #1f2937; }
+        body.dark #google-signin-btn:hover { background-color: #374151; }
+        .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #e5e7eb; }
+        body.dark .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
+        body.dark .activity-text-editable { border-bottom-color: #4b5563; }
+        body.dark ::selection { background-color: #3b82f6; color: #ffffff; }
     </style>
 </head>
-<body class="text-white">
+<body>
 
-    <!-- Background Video Layer -->
-    <video autoplay loop muted playsinline id="background-video">
+<div id="splash-screen" class="splash-screen">
+    <video id="splash-video" autoplay loop muted playsinline poster="assets/splashbg.png" preload="auto">
         <source src="assets/splashbg.mp4" type="video/mp4">
-        Your browser does not support the video tag.
     </video>
+    <img src="assets/splashtext.png" alt="TrackerBuddy" class="splash-text">
+    <div id="splash-loading" class="splash-loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+    <div id="tap-to-begin" class="tap-to-begin" style="display: none;">
+        <i class="fas fa-hand-pointer tap-icon"></i>
+        Tap to Begin
+    </div>
+</div>
 
-    <!-- Main container for the splash screen content -->
-    <div class="min-h-screen flex flex-col items-center justify-center relative z-10">
+<div class="main-container">
+    <div id="content-wrapper" class="w-full">
+        <div id="message-display" role="alert">
+            <span id="message-text" class="block sm:inline font-medium"></span>
+        </div>
 
-        <!-- Container for scrolling text, logo, and more scrolling text -->
-        <div class="flex flex-col items-center">
-            <!-- Top line, scrolling left -->
-            <div class="scrolling-text-container">
-                <div class="scroll-text scroll-left">
-                    <span>TrackerBuddy</span><span>TrackerBuddy</span>
-                    <span>TrackerBuddy</span><span>TrackerBuddy</span>
-                </div>
+        <div id="loading-view" class="view-container w-full max-w-md mx-auto text-center hidden">
+            <div class="flex flex-col items-center justify-center min-h-[50vh]">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
             </div>
+        </div>
 
-            <!-- Logo Image in the middle -->
-            <img src="assets/splashtext.png" 
-                 alt="TrackerBuddy Logo" 
-                 id="logo"
-                 class="w-full max-w-xs sm:max-w-sm md:max-w-md my-4 animate-fade-in-logo"
-                 onerror="this.onerror=null; this.src='https://placehold.co/400x150/FFFFFF/0c0a18?text=TrackerBuddy';">
+        <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-8 text-center">
+                <img src="assets/logo.png" class="w-24 h-24 mb-4 mx-auto rounded-full" alt="TrackerBuddy Logo">
+                <h1 class="text-5xl font-extrabold text-gray-800 tracking-tight mb-4">TrackerBuddy</h1>
+                <p class="text-gray-600 mb-6">Your all-in-one tracker.</p>
+                
+                <div class="space-y-4 text-left mb-2">
+                    <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+                    
+                    <div class="relative">
+                        <input type="password" id="password-input" placeholder="Password" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+                            <i id="password-toggle-icon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-right mb-4">
+                    <button id="forgot-password-btn" class="text-sm text-blue-600 hover:underline focus:outline-none">Forgot Password?</button>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <button id="email-signin-btn" class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center">Sign In</button>
+                    <button id="email-signup-btn" class="w-full btn-secondary py-3 rounded-lg font-semibold flex items-center justify-center">Sign Up</button>
+                </div>
 
-            <!-- Bottom line, scrolling right -->
-            <div class="scrolling-text-container">
-                <div class="scroll-text scroll-right">
-                    <span>Coming Soon</span><span>Coming Soon</span>
-                    <span>Coming Soon</span><span>Coming Soon</span>
+                <div class="relative flex py-4 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink mx-4 text-gray-400 text-sm font-medium">OR</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                <div class="space-y-4">
+                    <button id="google-signin-btn" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center text-lg font-semibold transition-colors">
+                        <img src="assets/google.png" class="w-6 h-6 mr-3" alt="Google icon">
+                        Continue with Google
+                    </button>
+                    <button id="anon-continue-btn" class="w-full btn-secondary py-2 px-4 rounded-lg text-lg font-semibold">
+                        <div class="flex flex-col items-center">
+                            <span>Continue Offline</span>
+                            <span class="text-xs font-normal text-gray-500 mt-1">(Saves data only on this device)</span>
+                        </div>
+                    </button>
+                </div>
+                 <p id="user-id-display" class="text-xs text-gray-400 mt-6 break-all"></p>
+            </div>
+        </div>
+        
+        <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
+                 <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+                            <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        </button>
+                        <img src="assets/logo.png" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+                        <button id="sign-out-btn" class="icon-btn" title="Sign Out">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </div>
+                    <div class="flex flex-col space-y-4 mb-8 w-full">
+                        <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
+                        <div class="flex items-center justify-between w-full">
+                            <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                            <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
+                            <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                        </div>
+                        
+                        <!-- Month View Leave Pills Container -->
+                        <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
+                            <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
+                            </button>
+                            <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
+                                <!-- Leave pills will be rendered here -->
+                            </div>
+                        </div>
+
+                        <!-- Day View Today Button -->
+                        <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
+
+                        <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
+                    </div>
+                    <div id="main-content-area" class="w-full">
+                        <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
+                        <div id="daily-view" class="hidden">
+                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                                     <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                                     <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                                 </div>
+                                <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
+                                <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
+                                <div id="day-view-bottom-controls">
+                                    <hr class="my-6 border-gray-300">
+                                    <div class="flex flex-col md:flex-row gap-4">
+                                        <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Data</button>
+                                        <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Data</button>
+                                    </div>
+                                    <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
+                                </div>
+                        </div>
+                        <div id="month-view-bottom-controls">
+                            <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
+                                <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
+                                <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
+                                    Stats
+                                    <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                            </div>
+                            <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                                <!-- Leave stats will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span>Reach out to the dev</span></a></footer>
+</div>
+
+<!-- Add/Edit Leave Type Modal -->
+<div id="leave-type-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <h2 id="leave-type-modal-title" class="text-2xl font-bold mb-6 text-center">Add New Leave Type</h2>
+        <div class="space-y-4">
+            <input type="hidden" id="editing-leave-type-id">
+            <div>
+                <label for="leave-name-input" class="block text-sm font-medium text-gray-700 mb-1">Leave Name</label>
+                <input type="text" id="leave-name-input" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+            </div>
+            <div>
+                <label for="leave-days-input" class="block text-sm font-medium text-gray-700 mb-1">Total Days per Year</label>
+                <input type="number" id="leave-days-input" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <div id="leave-color-picker" class="grid grid-cols-6 gap-2">
+                    <!-- Color options will be injected here -->
                 </div>
             </div>
         </div>
+        <div class="flex justify-end mt-6 space-x-3">
+            <button id="delete-leave-type-btn" class="hidden px-5 py-2 btn-danger rounded-lg">Delete</button>
+            <button id="cancel-leave-type-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
+            <button id="save-leave-type-btn" class="px-5 py-2 btn-primary rounded-lg">Save</button>
+        </div>
     </div>
+</div>
 
-    <!-- Footer Contact Link -->
-    <footer class="fixed bottom-0 left-0 w-full p-4 flex justify-center items-center z-20">
-        <a href="mailto:arunthomas04042001@gmail.com" class="footer-link text-gray-300 hover:text-white transition-colors duration-300 flex items-center gap-2 text-sm">
-            <i class="fas fa-envelope"></i>
-            <span>Reach out to the dev</span>
-        </a>
-    </footer>
+<!-- Customize Leave Modal -->
+<div id="customize-leave-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
+        <h2 class="text-2xl font-bold mb-4 text-center">Log Leave</h2>
+        <p class="text-center text-gray-600 mb-4">Customize day type for each selected date.</p>
+        <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-2 pr-2">
+            <!-- Selected leave days will be rendered here -->
+        </div>
+        <div class="flex justify-end mt-6 space-x-3">
+            <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
+            <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg">Save Leave</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="hourly-prompt-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center">Time to Log Activity!</h2>
+        <p class="text-lg mb-4 text-center">What did you do in the last hour?</p>
+        <textarea id="hourly-activity-input" class="w-full p-3 border rounded-md min-h-[100px]"></textarea>
+        <div class="flex justify-end mt-6 space-x-3">
+            <button id="close-hourly-prompt-modal-btn" class="px-5 py-2 btn-secondary rounded-lg">Close</button>
+            <button id="save-hourly-activity-btn" class="px-5 py-2 btn-primary rounded-lg">Save</button>
+        </div>
+    </div>
+</div>
+<div id="month-picker-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <button id="prev-year-btn" class="p-2 btn-secondary rounded-full">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+            </button>
+            <h3 id="picker-year-display" class="text-2xl font-semibold">2023</h3>
+            <button id="next-year-btn" class="p-2 btn-secondary rounded-full">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+        <div id="month-grid" class="grid grid-cols-3 gap-3"></div>
+        <div class="flex justify-end mt-6">
+            <button id="close-month-picker-btn" class="px-5 py-2 btn-secondary rounded-lg">Close</button>
+        </div>
+    </div>
+</div>
+<div id="confirm-reset-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-center">Are you sure?</h2>
+        <p id="reset-modal-text" class="text-gray-700 mb-6 text-center"></p>
+        <div class="flex justify-end mt-6 space-x-3">
+            <button id="cancel-reset-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
+            <button id="confirm-reset-btn" class="px-5 py-2 btn-danger rounded-lg">Confirm Reset</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    // --- Firebase Configuration ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
+        authDomain: "trackerbuddyaoh.firebaseapp.com",
+        projectId: "trackerbuddyaoh",
+        storageBucket: "trackerbuddyaoh.firebasestorage.app",
+        messagingSenderId: "612126230828",
+        appId: "1:612126230828:web:763ef43baec1046d3b0489"
+    };
+
+    // --- Initialize Firebase ---
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- Global App State ---
+    let state = {
+        currentMonth: new Date(),
+        selectedDate: new Date(),
+        currentView: 'month',
+        allStoredData: {},
+        userId: null,
+        isOnlineMode: false,
+        unsubscribeFromFirestore: null,
+        editingInlineTimeKey: null,
+        pickerYear: new Date().getFullYear(),
+        confirmAction: {}, // For double-click confirmation
+        leaveTypes: [],
+        isLoggingLeave: false,
+        selectedLeaveTypeId: null,
+        leaveSelection: new Set()
+    };
+
+    // --- State Management ---
+    function setState(newState) {
+        state = { ...state, ...newState };
+    }
+    
+    // --- DOM Element References ---
+    let DOM = {};
+
+    // --- UI Functions ---
+    function initUI() {
+        DOM = {
+            splashScreen: document.getElementById('splash-screen'),
+            splashLoading: document.getElementById('splash-loading'),
+            tapToBegin: document.getElementById('tap-to-begin'),
+            contentWrapper: document.getElementById('content-wrapper'),
+            footer: document.getElementById('main-footer'),
+            loginView: document.getElementById('login-view'),
+            appView: document.getElementById('app-view'),
+            loadingView: document.getElementById('loading-view'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            messageDisplay: document.getElementById('message-display'),
+            messageText: document.getElementById('message-text'),
+            emailSigninBtn: document.getElementById('email-signin-btn'),
+            emailSignupBtn: document.getElementById('email-signup-btn'),
+            forgotPasswordBtn: document.getElementById('forgot-password-btn'),
+            googleSigninBtn: document.getElementById('google-signin-btn'),
+            currentPeriodDisplay: document.getElementById('current-period-display'),
+            monthViewBtn: document.getElementById('month-view-btn'),
+            dayViewBtn: document.getElementById('day-view-btn'),
+            calendarView: document.getElementById('calendar-view'),
+            dailyView: document.getElementById('daily-view'),
+            dailyNoteInput: document.getElementById('daily-note-input'),
+            dailyActivityTableBody: document.getElementById('daily-activity-table-body'),
+            noDailyActivitiesMessage: document.getElementById('no-daily-activities-message'),
+            monthPickerModal: document.getElementById('month-picker-modal'),
+            pickerYearDisplay: document.getElementById('picker-year-display'),
+            monthGrid: document.getElementById('month-grid'),
+            confirmResetModal: document.getElementById('confirm-reset-modal'),
+            resetModalText: document.getElementById('reset-modal-text'),
+            leaveTypeModal: document.getElementById('leave-type-modal'),
+            leaveTypeModalTitle: document.getElementById('leave-type-modal-title'),
+            editingLeaveTypeId: document.getElementById('editing-leave-type-id'),
+            leaveNameInput: document.getElementById('leave-name-input'),
+            leaveDaysInput: document.getElementById('leave-days-input'),
+            leaveColorPicker: document.getElementById('leave-color-picker'),
+            deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
+            logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
+            statsToggleBtn: document.getElementById('stats-toggle-btn'),
+            leaveStatsSection: document.getElementById('leave-stats-section'),
+            statsArrowDown: document.getElementById('stats-arrow-down'),
+            statsArrowUp: document.getElementById('stats-arrow-up'),
+            monthViewControls: document.getElementById('month-view-controls'),
+            leavePillsContainer: document.getElementById('leave-pills-container'),
+            todayBtnDay: document.getElementById('today-btn-day'),
+            addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
+            uploadCsvBtn: document.getElementById('upload-csv-btn'),
+            downloadCsvBtn: document.getElementById('download-csv-btn'),
+            customizeLeaveModal: document.getElementById('customize-leave-modal'),
+            leaveDaysList: document.getElementById('leave-days-list'),
+            monthViewBottomControls: document.getElementById('month-view-bottom-controls'),
+            dayViewBottomControls: document.getElementById('day-view-bottom-controls')
+        };
+    }
+
+    function setInputErrorState(inputElement, hasError) {
+        if (hasError) {
+            inputElement.classList.add('border-red-500', 'ring-red-500');
+            inputElement.classList.remove('border-gray-200');
+        } else {
+            inputElement.classList.remove('border-red-500', 'ring-red-500');
+            inputElement.classList.add('border-gray-200');
+        }
+    }
+
+    const faSpinner = '<i class="fas fa-spinner fa-spin text-xl"></i>';
+    function setButtonLoadingState(button, isLoading) {
+        if (isLoading) {
+            button.disabled = true;
+            button.dataset.originalContent = button.innerHTML;
+            const rect = button.getBoundingClientRect();
+            button.style.width = `${rect.width}px`;
+            button.style.height = `${rect.height}px`;
+            if (button.id === 'google-signin-btn') {
+                const googleIcon = button.querySelector('img').outerHTML;
+                button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${googleIcon} ${faSpinner}</div>`;
+            } else {
+                 button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${faSpinner}</div>`;
+            }
+        } else {
+            button.disabled = false;
+            if (button.dataset.originalContent) {
+                button.innerHTML = button.dataset.originalContent;
+            }
+            button.style.width = '';
+            button.style.height = '';
+        }
+    }
+
+    function switchView(viewToShow, viewToHide, callback) {
+        const mainContainer = document.querySelector('.main-container');
+        
+        if (viewToHide) {
+            viewToHide.style.opacity = '0';
+        }
+
+        setTimeout(() => {
+            if (viewToHide) {
+                viewToHide.classList.add('hidden');
+            }
+
+            if (viewToShow === DOM.appView) {
+                mainContainer.classList.add('is-app-view');
+            } else {
+                mainContainer.classList.remove('is-app-view');
+            }
+            viewToShow.classList.remove('hidden');
+            
+            setTimeout(() => {
+                viewToShow.style.opacity = '1';
+                if (callback) callback();
+            }, 20);
+        }, 300);
+    }
+
+    function handleUserLogin(user) {
+        localStorage.setItem('sessionMode', 'online');
+        if (state.unsubscribeFromFirestore) {
+            state.unsubscribeFromFirestore();
+        }
+        setState({ userId: user.uid, isOnlineMode: true });
+        DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
+        
+        switchView(DOM.loadingView, DOM.loginView);
+
+        subscribeToData(user.uid, () => {
+            switchView(DOM.appView, DOM.loadingView, updateView);
+        });
+    }
+
+    function showMessage(msg, type = 'info') {
+        DOM.messageText.textContent = msg;
+        DOM.messageDisplay.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-lg shadow-md transition-opacity duration-300';
+        if (type === 'error') {
+            DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+        } else if (type === 'success') {
+            DOM.messageDisplay.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+        } else {
+            DOM.messageDisplay.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+        }
+        DOM.messageDisplay.classList.add('show');
+        clearTimeout(DOM.messageDisplay.dataset.timeoutId);
+        const timeoutId = setTimeout(() => DOM.messageDisplay.classList.remove('show'), 3000);
+        DOM.messageDisplay.dataset.timeoutId = timeoutId;
+    }
+
+    function updateView() {
+        if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
+
+        const isMonthView = state.currentView === 'month';
+        DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
+        DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
+        DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
+        DOM.dayViewBtn.classList.toggle('btn-secondary', isMonthView);
+
+        DOM.calendarView.classList.toggle('hidden', !isMonthView);
+        DOM.dailyView.classList.toggle('hidden', isMonthView);
+
+        DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
+        DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
+        DOM.todayBtnDay.classList.toggle('hidden', isMonthView);
+
+        if (isMonthView) {
+            DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            renderCalendar();
+            renderLeavePills();
+            renderLeaveStats();
+        } else {
+            DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
+            renderDailyActivities();
+        }
+    }
+
+    function renderCalendar() {
+        while (DOM.calendarView.children.length > 7) DOM.calendarView.removeChild(DOM.calendarView.lastChild);
+        
+        const year = state.currentMonth.getFullYear();
+        const month = state.currentMonth.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        const today = new Date();
+
+        for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day-cell other-month';
+            emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
+            DOM.calendarView.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+            const date = new Date(year, month, day);
+            const dateKey = getYYYYMMDD(date);
+            const dayData = state.allStoredData[dateKey] || {};
+            const noteText = dayData.note || '';
+            const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
+            const leaveData = dayData.leave;
+
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day-cell current-month';
+            if (date.getDay() === 0) dayCell.classList.add('is-sunday');
+            if (hasActivity) dayCell.classList.add('has-activity');
+            if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
+            if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === 'day') dayCell.classList.add('selected-day');
+            if (state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
+
+            let leaveIndicatorHTML = '';
+            if(leaveData) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
+                if(leaveType) {
+                    leaveIndicatorHTML = `<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
+                }
+            }
+
+            dayCell.innerHTML = `
+                ${leaveIndicatorHTML}
+                <div class="calendar-day-content">
+                    <div class="day-number">${day}</div>
+                    <div class="day-note-container">${noteText ? `<span class="day-note">${noteText}</span>` : ''}</div>
+                    ${hasActivity ? '<div class="activity-indicator"></div>' : ''}
+                </div>`;
+            dayCell.dataset.date = dateKey;
+
+            const dayNumberEl = dayCell.querySelector('.day-number');
+            const dayNoteEl = dayCell.querySelector('.day-note');
+
+            if (leaveData && leaveData.dayType === 'full') {
+                dayNumberEl.style.color = 'white';
+                if (dayNoteEl) dayNoteEl.style.color = 'white';
+            }
+            // Sunday override
+            if (date.getDay() === 0) {
+                dayNumberEl.style.color = '#ef4444';
+            }
+            
+            DOM.calendarView.appendChild(dayCell);
+        }
+
+        const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
+        for (let i = 0; i < (7 - (totalCells % 7)) % 7; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day-cell other-month';
+            emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
+            DOM.calendarView.appendChild(emptyCell);
+        }
+    }
+
+    function renderDailyActivities() {
+        DOM.dailyActivityTableBody.innerHTML = '';
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const dailyActivitiesMap = state.allStoredData[dateKey] || {};
+        let dailyActivitiesArray = [];
+
+        DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
+
+        const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+        
+        if (hasStoredActivities) {
+            dailyActivitiesArray = Object.keys(dailyActivitiesMap)
+                .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
+                .map(timeKey => ({ time: timeKey, ...dailyActivitiesMap[timeKey] }))
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
+            for (let h = 8; h <= 17; h++) {
+                dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
+            }
+        }
+
+        DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
+
+        dailyActivitiesArray.forEach((activity, index) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-100 transition-colors duration-150';
+            row.dataset.time = activity.time;
+
+            const isFirst = index === 0;
+            const isLast = index === dailyActivitiesArray.length - 1;
+
+            row.innerHTML = `
+                <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
+                <td class="py-3 px-4 text-sm text-gray-900">
+                    <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
+                </td>
+                <td class="py-3 px-4 text-sm flex space-x-1 justify-center items-center">
+                    <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                    </button>
+                    <button class="icon-btn move-down-btn" aria-label="Move Down" ${isLast ? 'disabled' : ''}>
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <button class="icon-btn delete-btn delete" aria-label="Delete">
+                        <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>`;
+            DOM.dailyActivityTableBody.appendChild(row);
+        });
+
+        attachDailyActivityEventListeners();
+    }
+
+    function renderMonthPicker() {
+        DOM.monthGrid.innerHTML = '';
+        DOM.pickerYearDisplay.textContent = state.pickerYear;
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        
+        monthNames.forEach((name, index) => {
+            const button = document.createElement('button');
+            button.className = 'px-4 py-3 rounded-lg font-medium text-gray-800 bg-gray-100 hover:bg-blue-100 hover:text-blue-700';
+            button.textContent = name;
+            if (state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth()) {
+                button.classList.add('bg-blue-500', 'text-white');
+                button.classList.remove('bg-gray-100', 'text-gray-800');
+            }
+            button.addEventListener('click', () => {
+                const newMonth = new Date(state.pickerYear, index, 1);
+                const lastDayOfNewMonth = new Date(state.pickerYear, index + 1, 0).getDate();
+                let newSelectedDate = new Date(state.selectedDate);
+                if (newSelectedDate.getDate() > lastDayOfNewMonth) {
+                    newSelectedDate.setDate(lastDayOfNewMonth);
+                }
+                newSelectedDate.setMonth(index);
+                newSelectedDate.setFullYear(state.pickerYear);
+
+                setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
+                updateView();
+                DOM.monthPickerModal.classList.add('hidden');
+            });
+            DOM.monthGrid.appendChild(button);
+        });
+    }
+
+    function getYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDateForDisplay(dateString) {
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function formatTextForDisplay(text) {
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = text || '';
+        return tempDiv.innerHTML.replace(/\n/g, '<br>');
+    }
+
+    // --- Data Functions ---
+    async function subscribeToData(userId, callback) {
+        const userDocRef = doc(db, "users", userId);
+        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+            const data = doc.exists() ? doc.data() : {};
+            setState({ allStoredData: data.activities || {}, leaveTypes: data.leaveTypes || [] });
+            
+            updateView(); 
+            
+            if (callback) {
+                callback();
+                callback = null;
+            }
+        });
+        setState({ unsubscribeFromFirestore: unsubscribe });
+    }
+
+    async function saveData(action) {
+        let dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        let successMessage = null;
+
+        const isNewDay = !dataCopy[dateKey] || (Object.keys(dataCopy[dateKey]).length === 0 && !dataCopy[dateKey]?._userCleared);
+
+        if (isNewDay && (action.type === 'ADD_SLOT' || action.type === 'UPDATE_ACTIVITY_TEXT')) {
+            dataCopy[dateKey] = {};
+            if (state.selectedDate.getDay() !== 0) {
+                for (let h = 8; h <= 17; h++) {
+                    const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
+                    dataCopy[dateKey][timeKey] = { text: "", order: h - 8 };
+                }
+            }
+        } else if (!dataCopy[dateKey]) {
+            dataCopy[dateKey] = {};
+        }
+
+        switch (action.type) {
+            case 'SAVE_NOTE': {
+                if (action.payload) {
+                    dataCopy[dateKey].note = action.payload;
+                } else {
+                    delete dataCopy[dateKey].note;
+                }
+                break;
+            }
+            case 'ADD_SLOT': {
+                let newTimeKey = "00:00", counter = 0;
+                while (dataCopy[dateKey][newTimeKey]) {
+                    newTimeKey = `00:00-${++counter}`;
+                }
+                const existingKeys = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
+                const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dataCopy[dateKey]).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
+                dataCopy[dateKey][newTimeKey] = { text: "", order: maxOrder + 1 };
+                delete dataCopy[dateKey]._userCleared;
+                successMessage = "New slot added!";
+                break;
+            }
+            case 'UPDATE_ACTIVITY_TEXT': {
+                if (dataCopy[dateKey][action.payload.timeKey]) {
+                    dataCopy[dateKey][action.payload.timeKey].text = action.payload.newText;
+                } else {
+                    const order = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
+                    dataCopy[dateKey][action.payload.timeKey] = { text: action.payload.newText, order };
+                }
+                delete dataCopy[dateKey]._userCleared;
+                successMessage = "Activity updated!";
+                break;
+            }
+            case 'UPDATE_TIME': {
+                const { oldTimeKey, newTimeKey } = action.payload;
+                if (!newTimeKey) {
+                    showMessage("Time cannot be empty.", 'error');
+                    return;
+                }
+                if (dataCopy[dateKey][newTimeKey] && oldTimeKey !== newTimeKey) {
+                    showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+                    return;
+                }
+                const entry = dataCopy[dateKey][oldTimeKey];
+                if (entry) {
+                    delete dataCopy[dateKey][oldTimeKey];
+                    dataCopy[dateKey][newTimeKey] = entry;
+                }
+                successMessage = "Time updated!";
+                break;
+            }
+        }
+
+        if (state.isOnlineMode && state.userId) {
+            await saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+        } else {
+            await new Promise(resolve => {
+                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+                setState({ allStoredData: dataCopy });
+                updateView();
+                setTimeout(resolve, 50);
+            });
+        }
+        
+        if (successMessage) {
+            showMessage(successMessage, 'success');
+        }
+    }
+
+    function loadDataFromLocalStorage() {
+        try {
+            const storedDataString = localStorage.getItem('activityTrackerData');
+            if (!storedDataString) {
+                return { activities: {}, leaveTypes: [] };
+            }
+            
+            const storedData = JSON.parse(storedDataString);
+
+            // This handles data from older versions of the app
+            if (storedData.hasOwnProperty('activities')) {
+                // It's the new format, return as is
+                return storedData;
+            } else {
+                // It's the old format, wrap it in the new structure
+                return { activities: storedData, leaveTypes: [] };
+            }
+        } catch (error) {
+            console.error("Error loading local data:", error);
+            showMessage("Could not load local data.", 'error');
+            // Return a safe default on any error
+            return { activities: {}, leaveTypes: [] };
+        }
+    }
+
+    function saveDataToLocalStorage(data) {
+        try {
+            localStorage.setItem('activityTrackerData', JSON.stringify(data));
+        } catch (error) {
+            console.error("Error saving local data:", error);
+            showMessage("Could not save data locally.", 'error');
+        }
+    }
+
+    async function saveDataToFirestore(data) {
+        if (!state.userId) return;
+        try {
+            await setDoc(doc(db, "users", state.userId), data);
+        } catch (error) {
+            console.error("Error saving to Firestore:", error);
+            showMessage("Error: Could not save data to the cloud.", 'error');
+        }
+    }
+
+    function loadOfflineData() {
+        localStorage.setItem('sessionMode', 'offline');
+        const data = loadDataFromLocalStorage();
+        setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
+        
+        // Show loading spinner for offline data load
+        switchView(DOM.loadingView, DOM.loginView);
+
+        // Simulate a small delay for a smooth transition before showing app
+        setTimeout(() => {
+            switchView(DOM.appView, DOM.loadingView, updateView);
+        }, 500); // 500ms delay to give a "loading" feel
+    }
+
+    async function resetAllData() {
+        if (state.isOnlineMode && state.userId) {
+            try {
+                await deleteDoc(doc(db, "users", state.userId));
+                showMessage("All cloud data has been reset.", 'success');
+            } catch (error) {
+                showMessage("Failed to reset cloud data.", 'error');
+            }
+        } else {
+            localStorage.removeItem('activityTrackerData');
+            setState({ allStoredData: {}, leaveTypes: [] });
+            updateView();
+            showMessage("All local data has been reset.", 'success');
+        }
+        DOM.confirmResetModal.classList.add('hidden');
+    }
+
+    function updateActivityOrder() {
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const dailyActivitiesMap = state.allStoredData[dateKey] || {};
+        const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
+        
+        let newDailyActivitiesMap = {};
+        if (dailyActivitiesMap.note) newDailyActivitiesMap.note = dailyActivitiesMap.note;
+        if (dailyActivitiesMap.leave) newDailyActivitiesMap.leave = dailyActivitiesMap.leave;
+
+        orderedTimeKeys.forEach((timeKey, index) => {
+            const originalEntry = dailyActivitiesMap[timeKey] || { text: '' };
+            newDailyActivitiesMap[timeKey] = { text: originalEntry.text, order: index };
+        });
+
+        if (dailyActivitiesMap._userCleared) newDailyActivitiesMap._userCleared = true;
+
+        const updatedData = { ...state.allStoredData, [dateKey]: newDailyActivitiesMap };
+        
+        if (state.isOnlineMode && state.userId) {
+            saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+        }
+        showMessage("Activities reordered!", 'success');
+    }
+
+    function deleteActivity(dateKey, timeKey) {
+        const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+        if (dataCopy[dateKey]?.[timeKey]) {
+            delete dataCopy[dateKey][timeKey];
+            if (Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
+                dataCopy[dateKey]._userCleared = true;
+            }
+
+            if (state.isOnlineMode && state.userId) {
+                saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+            } else {
+                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+                setState({ allStoredData: dataCopy });
+                updateView();
+            }
+            showMessage("Activity deleted.", 'success');
+        }
+    }
+
+    function parseCsvLine(line) {
+        const result = [];
+        let inQuote = false, field = '';
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                if (inQuote && line[i + 1] === '"') {
+                    field += '"'; i++;
+                } else {
+                    inQuote = !inQuote;
+                }
+            } else if (char === ',' && !inQuote) {
+                result.push(field);
+                field = '';
+            } else {
+                field += char;
+            }
+        }
+        result.push(field);
+        return result.map(f => f.trim().replace(/^"|"$/g, ''));
+    }
+
+    function parseDisplayDateToYYYYMMDD(displayDateStr) {
+        const date = new Date(displayDateStr);
+        return isNaN(date.getTime()) ? null : getYYYYMMDD(date);
+    }
+
+    function downloadCSV() {
+        let activitiesToExport = [];
+        Object.keys(state.allStoredData).forEach(dateKey => {
+            const dailyData = state.allStoredData[dateKey];
+            Object.keys(dailyData)
+                .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave' && dailyData[timeKey].text?.trim())
+                .forEach(timeKey => {
+                    activitiesToExport.push({ date: dateKey, time: timeKey, ...dailyData[timeKey] });
+                });
+        });
+
+        if (activitiesToExport.length === 0) {
+            return showMessage("No activities found to export.", 'info');
+        }
+
+        activitiesToExport.sort((a, b) => a.date.localeCompare(b.date) || (a.order ?? 0) - (b.order ?? 0));
+
+        let csvContent = "data:text/csv;charset=utf-8,Date,Time,Activity\n";
+        csvContent += activitiesToExport.map(entry => {
+            const activity = `"${entry.text.replace(/"/g, '""')}"`;
+            const displayDate = `"${formatDateForDisplay(entry.date)}"`;
+            const time = `"${entry.time}"`;
+            return `${displayDate},${time},${activity}`;
+        }).join("\n");
+
+        const link = document.createElement("a");
+        link.href = encodeURI(csvContent);
+        link.download = `TrackerBuddy_Export.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const csvContent = e.target.result;
+            const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+            const lines = csvContent.split('\n').filter(line => line.trim());
+
+            if (lines.length <= 1) {
+                return showMessage("CSV file is empty or has no data.", 'error');
+            }
+
+            lines.slice(1).forEach(line => {
+                const row = parseCsvLine(line);
+                if (row.length < 3) return;
+
+                const [displayDateStr, time, activityText] = row;
+                const dateKey = parseDisplayDateToYYYYMMDD(displayDateStr);
+
+                if (!dateKey || !time) {
+                    console.warn(`Skipping row with invalid date or time: ${line}`);
+                    return;
+                }
+
+                if (!dataCopy[dateKey]) {
+                    dataCopy[dateKey] = {};
+                }
+
+                const importedText = activityText.trim();
+                if (dataCopy[dateKey][time]) {
+                    const existingText = dataCopy[dateKey][time].text.trim();
+                    if (existingText !== importedText && !existingText.includes(importedText)) {
+                        dataCopy[dateKey][time].text = existingText ? `${existingText}\n${importedText}` : importedText;
+                    }
+                } else {
+                    const order = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
+                    dataCopy[dateKey][time] = { text: importedText, order };
+                }
+            });
+
+            if (state.isOnlineMode && state.userId) {
+                saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+            } else {
+                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+                setState({ allStoredData: dataCopy });
+                updateView();
+            }
+            showMessage("CSV data imported successfully!", 'success');
+            event.target.value = '';
+        };
+        reader.onerror = () => showMessage("Error reading file.", 'error');
+        reader.readAsText(file);
+    }
+    
+    // --- Auth Functions ---
+    function handleUserLogout() {
+        if (state.unsubscribeFromFirestore) {
+            state.unsubscribeFromFirestore();
+        }
+        localStorage.removeItem('sessionMode');
+        
+        setState({
+            allStoredData: {},
+            leaveTypes: [],
+            userId: null,
+            isOnlineMode: false,
+            unsubscribeFromFirestore: null
+        });
+
+        switchView(DOM.loginView, DOM.appView);
+    }
+
+    function initAuth() {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleUserLogin(user);
+            } else {
+                const sessionMode = localStorage.getItem('sessionMode');
+                if (sessionMode === 'offline') {
+                    const data = loadDataFromLocalStorage();
+                    setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
+                    document.querySelector('.main-container').classList.add('is-app-view');
+                    switchView(DOM.appView, DOM.loadingView, updateView);
+                } else {
+                    switchView(DOM.loginView, DOM.loadingView);
+                }
+            }
+            DOM.contentWrapper.style.opacity = '1';
+            DOM.footer.style.opacity = '1';
+        });
+    }
+
+    async function signUpWithEmail(email, password) {
+        const button = DOM.emailSignupBtn;
+        let hasError = false;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            hasError = true;
+        }
+        if (password.length < 6) {
+            setInputErrorState(document.getElementById('password-input'), true);
+            hasError = true;
+        }
+        if (hasError) {
+            return showMessage("Email and a password of at least 6 characters are required.", 'error');
+        }
+
+        setButtonLoadingState(button, true);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            handleUserLogin(userCredential.user);
+        } catch (error) {
+            if (error.code === 'auth/email-already-in-use') {
+                showMessage("An account already exists with this email. Please sign in instead.", 'error');
+            } else {
+                showMessage(`Sign-up failed: ${error.message}`, 'error');
+            }
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function signInWithEmail(email, password) {
+        const button = DOM.emailSigninBtn;
+        let hasError = false;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            hasError = true;
+        }
+        if (!password) {
+            setInputErrorState(document.getElementById('password-input'), true);
+            hasError = true;
+        }
+        if (hasError) {
+            return showMessage("Email and password are required.", 'error');
+        }
+
+        setButtonLoadingState(button, true);
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            handleUserLogin(userCredential.user);
+        } catch (error) {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                showMessage("Incorrect email or password. Please try again.", 'error');
+            } else {
+                showMessage(`Sign-in failed: ${error.message}`, 'error');
+            }
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function resetPassword(email) {
+        const button = DOM.forgotPasswordBtn;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            return showMessage("Please enter your email address.", 'info');
+        }
+        setButtonLoadingState(button, true);
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showMessage("Password reset email sent! Please check your inbox.", 'success');
+        } catch (error) {
+            showMessage(`Error sending reset email: ${error.message}`, 'error');
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function signInWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        const button = DOM.googleSigninBtn;
+        setButtonLoadingState(button, true);
+        try {
+            const result = await signInWithPopup(auth, provider);
+            handleUserLogin(result.user);
+        } catch (error) {
+            showMessage(`Google sign-in failed: ${error.message}`, 'error');
+        } finally {
+             setButtonLoadingState(button, false);
+        }
+    }
+
+    async function appSignOut() {
+        if (state.isOnlineMode) {
+            try {
+                await signOut(auth);
+                handleUserLogout();
+            } catch (error) {
+                showMessage(`Sign-out failed: ${error.message}`, 'error');
+            }
+        } else {
+            handleUserLogout();
+        }
+    }
+
+    // --- Theme Management ---
+    function applyTheme(theme) {
+        const lightIcon = document.getElementById('theme-icon-light');
+        const darkIcon = document.getElementById('theme-icon-dark');
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+            lightIcon.classList.add('hidden');
+            darkIcon.classList.remove('hidden');
+        } else {
+            document.body.classList.remove('dark');
+            lightIcon.classList.remove('hidden');
+            darkIcon.classList.add('hidden');
+        }
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.classList.contains('dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else if (systemPrefersDark) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+    }
+
+    // --- Double-Click Confirmation Helper ---
+    function setupDoubleClickConfirm(element, actionKey, message, callback) {
+        element.addEventListener('click', (e) => {
+            if (state.confirmAction[actionKey]) {
+                callback(e);
+                delete state.confirmAction[actionKey];
+                element.classList.remove('confirm-action');
+            } else {
+                Object.keys(state.confirmAction).forEach(key => {
+                    const el = state.confirmAction[key].element;
+                    if (el) el.classList.remove('confirm-action');
+                });
+                state.confirmAction = {};
+
+                state.confirmAction[actionKey] = {
+                    element: element,
+                    timeoutId: setTimeout(() => {
+                        element.classList.remove('confirm-action');
+                        delete state.confirmAction[actionKey];
+                    }, 3000)
+                };
+                element.classList.add('confirm-action');
+                showMessage(message, 'info');
+            }
+        });
+    }
+
+    // --- Daily Activity Event Handlers ---
+    function attachDailyActivityEventListeners() {
+        DOM.dailyActivityTableBody.querySelectorAll('.activity-text-editable, .time-editable').forEach(el => {
+            el.addEventListener('click', handleInlineEditClick);
+            el.addEventListener('blur', handleInlineEditBlur);
+            el.addEventListener('keydown', handleInlineEditKeydown);
+        });
+        DOM.dailyActivityTableBody.querySelectorAll('.move-up-btn').forEach(btn => btn.addEventListener('click', handleMoveUpClick));
+        DOM.dailyActivityTableBody.querySelectorAll('.move-down-btn').forEach(btn => btn.addEventListener('click', handleMoveDownClick));
+        
+        DOM.dailyActivityTableBody.querySelectorAll('.delete-btn').forEach(btn => {
+            const timeKey = btn.closest('tr').dataset.time;
+            setupDoubleClickConfirm(
+                btn,
+                `delete-${timeKey}`,
+                'Click again to confirm deletion.',
+                () => deleteActivity(getYYYYMMDD(state.selectedDate), timeKey)
+            );
+        });
+    }
+
+    function handleMoveUpClick(event) {
+        const currentRow = event.currentTarget.closest('tr');
+        if (currentRow.previousElementSibling) {
+            DOM.dailyActivityTableBody.insertBefore(currentRow, currentRow.previousElementSibling);
+            updateActivityOrder();
+        }
+    }
+
+    function handleMoveDownClick(event) {
+        const currentRow = event.currentTarget.closest('tr');
+        if (currentRow.nextElementSibling) {
+            DOM.dailyActivityTableBody.insertBefore(currentRow.nextElementSibling, currentRow);
+            updateActivityOrder();
+        }
+    }
+
+    function handleInlineEditClick(event) {
+        const target = event.currentTarget;
+        if (state.editingInlineTimeKey && state.editingInlineTimeKey !== target.dataset.time) {
+            DOM.dailyActivityTableBody.querySelector(`[data-time="${state.editingInlineTimeKey}"]`)?.blur();
+        }
+        target.classList.add('editing');
+        setState({ editingInlineTimeKey: target.dataset.time });
+    }
+
+    function handleInlineEditBlur(event) {
+        const target = event.currentTarget;
+        if (state.editingInlineTimeKey === target.dataset.time) {
+            if (target.classList.contains('time-editable')) {
+                saveData({ type: 'UPDATE_TIME', payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
+            } else {
+                saveData({ type: 'UPDATE_ACTIVITY_TEXT', payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
+            }
+        }
+        target.classList.remove('editing');
+    }
+
+    function handleInlineEditKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            event.currentTarget.blur();
+        }
+    }
+
+    // --- Leave Management ---
+    function openLeaveTypeModal(leaveType = null) {
+        DOM.leaveTypeModal.classList.remove('hidden');
+        if (leaveType) {
+            DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
+            DOM.editingLeaveTypeId.value = leaveType.id;
+            DOM.leaveNameInput.value = leaveType.name;
+            DOM.leaveDaysInput.value = leaveType.totalDays;
+            selectColorInPicker(leaveType.color);
+            DOM.deleteLeaveTypeBtn.classList.remove('hidden');
+        } else {
+            DOM.leaveTypeModalTitle.textContent = 'Add New Leave Type';
+            DOM.editingLeaveTypeId.value = '';
+            DOM.leaveNameInput.value = '';
+            DOM.leaveDaysInput.value = '';
+            selectColorInPicker(null);
+            DOM.deleteLeaveTypeBtn.classList.add('hidden');
+        }
+    }
+
+    function closeLeaveTypeModal() {
+        DOM.leaveTypeModal.classList.add('hidden');
+    }
+
+    function setupColorPicker() {
+        const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
+        DOM.leaveColorPicker.innerHTML = colors.map(color => `
+            <button type="button" data-color="${color}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
+        `).join('');
+    }
+
+    function selectColorInPicker(color) {
+        DOM.leaveColorPicker.querySelectorAll('button').forEach(btn => {
+            if (btn.dataset.color === color) {
+                btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            } else {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+            }
+        });
+    }
+
+    async function saveLeaveType() {
+        const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
+        const name = DOM.leaveNameInput.value.trim();
+        const totalDays = parseInt(DOM.leaveDaysInput.value, 10);
+        const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
+        const color = selectedColorEl ? selectedColorEl.dataset.color : null;
+
+        if (!name || isNaN(totalDays) || !color) {
+            showMessage('Please fill all fields and select a color.', 'error');
+            return;
+        }
+
+        const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
+        if (isColorTaken) {
+            showMessage('This color is already used by another leave type.', 'error');
+            return;
+        }
+
+        const newLeaveTypes = [...state.leaveTypes];
+        const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
+
+        if (existingIndex > -1) {
+            newLeaveTypes[existingIndex] = { id, name, totalDays, color };
+        } else {
+            newLeaveTypes.push({ id, name, totalDays, color });
+        }
+
+        setState({ leaveTypes: newLeaveTypes });
+        if(state.isOnlineMode) {
+            await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
+        }
+
+        closeLeaveTypeModal();
+        updateView();
+        showMessage('Leave type saved!', 'success');
+    }
+
+    async function deleteLeaveType() {
+        const id = DOM.editingLeaveTypeId.value;
+        const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
+        setState({ leaveTypes: newLeaveTypes });
+
+        // Also remove logged leaves of this type
+        const updatedActivities = { ...state.allStoredData };
+        Object.keys(updatedActivities).forEach(dateKey => {
+            if (updatedActivities[dateKey].leave?.typeId === id) {
+                delete updatedActivities[dateKey].leave;
+            }
+        });
+        setState({ allStoredData: updatedActivities });
+
+        if(state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        }
+
+        closeLeaveTypeModal();
+        updateView();
+        showMessage('Leave type deleted!', 'success');
+    }
+    
+    function renderLeavePills() {
+        DOM.leavePillsContainer.innerHTML = '';
+        state.leaveTypes.forEach(lt => {
+            const pill = document.createElement('button');
+            pill.className = 'px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
+            pill.style.backgroundColor = lt.color;
+            pill.textContent = lt.name;
+            pill.dataset.id = lt.id;
+            if (state.isLoggingLeave && state.selectedLeaveTypeId === lt.id) {
+                pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            }
+            DOM.leavePillsContainer.appendChild(pill);
+        });
+    }
+
+    function calculateLeaveBalances() {
+        const balances = {};
+        const leaveCounts = {};
+
+        state.leaveTypes.forEach(lt => {
+            leaveCounts[lt.id] = 0;
+        });
+
+        Object.values(state.allStoredData).forEach(dayData => {
+            if (dayData.leave) {
+                const leaveValue = dayData.leave.dayType === 'half' ? 0.5 : 1;
+                if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
+                    leaveCounts[dayData.leave.typeId] += leaveValue;
+                }
+            }
+        });
+
+        state.leaveTypes.forEach(lt => {
+            balances[lt.id] = lt.totalDays - (leaveCounts[lt.id] || 0);
+        });
+
+        return balances;
+    }
+
+    function renderLeaveStats() {
+        DOM.leaveStatsSection.innerHTML = '';
+        if (state.leaveTypes.length === 0) {
+            DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined yet.</p>';
+            return;
+        }
+
+        const leaveCounts = {};
+        state.leaveTypes.forEach(lt => {
+            leaveCounts[lt.id] = 0;
+        });
+
+        Object.values(state.allStoredData).forEach(dayData => {
+            if (dayData.leave) {
+                if(dayData.leave.dayType === 'full') {
+                    leaveCounts[dayData.leave.typeId] += 1;
+                } else if (dayData.leave.dayType === 'half') {
+                    leaveCounts[dayData.leave.typeId] += 0.5;
+                }
+            }
+        });
+
+        const statsHTML = state.leaveTypes.map(lt => {
+            const used = leaveCounts[lt.id] || 0;
+            const balance = lt.totalDays - used;
+            return `
+                <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-lg" style="color: ${lt.color};">${lt.name}</h4>
+                        <button class="edit-leave-type-btn icon-btn -mt-2 -mr-2" data-id="${lt.id}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-center">
+                        <div class="bg-gray-100 p-2 rounded col-span-1">
+                            <p class="text-xs text-gray-500">Used</p>
+                            <p class="font-bold text-xl text-gray-800">${used}</p>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded col-span-1 balance-box">
+                            <p class="text-xs stats-label">Balance</p>
+                            <p class="font-bold text-xl stats-value">${balance}</p>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded col-span-2 md:col-span-1">
+                            <p class="text-xs text-gray-500">Total</p>
+                            <p class="font-bold text-xl text-gray-800">${lt.totalDays}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${statsHTML}</div>`;
+        
+        DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
+                if (leaveType) {
+                    openLeaveTypeModal(leaveType);
+                }
+            });
+        });
+    }
+
+    function openLeaveCustomizationModal() {
+        if (state.leaveSelection.size === 0) {
+            showMessage('Please select at least one day on the calendar.', 'info');
+            return;
+        }
+        DOM.customizeLeaveModal.classList.remove('hidden');
+        renderLeaveCustomizationModal();
+    }
+
+    function renderLeaveCustomizationModal() {
+        const list = DOM.leaveDaysList;
+        list.innerHTML = '';
+        const sortedDates = Array.from(state.leaveSelection).sort();
+
+        sortedDates.forEach(dateKey => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+            item.dataset.dateKey = dateKey;
+            
+            const existingLeave = state.allStoredData[dateKey]?.leave;
+            const currentDayType = existingLeave?.typeId === state.selectedLeaveTypeId ? existingLeave.dayType : 'full';
+
+            item.innerHTML = `
+                <span class="font-medium text-gray-800">${formatDateForDisplay(dateKey)}</span>
+                <div class="flex items-center gap-4">
+                     <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer" data-selected-value="${currentDayType}">
+                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${currentDayType === 'half' ? '100%' : '0'});"></div>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full">Full</button>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+                    </div>
+                    <button class="delete-leave-day-btn text-red-500 hover:text-red-700" title="Remove this day">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+
+        list.querySelectorAll('.day-type-toggle').forEach(toggle => {
+            const bg = toggle.querySelector('.toggle-bg');
+            const buttons = toggle.querySelectorAll('.toggle-btn');
+            
+            const initialValue = toggle.dataset.selectedValue;
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === initialValue));
+
+            toggle.addEventListener('click', (e) => {
+                const clickedButton = e.target.closest('.toggle-btn');
+                if (!clickedButton) return;
+
+                const value = clickedButton.dataset.value;
+                toggle.dataset.selectedValue = value;
+
+                const isHalf = value === 'half';
+                bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
+                
+                buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+            });
+        });
+
+        list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const item = e.currentTarget.closest('[data-date-key]');
+                const dateKey = item.dataset.dateKey;
+                state.leaveSelection.delete(dateKey);
+                renderLeaveCustomizationModal();
+                renderCalendar();
+            });
+        });
+    }
+
+    async function saveLoggedLeaves() {
+        const balances = calculateLeaveBalances();
+        const leaveType = state.leaveTypes.find(lt => lt.id === state.selectedLeaveTypeId);
+        let currentBalance = balances[state.selectedLeaveTypeId];
+        
+        const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
+        let totalCost = 0;
+        const changes = [];
+
+        modalItems.forEach(item => {
+            const dateKey = item.dataset.dateKey;
+            const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
+            const cost = dayType === 'half' ? 0.5 : 1;
+            
+            const existingLeave = state.allStoredData[dateKey]?.leave;
+            if (!existingLeave || existingLeave.typeId !== state.selectedLeaveTypeId) {
+                 totalCost += cost;
+            } else if(existingLeave.typeId === state.selectedLeaveTypeId) {
+                const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
+                totalCost += (cost - oldCost);
+            }
+            changes.push({ dateKey, dayType });
+        });
+
+        if (totalCost > currentBalance) {
+            showMessage(`Cannot log leave. Required: ${totalCost}, Balance: ${currentBalance}.`, 'error');
+            return;
+        }
+
+        const updatedData = { ...state.allStoredData };
+        changes.forEach(({ dateKey, dayType }) => {
+            if (!updatedData[dateKey]) updatedData[dateKey] = {};
+            updatedData[dateKey].leave = { typeId: state.selectedLeaveTypeId, dayType };
+        });
+
+        // Remove leaves for dates that were deselected in the modal
+        const datesInModal = new Set(changes.map(c => c.dateKey));
+        const initialSelection = new Set(state.leaveSelection);
+        initialSelection.forEach(dateKey => {
+            if (!datesInModal.has(dateKey)) {
+                if (updatedData[dateKey]?.leave?.typeId === state.selectedLeaveTypeId) {
+                    delete updatedData[dateKey].leave;
+                }
+            }
+        });
+
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+        }
+
+        DOM.customizeLeaveModal.classList.add('hidden');
+        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+        DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+        updateView();
+        showMessage('Leaves saved successfully!', 'success');
+    }
+
+
+    // --- Event Listener Setup ---
+    function setupEventListeners() {
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
+        DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
+        DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
+        DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
+        document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
+        
+        setupDoubleClickConfirm(
+            document.getElementById('sign-out-btn'),
+            'signOut',
+            'Click again to confirm sign out.',
+            appSignOut
+        );
+
+        const passwordToggleBtn = document.getElementById('password-toggle-btn');
+        const passwordToggleIcon = document.getElementById('password-toggle-icon');
+        passwordToggleBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            passwordToggleIcon.classList.toggle('fa-eye', !isPassword);
+            passwordToggleIcon.classList.toggle('fa-eye-slash', isPassword);
+        });
+
+        emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
+        passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
+        document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' }); updateView(); });
+        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' }); updateView(); });
+        
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if (state.currentView === 'month') {
+                const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
+                setState({ currentMonth: newMonth });
+            } else {
+                const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+            updateView();
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (state.currentView === 'month') {
+                const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
+                setState({ currentMonth: newMonth });
+            } else {
+                const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+            updateView();
+        });
+
+        DOM.todayBtnDay.addEventListener('click', async () => {
+            setButtonLoadingState(DOM.todayBtnDay, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            const today = new Date();
+            setState({
+                selectedDate: today,
+                currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
+            });
+            updateView();
+            setButtonLoadingState(DOM.todayBtnDay, false);
+        });
+
+        DOM.currentPeriodDisplay.addEventListener('click', () => {
+            setState({ pickerYear: state.currentView === 'month' ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
+            renderMonthPicker();
+            DOM.monthPickerModal.classList.remove('hidden');
+        });
+        
+        document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.add('hidden'));
+        document.getElementById('prev-year-btn').addEventListener('click', () => { setState({ pickerYear: state.pickerYear - 1 }); renderMonthPicker(); });
+        document.getElementById('next-year-btn').addEventListener('click', () => { setState({ pickerYear: state.pickerYear + 1 }); renderMonthPicker(); });
+        DOM.dailyNoteInput.addEventListener('input', (e) => saveData({ type: 'SAVE_NOTE', payload: e.target.value }));
+        
+        const addNewSlotBtn = document.getElementById('add-new-slot-btn');
+        addNewSlotBtn.addEventListener('click', async () => {
+            setButtonLoadingState(addNewSlotBtn, true);
+            await saveData({ type: 'ADD_SLOT' });
+            setButtonLoadingState(addNewSlotBtn, false);
+        });
+        
+        document.getElementById('reset-data-btn').addEventListener('click', () => {
+            DOM.resetModalText.textContent = state.isOnlineMode
+                ? "This will permanently delete all your activity data from the cloud. This action cannot be undone."
+                : "This will permanently delete all your local activity data. This action cannot be undone.";
+            DOM.confirmResetModal.classList.remove('hidden');
+        });
+        document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.add('hidden'));
+        document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
+
+        const uploadCsvInput = document.getElementById('upload-csv-input');
+        DOM.uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
+        DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
+        uploadCsvInput.addEventListener('change', handleFileUpload);
+
+        // Leave Management Event Listeners
+        DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
+        document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
+        document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
+        DOM.deleteLeaveTypeBtn.addEventListener('click', deleteLeaveType);
+        DOM.leaveColorPicker.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                selectColorInPicker(e.target.dataset.color);
+            }
+        });
+        DOM.statsToggleBtn.addEventListener('click', () => {
+            DOM.leaveStatsSection.classList.toggle('hidden');
+            DOM.statsArrowDown.classList.toggle('hidden');
+            DOM.statsArrowUp.classList.toggle('hidden');
+        });
+        
+        DOM.logNewLeaveBtn.addEventListener('click', () => {
+            if (state.isLoggingLeave) { // If currently logging, this button acts as a cancel/save
+                openLeaveCustomizationModal();
+            } else { // Start logging
+                if (state.leaveTypes.length === 0) {
+                    showMessage("Please add a leave type first.", 'info');
+                    return;
+                }
+                setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
+                DOM.logNewLeaveBtn.textContent = 'Review & Save Leave';
+                DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
+                showMessage('Select a leave type, then click on the calendar days.', 'info');
+                renderLeavePills();
+            }
+        });
+
+        DOM.leavePillsContainer.addEventListener('click', (e) => {
+            const pill = e.target.closest('button');
+            if (state.isLoggingLeave && pill) {
+                const balances = calculateLeaveBalances();
+                if (balances[pill.dataset.id] <= 0) {
+                    showMessage('Leave balance for this type is exhausted.', 'error');
+                    return;
+                }
+                setState({ selectedLeaveTypeId: pill.dataset.id });
+                renderLeavePills();
+            }
+        });
+
+        DOM.calendarView.addEventListener('click', (e) => {
+            const cell = e.target.closest('.calendar-day-cell.current-month');
+            if (!cell) return;
+            
+            if (state.isLoggingLeave) {
+                const dateKey = cell.dataset.date;
+                if (!state.selectedLeaveTypeId) {
+                    const existingLeave = state.allStoredData[dateKey]?.leave;
+                    if (existingLeave) {
+                        setState({ 
+                            selectedLeaveTypeId: existingLeave.typeId,
+                            leaveSelection: new Set([dateKey])
+                        });
+                        renderLeavePills();
+                        openLeaveCustomizationModal();
+                    } else {
+                        showMessage('Please select a leave type pill first.', 'error');
+                    }
+                    return;
+                }
+                
+                if (state.leaveSelection.has(dateKey)) {
+                    state.leaveSelection.delete(dateKey);
+                } else {
+                    state.leaveSelection.add(dateKey);
+                }
+                renderCalendar();
+            } else {
+                const date = new Date(cell.dataset.date + 'T00:00:00');
+                setState({ selectedDate: date, currentView: 'day' });
+                updateView();
+            }
+        });
+
+        document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
+            DOM.customizeLeaveModal.classList.add('hidden');
+            setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+            DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+            updateView();
+        });
+
+        document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
+    }
+
+    // --- App Initialization ---
+    function handleSplashScreen() {
+        setTimeout(() => {
+            DOM.splashLoading.style.display = 'none';
+            DOM.tapToBegin.style.display = 'block';
+            DOM.splashScreen.addEventListener('click', () => {
+                DOM.splashScreen.classList.add('zooming-out', 'hiding');
+                setTimeout(() => {
+                    DOM.splashScreen.style.display = 'none';
+                    initAuth();
+                }, 1200);
+            }, { once: true });
+        }, 1500);
+    }
+
+    function init() {
+        initUI();
+        setupEventListeners();
+        setupColorPicker();
+        loadTheme();
+        handleSplashScreen();
+    }
+
+    // Run the app once the DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
+</script>
 
 </body>
 </html>
