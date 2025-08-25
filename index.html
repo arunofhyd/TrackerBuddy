@@ -765,6 +765,8 @@
             const dateKey = getYYYYMMDD(date);
             const dayData = state.allStoredData[dateKey] || {};
             const noteText = dayData.note || '';
+            // Sanitize the note to prevent XSS
+            const sanitizedNote = noteText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
             const leaveData = dayData.leave;
 
