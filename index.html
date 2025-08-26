@@ -763,28 +763,16 @@
         }
     }
 
-   // --- REPLACE WITH THIS CODE ---
-
     function switchView(viewToShow, viewToHide, callback) {
         const mainContainer = document.querySelector('.main-container');
 
-        // --- ADDED LOGIC ---
-        // If we are showing the login or loading screen, force dark mode on.
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-            document.body.classList.add('dark');
-        } 
-        // If we are switching to the main app, restore the user's saved theme.
-        else if (viewToShow === DOM.appView) {
-            loadTheme();
+            document.body.classList.add('dark'); // 1. Force dark mode
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex'; // 2. Show the video background
         }
-        // --- END OF ADDED LOGIC ---
-
-        if (viewToShow === DOM.loginView) {
-            DOM.appBackground.classList.remove('hidden');
-            setTimeout(() => DOM.appBackground.style.opacity = '1', 20);
-        } else {
-            DOM.appBackground.style.opacity = '0';
-            setTimeout(() => DOM.appBackground.classList.add('hidden'), 500);
+        else if (viewToShow === DOM.appView) {
+            loadTheme(); // 1. Restore the user's chosen theme
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none'; // 2. Hide the video background
         }
 
         if (viewToHide) {
@@ -2359,27 +2347,29 @@
 
     // --- App Initialization ---
     function handleSplashScreen() {
-        // You'll need to define splashText in your initUI() function
+        // Make sure this line is in your initUI() function
         DOM.splashText = document.querySelector('.splash-text');
 
         setTimeout(() => {
             DOM.splashLoading.style.display = 'none';
             DOM.tapToBegin.style.display = 'block';
             DOM.splashScreen.addEventListener('click', () => {
-                // 1. Add the .hiding class to the elements you want to animate out
+                // Start the zoom/fade animation
                 DOM.splashText.classList.add('hiding');
                 DOM.splashLoading.classList.add('hiding');
                 DOM.tapToBegin.classList.add('hiding');
-
-                // 2. Immediately start loading the login page
+                // Show the login page immediately
                 initAuth();
-
-                // 3. After a short delay, move the splash screen to the background
+                // Move the splash container to the background
+                DOM.splashScreen.style.zIndex = '-10';
+                DOM.splashScreen.style.cursor = 'default';
+                DOM.splashScreen.style.backgroundColor = 'transparent';
+                // This stops them from appearing behind the login container.
                 setTimeout(() => {
-                    DOM.splashScreen.style.zIndex = '-10'; // Move to the back
-                    DOM.splashScreen.style.cursor = 'default'; // Remove pointer cursor
-                    DOM.splashScreen.style.backgroundColor = 'transparent'; // Make bg transparent
-                }, 400); // This delay should match your CSS transition time
+                    DOM.splashText.style.display = 'none';
+                    DOM.splashLoading.style.display = 'none';
+                    DOM.tapToBegin.style.display = 'none';
+                }, 400); // Duration should match your CSS transition time
 
             }, { once: true });
         }, 500);
