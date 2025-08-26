@@ -10,27 +10,22 @@
     <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Standard Favicon for browsers -->
     <link rel="icon" href="assets/logo.png" type="image/png">
     <link rel="shortcut icon" href="assets/logo.png">
 
-    <!-- Apple Touch Icon for iOS homescreen -->
     <link rel="apple-touch-icon" href="assets/logo.png">
     <link rel="apple-touch-icon" sizes="76x76" href="assets/logo.png">
     <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.png">
     <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png">
 
-    <!-- PWA and Homescreen Configuration -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
     <meta name="application-name" content="TrackerBuddy">
     
-    <!-- Microsoft Tiles for Windows Start Screen -->
     <meta name="msapplication-TileImage" content="assets/logo.png">
     <meta name="msapplication-TileColor" content="#3b82f6">
 
-    <!-- Theme Color for Mobile Browsers -->
     <meta name="theme-color" content="#3b82f6">
 
     <style>
@@ -467,17 +462,14 @@
                         <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                     </div>
                     
-                    <!-- Month View Leave Pills Container -->
                     <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
                         <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
                         </button>
                         <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
-                            <!-- Leave pills will be rendered here -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Day View Today Button -->
                     <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
 
                     <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
@@ -502,7 +494,7 @@
                     </div>
                     <div id="month-view-bottom-controls">
                         <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
-                            <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
+                            <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log Leave</button>
                             <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
                                 Stats
                                 <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -510,8 +502,7 @@
                             </button>
                         </div>
                         <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                            <!-- Leave stats will be rendered here -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -520,7 +511,6 @@
     <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span>Reach out to the dev</span></a></footer>
 </div>
 
-<!-- Add/Edit Leave Type Modal -->
 <div id="leave-type-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 id="leave-type-modal-title" class="text-2xl font-bold mb-6 text-center">Add New Leave Type</h2>
@@ -537,8 +527,7 @@
             <div>
                 <label class="block text-sm font-medium mb-2">Color</label>
                 <div id="leave-color-picker" class="grid grid-cols-6 gap-2">
-                    <!-- Color options will be injected here -->
-                </div>
+                    </div>
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
@@ -549,7 +538,6 @@
     </div>
 </div>
 
-<!-- Customize Leave Modal -->
 <div id="customize-leave-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-3xl">
         <h2 class="text-2xl font-bold mb-4 text-center">Log Leave</h2>
@@ -558,8 +546,7 @@
         <div id="bulk-leave-controls" class="p-4 mb-6 border rounded-lg flex flex-wrap items-center gap-x-4 gap-y-3">
             <span class="font-semibold flex-shrink-0">Apply to All:</span>
             <div id="modal-leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap p-2">
-                <!-- Scrolling pills will be rendered here -->
-            </div>
+                </div>
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <div id="bulk-day-type-toggle" class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="full">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
@@ -571,8 +558,7 @@
         </div>
         
         <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-4 pr-2">
-            <!-- Selected leave days will be rendered here -->
-        </div>
+            </div>
         
         <div class="flex justify-end mt-6 space-x-3">
             <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
@@ -844,6 +830,7 @@
         DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
         DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
         DOM.todayBtnDay.classList.toggle('hidden', isMonthView);
+        DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView)
 
         if (isMonthView) {
             DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -1306,12 +1293,14 @@
             return showMessage("No data found to export.", 'info');
         }
 
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
-
+        // --- CORRECTED PART ---
+        const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
+        
         const link = document.createElement("a");
-        link.href = encodeURI(csvContent);
+        // Correctly construct the data URI by encoding only the data component
+        link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
         link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1347,73 +1336,94 @@
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const csvContent = e.target.result;
-            const dataCopy = {}; // Start with a fresh data object for import
-            let leaveTypesCopy = [];
-            const lines = csvContent.split('\n').filter(line => line.trim());
+            try {
+                const csvContent = e.target.result;
 
-            if (lines.length <= 1) {
-                return showMessage("CSV file is empty or has no data.", 'error');
-            }
-            
-            lines.slice(1).forEach(line => {
-                const row = parseCsvLine(line);
-                if (row.length < 2) return;
+                // --- FIX: Initialize with existing data to merge, not replace ---
+                const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+                const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
-                const [type, detail1, detail2, detail3, detail4] = row;
+                const lines = csvContent.split('\n').filter(line => line.trim());
 
-                switch (type.toUpperCase()) {
-                    case 'LEAVE_TYPE':
-                        leaveTypesCopy.push({
-                            id: detail1,
-                            name: detail2,
-                            totalDays: parseInt(detail3, 10) || 0,
-                            color: detail4
-                        });
-                        break;
-
-                    case 'NOTE':
-                    case 'LEAVE':
-                    case 'ACTIVITY':
-                    case 'USER_CLEARED':
-                        const dateKey = detail1;
-                        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-                            console.warn(`Skipping row with invalid date format: ${line}`);
-                            return;
-                        }
-                        if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
-
-                        if (type.toUpperCase() === 'NOTE') {
-                            dataCopy[dateKey].note = detail2;
-                        } else if (type.toUpperCase() === 'LEAVE') {
-                            dataCopy[dateKey].leave = {
-                                typeId: detail2,
-                                dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
-                            };
-                        } else if (type.toUpperCase() === 'ACTIVITY') {
-                            const time = detail2;
-                            const text = detail3;
-                            const order = parseInt(detail4, 10);
-                            if (time) {
-                                dataCopy[dateKey][time] = { text: text || "", order: isNaN(order) ? 0 : order };
-                            }
-                        } else if (type.toUpperCase() === 'USER_CLEARED') {
-                            dataCopy[dateKey]._userCleared = true;
-                        }
-                        break;
+                if (lines.length <= 1) {
+                    return showMessage("CSV file is empty or has no data.", 'error');
                 }
-            });
+                
+                let processedRows = 0;
+                lines.slice(1).forEach(line => {
+                    const row = parseCsvLine(line.trim());
+                    if (row.length < 2) return;
 
-            setState({ leaveTypes: leaveTypesCopy, allStoredData: dataCopy });
+                    const [type, detail1, detail2, detail3, detail4] = row;
+                    let rowProcessed = false;
 
-            if (state.isOnlineMode && state.userId) {
-                await saveDataToFirestore({ activities: dataCopy, leaveTypes: leaveTypesCopy });
-            } else {
-                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: leaveTypesCopy });
-                updateView();
+                    switch (type.toUpperCase()) {
+                        case 'LEAVE_TYPE':
+                            if (detail1 && detail2 && detail3 && detail4) { // Basic validation
+                                leaveTypesMap.set(detail1, {
+                                    id: detail1,
+                                    name: detail2,
+                                    totalDays: parseInt(detail3, 10) || 0,
+                                    color: detail4
+                                });
+                                rowProcessed = true;
+                            }
+                            break;
+
+                        case 'NOTE':
+                        case 'LEAVE':
+                        case 'ACTIVITY':
+                        case 'USER_CLEARED':
+                            const dateKey = detail1;
+                            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+                                console.warn(`Skipping row with invalid date format: ${line}`);
+                                return;
+                            }
+                            if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
+
+                            if (type.toUpperCase() === 'NOTE') {
+                                dataCopy[dateKey].note = detail2;
+                                rowProcessed = true;
+                            } else if (type.toUpperCase() === 'LEAVE') {
+                                dataCopy[dateKey].leave = {
+                                    typeId: detail2,
+                                    dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
+                                };
+                                rowProcessed = true;
+                            } else if (type.toUpperCase() === 'ACTIVITY') {
+                                const time = detail2;
+                                const text = detail3;
+                                const order = parseInt(detail4, 10);
+                                if (time) {
+                                    dataCopy[dateKey][time] = { text: text || "", order: isNaN(order) ? 0 : order };
+                                    rowProcessed = true;
+                                }
+                            } else if (type.toUpperCase() === 'USER_CLEARED') {
+                                dataCopy[dateKey]._userCleared = true;
+                                rowProcessed = true;
+                            }
+                            break;
+                    }
+                    if (rowProcessed) processedRows++;
+                });
+
+                const finalLeaveTypes = Array.from(leaveTypesMap.values());
+                
+                setState({ leaveTypes: finalLeaveTypes, allStoredData: dataCopy });
+
+                if (state.isOnlineMode && state.userId) {
+                    await saveDataToFirestore({ activities: dataCopy, leaveTypes: finalLeaveTypes });
+                } else {
+                    saveDataToLocalStorage({ activities: dataCopy, leaveTypes: finalLeaveTypes });
+                    updateView();
+                }
+
+                showMessage(`${processedRows} records imported/updated successfully!`, 'success');
+                event.target.value = '';
+            } catch(err) {
+                console.error("Error during CSV import:", err);
+                showMessage("An error occurred while importing the file.", 'error');
             }
-            showMessage("CSV data imported successfully!", 'success');
-            event.target.value = '';
         };
         reader.onerror = () => showMessage("Error reading file.", 'error');
         reader.readAsText(file);
@@ -2182,7 +2192,7 @@
             setupDayTypeToggle(item.querySelector('.day-type-toggle'));
         });
 
-        // FIX: Re-attach event listeners for delete buttons
+        // Re-attach event listeners for delete buttons
         list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
