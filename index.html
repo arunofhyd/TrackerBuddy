@@ -150,7 +150,7 @@
             background-color: #eff6ff;
         }
         .calendar-day-cell.is-today.leave-selecting {
-            border-color: transparent; /* Hide solid border to show only dotted outline */
+            border-color: transparent !important; /* Hide solid border to show only dotted outline */
         }
 
 
@@ -183,8 +183,8 @@
         .activity-indicator { width: 10px; height: 10px; background-color: #3b82f6; border-radius: 50%; margin-top: 4px; }
 
         /* --- Leave Pills Scrollbar --- */
-        #leave-pills-container::-webkit-scrollbar { display: none; }
-        #leave-pills-container { -ms-overflow-style: none; scrollbar-width: none; }
+        #leave-pills-container::-webkit-scrollbar, #modal-leave-pills-container::-webkit-scrollbar { display: none; }
+        #leave-pills-container, #modal-leave-pills-container { -ms-overflow-style: none; scrollbar-width: none; }
 
 
         /* --- General UI Components --- */
@@ -237,6 +237,29 @@
         .balance-box { background-color: #3b82f6 !important; }
         .balance-box p { color: white !important; }
         .balance-box .stats-label { color: #dbeafe !important; }
+
+        /* --- Custom Leave Type Selector in Modal --- */
+        .leave-type-selector-panel {
+            display: none; /* Hidden by default */
+            position: absolute;
+            z-index: 60; /* Above modal content */
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            width: max-content;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        body.dark .leave-type-selector-panel {
+            background-color: #1f2937;
+            border-color: #4b5563;
+        }
+        .leave-type-selector-panel.open {
+            display: block;
+        }
 
 
         @media (max-width: 767px) {
@@ -292,6 +315,28 @@
         body.dark .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #374151; }
         body.dark .activity-text-editable { border-bottom-color: #4b5563; }
         body.dark ::selection { background-color: #3b82f6; color: #ffffff; }
+
+        /* --- Unified Modal Theming --- */
+        .modal-container { background-color: #ffffff; }
+        .modal-container h2 { color: #111827; }
+        .modal-container p, .modal-container label, .modal-container span { color: #4b5563; }
+        .modal-container input, .modal-container textarea { background-color: #f9fafb; border-color: #e5e7eb; color: #111827; }
+        .modal-container #bulk-leave-controls { background-color: #f9fafb; border-color: #e5e7eb; }
+        .modal-container .leave-day-item { background-color: #ffffff; border-color: #e5e7eb; }
+        .modal-container .leave-day-item span { color: #1f2937; }
+        .modal-container .leave-type-selector-trigger { background-color: #ffffff; border-color: #d1d5db; }
+        .modal-container .leave-type-selector-trigger span { color: #1f2937; }
+
+        body.dark .modal-container { background-color: #1f2937; }
+        body.dark .modal-container h2 { color: #f9fafb; }
+        body.dark .modal-container p, body.dark .modal-container label, body.dark .modal-container span { color: #9ca3af; }
+        body.dark .modal-container input, body.dark .modal-container textarea { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
+        body.dark .modal-container #bulk-leave-controls { background-color: #111827; border-color: #374151; }
+        body.dark .modal-container .leave-day-item { background-color: #111827; border-color: #374151; }
+        body.dark .modal-container .leave-day-item span { color: #f9fafb; }
+        body.dark .modal-container .leave-type-selector-trigger { background-color: #374151; border-color: #4b5563; }
+        body.dark .modal-container .leave-type-selector-trigger span { color: #f9fafb; }
+
     </style>
 </head>
 <body>
@@ -370,73 +415,73 @@
         </div>
         
         <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
-                 <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
-                            <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                            <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                        </button>
-                        <img src="assets/logo.png" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
-                        <button id="sign-out-btn" class="icon-btn" title="Sign Out">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                        </button>
-                    </div>
-                    <div class="flex flex-col space-y-4 mb-8 w-full">
-                        <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
-                        <div class="flex items-center justify-between w-full">
-                            <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-                            <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
-                            <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
-                        </div>
-                        
-                        <!-- Month View Leave Pills Container -->
-                        <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
-                            <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
-                            </button>
-                            <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
-                                <!-- Leave pills will be rendered here -->
-                            </div>
-                        </div>
-
-                        <!-- Day View Today Button -->
-                        <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
-
-                        <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
-                    </div>
-                    <div id="main-content-area" class="w-full">
-                        <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
-                        <div id="daily-view" class="hidden">
-                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                                     <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                                     <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
+                         <div class="flex justify-between items-center mb-6">
+                             <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+                                 <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                 <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                             </button>
+                             <img src="assets/logo.png" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+                             <button id="sign-out-btn" class="icon-btn" title="Sign Out">
+                                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                             </button>
+                         </div>
+                         <div class="flex flex-col space-y-4 mb-8 w-full">
+                             <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
+                             <div class="flex items-center justify-between w-full">
+                                 <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                                 <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
+                                 <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                             </div>
+                             
+                             <!-- Month View Leave Pills Container -->
+                             <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
+                                 <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
+                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
+                                 </button>
+                                 <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
+                                     <!-- Leave pills will be rendered here -->
                                  </div>
-                                <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
-                                <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
-                                <div id="day-view-bottom-controls">
-                                    <hr class="my-6 border-gray-300">
-                                    <div class="flex flex-col md:flex-row gap-4">
-                                        <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Data</button>
-                                        <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Data</button>
-                                    </div>
-                                    <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
-                                </div>
-                        </div>
-                        <div id="month-view-bottom-controls">
-                            <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
-                                <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
-                                <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
-                                    Stats
-                                    <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                    <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                                </button>
-                            </div>
-                            <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                                <!-- Leave stats will be rendered here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                             </div>
+
+                             <!-- Day View Today Button -->
+                             <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
+
+                             <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
+                         </div>
+                         <div id="main-content-area" class="w-full">
+                             <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
+                             <div id="daily-view" class="hidden">
+                                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                                          <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                                          <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                                      </div>
+                                 <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
+                                 <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
+                                 <div id="day-view-bottom-controls">
+                                     <hr class="my-6 border-gray-300">
+                                     <div class="flex flex-col md:flex-row gap-4">
+                                         <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Data</button>
+                                         <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Data</button>
+                                     </div>
+                                     <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
+                                 </div>
+                             </div>
+                             <div id="month-view-bottom-controls">
+                                 <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
+                                     <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
+                                     <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
+                                         Stats
+                                         <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                         <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                     </button>
+                                 </div>
+                                 <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                                     <!-- Leave stats will be rendered here -->
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
         </div>
     </div>
     <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span>Reach out to the dev</span></a></footer>
@@ -444,20 +489,20 @@
 
 <!-- Add/Edit Leave Type Modal -->
 <div id="leave-type-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 id="leave-type-modal-title" class="text-2xl font-bold mb-6 text-center">Add New Leave Type</h2>
         <div class="space-y-4">
             <input type="hidden" id="editing-leave-type-id">
             <div>
-                <label for="leave-name-input" class="block text-sm font-medium text-gray-700 mb-1">Leave Name</label>
-                <input type="text" id="leave-name-input" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+                <label for="leave-name-input" class="block text-sm font-medium mb-1">Leave Name</label>
+                <input type="text" id="leave-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
-                <label for="leave-days-input" class="block text-sm font-medium text-gray-700 mb-1">Total Days per Year</label>
-                <input type="number" id="leave-days-input" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+                <label for="leave-days-input" class="block text-sm font-medium mb-1">Total Days per Year</label>
+                <input type="number" id="leave-days-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <label class="block text-sm font-medium mb-2">Color</label>
                 <div id="leave-color-picker" class="grid grid-cols-6 gap-2">
                     <!-- Color options will be injected here -->
                 </div>
@@ -473,22 +518,39 @@
 
 <!-- Customize Leave Modal -->
 <div id="customize-leave-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-3xl">
         <h2 class="text-2xl font-bold mb-4 text-center">Log Leave</h2>
-        <p class="text-center text-gray-600 mb-4">Customize day type for each selected date.</p>
-        <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-2 pr-2">
+        <p class="text-center mb-6">Assign a leave type and duration for each selected day.</p>
+        
+        <div id="bulk-leave-controls" class="p-4 mb-6 border rounded-lg flex flex-col sm:flex-row items-center gap-4">
+            <span class="font-semibold flex-shrink-0">Apply to All:</span>
+            <div id="modal-leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap p-2">
+                <!-- Scrolling pills will be rendered here -->
+            </div>
+            <div id="bulk-day-type-toggle" class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="full">
+                <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
+                <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold active" data-value="full">Full</button>
+                <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+            </div>
+        </div>
+        
+        <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-4 pr-2">
             <!-- Selected leave days will be rendered here -->
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg">Save Leave</button>
+        
+        <div class="flex justify-between items-center mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+             <button id="remove-all-leaves-btn" class="px-5 py-2 btn-danger rounded-lg">Remove All Selected</button>
+             <div class="space-x-3">
+                <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
+                <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg">Save Changes</button>
+             </div>
         </div>
     </div>
 </div>
 
 
 <div id="hourly-prompt-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 class="text-2xl font-bold mb-6 text-center">Time to Log Activity!</h2>
         <p class="text-lg mb-4 text-center">What did you do in the last hour?</p>
         <textarea id="hourly-activity-input" class="w-full p-3 border rounded-md min-h-[100px]"></textarea>
@@ -499,7 +561,7 @@
     </div>
 </div>
 <div id="month-picker-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <div class="flex justify-between items-center mb-6">
             <button id="prev-year-btn" class="p-2 btn-secondary rounded-full">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
@@ -516,9 +578,9 @@
     </div>
 </div>
 <div id="confirm-reset-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 class="text-2xl font-bold mb-4 text-center">Are you sure?</h2>
-        <p id="reset-modal-text" class="text-gray-700 mb-6 text-center"></p>
+        <p id="reset-modal-text" class="mb-6 text-center"></p>
         <div class="flex justify-end mt-6 space-x-3">
             <button id="cancel-reset-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
             <button id="confirm-reset-btn" class="px-5 py-2 btn-danger rounded-lg">Confirm Reset</button>
@@ -562,7 +624,8 @@
         leaveTypes: [],
         isLoggingLeave: false,
         selectedLeaveTypeId: null,
-        leaveSelection: new Set()
+        leaveSelection: new Set(),
+        initialLeaveSelection: new Set() // To track changes in the leave modal
     };
 
     // --- State Management ---
@@ -625,7 +688,8 @@
             customizeLeaveModal: document.getElementById('customize-leave-modal'),
             leaveDaysList: document.getElementById('leave-days-list'),
             monthViewBottomControls: document.getElementById('month-view-bottom-controls'),
-            dayViewBottomControls: document.getElementById('day-view-bottom-controls')
+            dayViewBottomControls: document.getElementById('day-view-bottom-controls'),
+            removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn')
         };
     }
 
@@ -779,7 +843,7 @@
             if (hasActivity) dayCell.classList.add('has-activity');
             if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
             if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === 'day') dayCell.classList.add('selected-day');
-            if (state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
+            if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
 
             let leaveIndicatorHTML = '';
             if(leaveData) {
@@ -1745,58 +1809,181 @@
             showMessage('Please select at least one day on the calendar.', 'info');
             return;
         }
+        // Store the selection state at the moment the modal is opened
+        setState({ initialLeaveSelection: new Set(state.leaveSelection) });
         DOM.customizeLeaveModal.classList.remove('hidden');
         renderLeaveCustomizationModal();
+    }
+
+    function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
+        const selectedType = state.leaveTypes.find(lt => lt.id === currentTypeId) || state.leaveTypes[0];
+        if (!selectedType) return; // No leave types defined
+
+        container.innerHTML = `
+            <button type="button" class="leave-type-selector-trigger w-full flex items-center justify-between px-3 py-1.5 border rounded-md shadow-sm text-left">
+                <span class="flex items-center">
+                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${selectedType.color};"></span>
+                    <span class="font-medium text-sm">${selectedType.name}</span>
+                </span>
+                <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+            </button>
+            <div class="leave-type-selector-panel">
+                <div class="flex flex-col space-y-1">
+                    ${state.leaveTypes.map(lt => `
+                        <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                            <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${lt.color};"></span>
+                            <span>${lt.name}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const trigger = container.querySelector('.leave-type-selector-trigger');
+        const panel = container.querySelector('.leave-type-selector-panel');
+        trigger.dataset.typeId = selectedType.id;
+
+        const closePanel = () => panel.classList.remove('open');
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close all other panels before opening this one
+            document.querySelectorAll('.leave-type-selector-panel.open').forEach(p => {
+                if (p !== panel) p.classList.remove('open');
+            });
+            panel.classList.toggle('open');
+        });
+
+        panel.querySelectorAll('.leave-type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const newTypeId = option.dataset.id;
+                const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
+                trigger.dataset.typeId = newTypeId;
+                
+                const triggerContent = trigger.querySelector('span');
+                triggerContent.innerHTML = `
+                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${newType.color};"></span>
+                    <span class="font-medium text-sm">${newType.name}</span>
+                `;
+                closePanel();
+                if (onTypeChangeCallback) {
+                    onTypeChangeCallback(newTypeId);
+                }
+            });
+        });
+
+        // Close panel when clicking outside
+        document.addEventListener('click', closePanel, { once: true });
+        container.addEventListener('click', e => e.stopPropagation()); // Prevent closing when clicking inside
+    }
+
+    function setupDayTypeToggle(toggleElement) {
+        const bg = toggleElement.querySelector('.toggle-bg');
+        const buttons = toggleElement.querySelectorAll('.toggle-btn');
+        
+        const updateUI = (value) => {
+            const isHalf = value === 'half';
+            bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+        };
+
+        updateUI(toggleElement.dataset.selectedValue || 'full');
+
+        toggleElement.addEventListener('click', (e) => {
+            const clickedButton = e.target.closest('.toggle-btn');
+            if (!clickedButton) return;
+            
+            const value = clickedButton.dataset.value;
+            if (toggleElement.dataset.selectedValue === value) return;
+
+            toggleElement.dataset.selectedValue = value;
+            updateUI(value);
+
+            if (toggleElement.id === 'bulk-day-type-toggle') {
+                document.querySelectorAll('#leave-days-list .day-type-toggle').forEach(itemToggle => {
+                    itemToggle.dataset.selectedValue = value;
+                    const itemBg = itemToggle.querySelector('.toggle-bg');
+                    const itemButtons = itemToggle.querySelectorAll('.toggle-btn');
+                    itemBg.style.transform = `translateX(${value === 'half' ? '100%' : '0'})`;
+                    itemButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+                });
+            }
+        });
     }
 
     function renderLeaveCustomizationModal() {
         const list = DOM.leaveDaysList;
         list.innerHTML = '';
         const sortedDates = Array.from(state.leaveSelection).sort();
+        
+        const updateIndividualSelectorDisplay = (container, newTypeId) => {
+            const trigger = container.querySelector('.leave-type-selector-trigger');
+            const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
+            if (trigger && newType) {
+                trigger.dataset.typeId = newTypeId;
+                const triggerContent = trigger.querySelector('span:first-child');
+                triggerContent.innerHTML = `
+                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${newType.color};"></span>
+                    <span class="font-medium text-sm">${newType.name}</span>
+                `;
+            }
+        };
+
+        const bulkPillsContainer = document.getElementById('modal-leave-pills-container');
+        let modalBulkTypeId = state.selectedLeaveTypeId || state.leaveTypes[0]?.id;
+
+        const renderBulkPills = () => {
+            bulkPillsContainer.innerHTML = '';
+            state.leaveTypes.forEach(lt => {
+                const pill = document.createElement('button');
+                pill.className = 'px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
+                pill.style.backgroundColor = lt.color;
+                pill.textContent = lt.name;
+                if (lt.id === modalBulkTypeId) {
+                    pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800');
+                }
+                pill.addEventListener('click', () => {
+                    modalBulkTypeId = lt.id;
+                    renderBulkPills(); 
+                    list.querySelectorAll('.leave-type-selector').forEach(container => {
+                        updateIndividualSelectorDisplay(container, modalBulkTypeId);
+                    });
+                });
+                bulkPillsContainer.appendChild(pill);
+            });
+        };
+
+        renderBulkPills();
+        setupDayTypeToggle(document.getElementById('bulk-day-type-toggle'));
 
         sortedDates.forEach(dateKey => {
             const item = document.createElement('div');
-            item.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+            item.className = 'leave-day-item flex flex-col sm:flex-row items-center justify-between p-3 rounded-lg shadow-sm border';
             item.dataset.dateKey = dateKey;
-            
+
             const existingLeave = state.allStoredData[dateKey]?.leave;
-            const currentDayType = existingLeave?.typeId === state.selectedLeaveTypeId ? existingLeave.dayType : 'full';
+            const currentLeaveTypeId = existingLeave ? existingLeave.typeId : modalBulkTypeId;
+            const currentDayType = existingLeave ? existingLeave.dayType : 'full';
 
             item.innerHTML = `
-                <span class="font-medium text-gray-800">${formatDateForDisplay(dateKey)}</span>
-                <div class="flex items-center gap-4">
-                     <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer" data-selected-value="${currentDayType}">
-                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${currentDayType === 'half' ? '100%' : '0'});"></div>
+                <span class="font-medium mb-2 sm:mb-0">${formatDateForDisplay(dateKey)}</span>
+                <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end">
+                    <div class="leave-type-selector relative flex-grow w-full sm:w-36">
+                    </div>
+                    <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
+                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
                         <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full">Full</button>
                         <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
                     </div>
-                    <button class="delete-leave-day-btn text-red-500 hover:text-red-700" title="Remove this day">
+                    <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2" title="Remove this day">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
             `;
             list.appendChild(item);
-        });
-
-        list.querySelectorAll('.day-type-toggle').forEach(toggle => {
-            const bg = toggle.querySelector('.toggle-bg');
-            const buttons = toggle.querySelectorAll('.toggle-btn');
             
-            const initialValue = toggle.dataset.selectedValue;
-            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === initialValue));
-
-            toggle.addEventListener('click', (e) => {
-                const clickedButton = e.target.closest('.toggle-btn');
-                if (!clickedButton) return;
-
-                const value = clickedButton.dataset.value;
-                toggle.dataset.selectedValue = value;
-
-                const isHalf = value === 'half';
-                bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
-                
-                buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
-            });
+            createLeaveTypeSelector(item.querySelector('.leave-type-selector'), currentLeaveTypeId);
+            setupDayTypeToggle(item.querySelector('.day-type-toggle'));
         });
 
         list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
@@ -1804,7 +1991,11 @@
                 const item = e.currentTarget.closest('[data-date-key]');
                 const dateKey = item.dataset.dateKey;
                 state.leaveSelection.delete(dateKey);
-                renderLeaveCustomizationModal();
+                if(state.leaveSelection.size === 0) {
+                    DOM.customizeLeaveModal.classList.add('hidden');
+                } else {
+                    renderLeaveCustomizationModal();
+                }
                 renderCalendar();
             });
         });
@@ -1812,48 +2003,51 @@
 
     async function saveLoggedLeaves() {
         const balances = calculateLeaveBalances();
-        const leaveType = state.leaveTypes.find(lt => lt.id === state.selectedLeaveTypeId);
-        let currentBalance = balances[state.selectedLeaveTypeId];
-        
-        const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
-        let totalCost = 0;
         const changes = [];
+        const deltas = {};
+        state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
 
+        const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
+        const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
+        
         modalItems.forEach(item => {
             const dateKey = item.dataset.dateKey;
+            const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
             const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
             const cost = dayType === 'half' ? 0.5 : 1;
-            
+            changes.push({ dateKey, typeId, dayType });
+
             const existingLeave = state.allStoredData[dateKey]?.leave;
-            if (!existingLeave || existingLeave.typeId !== state.selectedLeaveTypeId) {
-                 totalCost += cost;
-            } else if(existingLeave.typeId === state.selectedLeaveTypeId) {
+            if (existingLeave) {
                 const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
-                totalCost += (cost - oldCost);
+                deltas[existingLeave.typeId] -= oldCost;
             }
-            changes.push({ dateKey, dayType });
+            deltas[typeId] += cost;
         });
 
-        if (totalCost > currentBalance) {
-            showMessage(`Cannot log leave. Required: ${totalCost}, Balance: ${currentBalance}.`, 'error');
-            return;
+        for (const typeId in deltas) {
+            if (deltas[typeId] > (balances[typeId] || 0)) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === typeId);
+                showMessage(`Not enough balance for ${leaveType.name}. Required change: +${deltas[typeId].toFixed(1)}, Balance: ${balances[typeId].toFixed(1)}.`, 'error');
+                return;
+            }
         }
 
-        const updatedData = { ...state.allStoredData };
-        changes.forEach(({ dateKey, dayType }) => {
-            if (!updatedData[dateKey]) updatedData[dateKey] = {};
-            updatedData[dateKey].leave = { typeId: state.selectedLeaveTypeId, dayType };
-        });
+        const updatedData = JSON.parse(JSON.stringify(state.allStoredData));
 
-        // Remove leaves for dates that were deselected in the modal
-        const datesInModal = new Set(changes.map(c => c.dateKey));
-        const initialSelection = new Set(state.leaveSelection);
-        initialSelection.forEach(dateKey => {
+        // Compare the initial selection with the final one to find removed days
+        state.initialLeaveSelection.forEach(dateKey => {
             if (!datesInModal.has(dateKey)) {
-                if (updatedData[dateKey]?.leave?.typeId === state.selectedLeaveTypeId) {
+                // This day was removed in the modal, so delete its leave data
+                if (updatedData[dateKey]?.leave) {
                     delete updatedData[dateKey].leave;
                 }
             }
+        });
+
+        changes.forEach(({ dateKey, typeId, dayType }) => {
+            if (!updatedData[dateKey]) updatedData[dateKey] = {};
+            updatedData[dateKey].leave = { typeId, dayType };
         });
 
         if (state.isOnlineMode) {
@@ -1864,11 +2058,42 @@
         }
 
         DOM.customizeLeaveModal.classList.add('hidden');
-        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
         DOM.logNewLeaveBtn.textContent = 'Log New Leave';
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
         updateView();
         showMessage('Leaves saved successfully!', 'success');
+    }
+
+    async function removeAllLoggedLeaves() {
+        const updatedData = JSON.parse(JSON.stringify(state.allStoredData));
+        let leavesRemoved = false;
+
+        state.leaveSelection.forEach(dateKey => {
+            if (updatedData[dateKey]?.leave) {
+                delete updatedData[dateKey].leave;
+                leavesRemoved = true;
+            }
+        });
+
+        if (!leavesRemoved) {
+            showMessage("No leaves to remove from the selected days.", 'info');
+            return;
+        }
+
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+        }
+
+        DOM.customizeLeaveModal.classList.add('hidden');
+        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
+        DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+        updateView();
+        showMessage('Selected leaves have been removed.', 'success');
     }
 
 
@@ -1987,31 +2212,36 @@
         });
         
         DOM.logNewLeaveBtn.addEventListener('click', () => {
-            if (state.isLoggingLeave) { // If currently logging, this button acts as a cancel/save
-                openLeaveCustomizationModal();
+            if (state.isLoggingLeave) { // If currently logging, this button acts as a cancel
+                setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+                DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+                DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+                showMessage('Leave logging cancelled.', 'info');
+                updateView(); // This will clear any visual selections
             } else { // Start logging
                 if (state.leaveTypes.length === 0) {
                     showMessage("Please add a leave type first.", 'info');
                     return;
                 }
                 setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-                DOM.logNewLeaveBtn.textContent = 'Review & Save Leave';
+                DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
                 DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
-                showMessage('Select a leave type, then click on the calendar days.', 'info');
-                renderLeavePills();
+                showMessage('Select days on the calendar to log a leave.', 'info');
             }
         });
 
         DOM.leavePillsContainer.addEventListener('click', (e) => {
             const pill = e.target.closest('button');
-            if (state.isLoggingLeave && pill) {
-                const balances = calculateLeaveBalances();
-                if (balances[pill.dataset.id] <= 0) {
-                    showMessage('Leave balance for this type is exhausted.', 'error');
-                    return;
-                }
-                setState({ selectedLeaveTypeId: pill.dataset.id });
+            if (!pill) return;
+
+            if (state.isLoggingLeave) {
+                const leaveTypeId = pill.dataset.id;
+                setState({ selectedLeaveTypeId: leaveTypeId });
                 renderLeavePills();
+
+                if (state.leaveSelection.size > 0) {
+                    openLeaveCustomizationModal();
+                }
             }
         });
 
@@ -2019,31 +2249,25 @@
             const cell = e.target.closest('.calendar-day-cell.current-month');
             if (!cell) return;
             
+            const dateKey = cell.dataset.date;
+
             if (state.isLoggingLeave) {
-                const dateKey = cell.dataset.date;
-                if (!state.selectedLeaveTypeId) {
-                    const existingLeave = state.allStoredData[dateKey]?.leave;
-                    if (existingLeave) {
-                        setState({ 
-                            selectedLeaveTypeId: existingLeave.typeId,
-                            leaveSelection: new Set([dateKey])
-                        });
-                        renderLeavePills();
-                        openLeaveCustomizationModal();
-                    } else {
-                        showMessage('Please select a leave type pill first.', 'error');
-                    }
-                    return;
-                }
-                
+                const hasExistingLeave = !!state.allStoredData[dateKey]?.leave;
+
                 if (state.leaveSelection.has(dateKey)) {
                     state.leaveSelection.delete(dateKey);
                 } else {
                     state.leaveSelection.add(dateKey);
                 }
                 renderCalendar();
+
+                const selectionHasAnyLeave = Array.from(state.leaveSelection).some(dKey => state.allStoredData[dKey]?.leave);
+
+                if (state.leaveSelection.size > 0 && (hasExistingLeave || selectionHasAnyLeave)) {
+                    openLeaveCustomizationModal();
+                }
             } else {
-                const date = new Date(cell.dataset.date + 'T00:00:00');
+                const date = new Date(dateKey + 'T00:00:00');
                 setState({ selectedDate: date, currentView: 'day' });
                 updateView();
             }
@@ -2051,13 +2275,10 @@
 
         document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
             DOM.customizeLeaveModal.classList.add('hidden');
-            setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.textContent = 'Log New Leave';
-            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
-            updateView();
         });
 
         document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
+        DOM.removeAllLeavesBtn.addEventListener('click', removeAllLoggedLeaves);
     }
 
     // --- App Initialization ---
