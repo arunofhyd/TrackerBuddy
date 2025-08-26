@@ -42,58 +42,49 @@
             transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
         }
 
-        /* --- Background Video --- */
-        #app-background {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -10;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+        /* --- Splash Screen & Background Video --- */
+        .splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0f172a;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            z-index: 100; cursor: pointer; overflow: hidden;
+            transition: background-color 0.5s ease;
         }
-        #app-background-video {
+        #splash-video {
             position: absolute; top: 50%; left: 50%;
             min-width: 100%; min-height: 100%;
             width: auto; height: auto;
             transform: translateX(-50%) translateY(-50%);
+            z-index: 10;
             object-fit: cover;
         }
+        .splash-text {
+            width: 80%; max-width: 300px; z-index: 20;
+            animation: fadeInSplash 1s ease-out forwards;
+        }
+        @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-      /* Splash Screen (now serves as a permanent background) */
-          .splash-screen {
-              position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-              background-color: #0f172a; /* This color shows briefly before video loads */
-              display: flex; justify-content: center; align-items: center; flex-direction: column;
-              z-index: 100; /* Starts on top */
-              cursor: pointer; overflow: hidden;
-              transition: background-color 0.5s ease; /* Add transition for the background color */
-          }
-          #splash-video {
-              position: absolute; top: 50%; left: 50%;
-              min-width: 100%; min-height: 100%;
-              width: auto; height: auto;
-              transform: translateX(-50%) translateY(-50%);
-              z-index: 10;
-              object-fit: cover;
-          }
-          .splash-text {
-              width: 80%; max-width: 300px; z-index: 20;
-              animation: fadeInSplash 1s ease-out forwards;
-              /* Updated transition for a snappier feel */
-              transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;
-          }
-          @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    
-          /* NEW: Animation class to hide the splash text */
-          .splash-text.hiding {
-              transform: scale(1.5); /* Zoom in */
-              opacity: 0; /* Fade out */
-          }
-    
-          /* NEW: We also need to hide the loading spinner and tap text */
-          .splash-loading.hiding, .tap-to-begin.hiding {
-              transition: opacity 0.3s ease-out;
-              opacity: 0;
-          }
+        /* Cinematic Animation for the splash text */
+        .splash-text.animating-out {
+            animation: moveUpAndFade 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        @keyframes moveUpAndFade {
+            0% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                /* Adjust scale and translateY to match your login logo's size and position */
+                transform: scale(0.33) translateY(-140px);
+                opacity: 0;
+            }
+        }
+
+        /* Hiding class for other splash elements */
+        .splash-loading.hiding, .tap-to-begin.hiding {
+            transition: opacity 0.3s ease-out;
+            opacity: 0;
+        }
         
         .splash-loading {
             position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
@@ -142,6 +133,42 @@
             transition: opacity 0.3s ease-in-out;
         }
 
+        /* --- Easter Egg Animations --- */
+        #app-logo.is-shaking {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+            40%, 60% { transform: translate3d(3px, 0, 0); }
+        }
+
+        .magic-particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background-color: #ffd700;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            animation: particle-burst 0.8s ease-out forwards;
+        }
+
+        @keyframes particle-burst {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
+            }
+        }
+
         /* --- Calendar Styles --- */
         .calendar-day-cell {
             position: relative;
@@ -150,7 +177,7 @@
             cursor: pointer;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            overflow: hidden; /* Ensure leave indicators don't overflow */
+            overflow: hidden;
         }
         .calendar-day-content {
             position: absolute;
@@ -160,7 +187,7 @@
             align-items: center;
             justify-content: flex-start;
             padding: 8px;
-            z-index: 10; /* Keep content above leave indicators */
+            z-index: 10;
         }
         .leave-indicator {
             position: absolute;
@@ -178,7 +205,7 @@
             background-color: #eff6ff;
         }
         .calendar-day-cell.is-today.leave-selecting {
-            border-color: transparent !important; /* Hide solid border to show only dotted outline */
+            border-color: transparent !important;
         }
 
 
@@ -201,21 +228,18 @@
         .calendar-day-cell.other-month .day-number { color: #a0aec0; }
         .calendar-day-cell.is-sunday .day-number {
             color: #ef4444;
-            text-shadow: none; /* Remove any old shadow effects */
-            -webkit-text-stroke: 2px #fff; /* Adds a clean 1px white outline */
-            paint-order: stroke fill; /* Ensures the outline doesn't overlap the text color */
+            text-shadow: none;
+            -webkit-text-stroke: 2px #fff;
+            paint-order: stroke fill;
         }
         .calendar-day-cell.is-today .day-number { color: #3b82f6; font-weight: 700; }
         .day-note-container { height: 14px; width: 100%; display: flex; align-items: center; justify-content: center; }
         .day-note { font-size: 0.65rem; color: #6b7280; line-height: 1; font-weight: 500; letter-spacing: 0.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .activity-indicator { width: 10px; height: 10px; background-color: #3b82f6; border-radius: 50%; margin-top: 4px; }
 
-        /* --- Leave Pills Scrollbar --- */
         #leave-pills-container::-webkit-scrollbar, #modal-leave-pills-container::-webkit-scrollbar { display: none; }
         #leave-pills-container, #modal-leave-pills-container { -ms-overflow-style: none; scrollbar-width: none; }
 
-
-        /* --- General UI Components --- */
         #daily-view-container { overflow-x: auto; }
         .btn-primary { background-color: #3b82f6; color: #ffffff; border: 1px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .btn-primary:hover { background-color: #2563eb; box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
@@ -232,10 +256,9 @@
         .activity-text-editable, .time-editable { min-height: 24px; outline: none; padding-bottom: 2px; cursor: text; border-bottom: 1px dashed #d1d5db; }
         .activity-text-editable:focus, .time-editable:focus { border-bottom: 1px solid #3b82f6; background-color: #f0f8ff; }
 
-        /* --- Double-Click Confirmation Style --- */
         .confirm-action {
-            background-color: #fef2f2 !important; /* light red */
-            border-color: #ef4444 !important; /* red */
+            background-color: #fef2f2 !important;
+            border-color: #ef4444 !important;
             color: #ef4444 !important;
         }
         body.dark .confirm-action {
@@ -247,30 +270,19 @@
         border-color: #ef4444;
         }
         
-        /* --- Day Type Toggle Switch --- */
-        .day-type-toggle .toggle-btn.active {
-            color: white;
-        }
-        .day-type-toggle .toggle-btn:not(.active) {
-            color: #4a5568;
-        }
-        body.dark .day-type-toggle .toggle-btn:not(.active) {
-            color: #d1d5db;
-        }
-        body.dark .day-type-toggle {
-            background-color: #374151;
-        }
+        .day-type-toggle .toggle-btn.active { color: white; }
+        .day-type-toggle .toggle-btn:not(.active) { color: #4a5568; }
+        body.dark .day-type-toggle .toggle-btn:not(.active) { color: #d1d5db; }
+        body.dark .day-type-toggle { background-color: #374151; }
 
-        /* --- Custom Theming --- */
         .balance-box { background-color: #3b82f6 !important; }
         .balance-box p { color: white !important; }
         .balance-box .stats-label { color: #dbeafe !important; }
 
-        /* --- Custom Leave Type Selector in Modal --- */
         .leave-type-selector-panel {
-            display: none; /* Hidden by default */
+            display: none;
             position: absolute;
-            z-index: 60; /* Above modal content */
+            z-index: 60;
             background-color: white;
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
@@ -281,13 +293,8 @@
             max-height: 150px;
             overflow-y: auto;
         }
-        body.dark .leave-type-selector-panel {
-            background-color: #1f2937;
-            border-color: #4b5563;
-        }
-        .leave-type-selector-panel.open {
-            display: block;
-        }
+        body.dark .leave-type-selector-panel { background-color: #1f2937; border-color: #4b5563; }
+        .leave-type-selector-panel.open { display: block; }
 
 
         @media (max-width: 767px) {
@@ -320,10 +327,7 @@
         body.dark .calendar-day-cell:hover { background-color: #374151; }
         body.dark .calendar-day-cell.selected-day { background-color: #2563eb; }
         body.dark .calendar-day-cell.is-today { border: 2px solid #3b82f6; }
-       body.dark .calendar-day-cell.is-sunday .day-number {
-            /* In dark mode, we'll change the outline color to match the dark background */
-            -webkit-text-stroke-color: #1f2937;
-        }
+       body.dark .calendar-day-cell.is-sunday .day-number { -webkit-text-stroke-color: #1f2937; }
         body.dark .calendar-day-cell.has-activity { box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1); }
         body.dark .day-number { color: #e2e8f0; }
         body.dark .day-note { color: #9ca3af; }
@@ -344,7 +348,6 @@
         body.dark .activity-text-editable { border-bottom-color: #4b5563; }
         body.dark ::selection { background-color: #3b82f6; color: #ffffff; }
 
-        /* --- Unified Modal Theming --- */
         .modal-container { background-color: #ffffff; }
         .modal-container h2 { color: #111827; }
         .modal-container p, .modal-container label, .modal-container span { color: #4b5563; }
@@ -368,12 +371,6 @@
     </style>
 </head>
 <body>
-
-<div id="app-background" class="hidden">
-    <video id="app-background-video" autoplay loop muted playsinline poster="assets/splashbg.png">
-        <source src="assets/splashbg.mp4" type="video/mp4">
-    </video>
-</div>
 
 <div id="splash-screen" class="splash-screen">
     <video id="splash-video" autoplay loop muted playsinline poster="assets/splashbg.png" preload="auto">
@@ -439,7 +436,7 @@
                     </button>
                     <button id="anon-continue-btn" class="w-full btn-secondary py-2 px-4 rounded-lg text-lg font-semibold">
                         <div class="flex flex-col items-center">
-                            <span>Continue Offline</span>
+                            <span>Continue as Guest</span>
                             <span class="text-xs font-normal text-gray-500 mt-1">(Saves data only on this device)</span>
                         </div>
                     </button>
@@ -449,73 +446,75 @@
         </div>
         
         <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
-                     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
-                         <div class="flex justify-between items-center mb-6">
-                             <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
-                                 <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                 <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                             </button>
-                             <img src="assets/logo.png" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
-                             <button id="sign-out-btn" class="icon-btn" title="Sign Out">
-                                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                             </button>
-                         </div>
-                         <div class="flex flex-col space-y-4 mb-8 w-full">
-                             <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
-                             <div class="flex items-center justify-between w-full">
-                                 <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-                                 <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
-                                 <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
-                             </div>
-                             
-                             <!-- Month View Leave Pills Container -->
-                             <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
-                                 <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
-                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
-                                 </button>
-                                 <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
-                                     <!-- Leave pills will be rendered here -->
-                                 </div>
-                             </div>
+            <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+                        <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    <div id="logo-container" class="relative cursor-pointer">
+                        <img src="assets/logo.png" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+                    </div>
+                    <button id="sign-out-btn" class="icon-btn" title="Sign Out">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+                <div class="flex flex-col space-y-4 mb-8 w-full">
+                    <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
+                    <div class="flex items-center justify-between w-full">
+                        <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
+                        <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                    </div>
+                    
+                    <!-- Month View Leave Pills Container -->
+                    <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
+                        <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
+                        </button>
+                        <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
+                            <!-- Leave pills will be rendered here -->
+                        </div>
+                    </div>
 
-                             <!-- Day View Today Button -->
-                             <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
+                    <!-- Day View Today Button -->
+                    <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
 
-                             <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
-                         </div>
-                         <div id="main-content-area" class="w-full">
-                             <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
-                             <div id="daily-view" class="hidden">
-                                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                                          <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                                          <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
-                                      </div>
-                                 <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
-                                 <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
-                                 <div id="day-view-bottom-controls">
-                                     <hr class="my-6 border-gray-300">
-                                     <div class="flex flex-col md:flex-row gap-4">
-                                         <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Data</button>
-                                         <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Data</button>
-                                     </div>
-                                     <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
-                                 </div>
-                             </div>
-                             <div id="month-view-bottom-controls">
-                                 <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
-                                     <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
-                                     <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
-                                         Stats
-                                         <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                         <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                                     </button>
-                                 </div>
-                                 <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                                     <!-- Leave stats will be rendered here -->
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
+                    <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
+                </div>
+                <div id="main-content-area" class="w-full">
+                    <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
+                    <div id="daily-view" class="hidden">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                                    <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                                    <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                                </div>
+                    <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
+                    <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
+                    <div id="day-view-bottom-controls">
+                        <hr class="my-6 border-gray-300">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Import Data</button>
+                            <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Export Data</button>
+                        </div>
+                        <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
+                    </div>
+                    </div>
+                    <div id="month-view-bottom-controls">
+                        <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
+                            <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log New Leave</button>
+                            <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
+                                Stats
+                                <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                            <!-- Leave stats will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span>Reach out to the dev</span></a></footer>
@@ -659,7 +658,8 @@
         isLoggingLeave: false,
         selectedLeaveTypeId: null,
         leaveSelection: new Set(),
-        initialLeaveSelection: new Set() // To track changes in the leave modal
+        initialLeaveSelection: new Set(),
+        logoTapCount: 0 // Easter Egg counter
     };
 
     // --- State Management ---
@@ -725,7 +725,8 @@
             monthViewBottomControls: document.getElementById('month-view-bottom-controls'),
             dayViewBottomControls: document.getElementById('day-view-bottom-controls'),
             removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn'),
-            appBackground: document.getElementById('app-background')
+            logoContainer: document.getElementById('logo-container'),
+            appLogo: document.getElementById('app-logo')
         };
     }
 
@@ -765,16 +766,16 @@
 
     function switchView(viewToShow, viewToHide, callback) {
         const mainContainer = document.querySelector('.main-container');
-
+        
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-            document.body.classList.add('dark'); // 1. Force dark mode
-            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex'; // 2. Show the video background
-        }
+            document.body.classList.add('dark');
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
+        } 
         else if (viewToShow === DOM.appView) {
-            loadTheme(); // 1. Restore the user's chosen theme
-            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none'; // 2. Hide the video background
+            loadTheme();
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
         }
-
+        
         if (viewToHide) {
             viewToHide.style.opacity = '0';
         }
@@ -790,7 +791,7 @@
                 mainContainer.classList.remove('is-app-view');
             }
             viewToShow.classList.remove('hidden');
-
+            
             setTimeout(() => {
                 viewToShow.style.opacity = '1';
                 if (callback) callback();
@@ -877,7 +878,6 @@
             const dateKey = getYYYYMMDD(date);
             const dayData = state.allStoredData[dateKey] || {};
             const noteText = dayData.note || '';
-            // Sanitize the note to prevent XSS
             const sanitizedNote = noteText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
             const leaveData = dayData.leave;
@@ -914,7 +914,6 @@
                 dayNumberEl.style.color = 'white';
                 if (dayNoteEl) dayNoteEl.style.color = 'white';
             }
-            // Sunday override
             if (date.getDay() === 0) {
                 dayNumberEl.style.color = '#ef4444';
             }
@@ -1033,7 +1032,6 @@
         return tempDiv.innerHTML.replace(/\n/g, '<br>');
     }
 
-    // --- Data Functions ---
     async function subscribeToData(userId, callback) {
         const userDocRef = doc(db, "users", userId);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
@@ -1146,18 +1144,14 @@
             
             const storedData = JSON.parse(storedDataString);
 
-            // This handles data from older versions of the app
             if (storedData.hasOwnProperty('activities')) {
-                // It's the new format, return as is
                 return storedData;
             } else {
-                // It's the old format, wrap it in the new structure
                 return { activities: storedData, leaveTypes: [] };
             }
         } catch (error) {
             console.error("Error loading local data:", error);
             showMessage("Could not load local data.", 'error');
-            // Return a safe default on any error
             return { activities: {}, leaveTypes: [] };
         }
     }
@@ -1186,13 +1180,11 @@
         const data = loadDataFromLocalStorage();
         setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
         
-        // Show loading spinner for offline data load
         switchView(DOM.loadingView, DOM.loginView);
 
-        // Simulate a small delay for a smooth transition before showing app
         setTimeout(() => {
             switchView(DOM.appView, DOM.loadingView, updateView);
-        }, 500); // 500ms delay to give a "loading" feel
+        }, 500);
     }
 
     async function resetAllData() {
@@ -1374,21 +1366,38 @@
         reader.readAsText(file);
     }
     
-    // --- Auth Functions ---
     function handleUserLogout() {
         if (state.unsubscribeFromFirestore) {
             state.unsubscribeFromFirestore();
         }
         localStorage.removeItem('sessionMode');
         
+        // --- FIX: Reset splash screen and its children to their initial post-animation state ---
+        if (DOM.splashScreen) {
+            // Put it in the background, ready for the login screen's video
+            DOM.splashScreen.style.zIndex = '-10';
+            
+            // Hide the interactive/text elements that the easter egg might have shown.
+            // This prevents them from reappearing behind the login modal.
+            DOM.splashText.style.display = 'none';
+            DOM.tapToBegin.style.display = 'none';
+            DOM.splashLoading.style.display = 'none';
+
+            // Reset animation classes and other properties modified by the easter egg
+            DOM.splashText.classList.remove('animating-out');
+            DOM.splashScreen.style.cursor = 'default';
+        }
+        
         setState({
             allStoredData: {},
             leaveTypes: [],
             userId: null,
             isOnlineMode: false,
-            unsubscribeFromFirestore: null
+            unsubscribeFromFirestore: null,
+            logoTapCount: 0 // Reset easter egg counter
         });
 
+        // switchView will correctly set the splash screen container to display: flex
         switchView(DOM.loginView, DOM.appView);
     }
 
@@ -1516,7 +1525,6 @@
         }
     }
 
-    // --- Theme Management ---
     function applyTheme(theme) {
         const lightIcon = document.getElementById('theme-icon-light');
         const darkIcon = document.getElementById('theme-icon-dark');
@@ -1551,7 +1559,6 @@
         }
     }
 
-    // --- Double-Click Confirmation Helper ---
     function setupDoubleClickConfirm(element, actionKey, message, callback) {
         element.addEventListener('click', (e) => {
             if (state.confirmAction[actionKey]) {
@@ -1578,7 +1585,6 @@
         });
     }
 
-    // --- Daily Activity Event Handlers ---
     function attachDailyActivityEventListeners() {
         DOM.dailyActivityTableBody.querySelectorAll('.activity-text-editable, .time-editable').forEach(el => {
             el.addEventListener('click', handleInlineEditClick);
@@ -1640,6 +1646,71 @@
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             event.currentTarget.blur();
+        }
+    }
+
+    // --- Easter Egg Functions ---
+    function createMagicParticles() {
+        const particleCount = 12;
+        const container = DOM.logoContainer;
+        if (!container) return;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'magic-particle';
+
+            const angle = (i / particleCount) * 360;
+            const radius = 40 + Math.random() * 20;
+            const x = Math.cos(angle * Math.PI / 180) * radius;
+            const y = Math.sin(angle * Math.PI / 180) * radius;
+
+            particle.style.setProperty('--x', `${x}px`);
+            particle.style.setProperty('--y', `${y}px`);
+            
+            const colors = ['#ffd700', '#ffec80', '#ffab40'];
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            container.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 800);
+        }
+    }
+
+    function handleLogoTap() {
+        state.logoTapCount++;
+
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+
+        DOM.appLogo.classList.add('is-shaking');
+        setTimeout(() => {
+            DOM.appLogo.classList.remove('is-shaking');
+        }, 500);
+
+        createMagicParticles();
+
+        if (state.logoTapCount >= 7) {
+            state.logoTapCount = 0;
+
+            const returnToApp = () => {
+                DOM.splashScreen.style.zIndex = '-10';
+                DOM.splashScreen.style.display = 'none';
+            };
+
+            DOM.splashText.style.display = 'block';
+            DOM.splashText.classList.remove('animating-out');
+            DOM.tapToBegin.style.display = 'block';
+            DOM.tapToBegin.classList.remove('hiding');
+            DOM.splashLoading.style.display = 'none';
+
+            DOM.splashScreen.style.display = 'flex';
+            DOM.splashScreen.style.zIndex = '100';
+            DOM.splashScreen.style.cursor = 'pointer';
+
+            DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
         }
     }
 
@@ -1728,7 +1799,6 @@
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
         setState({ leaveTypes: newLeaveTypes });
 
-        // Also remove logged leaves of this type
         const updatedActivities = { ...state.allStoredData };
         Object.keys(updatedActivities).forEach(dateKey => {
             if (updatedActivities[dateKey].leave?.typeId === id) {
@@ -1854,7 +1924,6 @@
             showMessage('Please select at least one day on the calendar.', 'info');
             return;
         }
-        // Store the selection state at the moment the modal is opened
         setState({ initialLeaveSelection: new Set(state.leaveSelection) });
         DOM.customizeLeaveModal.classList.remove('hidden');
         renderLeaveCustomizationModal();
@@ -2259,7 +2328,6 @@
         DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
         uploadCsvInput.addEventListener('change', handleFileUpload);
 
-        // Leave Management Event Listeners
         DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
         document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
         document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
@@ -2276,13 +2344,13 @@
         });
         
         DOM.logNewLeaveBtn.addEventListener('click', () => {
-            if (state.isLoggingLeave) { // If currently logging, this button acts as a cancel
+            if (state.isLoggingLeave) {
                 setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
                 DOM.logNewLeaveBtn.textContent = 'Log New Leave';
                 DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
                 showMessage('Leave logging cancelled.', 'info');
-                updateView(); // This will clear any visual selections
-            } else { // Start logging
+                updateView();
+            } else {
                 if (state.leaveTypes.length === 0) {
                     showMessage("Please add a leave type first.", 'info');
                     return;
@@ -2343,33 +2411,38 @@
 
         document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
         DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
+        
+        // Easter Egg Listener
+        DOM.logoContainer.addEventListener('click', handleLogoTap);
     }
 
     // --- App Initialization ---
     function handleSplashScreen() {
-        // Make sure this line is in your initUI() function
-        DOM.splashText = document.querySelector('.splash-text');
-
         setTimeout(() => {
             DOM.splashLoading.style.display = 'none';
             DOM.tapToBegin.style.display = 'block';
             DOM.splashScreen.addEventListener('click', () => {
-                // Start the zoom/fade animation
-                DOM.splashText.classList.add('hiding');
-                DOM.splashLoading.classList.add('hiding');
-                DOM.tapToBegin.classList.add('hiding');
+                // --- FIX: Hide these elements immediately on click ---
+                DOM.tapToBegin.style.display = 'none';
+                DOM.splashLoading.style.display = 'none';
+
+                // Start the cinematic animation for the main logo
+                DOM.splashText.classList.add('animating-out');
+                
                 // Show the login page immediately
                 initAuth();
-                // Move the splash container to the background
-                DOM.splashScreen.style.zIndex = '-10';
-                DOM.splashScreen.style.cursor = 'default';
-                DOM.splashScreen.style.backgroundColor = 'transparent';
-                // This stops them from appearing behind the login container.
+
+                // After a short delay, move the splash container to the background
+                setTimeout(() => {
+                    DOM.splashScreen.style.zIndex = '-10';
+                    DOM.splashScreen.style.cursor = 'default';
+                    DOM.splashScreen.style.backgroundColor = 'transparent';
+                }, 400);
+
+                // After the animation is done, hide the text element completely
                 setTimeout(() => {
                     DOM.splashText.style.display = 'none';
-                    DOM.splashLoading.style.display = 'none';
-                    DOM.tapToBegin.style.display = 'none';
-                }, 400); // Duration should match your CSS transition time
+                }, 1000); // This should match the CSS animation duration
 
             }, { once: true });
         }, 500);
@@ -2383,7 +2456,6 @@
         handleSplashScreen();
     }
 
-    // Run the app once the DOM is ready
     document.addEventListener('DOMContentLoaded', init);
 </script>
 
