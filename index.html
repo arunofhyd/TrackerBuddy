@@ -750,9 +750,22 @@
         }
     }
 
+   // --- REPLACE WITH THIS CODE ---
+
     function switchView(viewToShow, viewToHide, callback) {
         const mainContainer = document.querySelector('.main-container');
-        
+
+        // --- ADDED LOGIC ---
+        // If we are showing the login or loading screen, force dark mode on.
+        if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
+            document.body.classList.add('dark');
+        } 
+        // If we are switching to the main app, restore the user's saved theme.
+        else if (viewToShow === DOM.appView) {
+            loadTheme();
+        }
+        // --- END OF ADDED LOGIC ---
+
         if (viewToShow === DOM.loginView) {
             DOM.appBackground.classList.remove('hidden');
             setTimeout(() => DOM.appBackground.style.opacity = '1', 20);
@@ -760,7 +773,7 @@
             DOM.appBackground.style.opacity = '0';
             setTimeout(() => DOM.appBackground.classList.add('hidden'), 500);
         }
-        
+
         if (viewToHide) {
             viewToHide.style.opacity = '0';
         }
@@ -776,7 +789,7 @@
                 mainContainer.classList.remove('is-app-view');
             }
             viewToShow.classList.remove('hidden');
-            
+
             setTimeout(() => {
                 viewToShow.style.opacity = '1';
                 if (callback) callback();
