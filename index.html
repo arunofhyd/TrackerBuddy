@@ -58,30 +58,42 @@
             object-fit: cover;
         }
 
-        /* Splash Screen */
-        .splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0f172a;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-            z-index: 100; transition: opacity 0.5s ease; cursor: pointer; overflow: hidden;
-        }
-        #splash-video {
-            position: absolute; top: 50%; left: 50%;
-            min-width: 100%; min-height: 100%;
-            width: auto; height: auto;
-            transform: translateX(-50%) translateY(-50%);
-            z-index: 10;
-            object-fit: cover;
-        }
-        .splash-text {
-            width: 80%; max-width: 300px; z-index: 20;
-            animation: fadeInSplash 1s ease-out forwards;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .splash-screen.zooming-in .splash-text { transform: scale(1.5); opacity: 0; }
-        .splash-screen.hiding { opacity: 0; transition: opacity 0.3s ease 0.2s; }
+      /* Splash Screen (now serves as a permanent background) */
+          .splash-screen {
+              position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+              background-color: #0f172a; /* This color shows briefly before video loads */
+              display: flex; justify-content: center; align-items: center; flex-direction: column;
+              z-index: 100; /* Starts on top */
+              cursor: pointer; overflow: hidden;
+              transition: background-color 0.5s ease; /* Add transition for the background color */
+          }
+          #splash-video {
+              position: absolute; top: 50%; left: 50%;
+              min-width: 100%; min-height: 100%;
+              width: auto; height: auto;
+              transform: translateX(-50%) translateY(-50%);
+              z-index: 10;
+              object-fit: cover;
+          }
+          .splash-text {
+              width: 80%; max-width: 300px; z-index: 20;
+              animation: fadeInSplash 1s ease-out forwards;
+              /* Updated transition for a snappier feel */
+              transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out;
+          }
+          @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
+          /* NEW: Animation class to hide the splash text */
+          .splash-text.hiding {
+              transform: scale(1.5); /* Zoom in */
+              opacity: 0; /* Fade out */
+          }
+    
+          /* NEW: We also need to hide the loading spinner and tap text */
+          .splash-loading.hiding, .tap-to-begin.hiding {
+              transition: opacity 0.3s ease-out;
+              opacity: 0;
+          }
         
         .splash-loading {
             position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%);
@@ -662,6 +674,7 @@
     function initUI() {
         DOM = {
             splashScreen: document.getElementById('splash-screen'),
+            splashText: document.querySelector('.splash-text'),
             splashLoading: document.getElementById('splash-loading'),
             tapToBegin: document.getElementById('tap-to-begin'),
             contentWrapper: document.getElementById('content-wrapper'),
@@ -2346,15 +2359,28 @@
 
     // --- App Initialization ---
     function handleSplashScreen() {
+        // You'll need to define splashText in your initUI() function
+        DOM.splashText = document.querySelector('.splash-text');
+
         setTimeout(() => {
             DOM.splashLoading.style.display = 'none';
             DOM.tapToBegin.style.display = 'block';
             DOM.splashScreen.addEventListener('click', () => {
-                DOM.splashScreen.classList.add('zooming-in', 'hiding');
+                // 1. Add the .hiding class to the elements you want to animate out
+                DOM.splashText.classList.add('hiding');
+                DOM.splashLoading.classList.add('hiding');
+                DOM.tapToBegin.classList.add('hiding');
+
+                // 2. Immediately start loading the login page
+                initAuth();
+
+                // 3. After a short delay, move the splash screen to the background
                 setTimeout(() => {
-                    DOM.splashScreen.style.display = 'none';
-                    initAuth();
-                }, 700);
+                    DOM.splashScreen.style.zIndex = '-10'; // Move to the back
+                    DOM.splashScreen.style.cursor = 'default'; // Remove pointer cursor
+                    DOM.splashScreen.style.backgroundColor = 'transparent'; // Make bg transparent
+                }, 400); // This delay should match your CSS transition time
+
             }, { once: true });
         }, 500);
     }
