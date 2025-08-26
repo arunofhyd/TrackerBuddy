@@ -400,44 +400,44 @@
         </div>
 
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
-            <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl border border-gray-200 shadow-2xl p-8 text-center">
+            <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl border border-gray-700 shadow-2xl p-8 text-center">
                 <img src="assets/logo.png" class="w-24 h-24 mb-4 mx-auto rounded-full" alt="TrackerBuddy Logo">
-                <h1 class="text-5xl font-extrabold text-gray-800 tracking-tight mb-4">TrackerBuddy</h1>
-                <p class="text-gray-600 mb-6">Your all-in-one tracker.</p>
+                <h1 class="text-5xl font-extrabold text-gray-100 tracking-tight mb-4">TrackerBuddy</h1>
+                <p class="text-gray-400 mb-6">Your all-in-one tracker.</p>
                 
                 <div class="space-y-4 text-left mb-2">
-                    <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
+                    <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2.5 text-base text-white bg-gray-700 border-2 border-gray-600 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 focus:bg-gray-800 transition-all">
                     
                     <div class="relative">
-                        <input type="password" id="password-input" placeholder="Password" class="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all">
-                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-600">
+                        <input type="password" id="password-input" placeholder="Password" class="w-full px-4 py-2.5 text-base text-white bg-gray-700 border-2 border-gray-600 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 focus:bg-gray-800 transition-all">
+                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
                             <i id="password-toggle-icon" class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
                 <div class="text-right mb-4">
-                    <button id="forgot-password-btn" class="text-sm text-blue-600 hover:underline focus:outline-none">Forgot Password?</button>
+                    <button id="forgot-password-btn" class="text-sm text-blue-400 hover:underline focus:outline-none">Forgot Password?</button>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <button id="email-signin-btn" class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center">Sign In</button>
-                    <button id="email-signup-btn" class="w-full btn-secondary py-3 rounded-lg font-semibold flex items-center justify-center">Sign Up</button>
+                    <button id="email-signup-btn" class="w-full bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600 py-3 rounded-lg font-semibold flex items-center justify-center">Sign Up</button>
                 </div>
 
                 <div class="relative flex py-4 items-center">
-                    <div class="flex-grow border-t border-gray-300"></div>
-                    <span class="flex-shrink mx-4 text-gray-400 text-sm font-medium">OR</span>
-                    <div class="flex-grow border-t border-gray-300"></div>
+                    <div class="flex-grow border-t border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-sm font-medium">OR</span>
+                    <div class="flex-grow border-t border-gray-600"></div>
                 </div>
 
                 <div class="space-y-4">
-                    <button id="google-signin-btn" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center text-lg font-semibold transition-colors">
+                    <button id="google-signin-btn" class="w-full bg-gray-800 border border-gray-600 hover:bg-gray-700 text-gray-200 py-3 px-4 rounded-lg flex items-center justify-center text-lg font-semibold transition-colors">
                         <img src="assets/google.png" class="w-6 h-6 mr-3" alt="Google icon">
                         Continue with Google
                     </button>
-                    <button id="anon-continue-btn" class="w-full btn-secondary py-2 px-4 rounded-lg text-lg font-semibold">
+                    <button id="anon-continue-btn" class="w-full bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600 py-2 px-4 rounded-lg text-lg font-semibold">
                         <div class="flex flex-col items-center">
-                            <span>Continue as Guest</span>
-                            <span class="text-xs font-normal text-gray-500 mt-1">(Saves data only on this device)</span>
+                            <span>Continue Offline</span>
+                            <span class="text-xs font-normal text-gray-400 mt-1">(Saves data only on this device)</span>
                         </div>
                     </button>
                 </div>
@@ -768,7 +768,6 @@
         const mainContainer = document.querySelector('.main-container');
         
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-            document.body.classList.add('dark');
             if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
         } 
         else if (viewToShow === DOM.appView) {
@@ -1250,64 +1249,87 @@
         }
     }
 
-    function parseCsvLine(line) {
-        const result = [];
-        let inQuote = false, field = '';
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"') {
-                if (inQuote && line[i + 1] === '"') {
-                    field += '"'; i++;
-                } else {
-                    inQuote = !inQuote;
-                }
-            } else if (char === ',' && !inQuote) {
-                result.push(field);
-                field = '';
-            } else {
-                field += char;
-            }
+    // --- CSV Import/Export ---
+    function escapeCsvField(field) {
+        const fieldStr = String(field || '');
+        if (/[",\n]/.test(fieldStr)) {
+            return `"${fieldStr.replace(/"/g, '""')}"`;
         }
-        result.push(field);
-        return result.map(f => f.trim().replace(/^"|"$/g, ''));
-    }
-
-    function parseDisplayDateToYYYYMMDD(displayDateStr) {
-        const date = new Date(displayDateStr);
-        return isNaN(date.getTime()) ? null : getYYYYMMDD(date);
+        return fieldStr;
     }
 
     function downloadCSV() {
-        let activitiesToExport = [];
-        Object.keys(state.allStoredData).forEach(dateKey => {
-            const dailyData = state.allStoredData[dateKey];
-            Object.keys(dailyData)
-                .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave' && dailyData[timeKey].text?.trim())
-                .forEach(timeKey => {
-                    activitiesToExport.push({ date: dateKey, time: timeKey, ...dailyData[timeKey] });
-                });
+        const csvRows = [
+            ["Date", "Type", "Detail1", "Detail2"] // Headers
+        ];
+        const sortedDateKeys = Object.keys(state.allStoredData).sort();
+
+        sortedDateKeys.forEach(dateKey => {
+            const dayData = state.allStoredData[dateKey];
+            
+            // Export Note
+            if (dayData.note) {
+                csvRows.push([dateKey, "NOTE", dayData.note, ""]);
+            }
+
+            // Export Leave
+            if (dayData.leave) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === dayData.leave.typeId);
+                if (leaveType) {
+                    csvRows.push([dateKey, "LEAVE", leaveType.name, dayData.leave.dayType]);
+                }
+            }
+
+            // Export Activities
+            const activities = Object.keys(dayData)
+                .filter(key => key !== 'note' && key !== 'leave' && key !== '_userCleared')
+                .map(timeKey => ({ time: timeKey, ...dayData[timeKey] }))
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+            
+            activities.forEach(activity => {
+                if (activity.text?.trim()) {
+                    csvRows.push([dateKey, "ACTIVITY", activity.time, activity.text]);
+                }
+            });
         });
 
-        if (activitiesToExport.length === 0) {
-            return showMessage("No activities found to export.", 'info');
+        if (csvRows.length <= 1) {
+            return showMessage("No data found to export.", 'info');
         }
 
-        activitiesToExport.sort((a, b) => a.date.localeCompare(b.date) || (a.order ?? 0) - (b.order ?? 0));
-
-        let csvContent = "data:text/csv;charset=utf-8,Date,Time,Activity\n";
-        csvContent += activitiesToExport.map(entry => {
-            const activity = `"${entry.text.replace(/"/g, '""')}"`;
-            const displayDate = `"${formatDateForDisplay(entry.date)}"`;
-            const time = `"${entry.time}"`;
-            return `${displayDate},${time},${activity}`;
-        }).join("\n");
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
 
         const link = document.createElement("a");
         link.href = encodeURI(csvContent);
-        link.download = `TrackerBuddy_Export.csv`;
+        link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    function parseCsvLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    current += '"';
+                    i++; // Skip the next quote
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current);
+        return result;
     }
 
     function handleFileUpload(event) {
@@ -1315,24 +1337,26 @@
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             const csvContent = e.target.result;
             const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+            let leaveTypesCopy = JSON.parse(JSON.stringify(state.leaveTypes));
             const lines = csvContent.split('\n').filter(line => line.trim());
 
             if (lines.length <= 1) {
                 return showMessage("CSV file is empty or has no data.", 'error');
             }
 
+            const importedActivitiesByDate = {};
+
             lines.slice(1).forEach(line => {
                 const row = parseCsvLine(line);
                 if (row.length < 3) return;
 
-                const [displayDateStr, time, activityText] = row;
-                const dateKey = parseDisplayDateToYYYYMMDD(displayDateStr);
+                const [dateKey, type, detail1, detail2] = row;
 
-                if (!dateKey || !time) {
-                    console.warn(`Skipping row with invalid date or time: ${line}`);
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+                    console.warn(`Skipping row with invalid date format: ${line}`);
                     return;
                 }
 
@@ -1340,22 +1364,58 @@
                     dataCopy[dateKey] = {};
                 }
 
-                const importedText = activityText.trim();
-                if (dataCopy[dateKey][time]) {
-                    const existingText = dataCopy[dateKey][time].text.trim();
-                    if (existingText !== importedText && !existingText.includes(importedText)) {
-                        dataCopy[dateKey][time].text = existingText ? `${existingText}\n${importedText}` : importedText;
-                    }
-                } else {
-                    const order = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
-                    dataCopy[dateKey][time] = { text: importedText, order };
+                switch (type.toUpperCase()) {
+                    case 'NOTE':
+                        dataCopy[dateKey].note = detail1;
+                        break;
+                    
+                    case 'LEAVE':
+                        let leaveType = leaveTypesCopy.find(lt => lt.name === detail1);
+                        if (!leaveType) {
+                            // Create a new leave type if it doesn't exist
+                            const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
+                            const usedColors = new Set(leaveTypesCopy.map(lt => lt.color));
+                            const availableColor = colors.find(c => !usedColors.has(c)) || colors[Math.floor(Math.random() * colors.length)];
+                            leaveType = {
+                                id: `lt_${new Date().getTime()}_${Math.random()}`,
+                                name: detail1,
+                                totalDays: 0, // Default value
+                                color: availableColor
+                            };
+                            leaveTypesCopy.push(leaveType);
+                        }
+                        dataCopy[dateKey].leave = {
+                            typeId: leaveType.id,
+                            dayType: (detail2 === 'half' || detail2 === 'full') ? detail2 : 'full'
+                        };
+                        break;
+                    
+                    case 'ACTIVITY':
+                        const time = detail1;
+                        const text = detail2;
+                        if (time) {
+                            if (!importedActivitiesByDate[dateKey]) {
+                                // On the first activity for a day, clear previous activities for that day
+                                Object.keys(dataCopy[dateKey]).forEach(key => {
+                                    if (key !== 'note' && key !== 'leave' && key !== '_userCleared') {
+                                        delete dataCopy[dateKey][key];
+                                    }
+                                });
+                                importedActivitiesByDate[dateKey] = true;
+                            }
+                            const order = Object.keys(dataCopy[dateKey]).filter(k => k !== 'note' && k !== 'leave' && k !== '_userCleared').length;
+                            dataCopy[dateKey][time] = { text: text || "", order };
+                        }
+                        break;
                 }
             });
 
+            setState({ leaveTypes: leaveTypesCopy });
+
             if (state.isOnlineMode && state.userId) {
-                saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+                await saveDataToFirestore({ activities: dataCopy, leaveTypes: leaveTypesCopy });
             } else {
-                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: leaveTypesCopy });
                 setState({ allStoredData: dataCopy });
                 updateView();
             }
