@@ -1260,8 +1260,14 @@
 
     function downloadCSV() {
         const csvRows = [
-            ["Date", "Type", "Detail1", "Detail2"] // Headers
+            ["Type", "Detail1", "Detail2", "Detail3"] // Headers
         ];
+
+        // Export Leave Types
+        state.leaveTypes.forEach(lt => {
+            csvRows.push(["LEAVE_TYPE", lt.name, lt.totalDays, lt.color]);
+        });
+
         const sortedDateKeys = Object.keys(state.allStoredData).sort();
 
         sortedDateKeys.forEach(dateKey => {
@@ -1269,14 +1275,14 @@
             
             // Export Note
             if (dayData.note) {
-                csvRows.push([dateKey, "NOTE", dayData.note, ""]);
+                csvRows.push(["NOTE", dateKey, dayData.note, ""]);
             }
 
             // Export Leave
             if (dayData.leave) {
                 const leaveType = state.leaveTypes.find(lt => lt.id === dayData.leave.typeId);
                 if (leaveType) {
-                    csvRows.push([dateKey, "LEAVE", leaveType.name, dayData.leave.dayType]);
+                    csvRows.push(["LEAVE", dateKey, leaveType.name, dayData.leave.dayType]);
                 }
             }
 
@@ -1288,7 +1294,7 @@
             
             activities.forEach(activity => {
                 if (activity.text?.trim()) {
-                    csvRows.push([dateKey, "ACTIVITY", activity.time, activity.text]);
+                    csvRows.push(["ACTIVITY", dateKey, activity.time, activity.text]);
                 }
             });
         });
@@ -1348,63 +1354,61 @@
             }
 
             const importedActivitiesByDate = {};
+            
+            // Clear existing leave types before importing new ones
+            leaveTypesCopy = [];
 
             lines.slice(1).forEach(line => {
                 const row = parseCsvLine(line);
                 if (row.length < 3) return;
 
-                const [dateKey, type, detail1, detail2] = row;
-
-                if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-                    console.warn(`Skipping row with invalid date format: ${line}`);
-                    return;
-                }
-
-                if (!dataCopy[dateKey]) {
-                    dataCopy[dateKey] = {};
-                }
+                const [type, detail1, detail2, detail3] = row;
 
                 switch (type.toUpperCase()) {
+                    case 'LEAVE_TYPE':
+                        leaveTypesCopy.push({
+                            id: `lt_${new Date().getTime()}_${Math.random()}`,
+                            name: detail1,
+                            totalDays: parseInt(detail2, 10) || 0,
+                            color: detail3
+                        });
+                        break;
+
                     case 'NOTE':
-                        dataCopy[dateKey].note = detail1;
-                        break;
-                    
                     case 'LEAVE':
-                        let leaveType = leaveTypesCopy.find(lt => lt.name === detail1);
-                        if (!leaveType) {
-                            // Create a new leave type if it doesn't exist
-                            const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
-                            const usedColors = new Set(leaveTypesCopy.map(lt => lt.color));
-                            const availableColor = colors.find(c => !usedColors.has(c)) || colors[Math.floor(Math.random() * colors.length)];
-                            leaveType = {
-                                id: `lt_${new Date().getTime()}_${Math.random()}`,
-                                name: detail1,
-                                totalDays: 0, // Default value
-                                color: availableColor
-                            };
-                            leaveTypesCopy.push(leaveType);
-                        }
-                        dataCopy[dateKey].leave = {
-                            typeId: leaveType.id,
-                            dayType: (detail2 === 'half' || detail2 === 'full') ? detail2 : 'full'
-                        };
-                        break;
-                    
                     case 'ACTIVITY':
-                        const time = detail1;
-                        const text = detail2;
-                        if (time) {
-                            if (!importedActivitiesByDate[dateKey]) {
-                                // On the first activity for a day, clear previous activities for that day
-                                Object.keys(dataCopy[dateKey]).forEach(key => {
-                                    if (key !== 'note' && key !== 'leave' && key !== '_userCleared') {
-                                        delete dataCopy[dateKey][key];
-                                    }
-                                });
-                                importedActivitiesByDate[dateKey] = true;
+                        const dateKey = detail1;
+                        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+                            console.warn(`Skipping row with invalid date format: ${line}`);
+                            return;
+                        }
+                        if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
+
+                        if (type.toUpperCase() === 'NOTE') {
+                            dataCopy[dateKey].note = detail2;
+                        } else if (type.toUpperCase() === 'LEAVE') {
+                            const leaveType = leaveTypesCopy.find(lt => lt.name === detail2);
+                            if (leaveType) {
+                                dataCopy[dateKey].leave = {
+                                    typeId: leaveType.id,
+                                    dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
+                                };
                             }
-                            const order = Object.keys(dataCopy[dateKey]).filter(k => k !== 'note' && k !== 'leave' && k !== '_userCleared').length;
-                            dataCopy[dateKey][time] = { text: text || "", order };
+                        } else if (type.toUpperCase() === 'ACTIVITY') {
+                            const time = detail2;
+                            const text = detail3;
+                            if (time) {
+                                if (!importedActivitiesByDate[dateKey]) {
+                                    Object.keys(dataCopy[dateKey]).forEach(key => {
+                                        if (key !== 'note' && key !== 'leave' && key !== '_userCleared') {
+                                            delete dataCopy[dateKey][key];
+                                        }
+                                    });
+                                    importedActivitiesByDate[dateKey] = true;
+                                }
+                                const order = Object.keys(dataCopy[dateKey]).filter(k => k !== 'note' && k !== 'leave' && k !== '_userCleared').length;
+                                dataCopy[dateKey][time] = { text: text || "", order };
+                            }
                         }
                         break;
                 }
@@ -2412,13 +2416,13 @@
                 updateView();
             } else {
                 if (state.leaveTypes.length === 0) {
-                    showMessage("Please add a leave type first.", 'info');
+                    showMessage("Please add a leave type first, by clicking on ‘+’ button on top of the calendar.", 'info');
                     return;
                 }
                 setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
                 DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
                 DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
-                showMessage('Select days on the calendar to log a leave.', 'info');
+                showMessage('Now select the days followed by the leave type pill.', 'info');
             }
         });
 
