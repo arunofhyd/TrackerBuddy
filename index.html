@@ -467,7 +467,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
                         </button>
                         <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
-                            </div>
+                        </div>
                     </div>
 
                     <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
@@ -502,7 +502,7 @@
                             </button>
                         </div>
                         <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -527,7 +527,7 @@
             <div>
                 <label class="block text-sm font-medium mb-2">Color</label>
                 <div id="leave-color-picker" class="grid grid-cols-6 gap-2">
-                    </div>
+                </div>
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
@@ -546,7 +546,7 @@
         <div id="bulk-leave-controls" class="p-4 mb-6 border rounded-lg flex flex-wrap items-center gap-x-4 gap-y-3">
             <span class="font-semibold flex-shrink-0">Apply to All:</span>
             <div id="modal-leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap p-2">
-                </div>
+            </div>
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <div id="bulk-day-type-toggle" class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="full">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
@@ -558,7 +558,7 @@
         </div>
         
         <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-4 pr-2">
-            </div>
+        </div>
         
         <div class="flex justify-end mt-6 space-x-3">
             <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
@@ -965,8 +965,6 @@
                 </td>`;
             DOM.dailyActivityTableBody.appendChild(row);
         });
-
-        attachDailyActivityEventListeners();
     }
 
     function renderMonthPicker() {
@@ -1035,53 +1033,52 @@
     }
 
     async function saveData(action) {
-        let dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
         const dateKey = getYYYYMMDD(state.selectedDate);
+        // --- OPTIMIZATION: Avoid deep cloning the entire state.
+        // Create a shallow copy of the day's data or an empty object.
+        const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
         let successMessage = null;
 
-        const isNewDay = !dataCopy[dateKey] || (Object.keys(dataCopy[dateKey]).length === 0 && !dataCopy[dateKey]?._userCleared);
+        const isNewDay = !state.allStoredData[dateKey] || (Object.keys(dayDataCopy).length === 0 && !dayDataCopy._userCleared);
 
         if (isNewDay && (action.type === 'ADD_SLOT' || action.type === 'UPDATE_ACTIVITY_TEXT')) {
-            dataCopy[dateKey] = {};
             if (state.selectedDate.getDay() !== 0) {
                 for (let h = 8; h <= 17; h++) {
                     const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
-                    dataCopy[dateKey][timeKey] = { text: "", order: h - 8 };
+                    dayDataCopy[timeKey] = { text: "", order: h - 8 };
                 }
             }
-        } else if (!dataCopy[dateKey]) {
-            dataCopy[dateKey] = {};
         }
 
         switch (action.type) {
             case 'SAVE_NOTE': {
                 if (action.payload) {
-                    dataCopy[dateKey].note = action.payload;
+                    dayDataCopy.note = action.payload;
                 } else {
-                    delete dataCopy[dateKey].note;
+                    delete dayDataCopy.note;
                 }
                 break;
             }
             case 'ADD_SLOT': {
                 let newTimeKey = "00:00", counter = 0;
-                while (dataCopy[dateKey][newTimeKey]) {
+                while (dayDataCopy[newTimeKey]) {
                     newTimeKey = `00:00-${++counter}`;
                 }
-                const existingKeys = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
-                const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dataCopy[dateKey]).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
-                dataCopy[dateKey][newTimeKey] = { text: "", order: maxOrder + 1 };
-                delete dataCopy[dateKey]._userCleared;
+                const existingKeys = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
+                const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
+                dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
+                delete dayDataCopy._userCleared;
                 successMessage = "New slot added!";
                 break;
             }
             case 'UPDATE_ACTIVITY_TEXT': {
-                if (dataCopy[dateKey][action.payload.timeKey]) {
-                    dataCopy[dateKey][action.payload.timeKey].text = action.payload.newText;
+                if (dayDataCopy[action.payload.timeKey]) {
+                    dayDataCopy[action.payload.timeKey].text = action.payload.newText;
                 } else {
-                    const order = Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
-                    dataCopy[dateKey][action.payload.timeKey] = { text: action.payload.newText, order };
+                    const order = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
+                    dayDataCopy[action.payload.timeKey] = { text: action.payload.newText, order };
                 }
-                delete dataCopy[dateKey]._userCleared;
+                delete dayDataCopy._userCleared;
                 successMessage = "Activity updated!";
                 break;
             }
@@ -1091,26 +1088,32 @@
                     showMessage("Time cannot be empty.", 'error');
                     return;
                 }
-                if (dataCopy[dateKey][newTimeKey] && oldTimeKey !== newTimeKey) {
+                if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
                     showMessage(`Time "${newTimeKey}" already exists.`, 'error');
                     return;
                 }
-                const entry = dataCopy[dateKey][oldTimeKey];
+                const entry = dayDataCopy[oldTimeKey];
                 if (entry) {
-                    delete dataCopy[dateKey][oldTimeKey];
-                    dataCopy[dateKey][newTimeKey] = entry;
+                    delete dayDataCopy[oldTimeKey];
+                    dayDataCopy[newTimeKey] = entry;
                 }
                 successMessage = "Time updated!";
                 break;
             }
         }
 
+        // --- OPTIMIZATION: Create a new allStoredData object with just the updated day.
+        const updatedData = {
+            ...state.allStoredData,
+            [dateKey]: dayDataCopy
+        };
+
         if (state.isOnlineMode && state.userId) {
-            await saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+            await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
             await new Promise(resolve => {
-                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
-                setState({ allStoredData: dataCopy });
+                saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+                setState({ allStoredData: updatedData });
                 updateView();
                 setTimeout(resolve, 50);
             });
@@ -1120,6 +1123,7 @@
             showMessage(successMessage, 'success');
         }
     }
+
 
     function loadDataFromLocalStorage() {
         try {
@@ -1193,21 +1197,22 @@
 
     function updateActivityOrder() {
         const dateKey = getYYYYMMDD(state.selectedDate);
-        const dailyActivitiesMap = state.allStoredData[dateKey] || {};
+        const dayData = state.allStoredData[dateKey] || {};
         const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
         
-        let newDailyActivitiesMap = {};
-        if (dailyActivitiesMap.note) newDailyActivitiesMap.note = dailyActivitiesMap.note;
-        if (dailyActivitiesMap.leave) newDailyActivitiesMap.leave = dailyActivitiesMap.leave;
+        // --- OPTIMIZATION: Create shallow copies instead of deep cloning.
+        const newDayData = {};
+        if (dayData.note) newDayData.note = dayData.note;
+        if (dayData.leave) newDayData.leave = dayData.leave;
 
         orderedTimeKeys.forEach((timeKey, index) => {
-            const originalEntry = dailyActivitiesMap[timeKey] || { text: '' };
-            newDailyActivitiesMap[timeKey] = { text: originalEntry.text, order: index };
+            const originalEntry = dayData[timeKey] || { text: '' };
+            newDayData[timeKey] = { text: originalEntry.text, order: index };
         });
 
-        if (dailyActivitiesMap._userCleared) newDailyActivitiesMap._userCleared = true;
+        if (dayData._userCleared) newDayData._userCleared = true;
 
-        const updatedData = { ...state.allStoredData, [dateKey]: newDailyActivitiesMap };
+        const updatedData = { ...state.allStoredData, [dateKey]: newDayData };
         
         if (state.isOnlineMode && state.userId) {
             saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
@@ -1219,22 +1224,27 @@
     }
 
     function deleteActivity(dateKey, timeKey) {
-        const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
-        if (dataCopy[dateKey]?.[timeKey]) {
-            delete dataCopy[dateKey][timeKey];
-            if (Object.keys(dataCopy[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
-                dataCopy[dateKey]._userCleared = true;
-            }
+        // --- OPTIMIZATION: Use shallow copies for performance.
+        const dayData = state.allStoredData[dateKey];
+        if (!dayData || !dayData[timeKey]) return;
 
-            if (state.isOnlineMode && state.userId) {
-                saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
-            } else {
-                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
-                setState({ allStoredData: dataCopy });
-                updateView();
-            }
-            showMessage("Activity deleted.", 'success');
+        const dayDataCopy = { ...dayData };
+        delete dayDataCopy[timeKey];
+        
+        if (Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
+            dayDataCopy._userCleared = true;
         }
+
+        const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
+
+        if (state.isOnlineMode && state.userId) {
+            saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: dataCopy });
+            updateView();
+        }
+        showMessage("Activity deleted.", 'success');
     }
 
     // --- CSV Import/Export ---
@@ -1293,11 +1303,9 @@
             return showMessage("No data found to export.", 'info');
         }
 
-        // --- CORRECTED PART ---
         const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
         
         const link = document.createElement("a");
-        // Correctly construct the data URI by encoding only the data component
         link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
         link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
         
@@ -1339,8 +1347,8 @@
             try {
                 const csvContent = e.target.result;
 
-                // --- FIX: Initialize with existing data to merge, not replace ---
-                const dataCopy = JSON.parse(JSON.stringify(state.allStoredData));
+                // --- OPTIMIZATION: Use shallow copy instead of deep clone
+                const dataCopy = { ...state.allStoredData };
                 const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
                 const lines = csvContent.split('\n').filter(line => line.trim());
@@ -1379,7 +1387,9 @@
                                 console.warn(`Skipping row with invalid date format: ${line}`);
                                 return;
                             }
+                            // --- OPTIMIZATION: Only copy the day object if it exists to avoid mutation
                             if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
+                            else dataCopy[dateKey] = { ...dataCopy[dateKey] };
 
                             if (type.toUpperCase() === 'NOTE') {
                                 dataCopy[dateKey].note = detail2;
@@ -1435,18 +1445,11 @@
         }
         localStorage.removeItem('sessionMode');
         
-        // --- FIX: Reset splash screen and its children to their initial post-animation state ---
         if (DOM.splashScreen) {
-            // Put it in the background, ready for the login screen's video
             DOM.splashScreen.style.zIndex = '-10';
-            
-            // Hide the interactive/text elements that the easter egg might have shown.
-            // This prevents them from reappearing behind the login modal.
             DOM.splashText.style.display = 'none';
             DOM.tapToBegin.style.display = 'none';
             DOM.splashLoading.style.display = 'none';
-
-            // Reset animation classes and other properties modified by the easter egg
             DOM.splashText.classList.remove('animating-out');
             DOM.splashScreen.style.cursor = 'default';
         }
@@ -1460,7 +1463,6 @@
             logoTapCount: 0 // Reset easter egg counter
         });
 
-        // switchView will correctly set the splash screen container to display: flex
         switchView(DOM.loginView, DOM.appView);
     }
 
@@ -1648,36 +1650,14 @@
         });
     }
 
-    function attachDailyActivityEventListeners() {
-        DOM.dailyActivityTableBody.querySelectorAll('.activity-text-editable, .time-editable').forEach(el => {
-            el.addEventListener('click', handleInlineEditClick);
-            el.addEventListener('blur', handleInlineEditBlur);
-            el.addEventListener('keydown', handleInlineEditKeydown);
-        });
-        DOM.dailyActivityTableBody.querySelectorAll('.move-up-btn').forEach(btn => btn.addEventListener('click', handleMoveUpClick));
-        DOM.dailyActivityTableBody.querySelectorAll('.move-down-btn').forEach(btn => btn.addEventListener('click', handleMoveDownClick));
-        
-        DOM.dailyActivityTableBody.querySelectorAll('.delete-btn').forEach(btn => {
-            const timeKey = btn.closest('tr').dataset.time;
-            setupDoubleClickConfirm(
-                btn,
-                `delete-${timeKey}`,
-                'Click again to confirm deletion.',
-                () => deleteActivity(getYYYYMMDD(state.selectedDate), timeKey)
-            );
-        });
-    }
-
-    function handleMoveUpClick(event) {
-        const currentRow = event.currentTarget.closest('tr');
+    function handleMoveUpClick(currentRow) {
         if (currentRow.previousElementSibling) {
             DOM.dailyActivityTableBody.insertBefore(currentRow, currentRow.previousElementSibling);
             updateActivityOrder();
         }
     }
 
-    function handleMoveDownClick(event) {
-        const currentRow = event.currentTarget.closest('tr');
+    function handleMoveDownClick(currentRow) {
         if (currentRow.nextElementSibling) {
             DOM.dailyActivityTableBody.insertBefore(currentRow.nextElementSibling, currentRow);
             updateActivityOrder();
@@ -1862,9 +1842,12 @@
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
         setState({ leaveTypes: newLeaveTypes });
 
+        // --- OPTIMIZATION: Use shallow copy instead of deep clone
         const updatedActivities = { ...state.allStoredData };
         Object.keys(updatedActivities).forEach(dateKey => {
             if (updatedActivities[dateKey].leave?.typeId === id) {
+                // Ensure we don't mutate the original object
+                updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
                 delete updatedActivities[dateKey].leave;
             }
         });
@@ -2257,24 +2240,25 @@
         }
         if (balanceError) return;
 
-        const updatedData = JSON.parse(JSON.stringify(state.allStoredData));
+        // --- OPTIMIZATION: Use shallow copy instead of deep clone.
+        const updatedData = { ...state.allStoredData };
 
         state.initialLeaveSelection.forEach(dateKey => {
             if (!datesInModal.has(dateKey) && updatedData[dateKey]?.leave) {
+                updatedData[dateKey] = { ...updatedData[dateKey] }; // create copy before mutation
                 delete updatedData[dateKey].leave;
             }
         });
         
         modalItems.forEach(item => {
             const dateKey = item.dataset.dateKey;
+            // Create a copy of the day's data before modifying it
+            updatedData[dateKey] = { ...(updatedData[dateKey] || {}) };
             const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
             if (typeId === 'remove') {
-                if (updatedData[dateKey]?.leave) {
-                    delete updatedData[dateKey].leave;
-                }
+                delete updatedData[dateKey].leave;
             } else {
                 const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
-                if (!updatedData[dateKey]) updatedData[dateKey] = {};
                 updatedData[dateKey].leave = { typeId, dayType };
             }
         });
@@ -2304,6 +2288,71 @@
             trigger.innerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
         });
         showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
+    }
+
+    // --- OPTIMIZATION: Event Delegation Setup for Daily View ---
+    function setupDailyViewEventListeners() {
+        const tableBody = DOM.dailyActivityTableBody;
+        if (!tableBody) return;
+
+        // --- CLICK Event Delegation ---
+        tableBody.addEventListener('click', e => {
+            const target = e.target;
+            
+            // Handle editable cell clicks
+            const editableCell = target.closest('.activity-text-editable, .time-editable');
+            if (editableCell) {
+                handleInlineEditClick({ currentTarget: editableCell });
+                return; // Stop further processing
+            }
+
+            // Handle button clicks
+            const button = target.closest('.icon-btn');
+            if (!button) return;
+
+            const row = button.closest('tr');
+            if (!row) return;
+
+            const timeKey = row.dataset.time;
+
+            if (button.classList.contains('move-up-btn')) {
+                handleMoveUpClick(row);
+            } else if (button.classList.contains('move-down-btn')) {
+                handleMoveDownClick(row);
+            } else if (button.classList.contains('delete-btn')) {
+                if (button.classList.contains('confirm-action')) {
+                    deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
+                    button.classList.remove('confirm-action');
+                    clearTimeout(button.dataset.timeoutId);
+                } else {
+                    // Reset any other confirmations
+                    tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
+                    
+                    button.classList.add('confirm-action');
+                    showMessage('Click again to confirm deletion.', 'info');
+                    const timeoutId = setTimeout(() => {
+                        button.classList.remove('confirm-action');
+                    }, 3000);
+                    button.dataset.timeoutId = timeoutId;
+                }
+            }
+        });
+
+        // --- BLUR Event Delegation (using capture phase) ---
+        tableBody.addEventListener('blur', e => {
+            const target = e.target;
+            if (target.matches('.activity-text-editable, .time-editable')) {
+                handleInlineEditBlur({ currentTarget: target });
+            }
+        }, true);
+
+        // --- KEYDOWN Event Delegation ---
+        tableBody.addEventListener('keydown', e => {
+            const target = e.target;
+            if (target.matches('.activity-text-editable, .time-editable')) {
+                handleInlineEditKeydown(e);
+            }
+        });
     }
 
 
@@ -2499,24 +2548,18 @@
             DOM.splashLoading.style.display = 'none';
             DOM.tapToBegin.style.display = 'block';
             DOM.splashScreen.addEventListener('click', () => {
-                // --- FIX: Hide these elements immediately on click ---
                 DOM.tapToBegin.style.display = 'none';
                 DOM.splashLoading.style.display = 'none';
-
-                // Start the cinematic animation for the main logo
                 DOM.splashText.classList.add('animating-out');
                 
-                // Show the login page immediately
                 initAuth();
 
-                // After a short delay, move the splash container to the background
                 setTimeout(() => {
                     DOM.splashScreen.style.zIndex = '-10';
                     DOM.splashScreen.style.cursor = 'default';
                     DOM.splashScreen.style.backgroundColor = 'transparent';
                 }, 400);
 
-                // After the animation is done, hide the text element completely
                 setTimeout(() => {
                     DOM.splashText.style.display = 'none';
                 }, 1000); // This should match the CSS animation duration
@@ -2528,6 +2571,8 @@
     function init() {
         initUI();
         setupEventListeners();
+        // --- OPTIMIZATION: Call the single setup function for daily view
+        setupDailyViewEventListeners();
         setupColorPicker();
         loadTheme();
         handleSplashScreen();
