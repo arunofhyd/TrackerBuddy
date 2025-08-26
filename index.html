@@ -407,11 +407,20 @@
             <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl border border-gray-700 shadow-2xl p-8 text-center">
                 <img src="assets/logo.png" class="w-24 h-24 mb-4 mx-auto rounded-full" alt="TrackerBuddy Logo">
                 <h1 class="text-5xl font-extrabold text-gray-100 tracking-tight mb-4">TrackerBuddy</h1>
-                <p class="text-gray-400 mb-6">Your all-in-one tracker.</p>
                 
-                <!-- SEO: Added Descriptive Content -->
-                <div class="text-center text-gray-300 mb-8 border-t border-b border-gray-700 py-6">
-                    <p>Log your work hours, manage project activities, and keep an eye on your leave balance all in one simple, fast interface. Get detailed reports, export your data to CSV, and stay organized. Sign in or continue as Guest to take control of your time.</p>
+                <!-- UPDATED: Title with info icon -->
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <p class="text-gray-400">Your all-in-one tracker.</p>
+                    <button id="info-toggle-btn" class="text-gray-400 hover:text-gray-200 focus:outline-none transition-colors duration-200" title="Show description">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+
+                <!-- UPDATED: Toggleable description container -->
+                <div id="info-description" class="overflow-hidden transition-all duration-700 ease-in-out" style="max-height: 0px; opacity: 0;">
+                    <div class="text-center text-gray-300 mb-8 border-t border-b border-gray-700 py-6">
+                        <p>Log your work hours, manage project activities, and keep an eye on your leave balance all in one simple, fast interface. Get detailed reports, export your data to CSV, and stay organized. Sign in or continue as Guest to take control of your time.</p>
+                    </div>
                 </div>
 
                 <div class="space-y-4 text-left mb-2">
@@ -445,7 +454,7 @@
                     </button>
                     <button id="anon-continue-btn" class="w-full bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600 py-2 px-4 rounded-lg text-lg font-semibold">
                         <div class="flex flex-col items-center">
-                            <span>Continue Offline</span>
+                            <span>Continue as Guest</span>
                             <span class="text-xs font-normal text-gray-400 mt-1">(Saves data only on this device)</span>
                         </div>
                     </button>
@@ -726,7 +735,10 @@
             dayViewBottomControls: document.getElementById('day-view-bottom-controls'),
             removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn'),
             logoContainer: document.getElementById('logo-container'),
-            appLogo: document.getElementById('app-logo')
+            appLogo: document.getElementById('app-logo'),
+            // ADDED: New elements for info toggle
+            infoToggleBtn: document.getElementById('info-toggle-btn'),
+            infoDescription: document.getElementById('info-description')
         };
     }
 
@@ -2554,6 +2566,24 @@
         
         // Easter Egg Listener
         DOM.logoContainer.addEventListener('click', handleLogoTap);
+
+        // ADDED: Listener for the new info toggle button
+        if (DOM.infoToggleBtn && DOM.infoDescription) {
+            DOM.infoToggleBtn.addEventListener('click', () => {
+                const description = DOM.infoDescription;
+                // Check if the description is currently open
+                if (description.style.maxHeight && description.style.maxHeight !== '0px') {
+                    // If open, close it
+                    description.style.maxHeight = '0px';
+                    description.style.opacity = '0';
+                } else {
+                    // If closed, open it
+                    description.style.opacity = '1';
+                    // Set max-height to its natural content height for a smooth transition
+                    description.style.maxHeight = description.scrollHeight + 'px';
+                }
+            });
+        }
     }
 
     // --- App Initialization ---
