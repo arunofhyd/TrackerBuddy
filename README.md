@@ -1,7 +1,9 @@
 # TrackerBuddy 📊
 ---
 
-<img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/50c4c0f8-2b47-4790-9c92-7c66fc91e012" />
+<p align="center">
+  <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/50c4c0f8-2b47-4790-9c92-7c66fc91e012" />
+</p>
 
 ## Features
 
@@ -46,11 +48,10 @@ This application was built with performance as a top priority. By using a modern
 
 ## How to Use
 
-1.  **Open the Live Demo:** [Click here to get started!](https://arunofhyd.github.io/TrackerBuddy/)
-2.  **Choose a Mode:** Either `Continue as Guest` or sign in to sync your data.
-3.  **Navigate:** Switch between **Month View** to see your calendar and **Day View** to log activities.
-4.  **Log Activities:** In Day View, click on the time or activity fields to edit them, or add new slots.
-5.  **Manage Leave:**
+1.  **Choose a Mode:** Either `Continue as Guest` or sign in to sync your data.
+2.  **Navigate:** Switch between **Month View** to see your calendar and **Day View** to log activities.
+3.  **Log Activities:** In Day View, click on the time or activity fields to edit them, or add new slots.
+4.  **Manage Leave:**
     -   In Month View, click the `+` button to create a new leave type (e.g., "Vacation").
     -   Click the "Log Leave" button to enter selection mode.
     -   Select days on the calendar and then click the leave type pill to assign it.
