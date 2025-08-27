@@ -2091,8 +2091,7 @@
         DOM.leavePillsContainer.innerHTML = '';
         state.leaveTypes.forEach(lt => {
             const pill = document.createElement('button');
-            // ADDED truncate and max-w-28 to control the size and text overflow
-            pill.className = 'truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
+            pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
             pill.style.backgroundColor = lt.color;
             pill.textContent = lt.name;
             pill.dataset.id = lt.id;
@@ -2229,7 +2228,7 @@
                 ${state.leaveTypes.map(lt => `
                     <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
                         <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
-                        <span class="truncate" title="${lt.name}">${lt.name}</span>
+                        <span class="truncate min-w-0" title="${lt.name}">${lt.name}</span>
                     </button>
                 `).join('')}
             </div>
@@ -2348,8 +2347,7 @@
             bulkPillsContainer.innerHTML = '';
             state.leaveTypes.forEach(lt => {
                 const pill = document.createElement('button');
-                // ADDED truncate and max-w-28 to control the size and text overflow
-                pill.className = 'truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
+                pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
                 pill.style.backgroundColor = lt.color;
                 pill.textContent = lt.name;
                 if (lt.id === modalBulkTypeId) {
