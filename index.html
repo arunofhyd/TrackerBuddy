@@ -406,18 +406,35 @@
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
             <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl border border-gray-700 shadow-2xl p-8 text-center">
                 <img src="assets/logo.png" class="w-24 h-24 mb-4 mx-auto rounded-full" alt="TrackerBuddy Logo">
-                <h1 class="text-5xl font-extrabold text-gray-100 tracking-tight mb-4">TrackerBuddy</h1>
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-100 tracking-tight mb-4 break-words">TrackerBuddy</h1>
                 
                 <!-- UPDATED: Title with info icon -->
                 <div class="flex items-center justify-center gap-2 mb-4">
                     <p class="text-gray-400">Your all-in-one tracker.</p>
                     <button id="info-toggle-btn" class="text-gray-400 hover:text-gray-200 focus:outline-none transition-colors duration-200" title="Show description">
-                    * Track work hours, manage projects, and monitor leave balances.
-                    * Generate detailed reports and export data to CSV.
-                    * Use a simple and fast interface.
-                    * Sign in or continue as a guest to get started.</p>
-                    </div>
+                        <i class="fas fa-info-circle"></i>
+                    </button>
                 </div>
+
+                <!-- UPDATED: Toggleable description container -->
+                    <div id="info-description" class="overflow-hidden transition-all duration-700 ease-in-out" style="max-height: 0px; opacity: 0;">
+                        <div class="text-left text-gray-300 mb-8 border-t border-b border-gray-700 py-6 px-4">
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-blue-400 mt-1 mr-3 flex-shrink-0"></i>
+                                    <span><strong>Effortlessly log daily activities</strong>, track work hours, and manage custom leave balances.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-file-csv text-blue-400 mt-1 mr-3 flex-shrink-0"></i>
+                                    <span><strong>Seamlessly import and export</strong> your data to CSV for reports and backups.</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-400 mt-1 mr-3 flex-shrink-0"></i>
+                                    <span><strong>Get started instantly</strong> as a Guest, or sign in to sync your data across devices.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
 
                 <div class="space-y-4 text-left mb-2">
                     <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2.5 text-base text-white bg-gray-700 border-2 border-gray-600 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 focus:bg-gray-800 transition-all">
@@ -2005,11 +2022,11 @@
              triggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
         } else if (selectedType) {
              triggerHTML = `
-                <span class="flex items-center">
-                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${selectedType.color};"></span>
-                    <span class="font-medium text-sm">${selectedType.name}</span>
+                <span class="flex items-center w-full min-w-0">
+                    <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
+                    <span class="font-medium text-sm truncate">${selectedType.name}</span>
                 </span>
-                <i class="fas fa-chevron-down text-xs text-gray-500"></i>`;
+                <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
         } else {
             triggerHTML = `<span class="font-medium text-sm text-gray-500">Select Type</span>`;
         }
@@ -2216,7 +2233,7 @@
                 if (state.leaveSelection.size === 0) {
                     DOM.customizeLeaveModal.classList.add('hidden');
                     setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-                    DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+                    DOM.logNewLeaveBtn.textContent = 'Log Leave';
                     DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
                 }
                 
@@ -2295,7 +2312,7 @@
 
         DOM.customizeLeaveModal.classList.add('hidden');
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-        DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+        DOM.logNewLeaveBtn.textContent = 'Log Leave';
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
         updateView();
         showMessage('Leaves saved successfully!', 'success');
@@ -2494,7 +2511,7 @@
         DOM.logNewLeaveBtn.addEventListener('click', () => {
             if (state.isLoggingLeave) {
                 setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-                DOM.logNewLeaveBtn.textContent = 'Log New Leave';
+                DOM.logNewLeaveBtn.textContent = 'Log Leave';
                 DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
                 showMessage('Leave logging cancelled.', 'info');
                 updateView();
