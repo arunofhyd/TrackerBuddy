@@ -46,6 +46,20 @@
     <meta name="theme-color" content="#3b82f6">
 
     <style>
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #0f172a;
+            color: white;
+            padding: 8px;
+            z-index: 9999;
+            transition: top 0.3s;
+        }
+        
+        .skip-link:focus {
+            top: 0;
+        }
         /* --- Base and Font Styles --- */
         body {
             font-family: 'Inter', sans-serif;
@@ -586,11 +600,13 @@
     </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to main content</a>
 
 <div id="splash-screen" class="splash-screen">
     <img id="splash-image" 
          src="assets/splashbg.webp" 
          data-video-src="assets/splashbg.mp4" 
+         alt=""
          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
     <img src="assets/splashtext.webp" alt="TrackerBuddy" class="splash-text">
     <div id="splash-loading" class="splash-loading">
@@ -688,47 +704,49 @@
             </div>
         </div>
         
-        <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
-                        <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                    </button>
-                    <div id="logo-container" class="relative cursor-pointer">
-                        <img src="assets/logo.webp" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
-                    </div>
-                    <button id="sign-out-btn" class="icon-btn" title="Sign Out">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    </button>
+<div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
+        
+        <header class="flex justify-between items-center mb-6">
+            <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+                <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+            <div id="logo-container" class="relative cursor-pointer">
+                <img src="assets/logo.webp" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+            </div>
+            <button id="sign-out-btn" class="icon-btn" title="Sign Out">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </button>
+        </header>
+        <main id="main-content">
+            <div class="flex flex-col space-y-4 mb-8 w-full">
+                <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
+                <div class="flex items-center justify-between w-full">
+                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
+                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
-                <div class="flex flex-col space-y-4 mb-8 w-full">
-                    <div class="flex space-x-4 w-full"><button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button><button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button></div>
-                    <div class="flex items-center justify-between w-full">
-                        <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-                        <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
-                        <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                
+                <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
+                    <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
+                    </button>
+                    <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
                     </div>
-                    
-                    <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
-                        <button id="add-leave-type-btn" class="flex-shrink-0 w-8 h-8 border-2 border-dashed border-gray-400 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-500 hover:text-gray-500 transition-all" title="Add New Leave Type">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path></svg>
-                        </button>
-                        <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
-                        </div>
-                    </div>
-
-                    <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
-
-                    <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
                 </div>
-                <div id="main-content-area" class="w-full">
-                    <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
-                    <div id="daily-view" class="hidden">
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                                    <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                                    <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
-                                </div>
+
+                <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
+
+                <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
+            </div>
+            <div id="main-content-area" class="w-full">
+                <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
+                <div id="daily-view" class="hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                        <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                    </div>
                     <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
                     <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
                     <div id="day-view-bottom-controls">
@@ -739,23 +757,25 @@
                         </div>
                         <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
                     </div>
+                </div>
+                <div id="month-view-bottom-controls">
+                    <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
+                        <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log Leave</button>
+                        <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
+                            Stats
+                            <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
                     </div>
-                    <div id="month-view-bottom-controls">
-                        <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row gap-4">
-                            <button id="log-new-leave-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">Log Leave</button>
-                            <button id="stats-toggle-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
-                                Stats
-                                <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                            </button>
-                        </div>
-                        <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-                        </div>
+                    <div id="leave-stats-section" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
                     </div>
                 </div>
             </div>
+        </main>
         </div>
-    </div>
+</div>
+    
+</div>
     <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span>Reach out to the dev</span></a></footer>
 </div>
 
@@ -2019,6 +2039,13 @@
         source.src = videoSrc;
         source.type = 'video/mp4';
         video.appendChild(source);
+
+        const track = document.createElement('track');
+        track.kind = 'captions';
+        track.label = 'English';
+        track.srclang = 'en';
+        track.src = 'assets/captions.vtt'; // Path to your new file
+        video.appendChild(track);
 
         // When the video is ready to play, fade it in
         video.oncanplay = () => {
