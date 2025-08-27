@@ -1,4 +1,6 @@
+<p align="center">
 # TrackerBuddy 📊
+</p>
 
 <p align="center">
   <img width="300" height="300" alt="logo" src="https://github.com/user-attachments/assets/50c4c0f8-2b47-4790-9c92-7c66fc91e012" />
