@@ -62,4 +62,4 @@ This application was built with performance as a top priority. By using a modern
 
 Arun Thomas - [arunthomas04042001@gmail.com](mailto:arunthomas04042001@gmail.com)
 
-Project Link: [https://github.com/arunofhyd/TrackerBuddy](https://github.com/arunofhyd/TrackerBuddy)
+---
