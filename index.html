@@ -14,25 +14,33 @@
     <!-- Web App Manifest Link -->
     <link rel="manifest" href="manifest.json">
 
+    <!-- Preloading styles in BG -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap">
+    </noscript>
     
     <!-- Updated Favicon Links -->
-    <link rel="icon" href="assets/logo.png" type="image/png">
-    <link rel="shortcut icon" href="assets/logo.png">
-    <link rel="apple-touch-icon" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png">
-
+    <link rel="icon" href="assets/logo.webp" type="image/webp">
+    <link rel="shortcut icon" href="assets/logo.webp">
+    <link rel="apple-touch-icon" href="assets/logo.webp">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/logo.webp">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.webp">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.webp">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
     <meta name="application-name" content="TrackerBuddy">
     
-    <meta name="msapplication-TileImage" content="assets/logo.png">
+    <meta name="msapplication-TileImage" content="assets/logo.webp">
     <meta name="msapplication-TileColor" content="#3b82f6">
 
     <meta name="theme-color" content="#3b82f6">
@@ -580,13 +588,14 @@
 <body>
 
 <div id="splash-screen" class="splash-screen">
-    <video id="splash-video" autoplay loop muted playsinline poster="assets/splashbg.png" preload="auto">
-        <source src="assets/splashbg.mp4" type="video/mp4">
-    </video>
-    <img src="assets/splashtext.png" alt="TrackerBuddy" class="splash-text">
+    <img id="splash-image" 
+         src="assets/splashbg.webp" 
+         data-video-src="assets/splashbg.mp4" 
+         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
+    <img src="assets/splashtext.webp" alt="TrackerBuddy" class="splash-text">
     <div id="splash-loading" class="splash-loading">
         <div class="spinner"></div>
-        <div class="loading-text">Loading...</div>
+        <div class="loading-text">...</div>
     </div>
     <div id="tap-to-begin" class="tap-to-begin" style="display: none;">
         <i class="fas fa-hand-pointer tap-icon"></i>
@@ -608,7 +617,7 @@
 
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
             <div class="login-container rounded-xl shadow-2xl p-8 text-center transform transition-all duration-300">
-                <img src="assets/logo.png" class="w-24 h-24 mb-4 mx-auto rounded-full logo-glow transition-all duration-300" alt="TrackerBuddy Logo">
+                <img src="assets/logo.webp" class="w-24 h-24 mb-4 mx-auto rounded-full logo-glow transition-all duration-300" alt="TrackerBuddy Logo">
                 <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-4 break-words transition-colors duration-300">TrackerBuddy</h1>
                 
                 <!-- UPDATED: Title with info icon -->
@@ -665,7 +674,7 @@
 
                 <div class="space-y-4">
                     <button id="google-signin-btn" class="w-full google-btn py-3 px-4 rounded-lg flex items-center justify-center text-lg font-semibold transition-all duration-200">
-                        <img src="assets/google.png" class="w-6 h-6 mr-3" alt="Google icon">
+                        <img src="assets/google.webp" class="w-6 h-6 mr-3" alt="Google icon">
                         Continue with Google
                     </button>
                     <button id="anon-continue-btn" class="w-full guest-btn py-2 px-4 rounded-lg text-lg font-semibold transition-all duration-200">
@@ -687,7 +696,7 @@
                         <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
                     <div id="logo-container" class="relative cursor-pointer">
-                        <img src="assets/logo.png" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+                        <img src="assets/logo.webp" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
                     </div>
                     <button id="sign-out-btn" class="icon-btn" title="Sign Out">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
@@ -1980,6 +1989,46 @@
         }
     }
 
+    function loadSplashScreenVideo() {
+        const splashImage = document.getElementById('splash-image');
+        if (!splashImage) return;
+
+        const videoSrc = splashImage.dataset.videoSrc;
+        if (!videoSrc) return;
+
+        const video = document.createElement('video');
+        video.id = 'splash-video';
+        video.style.position = 'absolute';
+        video.style.top = '50%';
+        video.style.left = '50%';
+        video.style.minWidth = '100%';
+        video.style.minHeight = '100%';
+        video.style.width = 'auto';
+        video.style.height = 'auto';
+        video.style.transform = 'translateX(-50%) translateY(-50%)';
+        video.style.objectFit = 'cover';
+        video.style.zIndex = '11'; // Place it on top of the image
+        video.style.opacity = '0'; // Start invisible for fade-in
+        video.style.transition = 'opacity 0.5s ease-in';
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+
+        const source = document.createElement('source');
+        source.src = videoSrc;
+        source.type = 'video/mp4';
+        video.appendChild(source);
+
+        // When the video is ready to play, fade it in
+        video.oncanplay = () => {
+            video.style.opacity = '1';
+        };
+
+        splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
+    }
+
+    
     // --- Leave Management ---
     function openLeaveTypeModal(leaveType = null) {
         DOM.leaveTypeModal.classList.remove('hidden');
@@ -2809,11 +2858,11 @@
     function init() {
         initUI();
         setupEventListeners();
-        // --- OPTIMIZATION: Call the single setup function for daily view
         setupDailyViewEventListeners();
         setupColorPicker();
         loadTheme();
         handleSplashScreen();
+        loadSplashScreenVideo(); 
     }
 
     document.addEventListener('DOMContentLoaded', init);
