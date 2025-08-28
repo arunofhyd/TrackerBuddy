@@ -2151,7 +2151,28 @@
         const id = DOM.editingLeaveTypeId.value;
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
         setState({ leaveTypes: newLeaveTypes });
+        // --- OPTIMIZATION: Use shallow copy instead of deep clone
+        const updatedActivities = { ...state.allStoredData };
+        Object.keys(updatedActivities).forEach(dateKey => {
+            if (updatedActivities[dateKey].leave?.typeId === id) {
+                // Ensure we don't mutate the original object
+                updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
+                delete updatedActivities[dateKey].leave;
+            }
+        });
+        setState({ allStoredData: updatedActivities });
 
+        if(state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        }
+
+        closeLeaveTypeModal();
+        updateView();
+        showMessage('Leave type deleted!', 'success');
+    }
+   
     async function saveLeaveTypes() {
         if (state.isOnlineMode) {
             await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
@@ -2178,28 +2199,6 @@
         // Formally update the state and then save
         setState({ leaveTypes: newLeaveTypes });
         saveLeaveTypes();
-    }
-
-        // --- OPTIMIZATION: Use shallow copy instead of deep clone
-        const updatedActivities = { ...state.allStoredData };
-        Object.keys(updatedActivities).forEach(dateKey => {
-            if (updatedActivities[dateKey].leave?.typeId === id) {
-                // Ensure we don't mutate the original object
-                updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
-                delete updatedActivities[dateKey].leave;
-            }
-        });
-        setState({ allStoredData: updatedActivities });
-
-        if(state.isOnlineMode) {
-            await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
-        } else {
-            saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
-        }
-
-        closeLeaveTypeModal();
-        updateView();
-        showMessage('Leave type deleted!', 'success');
     }
     
     function renderLeavePills() {
