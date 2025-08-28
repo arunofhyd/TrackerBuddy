@@ -1441,6 +1441,10 @@
     }
 
     async function resetAllData() {
+        const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
+        setButtonLoadingState(button, true);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         if (state.isOnlineMode && state.userId) {
             try {
                 await deleteDoc(doc(db, "users", state.userId));
@@ -1455,6 +1459,7 @@
             showMessage("All local data has been reset.", 'success');
         }
         DOM.confirmResetModal.classList.add('hidden');
+        setButtonLoadingState(button, false);
     }
 
     function updateActivityOrder() {
@@ -2108,44 +2113,53 @@
     }
 
     async function saveLeaveType() {
+        // Get the button and start the loading state
+        const button = DOM.leaveTypeModal.querySelector('#save-leave-type-btn');
+        setButtonLoadingState(button, true);
+        await new Promise(resolve => setTimeout(resolve, 50)); // Ensures spinner is visible
+    
         const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
         const name = DOM.leaveNameInput.value.trim();
         const totalDays = parseInt(DOM.leaveDaysInput.value, 10);
         const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
         const color = selectedColorEl ? selectedColorEl.dataset.color : null;
-
+    
         if (!name || isNaN(totalDays) || !color) {
             showMessage('Please fill all fields and select a color.', 'error');
+            setButtonLoadingState(button, false); // Turn off spinner on error
             return;
         }
-
+    
         const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
         if (isColorTaken) {
             showMessage('This color is already used by another leave type.', 'error');
+            setButtonLoadingState(button, false); // Turn off spinner on error
             return;
         }
-
+    
         const newLeaveTypes = [...state.leaveTypes];
         const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
-
+    
         if (existingIndex > -1) {
             newLeaveTypes[existingIndex] = { id, name, totalDays, color };
         } else {
             newLeaveTypes.push({ id, name, totalDays, color });
         }
-
+    
         setState({ leaveTypes: newLeaveTypes });
         if(state.isOnlineMode) {
             await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
         } else {
             saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
         }
-
+    
         closeLeaveTypeModal();
         updateView();
         showMessage('Leave type saved!', 'success');
+        
+        // Turn off spinner at the end
+        setButtonLoadingState(button, false);
     }
-
     async function deleteLeaveType() {
         const id = DOM.editingLeaveTypeId.value;
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
@@ -2546,11 +2560,15 @@
     }
 
     async function saveLoggedLeaves() {
+        // Get the button and start the loading state
+        const button = DOM.customizeLeaveModal.querySelector('#save-log-leave-btn');
+        setButtonLoadingState(button, true);
+        await new Promise(resolve => setTimeout(resolve, 50));
+    
         const balances = calculateLeaveBalances();
-        const changes = [];
         const deltas = {};
         state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
-    
+        
         const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
         
         // Check for potential balance errors before proceeding
@@ -2564,10 +2582,14 @@
             const cost = dayType === 'half' ? 0.5 : 1;
     
             const existingLeave = state.allStoredData[dateKey]?.leave;
+            // Create a temporary copy of deltas to calculate the change for this one item
             let currentDelta = { ...deltas };
             if (existingLeave) {
                 const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
-                currentDelta[existingLeave.typeId] -= oldCost;
+                // Only adjust the delta if the leave type is changing
+                if (existingLeave.typeId !== typeId) {
+                     currentDelta[existingLeave.typeId] -= oldCost;
+                }
             }
             currentDelta[typeId] += cost;
             
@@ -2577,9 +2599,12 @@
                 balanceError = true;
             }
         });
-    
-        if (balanceError) return;
-    
+        
+        if (balanceError) {
+            setButtonLoadingState(button, false); // Turn off spinner on error
+            return;
+        }
+        
         // If no errors, proceed with saving
         const updatedData = { ...state.allStoredData };
         const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
@@ -2605,22 +2630,25 @@
                 updatedData[dateKey].leave = { typeId, dayType };
             }
         });
-    
+        
         if (state.isOnlineMode) {
             await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
             saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
             setState({ allStoredData: updatedData });
         }
-    
+        
         DOM.customizeLeaveModal.classList.add('hidden');
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
         DOM.logNewLeaveBtn.textContent = 'Log Leave';
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
         updateView();
         showMessage('Leaves saved successfully!', 'success');
+    
+        // Turn off spinner at the end
+        setButtonLoadingState(button, false);
     }
-
+    
     function handleBulkRemoveClick() {
         const list = DOM.leaveDaysList;
         list.querySelectorAll('.leave-day-item').forEach(item => {
@@ -2798,7 +2826,12 @@
         DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
         document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
         document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
-        DOM.deleteLeaveTypeBtn.addEventListener('click', deleteLeaveType);
+        setupDoubleClickConfirm(
+            DOM.deleteLeaveTypeBtn,
+            'deleteLeaveType', // A unique key for this action
+            'Click again to permanently delete this leave type and all its logged entries.',
+            deleteLeaveType
+        );        
         DOM.leaveColorPicker.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 selectColorInPicker(e.target.dataset.color);
