@@ -2798,8 +2798,23 @@
         });
         
         document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.add('hidden'));
-        document.getElementById('prev-year-btn').addEventListener('click', () => { setState({ pickerYear: state.pickerYear - 1 }); renderMonthPicker(); });
-        document.getElementById('next-year-btn').addEventListener('click', () => { setState({ pickerYear: state.pickerYear + 1 }); renderMonthPicker(); });
+        document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            setState({ pickerYear: state.pickerYear - 1 });
+            renderMonthPicker();
+            setButtonLoadingState(button, false);
+        });
+        
+        document.getElementById('next-year-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            setState({ pickerYear: state.pickerYear + 1 });
+            renderMonthPicker();
+            setButtonLoadingState(button, false);
+        });
         DOM.dailyNoteInput.addEventListener('input', (e) => saveData({ type: 'SAVE_NOTE', payload: e.target.value }));
         
         const addNewSlotBtn = document.getElementById('add-new-slot-btn');
