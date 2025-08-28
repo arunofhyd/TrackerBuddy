@@ -2163,15 +2163,20 @@
     }
 
     function moveLeaveType(typeId, direction) {
-        const index = state.leaveTypes.findIndex(lt => lt.id === typeId);
+        // Create a copy to avoid directly changing the state
+        const newLeaveTypes = [...state.leaveTypes];
+        const index = newLeaveTypes.findIndex(lt => lt.id === typeId);
+
         if (index === -1) return;
 
         const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= state.leaveTypes.length) return;
+        if (newIndex < 0 || newIndex >= newLeaveTypes.length) return;
 
-        // Swap the elements
-        [state.leaveTypes[index], state.leaveTypes[newIndex]] = [state.leaveTypes[newIndex], state.leaveTypes[index]];
+        // Swap the elements in the new array
+        [newLeaveTypes[index], newLeaveTypes[newIndex]] = [newLeaveTypes[newIndex], newLeaveTypes[index]];
         
+        // Formally update the state and then save
+        setState({ leaveTypes: newLeaveTypes });
         saveLeaveTypes();
     }
 
@@ -2262,7 +2267,6 @@
             const used = leaveCounts[lt.id] || 0;
             const balance = lt.totalDays - used;
             
-            // Disable buttons if the item is at the beginning or end
             const isFirst = index === 0;
             const isLast = index === state.leaveTypes.length - 1;
 
@@ -2273,10 +2277,10 @@
                         
                         <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
                             <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
-                                <i class="fas fa-arrow-up"></i>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                             </button>
                             <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
-                                <i class="fas fa-arrow-down"></i>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </button>
                             <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
@@ -2302,7 +2306,6 @@
         }).join('');
         DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${statsHTML}</div>`;
         
-        // Add event listeners for the new buttons
         DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
