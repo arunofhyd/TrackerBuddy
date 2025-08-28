@@ -2757,7 +2757,11 @@
         DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' }); updateView(); });
         DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' }); updateView(); });
         
-        document.getElementById('prev-btn').addEventListener('click', () => {
+        document.getElementById('prev-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+        
             if (state.currentView === 'month') {
                 const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
                 setState({ currentMonth: newMonth });
@@ -2766,9 +2770,14 @@
                 setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
             }
             updateView();
+            setButtonLoadingState(button, false);
         });
-
-        document.getElementById('next-btn').addEventListener('click', () => {
+        
+        document.getElementById('next-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+        
             if (state.currentView === 'month') {
                 const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
                 setState({ currentMonth: newMonth });
@@ -2777,8 +2786,8 @@
                 setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
             }
             updateView();
+            setButtonLoadingState(button, false);
         });
-
         DOM.todayBtnDay.addEventListener('click', async () => {
             setButtonLoadingState(DOM.todayBtnDay, true);
             await new Promise(resolve => setTimeout(resolve, 50));
