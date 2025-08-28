@@ -2152,6 +2152,29 @@
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
         setState({ leaveTypes: newLeaveTypes });
 
+    async function saveLeaveTypes() {
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+            updateView(); // Manual update for offline mode
+        }
+        showMessage('Leave types reordered!', 'success');
+    }
+
+    function moveLeaveType(typeId, direction) {
+        const index = state.leaveTypes.findIndex(lt => lt.id === typeId);
+        if (index === -1) return;
+
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= state.leaveTypes.length) return;
+
+        // Swap the elements
+        [state.leaveTypes[index], state.leaveTypes[newIndex]] = [state.leaveTypes[newIndex], state.leaveTypes[index]];
+        
+        saveLeaveTypes();
+    }
+
         // --- OPTIMIZATION: Use shallow copy instead of deep clone
         const updatedActivities = { ...state.allStoredData };
         Object.keys(updatedActivities).forEach(dateKey => {
@@ -2235,16 +2258,30 @@
             }
         });
 
-        const statsHTML = state.leaveTypes.map(lt => {
+        const statsHTML = state.leaveTypes.map((lt, index) => {
             const used = leaveCounts[lt.id] || 0;
             const balance = lt.totalDays - used;
+            
+            // Disable buttons if the item is at the beginning or end
+            const isFirst = index === 0;
+            const isLast = index === state.leaveTypes.length - 1;
+
             return `
                 <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                     <div class="flex justify-between items-start">
                         <h4 class="font-bold text-lg truncate min-w-0 pr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
-                        <button class="edit-leave-type-btn icon-btn -mt-2 -mr-2 flex-shrink-0" data-id="${lt.id}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
-                        </button>
+                        
+                        <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
+                            <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-center">
                         <div class="bg-gray-100 p-2 rounded col-span-1">
@@ -2265,12 +2302,19 @@
         }).join('');
         DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${statsHTML}</div>`;
         
+        // Add event listeners for the new buttons
         DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
-                if (leaveType) {
-                    openLeaveTypeModal(leaveType);
-                }
+                if (leaveType) openLeaveTypeModal(leaveType);
+            });
+        });
+
+        DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                const direction = parseInt(e.currentTarget.dataset.direction, 10);
+                moveLeaveType(id, direction);
             });
         });
     }
@@ -2493,22 +2537,9 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const item = e.currentTarget.closest('[data-date-key]');
-                if (!item) return;
-    
-                const dateKey = item.dataset.dateKey;
-                
-                state.leaveSelection.delete(dateKey);
-                
-                item.remove();
-    
-                if (state.leaveSelection.size === 0) {
-                    DOM.customizeLeaveModal.classList.add('hidden');
-                    setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-                    DOM.logNewLeaveBtn.textContent = 'Log Leave';
-                    DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+                if (item) {
+                    item.remove(); // Just remove the row visually
                 }
-                
-                renderCalendar();
             });
         });
     }
@@ -2518,52 +2549,54 @@
         const changes = [];
         const deltas = {};
         state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
-
+    
         const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
-        const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
         
+        // Check for potential balance errors before proceeding
         let balanceError = false;
         modalItems.forEach(item => {
             const dateKey = item.dataset.dateKey;
             const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
             if (typeId === 'remove') return;
-
+    
             const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
             const cost = dayType === 'half' ? 0.5 : 1;
-            changes.push({ dateKey, typeId, dayType });
-
+    
             const existingLeave = state.allStoredData[dateKey]?.leave;
+            let currentDelta = { ...deltas };
             if (existingLeave) {
                 const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
-                deltas[existingLeave.typeId] -= oldCost;
+                currentDelta[existingLeave.typeId] -= oldCost;
             }
-            deltas[typeId] += cost;
-        });
-
-        for (const typeId in deltas) {
-            if (deltas[typeId] > (balances[typeId] || 0)) {
+            currentDelta[typeId] += cost;
+            
+            if (currentDelta[typeId] > (balances[typeId] || 0)) {
                 const leaveType = state.leaveTypes.find(lt => lt.id === typeId);
-                showMessage(`Not enough balance for ${leaveType.name}. Required change: +${deltas[typeId].toFixed(1)}, Balance: ${balances[typeId].toFixed(1)}.`, 'error');
+                showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
                 balanceError = true;
             }
-        }
+        });
+    
         if (balanceError) return;
-
-        // --- OPTIMIZATION: Use shallow copy instead of deep clone.
+    
+        // If no errors, proceed with saving
         const updatedData = { ...state.allStoredData };
-
+        const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
+    
+        // First, handle deletions: if a day was in the initial selection but is no longer in the modal, remove its leave
         state.initialLeaveSelection.forEach(dateKey => {
             if (!datesInModal.has(dateKey) && updatedData[dateKey]?.leave) {
-                updatedData[dateKey] = { ...updatedData[dateKey] }; // create copy before mutation
+                updatedData[dateKey] = { ...updatedData[dateKey] };
                 delete updatedData[dateKey].leave;
             }
         });
         
+        // Next, handle additions/updates for items remaining in the modal
         modalItems.forEach(item => {
             const dateKey = item.dataset.dateKey;
-            // Create a copy of the day's data before modifying it
             updatedData[dateKey] = { ...(updatedData[dateKey] || {}) };
             const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
+            
             if (typeId === 'remove') {
                 delete updatedData[dateKey].leave;
             } else {
@@ -2571,14 +2604,14 @@
                 updatedData[dateKey].leave = { typeId, dayType };
             }
         });
-
+    
         if (state.isOnlineMode) {
             await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
             saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
             setState({ allStoredData: updatedData });
         }
-
+    
         DOM.customizeLeaveModal.classList.add('hidden');
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
         DOM.logNewLeaveBtn.textContent = 'Log Leave';
