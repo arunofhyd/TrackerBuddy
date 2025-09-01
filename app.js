@@ -944,13 +944,17 @@
             return showMessage("Please enter your email address.", 'info');
         }
         setButtonLoadingState(button, true);
+        // Add the new class to the button to remove the underline during loading.
+        button.classList.add('loading'); 
         try {
             await sendPasswordResetEmail(auth, email);
-            showMessage("Password reset email sent! Please check your inbox.", 'success');
+            showMessage("Please check your SPAM folder for the password reset link.", 'success');
         } catch (error) {
             showMessage(`Error sending reset email: ${error.message}`, 'error');
         } finally {
             setButtonLoadingState(button, false);
+            // Remove the new class after the loading state is finished.
+            button.classList.remove('loading');
         }
     }
 
