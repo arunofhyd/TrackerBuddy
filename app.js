@@ -1,6 +1,7 @@
 const TrackerApp = (function() {
     // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app-check.js";
     import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
@@ -16,6 +17,14 @@ const TrackerApp = (function() {
 
     // --- Initialize Firebase ---
     const app = initializeApp(firebaseConfig);
+
+    // --- Initialize App Check ---
+    const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6LflxrwrAAAAAE0Vz0fiwyIrNjG4RNBUNuJgxBDj'),
+        isTokenAutoRefreshEnabled: true
+    });
+    // ----------------------------
+    
     const auth = getAuth(app);
     const db = getFirestore(app);
 
@@ -30,13 +39,13 @@ const TrackerApp = (function() {
         unsubscribeFromFirestore: null,
         editingInlineTimeKey: null,
         pickerYear: new Date().getFullYear(),
-        confirmAction: {}, // For double-click confirmation
+        confirmAction: {},
         leaveTypes: [],
         isLoggingLeave: false,
         selectedLeaveTypeId: null,
         leaveSelection: new Set(),
         initialLeaveSelection: new Set(),
-        logoTapCount: 0 // Easter Egg counter
+        logoTapCount: 0
     };
 
     // --- State Management ---
@@ -440,6 +449,21 @@ const TrackerApp = (function() {
         const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
         let successMessage = null;
 
+        // **FIX:** Re-added logic to create default slots when a user interacts
+        // with an empty day for the first time. This prevents the other slots
+        // from disappearing after the first edit.
+        const hasStoredActivities = Object.keys(dayDataCopy).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+        const isFirstInteraction = !hasStoredActivities;
+
+        if (isFirstInteraction && (action.type === 'UPDATE_ACTIVITY_TEXT' || action.type === 'ADD_SLOT')) {
+            if (state.selectedDate.getDay() !== 0) { // Check if not Sunday
+                for (let h = 8; h <= 17; h++) {
+                    const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
+                    dayDataCopy[timeKey] = { text: "", order: h - 8 };
+                }
+            }
+        }
+
         switch (action.type) {
             case 'SAVE_NOTE': {
                 if (action.payload) {
@@ -520,7 +544,6 @@ const TrackerApp = (function() {
 
             const storedData = JSON.parse(storedDataString);
 
-            // Backwards compatibility for old data structure
             if (storedData.hasOwnProperty('activities')) {
                 return storedData;
             } else {
@@ -642,7 +665,7 @@ const TrackerApp = (function() {
 
     function downloadCSV() {
         const csvRows = [
-            ["Type", "Detail1", "Detail2", "Detail3", "Detail4"] // Headers
+            ["Type", "Detail1", "Detail2", "Detail3", "Detail4"]
         ];
 
         state.leaveTypes.forEach(lt => {
@@ -1177,7 +1200,6 @@ const TrackerApp = (function() {
         splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
     }
 
-
     // --- Leave Management ---
     function openLeaveTypeModal(leaveType = null) {
         DOM.leaveTypeModal.classList.remove('hidden');
@@ -1204,20 +1226,11 @@ const TrackerApp = (function() {
 
     function setupColorPicker() {
         const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
-        // ACCESSIBILITY IMPROVEMENT: Map colors to names for screen readers
         const colorMap = {
-            '#ef4444': 'Red',
-            '#f97316': 'Orange',
-            '#eab308': 'Amber',
-            '#84cc16': 'Lime',
-            '#22c55e': 'Green',
-            '#14b8a6': 'Teal',
-            '#06b6d4': 'Cyan',
-            '#3b82f6': 'Blue',
-            '#8b5cf6': 'Violet',
-            '#d946ef': 'Fuchsia',
-            '#ec4899': 'Pink',
-            '#78716c': 'Stone'
+            '#ef4444': 'Red', '#f97316': 'Orange', '#eab308': 'Amber',
+            '#84cc16': 'Lime', '#22c55e': 'Green', '#14b8a6': 'Teal',
+            '#06b6d4': 'Cyan', '#3b82f6': 'Blue', '#8b5cf6': 'Violet',
+            '#d946ef': 'Fuchsia', '#ec4899': 'Pink', '#78716c': 'Stone'
         };
         DOM.leaveColorPicker.innerHTML = colors.map(color => `
             <button type="button" data-color="${color}" style="background-color: ${color};" 
@@ -1522,14 +1535,16 @@ const TrackerApp = (function() {
                     newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
                 } else {
                     const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
-                    newTriggerHTML = `
-                        <span class="flex items-center w-full min-w-0">
-                            <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
-                            <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
-                        </span>
-                        <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                    if(newType) {
+                        newTriggerHTML = `
+                            <span class="flex items-center w-full min-w-0">
+                                <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
+                                <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
+                            </span>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                    }
                 }
-                trigger.innerHTML = newTriggerHTML;
+                if (newTriggerHTML) trigger.innerHTML = newTriggerHTML;
 
                 closePanel();
                 if (onTypeChangeCallback) {
@@ -1764,7 +1779,6 @@ const TrackerApp = (function() {
         showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
     }
 
-    // --- OPTIMIZATION: Event Delegation Setup for Daily View ---
     function setupDailyViewEventListeners() {
         const tableBody = DOM.dailyActivityTableBody;
         if (!tableBody) return;
@@ -1821,7 +1835,6 @@ const TrackerApp = (function() {
         });
     }
 
-    // --- Event Listener Setup ---
     function setupEventListeners() {
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
@@ -1850,10 +1863,8 @@ const TrackerApp = (function() {
         emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
         passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
         document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' });
-            updateView(); });
-        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' });
-            updateView(); });
+        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' }); updateView(); });
+        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' }); updateView(); });
 
         document.getElementById('prev-btn').addEventListener('click', async (e) => {
             const button = e.currentTarget;
@@ -2082,7 +2093,6 @@ const TrackerApp = (function() {
         loadSplashScreenVideo();
     }
 
-    // Expose the init function to the global scope
     return {
         init: init
     };
