@@ -1,2129 +1,2091 @@
-// Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const TrackerApp = (function() {
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-// --- Firebase Configuration ---
-const firebaseConfig = {
-    apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
-    authDomain: "trackerbuddyaoh.firebaseapp.com",
-    projectId: "trackerbuddyaoh",
-    storageBucket: "trackerbuddyaoh.firebasestorage.app",
-    messagingSenderId: "612126230828",
-    appId: "1:612126230828:web:763ef43baec1046d3b0489"
-};
-
-// --- Initialize Firebase ---
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// --- Global App State ---
-let state = {
-    currentMonth: new Date(),
-    selectedDate: new Date(),
-    currentView: 'month',
-    allStoredData: {},
-    userId: null,
-    isOnlineMode: false,
-    unsubscribeFromFirestore: null,
-    editingInlineTimeKey: null,
-    pickerYear: new Date().getFullYear(),
-    confirmAction: {}, // For double-click confirmation
-    leaveTypes: [],
-    isLoggingLeave: false,
-    selectedLeaveTypeId: null,
-    leaveSelection: new Set(),
-    initialLeaveSelection: new Set(),
-    logoTapCount: 0 // Easter Egg counter
-};
-
-// --- State Management ---
-function setState(newState) {
-    state = { ...state, ...newState };
-}
-
-// --- DOM Element References ---
-let DOM = {};
-
-// --- Helper Functions ---
-function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-const debouncedSaveData = debounce(saveData, 500);
-
-// --- UI Functions ---
-function initUI() {
-    DOM = {
-        splashScreen: document.getElementById('splash-screen'),
-        splashText: document.querySelector('.splash-text'),
-        splashLoading: document.getElementById('splash-loading'),
-        tapToBegin: document.getElementById('tap-to-begin'),
-        contentWrapper: document.getElementById('content-wrapper'),
-        footer: document.getElementById('main-footer'),
-        loginView: document.getElementById('login-view'),
-        appView: document.getElementById('app-view'),
-        loadingView: document.getElementById('loading-view'),
-        userIdDisplay: document.getElementById('user-id-display'),
-        messageDisplay: document.getElementById('message-display'),
-        messageText: document.getElementById('message-text'),
-        emailSigninBtn: document.getElementById('email-signin-btn'),
-        emailSignupBtn: document.getElementById('email-signup-btn'),
-        forgotPasswordBtn: document.getElementById('forgot-password-btn'),
-        googleSigninBtn: document.getElementById('google-signin-btn'),
-        currentPeriodDisplay: document.getElementById('current-period-display'),
-        monthViewBtn: document.getElementById('month-view-btn'),
-        dayViewBtn: document.getElementById('day-view-btn'),
-        calendarView: document.getElementById('calendar-view'),
-        dailyView: document.getElementById('daily-view'),
-        dailyNoteInput: document.getElementById('daily-note-input'),
-        dailyActivityTableBody: document.getElementById('daily-activity-table-body'),
-        noDailyActivitiesMessage: document.getElementById('no-daily-activities-message'),
-        monthPickerModal: document.getElementById('month-picker-modal'),
-        pickerYearDisplay: document.getElementById('picker-year-display'),
-        monthGrid: document.getElementById('month-grid'),
-        confirmResetModal: document.getElementById('confirm-reset-modal'),
-        resetModalText: document.getElementById('reset-modal-text'),
-        leaveTypeModal: document.getElementById('leave-type-modal'),
-        leaveTypeModalTitle: document.getElementById('leave-type-modal-title'),
-        editingLeaveTypeId: document.getElementById('editing-leave-type-id'),
-        leaveNameInput: document.getElementById('leave-name-input'),
-        leaveDaysInput: document.getElementById('leave-days-input'),
-        leaveColorPicker: document.getElementById('leave-color-picker'),
-        deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
-        logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
-        statsToggleBtn: document.getElementById('stats-toggle-btn'),
-        leaveStatsSection: document.getElementById('leave-stats-section'),
-        statsArrowDown: document.getElementById('stats-arrow-down'),
-        statsArrowUp: document.getElementById('stats-arrow-up'),
-        monthViewControls: document.getElementById('month-view-controls'),
-        leavePillsContainer: document.getElementById('leave-pills-container'),
-        todayBtnDay: document.getElementById('today-btn-day'),
-        addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
-        uploadCsvBtn: document.getElementById('upload-csv-btn'),
-        downloadCsvBtn: document.getElementById('download-csv-btn'),
-        customizeLeaveModal: document.getElementById('customize-leave-modal'),
-        leaveDaysList: document.getElementById('leave-days-list'),
-        monthViewBottomControls: document.getElementById('month-view-bottom-controls'),
-        dayViewBottomControls: document.getElementById('day-view-bottom-controls'),
-        removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn'),
-        logoContainer: document.getElementById('logo-container'),
-        appLogo: document.getElementById('app-logo'),
-        // ADDED: New elements for info toggle
-        infoToggleBtn: document.getElementById('info-toggle-btn'),
-        infoDescription: document.getElementById('info-description')
-    };
-}
-
-function setInputErrorState(inputElement, hasError) {
-    if (hasError) {
-        inputElement.classList.add('border-red-500', 'ring-red-500');
-        inputElement.classList.remove('border-gray-200');
-    } else {
-        inputElement.classList.remove('border-red-500', 'ring-red-500');
-        inputElement.classList.add('border-gray-200');
-    }
-}
-
-const faSpinner = '<i class="fas fa-spinner fa-spin text-xl"></i>';
-function setButtonLoadingState(button, isLoading) {
-    if (isLoading) {
-        button.disabled = true;
-        button.dataset.originalContent = button.innerHTML;
-        const rect = button.getBoundingClientRect();
-        button.style.width = `${rect.width}px`;
-        button.style.height = `${rect.height}px`;
-        if (button.id === 'google-signin-btn') {
-            const googleIcon = button.querySelector('img').outerHTML;
-            button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${googleIcon} ${faSpinner}</div>`;
-        } else {
-             button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${faSpinner}</div>`;
-        }
-    } else {
-        button.disabled = false;
-        if (button.dataset.originalContent) {
-            button.innerHTML = button.dataset.originalContent;
-        }
-        button.style.width = '';
-        button.style.height = '';
-    }
-}
-
-function switchView(viewToShow, viewToHide, callback) {
-    const mainContainer = document.querySelector('.main-container');
-    
-    if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-        if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
-    }
-    else if (viewToShow === DOM.appView) {
-        loadTheme();
-        if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
-    }
-    
-    if (viewToHide) {
-        viewToHide.style.opacity = '0';
-    }
-
-    setTimeout(() => {
-        if (viewToHide) {
-            viewToHide.classList.add('hidden');
-        }
-
-        if (viewToShow === DOM.appView) {
-            mainContainer.classList.add('is-app-view');
-        } else {
-            mainContainer.classList.remove('is-app-view');
-        }
-        viewToShow.classList.remove('hidden');
-        
-        setTimeout(() => {
-            viewToShow.style.opacity = '1';
-            if (callback) callback();
-        }, 20);
-    }, 0);
-}
-
-function handleUserLogin(user) {
-    localStorage.setItem('sessionMode', 'online');
-    if (state.unsubscribeFromFirestore) {
-        state.unsubscribeFromFirestore();
-    }
-    setState({ userId: user.uid, isOnlineMode: true });
-    DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
-    
-    switchView(DOM.loadingView, DOM.loginView);
-
-    subscribeToData(user.uid, () => {
-        switchView(DOM.appView, DOM.loadingView, updateView);
-    });
-}
-
-function showMessage(msg, type = 'info') {
-    DOM.messageText.textContent = msg;
-    DOM.messageDisplay.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-lg shadow-md transition-opacity duration-300';
-    if (type === 'error') {
-        DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
-    } else if (type === 'success') {
-        DOM.messageDisplay.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
-    } else {
-        DOM.messageDisplay.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
-    }
-    DOM.messageDisplay.classList.add('show');
-    clearTimeout(DOM.messageDisplay.dataset.timeoutId);
-    const timeoutId = setTimeout(() => DOM.messageDisplay.classList.remove('show'), 3000);
-    DOM.messageDisplay.dataset.timeoutId = timeoutId;
-}
-
-function updateView() {
-    if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
-
-    const isMonthView = state.currentView === 'month';
-    DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
-    DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
-    DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
-    DOM.dayViewBtn.classList.toggle('btn-secondary', isMonthView);
-
-    DOM.calendarView.classList.toggle('hidden', !isMonthView);
-    DOM.dailyView.classList.toggle('hidden', isMonthView);
-
-    DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
-    DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
-    DOM.todayBtnDay.classList.toggle('hidden', isMonthView);
-    DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView)
-
-    if (isMonthView) {
-        DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        renderCalendar();
-        renderLeavePills();
-        renderLeaveStats();
-    } else {
-        DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
-        renderDailyActivities();
-    }
-}
-
-function renderCalendar() {
-    while (DOM.calendarView.children.length > 7) DOM.calendarView.removeChild(DOM.calendarView.lastChild);
-    
-    const year = state.currentMonth.getFullYear();
-    const month = state.currentMonth.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-    const today = new Date();
-
-    for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day-cell other-month';
-        emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
-        DOM.calendarView.appendChild(emptyCell);
-    }
-
-    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-        const date = new Date(year, month, day);
-        const dateKey = getYYYYMMDD(date);
-        const dayData = state.allStoredData[dateKey] || {};
-        const noteText = dayData.note || '';
-        const sanitizedNote = noteText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
-        const leaveData = dayData.leave;
-
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day-cell current-month';
-        if (date.getDay() === 0) dayCell.classList.add('is-sunday');
-        if (hasActivity) dayCell.classList.add('has-activity');
-        if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
-        if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === 'day') dayCell.classList.add('selected-day');
-        if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
-
-        let leaveIndicatorHTML = '';
-        if(leaveData) {
-            const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
-            if(leaveType) {
-                leaveIndicatorHTML = `<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
-            }
-        }
-
-        dayCell.innerHTML = `
-            ${leaveIndicatorHTML}
-            <div class="calendar-day-content">
-                <div class="day-number">${day}</div>
-                <div class="day-note-container">${noteText ? `<span class="day-note">${noteText}</span>` : ''}</div>
-                ${hasActivity ? '<div class="activity-indicator"></div>' : ''}
-            </div>`;
-        dayCell.dataset.date = dateKey;
-
-        const dayNumberEl = dayCell.querySelector('.day-number');
-        const dayNoteEl = dayCell.querySelector('.day-note');
-
-        if (leaveData && leaveData.dayType === 'full') {
-            dayNumberEl.style.color = 'white';
-            if (dayNoteEl) dayNoteEl.style.color = 'white';
-        }
-        if (date.getDay() === 0) {
-            dayNumberEl.style.color = '#ef4444';
-        }
-        
-        DOM.calendarView.appendChild(dayCell);
-    }
-
-    const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
-    for (let i = 0; i < (7 - (totalCells % 7)) % 7; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day-cell other-month';
-        emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
-        DOM.calendarView.appendChild(emptyCell);
-    }
-}
-
-function renderDailyActivities() {
-    DOM.dailyActivityTableBody.innerHTML = '';
-    const dateKey = getYYYYMMDD(state.selectedDate);
-    const dailyActivitiesMap = state.allStoredData[dateKey] || {};
-    let dailyActivitiesArray = [];
-
-    DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
-
-    const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
-    
-    if (hasStoredActivities) {
-        dailyActivitiesArray = Object.keys(dailyActivitiesMap)
-            .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
-            .map(timeKey => ({ time: timeKey, ...dailyActivitiesMap[timeKey] }))
-            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
-        for (let h = 8; h <= 17; h++) {
-            dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
-        }
-    }
-
-    DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
-
-    dailyActivitiesArray.forEach((activity, index) => {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-100 transition-colors duration-150';
-        row.dataset.time = activity.time;
-
-        const isFirst = index === 0;
-        const isLast = index === dailyActivitiesArray.length - 1;
-
-        row.innerHTML = `
-            <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
-            <td class="py-3 px-4 text-sm text-gray-900">
-                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
-            </td>
-            <td class="py-3 px-4 text-sm flex space-x-1 justify-center items-center">
-                <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                </button>
-                <button class="icon-btn move-down-btn" aria-label="Move Down" ${isLast ? 'disabled' : ''}>
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <button class="icon-btn delete-btn delete" aria-label="Delete">
-                    <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-            </td>`;
-        DOM.dailyActivityTableBody.appendChild(row);
-    });
-}
-
-function renderMonthPicker() {
-    DOM.monthGrid.innerHTML = '';
-    DOM.pickerYearDisplay.textContent = state.pickerYear;
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
-    monthNames.forEach((name, index) => {
-        const button = document.createElement('button');
-        button.className = 'px-4 py-3 rounded-lg font-medium text-gray-800 bg-gray-100 hover:bg-blue-100 hover:text-blue-700';
-        button.textContent = name;
-        if (state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth()) {
-            button.classList.add('bg-blue-500', 'text-white');
-            button.classList.remove('bg-gray-100', 'text-gray-800');
-        }
-        button.addEventListener('click', () => {
-            const newMonth = new Date(state.pickerYear, index, 1);
-            const lastDayOfNewMonth = new Date(state.pickerYear, index + 1, 0).getDate();
-            let newSelectedDate = new Date(state.selectedDate);
-            if (newSelectedDate.getDate() > lastDayOfNewMonth) {
-                newSelectedDate.setDate(lastDayOfNewMonth);
-            }
-            newSelectedDate.setMonth(index);
-            newSelectedDate.setFullYear(state.pickerYear);
-
-            setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
-            updateView();
-            DOM.monthPickerModal.classList.add('hidden');
-        });
-        DOM.monthGrid.appendChild(button);
-    });
-}
-
-function getYYYYMMDD(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-function formatDateForDisplay(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-function formatTextForDisplay(text) {
-    const tempDiv = document.createElement('div');
-    tempDiv.textContent = text || '';
-    return tempDiv.innerHTML.replace(/\n/g, '<br>');
-}
-
-async function subscribeToData(userId, callback) {
-    const userDocRef = doc(db, "users", userId);
-    const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        const data = doc.exists() ? doc.data() : {};
-        setState({ allStoredData: data.activities || {}, leaveTypes: data.leaveTypes || [] });
-        
-        updateView();
-        
-        if (callback) {
-            callback();
-            callback = null;
-        }
-    });
-    setState({ unsubscribeFromFirestore: unsubscribe });
-}
-
-async function saveData(action) {
-    const dateKey = getYYYYMMDD(state.selectedDate);
-    // --- OPTIMIZATION: Avoid deep cloning the entire state.
-    // Create a shallow copy of the day's data or an empty object.
-    const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
-    let successMessage = null;
-
-    const isNewDay = !state.allStoredData[dateKey] || (Object.keys(dayDataCopy).length === 0 && !dayDataCopy._userCleared);
-
-    // REMOVED: Unnecessary default slot initialization here.
-    // This logic is now handled in renderDailyActivities() for display only.
-
-    switch (action.type) {
-        case 'SAVE_NOTE': {
-            if (action.payload) {
-                dayDataCopy.note = action.payload;
-            } else {
-                delete dayDataCopy.note;
-            }
-            break;
-        }
-        case 'ADD_SLOT': {
-            let newTimeKey = "00:00", counter = 0;
-            while (dayDataCopy[newTimeKey]) {
-                newTimeKey = `00:00-${++counter}`;
-            }
-            const existingKeys = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
-            const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
-            dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
-            delete dayDataCopy._userCleared;
-            successMessage = "New slot added!";
-            break;
-        }
-        case 'UPDATE_ACTIVITY_TEXT': {
-            if (dayDataCopy[action.payload.timeKey]) {
-                dayDataCopy[action.payload.timeKey].text = action.payload.newText;
-            } else {
-                const order = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
-                dayDataCopy[action.payload.timeKey] = { text: action.payload.newText, order };
-            }
-            delete dayDataCopy._userCleared;
-            successMessage = "Activity updated!";
-            break;
-        }
-        case 'UPDATE_TIME': {
-            const { oldTimeKey, newTimeKey } = action.payload;
-            if (!newTimeKey) {
-                showMessage("Time cannot be empty.", 'error');
-                return;
-            }
-            if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
-                showMessage(`Time "${newTimeKey}" already exists.`, 'error');
-                return;
-            }
-            const entry = dayDataCopy[oldTimeKey];
-            if (entry) {
-                delete dayDataCopy[oldTimeKey];
-                dayDataCopy[newTimeKey] = entry;
-            }
-            successMessage = "Time updated!";
-            break;
-        }
-    }
-
-    // --- OPTIMIZATION: Create a new allStoredData object with just the updated day.
-    const updatedData = {
-        ...state.allStoredData,
-        [dateKey]: dayDataCopy
+    // --- Firebase Configuration ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
+        authDomain: "trackerbuddyaoh.firebaseapp.com",
+        projectId: "trackerbuddyaoh",
+        storageBucket: "trackerbuddyaoh.firebasestorage.app",
+        messagingSenderId: "612126230828",
+        appId: "1:612126230828:web:763ef43baec1046d3b0489"
     };
 
-    if (state.isOnlineMode && state.userId) {
-        await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: updatedData });
-        updateView();
-    }
-    
-    if (successMessage) {
-        showMessage(successMessage, 'success');
-    }
-}
+    // --- Initialize Firebase ---
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-function loadDataFromLocalStorage() {
-    try {
-        const storedDataString = localStorage.getItem('activityTrackerData');
-        if (!storedDataString) {
-            return { activities: {}, leaveTypes: [] };
-        }
-        
-        const storedData = JSON.parse(storedDataString);
-
-        // Backwards compatibility for old data structure
-        if (storedData.hasOwnProperty('activities')) {
-            return storedData;
-        } else {
-            return { activities: storedData, leaveTypes: [] };
-        }
-    } catch (error) {
-        console.error("Error loading local data:", error);
-        showMessage("Could not load local data.", 'error');
-        return { activities: {}, leaveTypes: [] };
-    }
-}
-
-function saveDataToLocalStorage(data) {
-    try {
-        localStorage.setItem('activityTrackerData', JSON.stringify(data));
-    } catch (error) {
-        console.error("Error saving local data:", error);
-        showMessage("Could not save data locally.", 'error');
-    }
-}
-
-async function saveDataToFirestore(data) {
-    if (!state.userId) return;
-    try {
-        await setDoc(doc(db, "users", state.userId), data);
-    } catch (error) {
-        console.error("Error saving to Firestore:", error);
-        showMessage("Error: Could not save data to the cloud.", 'error');
-    }
-}
-
-function loadOfflineData() {
-    localStorage.setItem('sessionMode', 'offline');
-    const data = loadDataFromLocalStorage();
-    setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
-
-    // Switch directly to app view
-        switchView(DOM.appView, DOM.loginView, updateView);
-}
-
-async function resetAllData() {
-    const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
-    setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    if (state.isOnlineMode && state.userId) {
-        try {
-            await deleteDoc(doc(db, "users", state.userId));
-            showMessage("All cloud data has been reset.", 'success');
-        } catch (error) {
-            showMessage("Failed to reset cloud data.", 'error');
-        }
-    } else {
-        localStorage.removeItem('activityTrackerData');
-        setState({ allStoredData: {}, leaveTypes: [] });
-        updateView();
-        showMessage("All local data has been reset.", 'success');
-    }
-    DOM.confirmResetModal.classList.add('hidden');
-    setButtonLoadingState(button, false);
-}
-
-function updateActivityOrder() {
-    const dateKey = getYYYYMMDD(state.selectedDate);
-    const dayData = state.allStoredData[dateKey] || {};
-    const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
-    
-    // --- OPTIMIZATION: Create shallow copies instead of deep cloning.
-    const newDayData = {};
-    if (dayData.note) newDayData.note = dayData.note;
-    if (dayData.leave) newDayData.leave = dayData.leave;
-
-    orderedTimeKeys.forEach((timeKey, index) => {
-        const originalEntry = dayData[timeKey] || { text: '' };
-        newDayData[timeKey] = { text: originalEntry.text, order: index };
-    });
-
-    if (dayData._userCleared) newDayData._userCleared = true;
-
-    const updatedData = { ...state.allStoredData, [dateKey]: newDayData };
-    
-    if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: updatedData });
-    }
-    showMessage("Activities reordered!", 'success');
-}
-
-function deleteActivity(dateKey, timeKey) {
-    // --- OPTIMIZATION: Use shallow copies for performance.
-    const dayData = state.allStoredData[dateKey];
-    if (!dayData || !dayData[timeKey]) return;
-
-    const dayDataCopy = { ...dayData };
-    delete dayDataCopy[timeKey];
-    
-    if (Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
-        dayDataCopy._userCleared = true;
-    }
-
-    const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
-
-    if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: dataCopy });
-        updateView();
-    }
-    showMessage("Activity deleted.", 'success');
-}
-
-// --- CSV Import/Export ---
-function escapeCsvField(field) {
-    const fieldStr = String(field || '');
-    if (/[",\n]/.test(fieldStr)) {
-        return `"${fieldStr.replace(/"/g, '""')}"`;
-    }
-    return fieldStr;
-}
-
-function downloadCSV() {
-    const csvRows = [
-        ["Type", "Detail1", "Detail2", "Detail3", "Detail4"] // Headers
-    ];
-
-    // Export Leave Types
-    state.leaveTypes.forEach(lt => {
-        csvRows.push(["LEAVE_TYPE", lt.id, lt.name, lt.totalDays, lt.color]);
-    });
-
-    const sortedDateKeys = Object.keys(state.allStoredData).sort();
-
-    sortedDateKeys.forEach(dateKey => {
-        const dayData = state.allStoredData[dateKey];
-        
-        // Export Note
-        if (dayData.note) {
-            csvRows.push(["NOTE", dateKey, dayData.note, "", ""]);
-        }
-
-        // Export Leave
-        if (dayData.leave) {
-            csvRows.push(["LEAVE", dateKey, dayData.leave.typeId, dayData.leave.dayType, ""]);
-        }
-
-        // Export User Cleared Flag
-        if (dayData._userCleared) {
-            csvRows.push(["USER_CLEARED", dateKey, "", "", ""]);
-        }
-
-        // Export Activities
-        const activities = Object.keys(dayData)
-            .filter(key => key !== 'note' && key !== 'leave' && key !== '_userCleared')
-            .map(timeKey => ({ time: timeKey, ...dayData[timeKey] }))
-            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        
-        activities.forEach(activity => {
-            if (activity.text?.trim()) {
-                csvRows.push(["ACTIVITY", dateKey, activity.time, activity.text, activity.order]);
-            }
-        });
-    });
-
-    if (csvRows.length <= 1) {
-        return showMessage("No data found to export.", 'info');
-    }
-
-    const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
-    
-    const link = document.createElement("a");
-    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
-    link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function parseCsvLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-                current += '"';
-                i++; // Skip the next quote
-            } else {
-                inQuotes = !inQuotes;
-            }
-        } else if (char === ',' && !inQuotes) {
-            result.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    result.push(current);
-    return result;
-}
-
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        try {
-            const csvContent = e.target.result;
-
-            // --- OPTIMIZATION: Use shallow copy instead of deep clone
-            const dataCopy = { ...state.allStoredData };
-            const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
-
-            const lines = csvContent.split('\n').filter(line => line.trim());
-
-            if (lines.length <= 1) {
-                return showMessage("CSV file is empty or has no data.", 'error');
-            }
-            
-            let processedRows = 0;
-            lines.slice(1).forEach(line => {
-                const row = parseCsvLine(line.trim());
-                if (row.length < 2) return;
-
-                const [type, detail1, detail2, detail3, detail4] = row;
-                let rowProcessed = false;
-
-                switch (type.toUpperCase()) {
-                    case 'LEAVE_TYPE':
-                        if (detail1 && detail2 && detail3 && detail4) { // Basic validation
-                            leaveTypesMap.set(detail1, {
-                                id: detail1,
-                                name: detail2,
-                                totalDays: parseInt(detail3, 10) || 0,
-                                color: detail4
-                            });
-                            rowProcessed = true;
-                        }
-                        break;
-
-                    case 'NOTE':
-                    case 'LEAVE':
-                    case 'ACTIVITY':
-                    case 'USER_CLEARED':
-                        const dateKey = detail1;
-                        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-                            console.warn(`Skipping row with invalid date format: ${line}`);
-                            return;
-                        }
-                        // --- OPTIMIZATION: Only copy the day object if it exists to avoid mutation
-                        if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
-                        else dataCopy[dateKey] = { ...dataCopy[dateKey] };
-
-                        if (type.toUpperCase() === 'NOTE') {
-                            dataCopy[dateKey].note = detail2;
-                            rowProcessed = true;
-                        } else if (type.toUpperCase() === 'LEAVE') {
-                            dataCopy[dateKey].leave = {
-                                typeId: detail2,
-                                dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
-                            };
-                            rowProcessed = true;
-                        } else if (type.toUpperCase() === 'ACTIVITY') {
-                            const time = detail2;
-                            const text = detail3;
-                            const order = parseInt(detail4, 10);
-                            if (time) {
-                                dataCopy[dateKey][time] = { text: text || "", order: isNaN(order) ? 0 : order };
-                                rowProcessed = true;
-                            }
-                        } else if (type.toUpperCase() === 'USER_CLEARED') {
-                            dataCopy[dateKey]._userCleared = true;
-                            rowProcessed = true;
-                        }
-                        break;
-                }
-                if (rowProcessed) processedRows++;
-            });
-
-            const finalLeaveTypes = Array.from(leaveTypesMap.values());
-            
-            setState({ leaveTypes: finalLeaveTypes, allStoredData: dataCopy });
-
-            if (state.isOnlineMode && state.userId) {
-                await saveDataToFirestore({ activities: dataCopy, leaveTypes: finalLeaveTypes });
-            } else {
-                saveDataToLocalStorage({ activities: dataCopy, leaveTypes: finalLeaveTypes });
-                updateView();
-            }
-
-            showMessage(`${processedRows} records imported/updated successfully!`, 'success');
-            event.target.value = '';
-        } catch(err) {
-            console.error("Error during CSV import:", err);
-            showMessage("An error occurred while importing the file.", 'error');
-        }
-    };
-    reader.onerror = () => showMessage("Error reading file.", 'error');
-    reader.readAsText(file);
-}
-    
-function handleUserLogout() {
-    if (state.unsubscribeFromFirestore) {
-        state.unsubscribeFromFirestore();
-    }
-    localStorage.removeItem('sessionMode');
-    
-    if (DOM.splashScreen) {
-        DOM.splashScreen.style.zIndex = '-10';
-        DOM.splashText.style.display = 'none';
-        DOM.tapToBegin.style.display = 'none';
-        DOM.splashLoading.style.display = 'none';
-        DOM.splashText.classList.remove('animating-out');
-        DOM.splashScreen.style.cursor = 'default';
-    }
-    
-    setState({
+    // --- Global App State ---
+    let state = {
+        currentMonth: new Date(),
+        selectedDate: new Date(),
+        currentView: 'month',
         allStoredData: {},
-        leaveTypes: [],
         userId: null,
         isOnlineMode: false,
         unsubscribeFromFirestore: null,
-        logoTapCount: 0 // Reset easter egg counter
-    });
+        editingInlineTimeKey: null,
+        pickerYear: new Date().getFullYear(),
+        confirmAction: {}, // For double-click confirmation
+        leaveTypes: [],
+        isLoggingLeave: false,
+        selectedLeaveTypeId: null,
+        leaveSelection: new Set(),
+        initialLeaveSelection: new Set(),
+        logoTapCount: 0 // Easter Egg counter
+    };
 
-    switchView(DOM.loginView, DOM.appView);
-}
+    // --- State Management ---
+    function setState(newState) {
+        state = { ...state, ...newState };
+    }
 
-function initAuth() {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            handleUserLogin(user);
+    // --- DOM Element References ---
+    let DOM = {};
+
+    // --- Helper Functions ---
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+    const debouncedSaveData = debounce(saveData, 500);
+
+    // --- UI Functions ---
+    function initUI() {
+        DOM = {
+            splashScreen: document.getElementById('splash-screen'),
+            splashText: document.querySelector('.splash-text'),
+            splashLoading: document.getElementById('splash-loading'),
+            tapToBegin: document.getElementById('tap-to-begin'),
+            contentWrapper: document.getElementById('content-wrapper'),
+            footer: document.getElementById('main-footer'),
+            loginView: document.getElementById('login-view'),
+            appView: document.getElementById('app-view'),
+            loadingView: document.getElementById('loading-view'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            messageDisplay: document.getElementById('message-display'),
+            messageText: document.getElementById('message-text'),
+            emailSigninBtn: document.getElementById('email-signin-btn'),
+            emailSignupBtn: document.getElementById('email-signup-btn'),
+            forgotPasswordBtn: document.getElementById('forgot-password-btn'),
+            googleSigninBtn: document.getElementById('google-signin-btn'),
+            currentPeriodDisplay: document.getElementById('current-period-display'),
+            monthViewBtn: document.getElementById('month-view-btn'),
+            dayViewBtn: document.getElementById('day-view-btn'),
+            calendarView: document.getElementById('calendar-view'),
+            dailyView: document.getElementById('daily-view'),
+            dailyNoteInput: document.getElementById('daily-note-input'),
+            dailyActivityTableBody: document.getElementById('daily-activity-table-body'),
+            noDailyActivitiesMessage: document.getElementById('no-daily-activities-message'),
+            monthPickerModal: document.getElementById('month-picker-modal'),
+            pickerYearDisplay: document.getElementById('picker-year-display'),
+            monthGrid: document.getElementById('month-grid'),
+            confirmResetModal: document.getElementById('confirm-reset-modal'),
+            resetModalText: document.getElementById('reset-modal-text'),
+            leaveTypeModal: document.getElementById('leave-type-modal'),
+            leaveTypeModalTitle: document.getElementById('leave-type-modal-title'),
+            editingLeaveTypeId: document.getElementById('editing-leave-type-id'),
+            leaveNameInput: document.getElementById('leave-name-input'),
+            leaveDaysInput: document.getElementById('leave-days-input'),
+            leaveColorPicker: document.getElementById('leave-color-picker'),
+            deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
+            logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
+            statsToggleBtn: document.getElementById('stats-toggle-btn'),
+            leaveStatsSection: document.getElementById('leave-stats-section'),
+            statsArrowDown: document.getElementById('stats-arrow-down'),
+            statsArrowUp: document.getElementById('stats-arrow-up'),
+            monthViewControls: document.getElementById('month-view-controls'),
+            leavePillsContainer: document.getElementById('leave-pills-container'),
+            todayBtnDay: document.getElementById('today-btn-day'),
+            addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
+            uploadCsvBtn: document.getElementById('upload-csv-btn'),
+            downloadCsvBtn: document.getElementById('download-csv-btn'),
+            customizeLeaveModal: document.getElementById('customize-leave-modal'),
+            leaveDaysList: document.getElementById('leave-days-list'),
+            monthViewBottomControls: document.getElementById('month-view-bottom-controls'),
+            dayViewBottomControls: document.getElementById('day-view-bottom-controls'),
+            removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn'),
+            logoContainer: document.getElementById('logo-container'),
+            appLogo: document.getElementById('app-logo'),
+            infoToggleBtn: document.getElementById('info-toggle-btn'),
+            infoDescription: document.getElementById('info-description')
+        };
+    }
+
+    function setInputErrorState(inputElement, hasError) {
+        if (hasError) {
+            inputElement.classList.add('border-red-500', 'ring-red-500');
+            inputElement.classList.remove('border-gray-200');
         } else {
-            const sessionMode = localStorage.getItem('sessionMode');
-            if (sessionMode === 'offline') {
-                const data = loadDataFromLocalStorage();
-                setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
-                document.querySelector('.main-container').classList.add('is-app-view');
-                switchView(DOM.appView, DOM.loadingView, updateView);
+            inputElement.classList.remove('border-red-500', 'ring-red-500');
+            inputElement.classList.add('border-gray-200');
+        }
+    }
+
+    const faSpinner = '<i class="fas fa-spinner fa-spin text-xl"></i>';
+    function setButtonLoadingState(button, isLoading) {
+        if (isLoading) {
+            button.disabled = true;
+            button.dataset.originalContent = button.innerHTML;
+            const rect = button.getBoundingClientRect();
+            button.style.width = `${rect.width}px`;
+            button.style.height = `${rect.height}px`;
+            if (button.id === 'google-signin-btn') {
+                const googleIcon = button.querySelector('img').outerHTML;
+                button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${googleIcon} ${faSpinner}</div>`;
             } else {
-                switchView(DOM.loginView, DOM.loadingView);
+                button.innerHTML = `<div class="flex items-center justify-center w-full h-full">${faSpinner}</div>`;
             }
-        }
-        DOM.contentWrapper.style.opacity = '1';
-        DOM.footer.style.opacity = '1';
-    });
-}
-
-async function signUpWithEmail(email, password) {
-    const button = DOM.emailSignupBtn;
-    let hasError = false;
-    if (!email) {
-        setInputErrorState(document.getElementById('email-input'), true);
-        hasError = true;
-    }
-    if (password.length < 6) {
-        setInputErrorState(document.getElementById('password-input'), true);
-        hasError = true;
-    }
-    if (hasError) {
-        return showMessage("Email and a password of at least 6 characters are required.", 'error');
-    }
-
-    setButtonLoadingState(button, true);
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        handleUserLogin(userCredential.user);
-    } catch (error) {
-        if (error.code === 'auth/email-already-in-use') {
-            showMessage("An account already exists with this email. Please sign in instead.", 'error');
         } else {
-            showMessage(`Sign-up failed: ${error.message}`, 'error');
-        }
-    } finally {
-        setButtonLoadingState(button, false);
-    }
-}
-
-async function signInWithEmail(email, password) {
-    const button = DOM.emailSigninBtn;
-    let hasError = false;
-    if (!email) {
-        setInputErrorState(document.getElementById('email-input'), true);
-        hasError = true;
-    }
-    if (!password) {
-        setInputErrorState(document.getElementById('password-input'), true);
-        hasError = true;
-    }
-    if (hasError) {
-        return showMessage("Email and password are required.", 'error');
-    }
-
-    setButtonLoadingState(button, true);
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        handleUserLogin(userCredential.user);
-    } catch (error) {
-        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-            showMessage("Incorrect email or password. Please try again.", 'error');
-        } else {
-            showMessage(`Sign-in failed: ${error.message}`, 'error');
-        }
-    } finally {
-        setButtonLoadingState(button, false);
-    }
-}
-
-async function resetPassword(email) {
-    const button = DOM.forgotPasswordBtn;
-    if (!email) {
-        setInputErrorState(document.getElementById('email-input'), true);
-        return showMessage("Please enter your email address.", 'info');
-    }
-    setButtonLoadingState(button, true);
-    // Add the new class to the button to remove the underline during loading.
-    button.classList.add('loading'); 
-    try {
-        await sendPasswordResetEmail(auth, email);
-        showMessage("Please check your SPAM folder for the password reset link.", 'success');
-    } catch (error) {
-        showMessage(`Error sending reset email: ${error.message}`, 'error');
-    } finally {
-        setButtonLoadingState(button, false);
-        // Remove the new class after the loading state is finished.
-        button.classList.remove('loading');
-    }
-}
-
-async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    const button = DOM.googleSigninBtn;
-    setButtonLoadingState(button, true);
-    try {
-        const result = await signInWithPopup(auth, provider);
-        handleUserLogin(result.user);
-    } catch (error) {
-        showMessage(`Google sign-in failed: ${error.message}`, 'error');
-    } finally {
-        setButtonLoadingState(button, false);
-    }
-}
-
-async function appSignOut() {
-    if (state.isOnlineMode) {
-        try {
-            await signOut(auth);
-            handleUserLogout();
-        } catch (error) {
-            showMessage(`Sign-out failed: ${error.message}`, 'error');
-        }
-    } else {
-        handleUserLogout();
-    }
-}
-
-function applyTheme(theme) {
-    const lightIcon = document.getElementById('theme-icon-light');
-    const darkIcon = document.getElementById('theme-icon-dark');
-    if (theme === 'dark') {
-        document.body.classList.add('dark');
-        lightIcon.classList.add('hidden');
-        darkIcon.classList.remove('hidden');
-    } else {
-        document.body.classList.remove('dark');
-        lightIcon.classList.remove('hidden');
-        darkIcon.classList.add('hidden');
-    }
-}
-
-function toggleTheme() {
-    const isDark = document.body.classList.contains('dark');
-    const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('theme', newTheme);
-    applyTheme(newTheme);
-}
-
-function loadTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme) {
-        applyTheme(savedTheme);
-    } else if (systemPrefersDark) {
-        applyTheme('dark');
-    } else {
-        applyTheme('light');
-    }
-}
-
-function setupDoubleClickConfirm(element, actionKey, message, callback) {
-    element.addEventListener('click', (e) => {
-        if (state.confirmAction[actionKey]) {
-            callback(e);
-            delete state.confirmAction[actionKey];
-            element.classList.remove('confirm-action');
-        } else {
-            Object.keys(state.confirmAction).forEach(key => {
-                const el = state.confirmAction[key].element;
-                if (el) el.classList.remove('confirm-action');
-            });
-            state.confirmAction = {};
-
-            state.confirmAction[actionKey] = {
-                element: element,
-                timeoutId: setTimeout(() => {
-                    element.classList.remove('confirm-action');
-                    delete state.confirmAction[actionKey];
-                }, 3000)
-            };
-            element.classList.add('confirm-action');
-            showMessage(message, 'info');
-        }
-    });
-}
-
-function handleMoveUpClick(currentRow) {
-    if (currentRow.previousElementSibling) {
-        DOM.dailyActivityTableBody.insertBefore(currentRow, currentRow.previousElementSibling);
-        updateActivityOrder();
-    }
-}
-
-function handleMoveDownClick(currentRow) {
-    if (currentRow.nextElementSibling) {
-        DOM.dailyActivityTableBody.insertBefore(currentRow.nextElementSibling, currentRow);
-        updateActivityOrder();
-    }
-}
-
-function handleInlineEditClick(event) {
-    const target = event.currentTarget;
-    if (state.editingInlineTimeKey && state.editingInlineTimeKey !== target.dataset.time) {
-        DOM.dailyActivityTableBody.querySelector(`[data-time="${state.editingInlineTimeKey}"]`)?.blur();
-    }
-    target.classList.add('editing');
-    setState({ editingInlineTimeKey: target.dataset.time });
-}
-
-function handleInlineEditBlur(event) {
-    const target = event.currentTarget;
-    if (state.editingInlineTimeKey === target.dataset.time) {
-        if (target.classList.contains('time-editable')) {
-            debouncedSaveData({ type: 'UPDATE_TIME', payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
-        } else {
-            debouncedSaveData({ type: 'UPDATE_ACTIVITY_TEXT', payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
+            button.disabled = false;
+            if (button.dataset.originalContent) {
+                button.innerHTML = button.dataset.originalContent;
+            }
+            button.style.width = '';
+            button.style.height = '';
         }
     }
-    target.classList.remove('editing');
-}
 
-function handleInlineEditKeydown(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        event.currentTarget.blur();
-    }
-}
+    function switchView(viewToShow, viewToHide, callback) {
+        const mainContainer = document.querySelector('.main-container');
 
-// --- Easter Egg Functions ---
-function createMagicParticles() {
-    const particleCount = 12;
-    const container = DOM.logoContainer;
-    if (!container) return;
+        if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
+        } else if (viewToShow === DOM.appView) {
+            loadTheme();
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
+        }
 
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'magic-particle';
-
-        const angle = (i / particleCount) * 360;
-        const radius = 40 + Math.random() * 20;
-        const x = Math.cos(angle * Math.PI / 180) * radius;
-        const y = Math.sin(angle * Math.PI / 180) * radius;
-
-        particle.style.setProperty('--x', `${x}px`);
-        particle.style.setProperty('--y', `${y}px`);
-        
-        const colors = ['#ffd700', '#ffec80', '#ffab40'];
-        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-        container.appendChild(particle);
+        if (viewToHide) {
+            viewToHide.style.opacity = '0';
+        }
 
         setTimeout(() => {
-            particle.remove();
-        }, 800);
+            if (viewToHide) {
+                viewToHide.classList.add('hidden');
+            }
+
+            if (viewToShow === DOM.appView) {
+                mainContainer.classList.add('is-app-view');
+            } else {
+                mainContainer.classList.remove('is-app-view');
+            }
+            viewToShow.classList.remove('hidden');
+
+            setTimeout(() => {
+                viewToShow.style.opacity = '1';
+                if (callback) callback();
+            }, 20);
+        }, 0);
     }
-}
 
-function handleLogoTap() {
-    state.logoTapCount++;
+    function handleUserLogin(user) {
+        localStorage.setItem('sessionMode', 'online');
+        if (state.unsubscribeFromFirestore) {
+            state.unsubscribeFromFirestore();
+        }
+        setState({ userId: user.uid, isOnlineMode: true });
+        DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
 
-    if (navigator.vibrate) {
-        navigator.vibrate(50);
+        switchView(DOM.loadingView, DOM.loginView);
+
+        subscribeToData(user.uid, () => {
+            switchView(DOM.appView, DOM.loadingView, updateView);
+        });
     }
 
-    DOM.appLogo.classList.add('is-shaking');
-    setTimeout(() => {
-        DOM.appLogo.classList.remove('is-shaking');
-    }, 500);
+    function showMessage(msg, type = 'info') {
+        DOM.messageText.textContent = msg;
+        DOM.messageDisplay.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-lg shadow-md transition-opacity duration-300';
+        if (type === 'error') {
+            DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+        } else if (type === 'success') {
+            DOM.messageDisplay.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+        } else {
+            DOM.messageDisplay.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+        }
+        DOM.messageDisplay.classList.add('show');
+        clearTimeout(DOM.messageDisplay.dataset.timeoutId);
+        const timeoutId = setTimeout(() => DOM.messageDisplay.classList.remove('show'), 3000);
+        DOM.messageDisplay.dataset.timeoutId = timeoutId;
+    }
 
-    createMagicParticles();
+    function updateView() {
+        if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
 
-    if (state.logoTapCount >= 7) {
-        state.logoTapCount = 0;
+        const isMonthView = state.currentView === 'month';
+        DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
+        DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
+        DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
+        DOM.dayViewBtn.classList.toggle('btn-secondary', isMonthView);
 
-        const returnToApp = () => {
-            DOM.splashScreen.style.zIndex = '-10';
-            DOM.splashScreen.style.display = 'none';
+        DOM.calendarView.classList.toggle('hidden', !isMonthView);
+        DOM.dailyView.classList.toggle('hidden', isMonthView);
+
+        DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
+        DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
+        DOM.todayBtnDay.classList.toggle('hidden', isMonthView);
+        DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView)
+
+        if (isMonthView) {
+            DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            renderCalendar();
+            renderLeavePills();
+            renderLeaveStats();
+        } else {
+            DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
+            renderDailyActivities();
+        }
+    }
+
+    function renderCalendar() {
+        while (DOM.calendarView.children.length > 7) DOM.calendarView.removeChild(DOM.calendarView.lastChild);
+
+        const year = state.currentMonth.getFullYear();
+        const month = state.currentMonth.getMonth();
+        const firstDayOfMonth = new Date(year, month, 1);
+        const lastDayOfMonth = new Date(year, month + 1, 0);
+        const today = new Date();
+
+        for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day-cell other-month';
+            emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
+            DOM.calendarView.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+            const date = new Date(year, month, day);
+            const dateKey = getYYYYMMDD(date);
+            const dayData = state.allStoredData[dateKey] || {};
+            const noteText = dayData.note || '';
+            const sanitizedNote = noteText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
+            const leaveData = dayData.leave;
+
+            const dayCell = document.createElement('div');
+            dayCell.className = 'calendar-day-cell current-month';
+            if (date.getDay() === 0) dayCell.classList.add('is-sunday');
+            if (hasActivity) dayCell.classList.add('has-activity');
+            if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
+            if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === 'day') dayCell.classList.add('selected-day');
+            if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
+
+            let leaveIndicatorHTML = '';
+            if (leaveData) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
+                if (leaveType) {
+                    leaveIndicatorHTML = `<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
+                }
+            }
+
+            dayCell.innerHTML = `
+                ${leaveIndicatorHTML}
+                <div class="calendar-day-content">
+                    <div class="day-number">${day}</div>
+                    <div class="day-note-container">${noteText ? `<span class="day-note">${noteText}</span>` : ''}</div>
+                    ${hasActivity ? '<div class="activity-indicator"></div>' : ''}
+                </div>`;
+            dayCell.dataset.date = dateKey;
+
+            const dayNumberEl = dayCell.querySelector('.day-number');
+            const dayNoteEl = dayCell.querySelector('.day-note');
+
+            if (leaveData && leaveData.dayType === 'full') {
+                dayNumberEl.style.color = 'white';
+                if (dayNoteEl) dayNoteEl.style.color = 'white';
+            }
+            if (date.getDay() === 0) {
+                dayNumberEl.style.color = '#ef4444';
+            }
+
+            DOM.calendarView.appendChild(dayCell);
+        }
+
+        const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
+        for (let i = 0; i < (7 - (totalCells % 7)) % 7; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day-cell other-month';
+            emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
+            DOM.calendarView.appendChild(emptyCell);
+        }
+    }
+
+    function renderDailyActivities() {
+        DOM.dailyActivityTableBody.innerHTML = '';
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const dailyActivitiesMap = state.allStoredData[dateKey] || {};
+        let dailyActivitiesArray = [];
+
+        DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
+
+        const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+
+        if (hasStoredActivities) {
+            dailyActivitiesArray = Object.keys(dailyActivitiesMap)
+                .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
+                .map(timeKey => ({ time: timeKey, ...dailyActivitiesMap[timeKey] }))
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
+            for (let h = 8; h <= 17; h++) {
+                dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
+            }
+        }
+
+        DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
+
+        dailyActivitiesArray.forEach((activity, index) => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-100 transition-colors duration-150';
+            row.dataset.time = activity.time;
+
+            const isFirst = index === 0;
+            const isLast = index === dailyActivitiesArray.length - 1;
+
+            row.innerHTML = `
+                <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
+                <td class="py-3 px-4 text-sm text-gray-900">
+                    <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
+                </td>
+                <td class="py-3 px-4 text-sm flex space-x-1 justify-center items-center">
+                    <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                    </button>
+                    <button class="icon-btn move-down-btn" aria-label="Move Down" ${isLast ? 'disabled' : ''}>
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <button class="icon-btn delete-btn delete" aria-label="Delete">
+                        <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>`;
+            DOM.dailyActivityTableBody.appendChild(row);
+        });
+    }
+
+    function renderMonthPicker() {
+        DOM.monthGrid.innerHTML = '';
+        DOM.pickerYearDisplay.textContent = state.pickerYear;
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        monthNames.forEach((name, index) => {
+            const button = document.createElement('button');
+            button.className = 'px-4 py-3 rounded-lg font-medium text-gray-800 bg-gray-100 hover:bg-blue-100 hover:text-blue-700';
+            button.textContent = name;
+            if (state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth()) {
+                button.classList.add('bg-blue-500', 'text-white');
+                button.classList.remove('bg-gray-100', 'text-gray-800');
+            }
+            button.addEventListener('click', () => {
+                const newMonth = new Date(state.pickerYear, index, 1);
+                const lastDayOfNewMonth = new Date(state.pickerYear, index + 1, 0).getDate();
+                let newSelectedDate = new Date(state.selectedDate);
+                if (newSelectedDate.getDate() > lastDayOfNewMonth) {
+                    newSelectedDate.setDate(lastDayOfNewMonth);
+                }
+                newSelectedDate.setMonth(index);
+                newSelectedDate.setFullYear(state.pickerYear);
+
+                setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
+                updateView();
+                DOM.monthPickerModal.classList.add('hidden');
+            });
+            DOM.monthGrid.appendChild(button);
+        });
+    }
+
+    function getYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDateForDisplay(dateString) {
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function formatTextForDisplay(text) {
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = text || '';
+        return tempDiv.innerHTML.replace(/\n/g, '<br>');
+    }
+
+    async function subscribeToData(userId, callback) {
+        const userDocRef = doc(db, "users", userId);
+        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+            const data = doc.exists() ? doc.data() : {};
+            setState({ allStoredData: data.activities || {}, leaveTypes: data.leaveTypes || [] });
+
+            updateView();
+
+            if (callback) {
+                callback();
+                callback = null;
+            }
+        });
+        setState({ unsubscribeFromFirestore: unsubscribe });
+    }
+
+    async function saveData(action) {
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
+        let successMessage = null;
+
+        switch (action.type) {
+            case 'SAVE_NOTE': {
+                if (action.payload) {
+                    dayDataCopy.note = action.payload;
+                } else {
+                    delete dayDataCopy.note;
+                }
+                break;
+            }
+            case 'ADD_SLOT': {
+                let newTimeKey = "00:00",
+                    counter = 0;
+                while (dayDataCopy[newTimeKey]) {
+                    newTimeKey = `00:00-${++counter}`;
+                }
+                const existingKeys = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
+                const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
+                dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
+                delete dayDataCopy._userCleared;
+                successMessage = "New slot added!";
+                break;
+            }
+            case 'UPDATE_ACTIVITY_TEXT': {
+                if (dayDataCopy[action.payload.timeKey]) {
+                    dayDataCopy[action.payload.timeKey].text = action.payload.newText;
+                } else {
+                    const order = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
+                    dayDataCopy[action.payload.timeKey] = { text: action.payload.newText, order };
+                }
+                delete dayDataCopy._userCleared;
+                successMessage = "Activity updated!";
+                break;
+            }
+            case 'UPDATE_TIME': {
+                const { oldTimeKey, newTimeKey } = action.payload;
+                if (!newTimeKey) {
+                    showMessage("Time cannot be empty.", 'error');
+                    return;
+                }
+                if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
+                    showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+                    return;
+                }
+                const entry = dayDataCopy[oldTimeKey];
+                if (entry) {
+                    delete dayDataCopy[oldTimeKey];
+                    dayDataCopy[newTimeKey] = entry;
+                }
+                successMessage = "Time updated!";
+                break;
+            }
+        }
+
+        const updatedData = {
+            ...state.allStoredData,
+            [dateKey]: dayDataCopy
         };
 
-        DOM.splashText.style.display = 'block';
-        DOM.splashText.classList.remove('animating-out');
-        DOM.tapToBegin.style.display = 'block';
-        DOM.tapToBegin.classList.remove('hiding');
-        DOM.splashLoading.style.display = 'none';
-
-        DOM.splashScreen.style.display = 'flex';
-        DOM.splashScreen.style.zIndex = '100';
-        DOM.splashScreen.style.cursor = 'pointer';
-
-        DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
-    }
-}
-
-function loadSplashScreenVideo() {
-    const splashImage = document.getElementById('splash-image');
-    if (!splashImage) return;
-
-    const videoSrc = splashImage.dataset.videoSrc;
-    if (!videoSrc) return;
-
-    const video = document.createElement('video');
-    video.id = 'splash-video';
-    video.style.position = 'absolute';
-    video.style.top = '50%';
-    video.style.left = '50%';
-    video.style.minWidth = '100%';
-    video.style.minHeight = '100%';
-    video.style.width = 'auto';
-    video.style.height = 'auto';
-    video.style.transform = 'translateX(-50%) translateY(-50%)';
-    video.style.objectFit = 'cover';
-    video.style.zIndex = '11'; // Place it on top of the image
-    video.style.opacity = '0'; // Start invisible for fade-in
-    video.style.transition = 'opacity 0.5s ease-in';
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-
-    const source = document.createElement('source');
-    source.src = videoSrc;
-    source.type = 'video/mp4';
-    video.appendChild(source);
-
-    const track = document.createElement('track');
-    track.kind = 'captions';
-    track.label = 'English';
-    track.srclang = 'en';
-    track.src = 'assets/captions.vtt'; // Path to your new file
-    video.appendChild(track);
-
-    // When the video is ready to play, fade it in
-    video.oncanplay = () => {
-        video.style.opacity = '1';
-    };
-
-    splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
-}
-
-    
-// --- Leave Management ---
-function openLeaveTypeModal(leaveType = null) {
-    DOM.leaveTypeModal.classList.remove('hidden');
-    if (leaveType) {
-        DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
-        DOM.editingLeaveTypeId.value = leaveType.id;
-        DOM.leaveNameInput.value = leaveType.name;
-        DOM.leaveDaysInput.value = leaveType.totalDays;
-        selectColorInPicker(leaveType.color);
-        DOM.deleteLeaveTypeBtn.classList.remove('hidden');
-    } else {
-        DOM.leaveTypeModalTitle.textContent = 'Add New Leave Type';
-        DOM.editingLeaveTypeId.value = '';
-        DOM.leaveNameInput.value = '';
-        DOM.leaveDaysInput.value = '';
-        selectColorInPicker(null);
-        DOM.deleteLeaveTypeBtn.classList.add('hidden');
-    }
-}
-
-function closeLeaveTypeModal() {
-    DOM.leaveTypeModal.classList.add('hidden');
-}
-
-function setupColorPicker() {
-    const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
-    DOM.leaveColorPicker.innerHTML = colors.map(color => `
-        <button type="button" data-color="${color}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
-    `).join('');
-}
-
-function selectColorInPicker(color) {
-    DOM.leaveColorPicker.querySelectorAll('button').forEach(btn => {
-        if (btn.dataset.color === color) {
-            btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+        if (state.isOnlineMode && state.userId) {
+            await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
-            btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+            updateView();
         }
-    });
-}
 
-async function saveLeaveType() {
-    // Get the button and start the loading state
-    const button = DOM.leaveTypeModal.querySelector('#save-leave-type-btn');
-    setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50)); // Ensures spinner is visible
-    
-    const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
-    const name = DOM.leaveNameInput.value.trim();
-    const totalDays = parseInt(DOM.leaveDaysInput.value, 10);
-    const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
-    const color = selectedColorEl ? selectedColorEl.dataset.color : null;
-    
-    if (!name || isNaN(totalDays) || !color) {
-        showMessage('Please fill all fields and select a color.', 'error');
-        setButtonLoadingState(button, false); // Turn off spinner on error
-        return;
-    }
-    
-    const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
-    if (isColorTaken) {
-        showMessage('This color is already used by another leave type.', 'error');
-        setButtonLoadingState(button, false); // Turn off spinner on error
-        return;
-    }
-    
-    const newLeaveTypes = [...state.leaveTypes];
-    const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
-    
-    if (existingIndex > -1) {
-        newLeaveTypes[existingIndex] = { id, name, totalDays, color };
-    } else {
-        newLeaveTypes.push({ id, name, totalDays, color });
-    }
-    
-    setState({ leaveTypes: newLeaveTypes });
-    if(state.isOnlineMode) {
-        await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
-    }
-    
-    closeLeaveTypeModal();
-    updateView();
-    showMessage('Leave type saved!', 'success');
-    
-    // Turn off spinner at the end
-    setButtonLoadingState(button, false);
-}
-async function deleteLeaveType() {
-    const id = DOM.editingLeaveTypeId.value;
-    const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
-    setState({ leaveTypes: newLeaveTypes });
-    // --- OPTIMIZATION: Use shallow copy instead of deep clone
-    const updatedActivities = { ...state.allStoredData };
-    Object.keys(updatedActivities).forEach(dateKey => {
-        if (updatedActivities[dateKey].leave?.typeId === id) {
-            // Ensure we don't mutate the original object
-            updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
-            delete updatedActivities[dateKey].leave;
+        if (successMessage) {
+            showMessage(successMessage, 'success');
         }
-    });
-    setState({ allStoredData: updatedActivities });
-
-    if(state.isOnlineMode) {
-        await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
     }
 
-    closeLeaveTypeModal();
-    updateView();
-    showMessage('Leave type deleted!', 'success');
-}
-
-async function saveLeaveTypes() {
-    if (state.isOnlineMode) {
-        await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
-        updateView(); // Manual update for offline mode
-    }
-    showMessage('Leave types reordered!', 'success');
-}
-
-function moveLeaveType(typeId, direction) {
-    // Create a copy to avoid directly changing the state
-    const newLeaveTypes = [...state.leaveTypes];
-    const index = newLeaveTypes.findIndex(lt => lt.id === typeId);
-
-    if (index === -1) return;
-
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= newLeaveTypes.length) return;
-
-    // Swap the elements in the new array
-    [newLeaveTypes[index], newLeaveTypes[newIndex]] = [newLeaveTypes[newIndex], newLeaveTypes[index]];
-    
-    // Formally update the state and then save
-    setState({ leaveTypes: newLeaveTypes });
-    saveLeaveTypes();
-}
-    
-function renderLeavePills() {
-    DOM.leavePillsContainer.innerHTML = '';
-    state.leaveTypes.forEach(lt => {
-        const pill = document.createElement('button');
-        pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
-        pill.style.backgroundColor = lt.color;
-        pill.textContent = lt.name;
-        pill.dataset.id = lt.id;
-        if (state.isLoggingLeave && state.selectedLeaveTypeId === lt.id) {
-            pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
-        }
-        DOM.leavePillsContainer.appendChild(pill);
-    });
-}
-
-function calculateLeaveBalances() {
-    const balances = {};
-    const leaveCounts = {};
-
-    state.leaveTypes.forEach(lt => {
-        leaveCounts[lt.id] = 0;
-    });
-
-    Object.values(state.allStoredData).forEach(dayData => {
-        if (dayData.leave) {
-            const leaveValue = dayData.leave.dayType === 'half' ? 0.5 : 1;
-            if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
-                leaveCounts[dayData.leave.typeId] += leaveValue;
+    function loadDataFromLocalStorage() {
+        try {
+            const storedDataString = localStorage.getItem('activityTrackerData');
+            if (!storedDataString) {
+                return { activities: {}, leaveTypes: [] };
             }
-        }
-    });
 
-    state.leaveTypes.forEach(lt => {
-        balances[lt.id] = lt.totalDays - (leaveCounts[lt.id] || 0);
-    });
+            const storedData = JSON.parse(storedDataString);
 
-    return balances;
-}
-
-function renderLeaveStats() {
-    DOM.leaveStatsSection.innerHTML = '';
-    if (state.leaveTypes.length === 0) {
-        DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined yet.</p>';
-        return;
-    }
-
-    const leaveCounts = {};
-    state.leaveTypes.forEach(lt => {
-        leaveCounts[lt.id] = 0;
-    });
-
-    Object.values(state.allStoredData).forEach(dayData => {
-        if (dayData.leave) {
-            if(dayData.leave.dayType === 'full') {
-                leaveCounts[dayData.leave.typeId] += 1;
-            } else if (dayData.leave.dayType === 'half') {
-                leaveCounts[dayData.leave.typeId] += 0.5;
-            }
-        }
-    });
-
-    const statsHTML = state.leaveTypes.map((lt, index) => {
-        const used = leaveCounts[lt.id] || 0;
-        const balance = lt.totalDays - used;
-        
-        const isFirst = index === 0;
-        const isLast = index === state.leaveTypes.length - 1;
-
-        return `
-            <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
-                <div class="flex justify-between items-start">
-                    <h4 class="font-bold text-lg truncate min-w-0 pr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
-                    
-                    <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                        </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-center">
-                    <div class="bg-gray-100 p-2 rounded col-span-1">
-                        <p class="text-xs text-gray-500">Used</p>
-                        <p class="font-bold text-xl text-gray-800">${used}</p>
-                    </div>
-                    <div class="bg-gray-100 p-2 rounded col-span-1 balance-box">
-                        <p class="text-xs stats-label">Balance</p>
-                        <p class="font-bold text-xl stats-value">${balance}</p>
-                    </div>
-                    <div class="bg-gray-100 p-2 rounded col-span-2 md:col-span-1">
-                        <p class="text-xs text-gray-500">Total</p>
-                        <p class="font-bold text-xl text-gray-800">${lt.totalDays}</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${statsHTML}</div>`;
-    
-    DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
-            if (leaveType) openLeaveTypeModal(leaveType);
-        });
-    });
-
-    DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.dataset.id;
-            const direction = parseInt(e.currentTarget.dataset.direction, 10);
-            moveLeaveType(id, direction);
-        });
-    });
-}
-
-function openLeaveCustomizationModal() {
-    if (state.leaveSelection.size === 0) {
-        showMessage('Please select at least one day on the calendar.', 'info');
-        return;
-    }
-    setState({ initialLeaveSelection: new Set(state.leaveSelection) });
-    DOM.customizeLeaveModal.classList.remove('hidden');
-    renderLeaveCustomizationModal();
-}
-
-function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
-    const selectedType = state.leaveTypes.find(lt => lt.id === currentTypeId);
-
-    let triggerHTML;
-    if (currentTypeId === 'remove') {
-        triggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
-    } else if (selectedType) {
-        triggerHTML = `
-            <span class="flex items-center w-full min-w-0">
-                <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
-                <span class="font-medium text-sm truncate min-w-0">${selectedType.name}</span>
-            </span>
-            <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
-    } else {
-        triggerHTML = `<span class="font-medium text-sm text-gray-500">Select Type</span>`;
-    }
-
-    container.innerHTML = `
-        <button type="button" class="leave-type-selector-trigger w-full flex items-center justify-between px-3 py-1.5 border rounded-md shadow-sm text-left">
-            ${triggerHTML}
-        </button>
-        <div class="leave-type-selector-panel">
-            <div class="flex flex-col space-y-1">
-                <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
-                    <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
-                    <span>None</span>
-                </button>
-                ${state.leaveTypes.map(lt => `
-                    <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
-                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
-                        <span class="truncate min-w-0" title="${lt.name}">${lt.name}</span>
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
-    const trigger = container.querySelector('.leave-type-selector-trigger');
-    const panel = container.querySelector('.leave-type-selector-panel');
-    trigger.dataset.typeId = currentTypeId || 'remove';
-
-    const closePanel = () => panel.classList.remove('open');
-
-    trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.leave-type-selector-panel.open').forEach(p => {
-            if (p !== panel) p.classList.remove('open');
-        });
-        panel.classList.toggle('open');
-    });
-
-    panel.querySelectorAll('.leave-type-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const newTypeId = option.dataset.id;
-            trigger.dataset.typeId = newTypeId;
-            
-            let newTriggerHTML;
-            if (newTypeId === 'remove') {
-                newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+            // Backwards compatibility for old data structure
+            if (storedData.hasOwnProperty('activities')) {
+                return storedData;
             } else {
-                const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
-                
-                // --- THIS IS THE CORRECTED CODE BLOCK ---
-                newTriggerHTML = `
-                    <span class="flex items-center w-full min-w-0">
-                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
-                        <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
-                    </span>
-                    <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                return { activities: storedData, leaveTypes: [] };
             }
-            trigger.innerHTML = newTriggerHTML;
+        } catch (error) {
+            console.error("Error loading local data:", error);
+            showMessage("Could not load local data.", 'error');
+            return { activities: {}, leaveTypes: [] };
+        }
+    }
 
-            closePanel();
-            if (onTypeChangeCallback) {
-                onTypeChangeCallback(newTypeId);
+    function saveDataToLocalStorage(data) {
+        try {
+            localStorage.setItem('activityTrackerData', JSON.stringify(data));
+        } catch (error) {
+            console.error("Error saving local data:", error);
+            showMessage("Could not save data locally.", 'error');
+        }
+    }
+
+    async function saveDataToFirestore(data) {
+        if (!state.userId) return;
+        try {
+            await setDoc(doc(db, "users", state.userId), data);
+        } catch (error) {
+            console.error("Error saving to Firestore:", error);
+            showMessage("Error: Could not save data to the cloud.", 'error');
+        }
+    }
+
+    function loadOfflineData() {
+        localStorage.setItem('sessionMode', 'offline');
+        const data = loadDataFromLocalStorage();
+        setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
+        switchView(DOM.appView, DOM.loginView, updateView);
+    }
+
+    async function resetAllData() {
+        const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
+        setButtonLoadingState(button, true);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        if (state.isOnlineMode && state.userId) {
+            try {
+                await deleteDoc(doc(db, "users", state.userId));
+                showMessage("All cloud data has been reset.", 'success');
+            } catch (error) {
+                showMessage("Failed to reset cloud data.", 'error');
+            }
+        } else {
+            localStorage.removeItem('activityTrackerData');
+            setState({ allStoredData: {}, leaveTypes: [] });
+            updateView();
+            showMessage("All local data has been reset.", 'success');
+        }
+        DOM.confirmResetModal.classList.add('hidden');
+        setButtonLoadingState(button, false);
+    }
+
+    function updateActivityOrder() {
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const dayData = state.allStoredData[dateKey] || {};
+        const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
+
+        const newDayData = {};
+        if (dayData.note) newDayData.note = dayData.note;
+        if (dayData.leave) newDayData.leave = dayData.leave;
+
+        orderedTimeKeys.forEach((timeKey, index) => {
+            const originalEntry = dayData[timeKey] || { text: '' };
+            newDayData[timeKey] = { text: originalEntry.text, order: index };
+        });
+
+        if (dayData._userCleared) newDayData._userCleared = true;
+
+        const updatedData = { ...state.allStoredData, [dateKey]: newDayData };
+
+        if (state.isOnlineMode && state.userId) {
+            saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+        }
+        showMessage("Activities reordered!", 'success');
+    }
+
+    function deleteActivity(dateKey, timeKey) {
+        const dayData = state.allStoredData[dateKey];
+        if (!dayData || !dayData[timeKey]) return;
+
+        const dayDataCopy = { ...dayData };
+        delete dayDataCopy[timeKey];
+
+        if (Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
+            dayDataCopy._userCleared = true;
+        }
+
+        const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
+
+        if (state.isOnlineMode && state.userId) {
+            saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: dataCopy });
+            updateView();
+        }
+        showMessage("Activity deleted.", 'success');
+    }
+
+    // --- CSV Import/Export ---
+    function escapeCsvField(field) {
+        const fieldStr = String(field || '');
+        if (/[",\n]/.test(fieldStr)) {
+            return `"${fieldStr.replace(/"/g, '""')}"`;
+        }
+        return fieldStr;
+    }
+
+    function downloadCSV() {
+        const csvRows = [
+            ["Type", "Detail1", "Detail2", "Detail3", "Detail4"] // Headers
+        ];
+
+        state.leaveTypes.forEach(lt => {
+            csvRows.push(["LEAVE_TYPE", lt.id, lt.name, lt.totalDays, lt.color]);
+        });
+
+        const sortedDateKeys = Object.keys(state.allStoredData).sort();
+
+        sortedDateKeys.forEach(dateKey => {
+            const dayData = state.allStoredData[dateKey];
+
+            if (dayData.note) {
+                csvRows.push(["NOTE", dateKey, dayData.note, "", ""]);
+            }
+            if (dayData.leave) {
+                csvRows.push(["LEAVE", dateKey, dayData.leave.typeId, dayData.leave.dayType, ""]);
+            }
+            if (dayData._userCleared) {
+                csvRows.push(["USER_CLEARED", dateKey, "", "", ""]);
+            }
+
+            const activities = Object.keys(dayData)
+                .filter(key => key !== 'note' && key !== 'leave' && key !== '_userCleared')
+                .map(timeKey => ({ time: timeKey, ...dayData[timeKey] }))
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+            activities.forEach(activity => {
+                if (activity.text?.trim()) {
+                    csvRows.push(["ACTIVITY", dateKey, activity.time, activity.text, activity.order]);
+                }
+            });
+        });
+
+        if (csvRows.length <= 1) {
+            return showMessage("No data found to export.", 'info');
+        }
+
+        const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
+
+        const link = document.createElement("a");
+        link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
+        link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function parseCsvLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        result.push(current);
+        return result;
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const csvContent = e.target.result;
+                const dataCopy = { ...state.allStoredData };
+                const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
+                const lines = csvContent.split('\n').filter(line => line.trim());
+
+                if (lines.length <= 1) {
+                    return showMessage("CSV file is empty or has no data.", 'error');
+                }
+
+                let processedRows = 0;
+                lines.slice(1).forEach(line => {
+                    const row = parseCsvLine(line.trim());
+                    if (row.length < 2) return;
+
+                    const [type, detail1, detail2, detail3, detail4] = row;
+                    let rowProcessed = false;
+
+                    switch (type.toUpperCase()) {
+                        case 'LEAVE_TYPE':
+                            if (detail1 && detail2 && detail3 && detail4) {
+                                leaveTypesMap.set(detail1, {
+                                    id: detail1,
+                                    name: detail2,
+                                    totalDays: parseInt(detail3, 10) || 0,
+                                    color: detail4
+                                });
+                                rowProcessed = true;
+                            }
+                            break;
+
+                        case 'NOTE':
+                        case 'LEAVE':
+                        case 'ACTIVITY':
+                        case 'USER_CLEARED':
+                            const dateKey = detail1;
+                            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+                                console.warn(`Skipping row with invalid date format: ${line}`);
+                                return;
+                            }
+                            if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
+                            else dataCopy[dateKey] = { ...dataCopy[dateKey] };
+
+                            if (type.toUpperCase() === 'NOTE') {
+                                dataCopy[dateKey].note = detail2;
+                                rowProcessed = true;
+                            } else if (type.toUpperCase() === 'LEAVE') {
+                                dataCopy[dateKey].leave = {
+                                    typeId: detail2,
+                                    dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
+                                };
+                                rowProcessed = true;
+                            } else if (type.toUpperCase() === 'ACTIVITY') {
+                                const time = detail2;
+                                const text = detail3;
+                                const order = parseInt(detail4, 10);
+                                if (time) {
+                                    dataCopy[dateKey][time] = { text: text || "", order: isNaN(order) ? 0 : order };
+                                    rowProcessed = true;
+                                }
+                            } else if (type.toUpperCase() === 'USER_CLEARED') {
+                                dataCopy[dateKey]._userCleared = true;
+                                rowProcessed = true;
+                            }
+                            break;
+                    }
+                    if (rowProcessed) processedRows++;
+                });
+
+                const finalLeaveTypes = Array.from(leaveTypesMap.values());
+
+                setState({ leaveTypes: finalLeaveTypes, allStoredData: dataCopy });
+
+                if (state.isOnlineMode && state.userId) {
+                    await saveDataToFirestore({ activities: dataCopy, leaveTypes: finalLeaveTypes });
+                } else {
+                    saveDataToLocalStorage({ activities: dataCopy, leaveTypes: finalLeaveTypes });
+                    updateView();
+                }
+
+                showMessage(`${processedRows} records imported/updated successfully!`, 'success');
+                event.target.value = '';
+            } catch (err) {
+                console.error("Error during CSV import:", err);
+                showMessage("An error occurred while importing the file.", 'error');
+            }
+        };
+        reader.onerror = () => showMessage("Error reading file.", 'error');
+        reader.readAsText(file);
+    }
+
+    function handleUserLogout() {
+        if (state.unsubscribeFromFirestore) {
+            state.unsubscribeFromFirestore();
+        }
+        localStorage.removeItem('sessionMode');
+
+        if (DOM.splashScreen) {
+            DOM.splashScreen.style.zIndex = '-10';
+            DOM.splashText.style.display = 'none';
+            DOM.tapToBegin.style.display = 'none';
+            DOM.splashLoading.style.display = 'none';
+            DOM.splashText.classList.remove('animating-out');
+            DOM.splashScreen.style.cursor = 'default';
+        }
+
+        setState({
+            allStoredData: {},
+            leaveTypes: [],
+            userId: null,
+            isOnlineMode: false,
+            unsubscribeFromFirestore: null,
+            logoTapCount: 0
+        });
+
+        switchView(DOM.loginView, DOM.appView);
+    }
+
+    function initAuth() {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleUserLogin(user);
+            } else {
+                const sessionMode = localStorage.getItem('sessionMode');
+                if (sessionMode === 'offline') {
+                    const data = loadDataFromLocalStorage();
+                    setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
+                    document.querySelector('.main-container').classList.add('is-app-view');
+                    switchView(DOM.appView, DOM.loadingView, updateView);
+                } else {
+                    switchView(DOM.loginView, DOM.loadingView);
+                }
+            }
+            DOM.contentWrapper.style.opacity = '1';
+            DOM.footer.style.opacity = '1';
+        });
+    }
+
+    async function signUpWithEmail(email, password) {
+        const button = DOM.emailSignupBtn;
+        let hasError = false;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            hasError = true;
+        }
+        if (password.length < 6) {
+            setInputErrorState(document.getElementById('password-input'), true);
+            hasError = true;
+        }
+        if (hasError) {
+            return showMessage("Email and a password of at least 6 characters are required.", 'error');
+        }
+
+        setButtonLoadingState(button, true);
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            handleUserLogin(userCredential.user);
+        } catch (error) {
+            if (error.code === 'auth/email-already-in-use') {
+                showMessage("An account already exists with this email. Please sign in instead.", 'error');
+            } else {
+                showMessage(`Sign-up failed: ${error.message}`, 'error');
+            }
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function signInWithEmail(email, password) {
+        const button = DOM.emailSigninBtn;
+        let hasError = false;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            hasError = true;
+        }
+        if (!password) {
+            setInputErrorState(document.getElementById('password-input'), true);
+            hasError = true;
+        }
+        if (hasError) {
+            return showMessage("Email and password are required.", 'error');
+        }
+
+        setButtonLoadingState(button, true);
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            handleUserLogin(userCredential.user);
+        } catch (error) {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                showMessage("Incorrect email or password. Please try again.", 'error');
+            } else {
+                showMessage(`Sign-in failed: ${error.message}`, 'error');
+            }
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function resetPassword(email) {
+        const button = DOM.forgotPasswordBtn;
+        if (!email) {
+            setInputErrorState(document.getElementById('email-input'), true);
+            return showMessage("Please enter your email address.", 'info');
+        }
+        setButtonLoadingState(button, true);
+        button.classList.add('loading');
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showMessage("Please check your SPAM folder for the password reset link.", 'success');
+        } catch (error) {
+            showMessage(`Error sending reset email: ${error.message}`, 'error');
+        } finally {
+            setButtonLoadingState(button, false);
+            button.classList.remove('loading');
+        }
+    }
+
+    async function signInWithGoogle() {
+        const provider = new GoogleAuthProvider();
+        const button = DOM.googleSigninBtn;
+        setButtonLoadingState(button, true);
+        try {
+            const result = await signInWithPopup(auth, provider);
+            handleUserLogin(result.user);
+        } catch (error) {
+            showMessage(`Google sign-in failed: ${error.message}`, 'error');
+        } finally {
+            setButtonLoadingState(button, false);
+        }
+    }
+
+    async function appSignOut() {
+        if (state.isOnlineMode) {
+            try {
+                await signOut(auth);
+                handleUserLogout();
+            } catch (error) {
+                showMessage(`Sign-out failed: ${error.message}`, 'error');
+            }
+        } else {
+            handleUserLogout();
+        }
+    }
+
+    function applyTheme(theme) {
+        const lightIcon = document.getElementById('theme-icon-light');
+        const darkIcon = document.getElementById('theme-icon-dark');
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+            lightIcon.classList.add('hidden');
+            darkIcon.classList.remove('hidden');
+        } else {
+            document.body.classList.remove('dark');
+            lightIcon.classList.remove('hidden');
+            darkIcon.classList.add('hidden');
+        }
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.classList.contains('dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else if (systemPrefersDark) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+    }
+
+    function setupDoubleClickConfirm(element, actionKey, message, callback) {
+        element.addEventListener('click', (e) => {
+            if (state.confirmAction[actionKey]) {
+                callback(e);
+                delete state.confirmAction[actionKey];
+                element.classList.remove('confirm-action');
+            } else {
+                Object.keys(state.confirmAction).forEach(key => {
+                    const el = state.confirmAction[key].element;
+                    if (el) el.classList.remove('confirm-action');
+                });
+                state.confirmAction = {};
+
+                state.confirmAction[actionKey] = {
+                    element: element,
+                    timeoutId: setTimeout(() => {
+                        element.classList.remove('confirm-action');
+                        delete state.confirmAction[actionKey];
+                    }, 3000)
+                };
+                element.classList.add('confirm-action');
+                showMessage(message, 'info');
             }
         });
-    });
+    }
 
-    document.addEventListener('click', closePanel, { once: true });
-    container.addEventListener('click', e => e.stopPropagation());
-}
-
-function setupDayTypeToggle(toggleElement) {
-    const bg = toggleElement.querySelector('.toggle-bg');
-    const buttons = toggleElement.querySelectorAll('.toggle-btn');
-    
-    const updateUI = (value) => {
-        const isHalf = value === 'half';
-        bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
-        buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
-    };
-
-    updateUI(toggleElement.dataset.selectedValue || 'full');
-
-    toggleElement.addEventListener('click', (e) => {
-        const clickedButton = e.target.closest('.toggle-btn');
-        if (!clickedButton) return;
-        
-        const value = clickedButton.dataset.value;
-        if (toggleElement.dataset.selectedValue === value) return;
-
-        toggleElement.dataset.selectedValue = value;
-        updateUI(value);
-
-        if (toggleElement.id === 'bulk-day-type-toggle') {
-            document.querySelectorAll('#leave-days-list .day-type-toggle').forEach(itemToggle => {
-                itemToggle.dataset.selectedValue = value;
-                const itemBg = itemToggle.querySelector('.toggle-bg');
-                const itemButtons = itemToggle.querySelectorAll('.toggle-btn');
-                itemBg.style.transform = `translateX(${value === 'half' ? '100%' : '0'})`;
-                itemButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
-            });
+    function handleMoveUpClick(currentRow) {
+        if (currentRow.previousElementSibling) {
+            DOM.dailyActivityTableBody.insertBefore(currentRow, currentRow.previousElementSibling);
+            updateActivityOrder();
         }
-    });
-}
+    }
 
-function renderLeaveCustomizationModal() {
-    const list = DOM.leaveDaysList;
-    list.innerHTML = '';
-    const sortedDates = Array.from(state.leaveSelection).sort();
-    
-    // THIS HELPER FUNCTION IS NOW CORRECTED
-    const updateIndividualSelectorDisplay = (container, newTypeId) => {
-        const trigger = container.querySelector('.leave-type-selector-trigger');
-        if (!trigger) return;
-        trigger.dataset.typeId = newTypeId;
-        
-        let newTriggerHTML;
-        if (newTypeId === 'remove') {
-            newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+    function handleMoveDownClick(currentRow) {
+        if (currentRow.nextElementSibling) {
+            DOM.dailyActivityTableBody.insertBefore(currentRow.nextElementSibling, currentRow);
+            updateActivityOrder();
+        }
+    }
+
+    function handleInlineEditClick(event) {
+        const target = event.currentTarget;
+        if (state.editingInlineTimeKey && state.editingInlineTimeKey !== target.dataset.time) {
+            DOM.dailyActivityTableBody.querySelector(`[data-time="${state.editingInlineTimeKey}"]`)?.blur();
+        }
+        target.classList.add('editing');
+        setState({ editingInlineTimeKey: target.dataset.time });
+    }
+
+    function handleInlineEditBlur(event) {
+        const target = event.currentTarget;
+        if (state.editingInlineTimeKey === target.dataset.time) {
+            if (target.classList.contains('time-editable')) {
+                debouncedSaveData({ type: 'UPDATE_TIME', payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
+            } else {
+                debouncedSaveData({ type: 'UPDATE_ACTIVITY_TEXT', payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
+            }
+        }
+        target.classList.remove('editing');
+    }
+
+    function handleInlineEditKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            event.currentTarget.blur();
+        }
+    }
+
+    // --- Easter Egg Functions ---
+    function createMagicParticles() {
+        const particleCount = 12;
+        const container = DOM.logoContainer;
+        if (!container) return;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'magic-particle';
+
+            const angle = (i / particleCount) * 360;
+            const radius = 40 + Math.random() * 20;
+            const x = Math.cos(angle * Math.PI / 180) * radius;
+            const y = Math.sin(angle * Math.PI / 180) * radius;
+
+            particle.style.setProperty('--x', `${x}px`);
+            particle.style.setProperty('--y', `${y}px`);
+
+            const colors = ['#ffd700', '#ffec80', '#ffab40'];
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            container.appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 800);
+        }
+    }
+
+    function handleLogoTap() {
+        state.logoTapCount++;
+
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+
+        DOM.appLogo.classList.add('is-shaking');
+        setTimeout(() => {
+            DOM.appLogo.classList.remove('is-shaking');
+        }, 500);
+
+        createMagicParticles();
+
+        if (state.logoTapCount >= 7) {
+            state.logoTapCount = 0;
+
+            const returnToApp = () => {
+                DOM.splashScreen.style.zIndex = '-10';
+                DOM.splashScreen.style.display = 'none';
+            };
+
+            DOM.splashText.style.display = 'block';
+            DOM.splashText.classList.remove('animating-out');
+            DOM.tapToBegin.style.display = 'block';
+            DOM.tapToBegin.classList.remove('hiding');
+            DOM.splashLoading.style.display = 'none';
+
+            DOM.splashScreen.style.display = 'flex';
+            DOM.splashScreen.style.zIndex = '100';
+            DOM.splashScreen.style.cursor = 'pointer';
+
+            DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
+        }
+    }
+
+    function loadSplashScreenVideo() {
+        const splashImage = document.getElementById('splash-image');
+        if (!splashImage) return;
+
+        const videoSrc = splashImage.dataset.videoSrc;
+        if (!videoSrc) return;
+
+        const video = document.createElement('video');
+        video.id = 'splash-video';
+        video.style.position = 'absolute';
+        video.style.top = '50%';
+        video.style.left = '50%';
+        video.style.minWidth = '100%';
+        video.style.minHeight = '100%';
+        video.style.width = 'auto';
+        video.style.height = 'auto';
+        video.style.transform = 'translateX(-50%) translateY(-50%)';
+        video.style.objectFit = 'cover';
+        video.style.zIndex = '11';
+        video.style.opacity = '0';
+        video.style.transition = 'opacity 0.5s ease-in';
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+
+        const source = document.createElement('source');
+        source.src = videoSrc;
+        source.type = 'video/mp4';
+        video.appendChild(source);
+
+        const track = document.createElement('track');
+        track.kind = 'captions';
+        track.label = 'English';
+        track.srclang = 'en';
+        track.src = 'assets/captions.vtt';
+        video.appendChild(track);
+
+        video.oncanplay = () => {
+            video.style.opacity = '1';
+        };
+
+        splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
+    }
+
+
+    // --- Leave Management ---
+    function openLeaveTypeModal(leaveType = null) {
+        DOM.leaveTypeModal.classList.remove('hidden');
+        if (leaveType) {
+            DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
+            DOM.editingLeaveTypeId.value = leaveType.id;
+            DOM.leaveNameInput.value = leaveType.name;
+            DOM.leaveDaysInput.value = leaveType.totalDays;
+            selectColorInPicker(leaveType.color);
+            DOM.deleteLeaveTypeBtn.classList.remove('hidden');
         } else {
-            const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
-            
-            newTriggerHTML = `
-                <span class="flex items-center w-full min-w-0">
-                    <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
-                    <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
-                </span>
-                <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+            DOM.leaveTypeModalTitle.textContent = 'Add New Leave Type';
+            DOM.editingLeaveTypeId.value = '';
+            DOM.leaveNameInput.value = '';
+            DOM.leaveDaysInput.value = '';
+            selectColorInPicker(null);
+            DOM.deleteLeaveTypeBtn.classList.add('hidden');
         }
-        if (newTriggerHTML) {
-            trigger.innerHTML = newTriggerHTML;
+    }
+
+    function closeLeaveTypeModal() {
+        DOM.leaveTypeModal.classList.add('hidden');
+    }
+
+    function setupColorPicker() {
+        const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
+        // ACCESSIBILITY IMPROVEMENT: Map colors to names for screen readers
+        const colorMap = {
+            '#ef4444': 'Red',
+            '#f97316': 'Orange',
+            '#eab308': 'Amber',
+            '#84cc16': 'Lime',
+            '#22c55e': 'Green',
+            '#14b8a6': 'Teal',
+            '#06b6d4': 'Cyan',
+            '#3b82f6': 'Blue',
+            '#8b5cf6': 'Violet',
+            '#d946ef': 'Fuchsia',
+            '#ec4899': 'Pink',
+            '#78716c': 'Stone'
+        };
+        DOM.leaveColorPicker.innerHTML = colors.map(color => `
+            <button type="button" data-color="${color}" style="background-color: ${color};" 
+                    aria-label="Select color ${colorMap[color] || color}"
+                    class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
+        `).join('');
+    }
+
+    function selectColorInPicker(color) {
+        DOM.leaveColorPicker.querySelectorAll('button').forEach(btn => {
+            if (btn.dataset.color === color) {
+                btn.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            } else {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+            }
+        });
+    }
+
+    async function saveLeaveType() {
+        const button = DOM.leaveTypeModal.querySelector('#save-leave-type-btn');
+        setButtonLoadingState(button, true);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
+        const name = DOM.leaveNameInput.value.trim();
+        const totalDays = parseInt(DOM.leaveDaysInput.value, 10);
+        const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
+        const color = selectedColorEl ? selectedColorEl.dataset.color : null;
+
+        if (!name || isNaN(totalDays) || !color) {
+            showMessage('Please fill all fields and select a color.', 'error');
+            setButtonLoadingState(button, false);
+            return;
         }
-    };
-    
-    const bulkPillsContainer = document.getElementById('modal-leave-pills-container');
-    let modalBulkTypeId = state.selectedLeaveTypeId || state.leaveTypes[0]?.id;
-    
-    const renderBulkPills = () => {
-        bulkPillsContainer.innerHTML = '';
+
+        const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
+        if (isColorTaken) {
+            showMessage('This color is already used by another leave type.', 'error');
+            setButtonLoadingState(button, false);
+            return;
+        }
+
+        const newLeaveTypes = [...state.leaveTypes];
+        const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
+
+        if (existingIndex > -1) {
+            newLeaveTypes[existingIndex] = { id, name, totalDays, color };
+        } else {
+            newLeaveTypes.push({ id, name, totalDays, color });
+        }
+
+        setState({ leaveTypes: newLeaveTypes });
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
+        }
+
+        closeLeaveTypeModal();
+        updateView();
+        showMessage('Leave type saved!', 'success');
+        setButtonLoadingState(button, false);
+    }
+    async function deleteLeaveType() {
+        const id = DOM.editingLeaveTypeId.value;
+        const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
+        setState({ leaveTypes: newLeaveTypes });
+        const updatedActivities = { ...state.allStoredData };
+        Object.keys(updatedActivities).forEach(dateKey => {
+            if (updatedActivities[dateKey].leave?.typeId === id) {
+                updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
+                delete updatedActivities[dateKey].leave;
+            }
+        });
+        setState({ allStoredData: updatedActivities });
+
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        }
+
+        closeLeaveTypeModal();
+        updateView();
+        showMessage('Leave type deleted!', 'success');
+    }
+
+    async function saveLeaveTypes() {
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+        } else {
+            saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+            updateView();
+        }
+        showMessage('Leave types reordered!', 'success');
+    }
+
+    function moveLeaveType(typeId, direction) {
+        const newLeaveTypes = [...state.leaveTypes];
+        const index = newLeaveTypes.findIndex(lt => lt.id === typeId);
+        if (index === -1) return;
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= newLeaveTypes.length) return;
+        [newLeaveTypes[index], newLeaveTypes[newIndex]] = [newLeaveTypes[newIndex], newLeaveTypes[index]];
+        setState({ leaveTypes: newLeaveTypes });
+        saveLeaveTypes();
+    }
+
+    function renderLeavePills() {
+        DOM.leavePillsContainer.innerHTML = '';
         state.leaveTypes.forEach(lt => {
             const pill = document.createElement('button');
             pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
             pill.style.backgroundColor = lt.color;
             pill.textContent = lt.name;
-            if (lt.id === modalBulkTypeId) {
-                pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800');
+            pill.dataset.id = lt.id;
+            if (state.isLoggingLeave && state.selectedLeaveTypeId === lt.id) {
+                pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
             }
-            pill.addEventListener('click', () => {
-                modalBulkTypeId = lt.id;
-                renderBulkPills();
-                list.querySelectorAll('.leave-type-selector').forEach(container => {
-                    updateIndividualSelectorDisplay(container, modalBulkTypeId);
-                });
-            });
-            bulkPillsContainer.appendChild(pill);
+            DOM.leavePillsContainer.appendChild(pill);
         });
-    };
-    
-    renderBulkPills();
-    setupDayTypeToggle(document.getElementById('bulk-day-type-toggle'));
-    
-    sortedDates.forEach(dateKey => {
-        const item = document.createElement('div');
-        item.className = 'leave-day-item flex flex-col sm:flex-row items-center justify-between p-3 rounded-lg shadow-sm border';
-        item.dataset.dateKey = dateKey;
-    
-        const existingLeave = state.allStoredData[dateKey]?.leave;
-        const currentLeaveTypeId = existingLeave ? existingLeave.typeId : modalBulkTypeId;
-        const currentDayType = existingLeave ? existingLeave.dayType : 'full';
-    
-        item.innerHTML = `
-            <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey)}</span>
-            <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end min-w-0">
-                <div class="leave-type-selector relative flex-grow w-full sm:w-36 min-w-0">
+    }
+
+    function calculateLeaveBalances() {
+        const balances = {};
+        const leaveCounts = {};
+
+        state.leaveTypes.forEach(lt => {
+            leaveCounts[lt.id] = 0;
+        });
+
+        Object.values(state.allStoredData).forEach(dayData => {
+            if (dayData.leave) {
+                const leaveValue = dayData.leave.dayType === 'half' ? 0.5 : 1;
+                if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
+                    leaveCounts[dayData.leave.typeId] += leaveValue;
+                }
+            }
+        });
+
+        state.leaveTypes.forEach(lt => {
+            balances[lt.id] = lt.totalDays - (leaveCounts[lt.id] || 0);
+        });
+
+        return balances;
+    }
+
+    function renderLeaveStats() {
+        DOM.leaveStatsSection.innerHTML = '';
+        if (state.leaveTypes.length === 0) {
+            DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined yet.</p>';
+            return;
+        }
+
+        const leaveCounts = {};
+        state.leaveTypes.forEach(lt => {
+            leaveCounts[lt.id] = 0;
+        });
+
+        Object.values(state.allStoredData).forEach(dayData => {
+            if (dayData.leave) {
+                if (dayData.leave.dayType === 'full') {
+                    leaveCounts[dayData.leave.typeId] += 1;
+                } else if (dayData.leave.dayType === 'half') {
+                    leaveCounts[dayData.leave.typeId] += 0.5;
+                }
+            }
+        });
+
+        const statsHTML = state.leaveTypes.map((lt, index) => {
+            const used = leaveCounts[lt.id] || 0;
+            const balance = lt.totalDays - used;
+            const isFirst = index === 0;
+            const isLast = index === state.leaveTypes.length - 1;
+
+            return `
+                <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-lg truncate min-w-0 pr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
+                        <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
+                            <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            </button>
+                            <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-center">
+                        <div class="bg-gray-100 p-2 rounded col-span-1">
+                            <p class="text-xs text-gray-500">Used</p>
+                            <p class="font-bold text-xl text-gray-800">${used}</p>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded col-span-1 balance-box">
+                            <p class="text-xs stats-label">Balance</p>
+                            <p class="font-bold text-xl stats-value">${balance}</p>
+                        </div>
+                        <div class="bg-gray-100 p-2 rounded col-span-2 md:col-span-1">
+                            <p class="text-xs text-gray-500">Total</p>
+                            <p class="font-bold text-xl text-gray-800">${lt.totalDays}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
-                    <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full">Full</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+            `;
+        }).join('');
+        DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${statsHTML}</div>`;
+
+        DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
+                if (leaveType) openLeaveTypeModal(leaveType);
+            });
+        });
+
+        DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                const direction = parseInt(e.currentTarget.dataset.direction, 10);
+                moveLeaveType(id, direction);
+            });
+        });
+    }
+
+    function openLeaveCustomizationModal() {
+        if (state.leaveSelection.size === 0) {
+            showMessage('Please select at least one day on the calendar.', 'info');
+            return;
+        }
+        setState({ initialLeaveSelection: new Set(state.leaveSelection) });
+        DOM.customizeLeaveModal.classList.remove('hidden');
+        renderLeaveCustomizationModal();
+    }
+
+    function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
+        const selectedType = state.leaveTypes.find(lt => lt.id === currentTypeId);
+
+        let triggerHTML;
+        if (currentTypeId === 'remove') {
+            triggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+        } else if (selectedType) {
+            triggerHTML = `
+                <span class="flex items-center w-full min-w-0">
+                    <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
+                    <span class="font-medium text-sm truncate min-w-0">${selectedType.name}</span>
+                </span>
+                <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+        } else {
+            triggerHTML = `<span class="font-medium text-sm text-gray-500">Select Type</span>`;
+        }
+
+        container.innerHTML = `
+            <button type="button" class="leave-type-selector-trigger w-full flex items-center justify-between px-3 py-1.5 border rounded-md shadow-sm text-left" aria-haspopup="true" aria-expanded="false">
+                ${triggerHTML}
+            </button>
+            <div class="leave-type-selector-panel">
+                <div class="flex flex-col space-y-1">
+                    <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                        <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
+                        <span>None</span>
+                    </button>
+                    ${state.leaveTypes.map(lt => `
+                        <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
+                            <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
+                            <span class="truncate min-w-0" title="${lt.name}">${lt.name}</span>
+                        </button>
+                    `).join('')}
                 </div>
-                <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
             </div>
         `;
-        list.appendChild(item);
-        
-        createLeaveTypeSelector(item.querySelector('.leave-type-selector'), currentLeaveTypeId);
-        setupDayTypeToggle(item.querySelector('.day-type-toggle'));
-    });
-    
-    list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+
+        const trigger = container.querySelector('.leave-type-selector-trigger');
+        const panel = container.querySelector('.leave-type-selector-panel');
+        trigger.dataset.typeId = currentTypeId || 'remove';
+
+        const closePanel = () => {
+            panel.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        };
+
+        trigger.addEventListener('click', (e) => {
             e.stopPropagation();
-            const item = e.currentTarget.closest('[data-date-key]');
-            if (item) {
-                item.remove(); // Just remove the row visually
+            document.querySelectorAll('.leave-type-selector-panel.open').forEach(p => {
+                if (p !== panel) {
+                    p.classList.remove('open');
+                    p.previousElementSibling.setAttribute('aria-expanded', 'false');
+                }
+            });
+            const isExpanded = panel.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isExpanded);
+        });
+
+        panel.querySelectorAll('.leave-type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const newTypeId = option.dataset.id;
+                trigger.dataset.typeId = newTypeId;
+
+                let newTriggerHTML;
+                if (newTypeId === 'remove') {
+                    newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+                } else {
+                    const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
+                    newTriggerHTML = `
+                        <span class="flex items-center w-full min-w-0">
+                            <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
+                            <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                }
+                trigger.innerHTML = newTriggerHTML;
+
+                closePanel();
+                if (onTypeChangeCallback) {
+                    onTypeChangeCallback(newTypeId);
+                }
+            });
+        });
+
+        document.addEventListener('click', closePanel, { once: true });
+        container.addEventListener('click', e => e.stopPropagation());
+    }
+
+    function setupDayTypeToggle(toggleElement) {
+        const bg = toggleElement.querySelector('.toggle-bg');
+        const buttons = toggleElement.querySelectorAll('.toggle-btn');
+
+        const updateUI = (value) => {
+            const isHalf = value === 'half';
+            bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+        };
+
+        updateUI(toggleElement.dataset.selectedValue || 'full');
+
+        toggleElement.addEventListener('click', (e) => {
+            const clickedButton = e.target.closest('.toggle-btn');
+            if (!clickedButton) return;
+
+            const value = clickedButton.dataset.value;
+            if (toggleElement.dataset.selectedValue === value) return;
+
+            toggleElement.dataset.selectedValue = value;
+            updateUI(value);
+
+            if (toggleElement.id === 'bulk-day-type-toggle') {
+                document.querySelectorAll('#leave-days-list .day-type-toggle').forEach(itemToggle => {
+                    itemToggle.dataset.selectedValue = value;
+                    const itemBg = itemToggle.querySelector('.toggle-bg');
+                    const itemButtons = itemToggle.querySelectorAll('.toggle-btn');
+                    itemBg.style.transform = `translateX(${value === 'half' ? '100%' : '0'})`;
+                    itemButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
+                });
             }
         });
-    });
-}
-
-async function saveLoggedLeaves() {
-    // Get the button and start the loading state
-    const button = DOM.customizeLeaveModal.querySelector('#save-log-leave-btn');
-    setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    const balances = calculateLeaveBalances();
-    const deltas = {};
-    state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
-    
-    const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
-    
-    // Check for potential balance errors before proceeding
-    let balanceError = false;
-    modalItems.forEach(item => {
-        const dateKey = item.dataset.dateKey;
-        const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
-        if (typeId === 'remove') return;
-    
-        const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
-        const cost = dayType === 'half' ? 0.5 : 1;
-    
-        const existingLeave = state.allStoredData[dateKey]?.leave;
-        // Create a temporary copy of deltas to calculate the change for this one item
-        let currentDelta = { ...deltas };
-        if (existingLeave) {
-            const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
-            // Only adjust the delta if the leave type is changing
-            if (existingLeave.typeId !== typeId) {
-                 currentDelta[existingLeave.typeId] -= oldCost;
-            }
-        }
-        currentDelta[typeId] += cost;
-        
-        if (currentDelta[typeId] > (balances[typeId] || 0)) {
-            const leaveType = state.leaveTypes.find(lt => lt.id === typeId);
-            showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
-            balanceError = true;
-        }
-    });
-    
-    if (balanceError) {
-        setButtonLoadingState(button, false); // Turn off spinner on error
-        return;
     }
-    
-    // If no errors, proceed with saving
-    const updatedData = { ...state.allStoredData };
-    const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
-    
-    // First, handle deletions: if a day was in the initial selection but is no longer in the modal, remove its leave
-    state.initialLeaveSelection.forEach(dateKey => {
-        if (!datesInModal.has(dateKey) && updatedData[dateKey]?.leave) {
-            updatedData[dateKey] = { ...updatedData[dateKey] };
-            delete updatedData[dateKey].leave;
-        }
-    });
-    
-    // Next, handle additions/updates for items remaining in the modal
-    modalItems.forEach(item => {
-        const dateKey = item.dataset.dateKey;
-        updatedData[dateKey] = { ...(updatedData[dateKey] || {}) };
-        const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
-        
-        if (typeId === 'remove') {
-            delete updatedData[dateKey].leave;
-        } else {
-            const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
-            updatedData[dateKey].leave = { typeId, dayType };
-        }
-    });
-    
-    if (state.isOnlineMode) {
-        await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
-    } else {
-        saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: updatedData });
-    }
-    
-    DOM.customizeLeaveModal.classList.add('hidden');
-    setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-    DOM.logNewLeaveBtn.textContent = 'Log Leave';
-    DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
-    updateView();
-    showMessage('Leaves saved successfully!', 'success');
-    
-    // Turn off spinner at the end
-    setButtonLoadingState(button, false);
-}
-    
-function handleBulkRemoveClick() {
-    const list = DOM.leaveDaysList;
-    list.querySelectorAll('.leave-day-item').forEach(item => {
-        const selectorContainer = item.querySelector('.leave-type-selector');
-        const trigger = selectorContainer.querySelector('.leave-type-selector-trigger');
-        trigger.dataset.typeId = 'remove';
-        trigger.innerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
-    });
-    showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
-}
 
-// --- OPTIMIZATION: Event Delegation Setup for Daily View ---
-function setupDailyViewEventListeners() {
-    const tableBody = DOM.dailyActivityTableBody;
-    if (!tableBody) return;
+    function renderLeaveCustomizationModal() {
+        const list = DOM.leaveDaysList;
+        list.innerHTML = '';
+        const sortedDates = Array.from(state.leaveSelection).sort();
 
-    // --- CLICK Event Delegation ---
-    tableBody.addEventListener('click', e => {
-        const target = e.target;
-        
-        // Handle editable cell clicks
-        const editableCell = target.closest('.activity-text-editable, .time-editable');
-        if (editableCell) {
-            handleInlineEditClick({ currentTarget: editableCell });
-            return; // Stop further processing
-        }
+        const updateIndividualSelectorDisplay = (container, newTypeId) => {
+            const trigger = container.querySelector('.leave-type-selector-trigger');
+            if (!trigger) return;
+            trigger.dataset.typeId = newTypeId;
 
-        // Handle button clicks
-        const button = target.closest('.icon-btn');
-        if (!button) return;
-
-        const row = button.closest('tr');
-        if (!row) return;
-
-        const timeKey = row.dataset.time;
-
-        if (button.classList.contains('move-up-btn')) {
-            handleMoveUpClick(row);
-        } else if (button.classList.contains('move-down-btn')) {
-            handleMoveDownClick(row);
-        } else if (button.classList.contains('delete-btn')) {
-            if (button.classList.contains('confirm-action')) {
-                deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
-                button.classList.remove('confirm-action');
-                clearTimeout(button.dataset.timeoutId);
+            let newTriggerHTML;
+            if (newTypeId === 'remove') {
+                newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
             } else {
-                // Reset any other confirmations
-                tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
-                
-                button.classList.add('confirm-action');
-                showMessage('Click again to confirm deletion.', 'info');
-                const timeoutId = setTimeout(() => {
-                    button.classList.remove('confirm-action');
-                }, 3000);
-                button.dataset.timeoutId = timeoutId;
+                const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
+                if (newType) {
+                    newTriggerHTML = `
+                        <span class="flex items-center w-full min-w-0">
+                            <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
+                            <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                }
             }
-        }
-    });
+            if (newTriggerHTML) {
+                trigger.innerHTML = newTriggerHTML;
+            }
+        };
 
-    // --- BLUR Event Delegation (using capture phase) ---
-    tableBody.addEventListener('blur', e => {
-        const target = e.target;
-        if (target.matches('.activity-text-editable, .time-editable')) {
-            handleInlineEditBlur({ currentTarget: target });
-        }
-    }, true);
+        const bulkPillsContainer = document.getElementById('modal-leave-pills-container');
+        let modalBulkTypeId = state.selectedLeaveTypeId || state.leaveTypes[0]?.id;
 
-    // --- KEYDOWN Event Delegation ---
-    tableBody.addEventListener('keydown', e => {
-        const target = e.target;
-        if (target.matches('.activity-text-editable, .time-editable')) {
-            handleInlineEditKeydown(e);
-        }
-    });
-}
+        const renderBulkPills = () => {
+            bulkPillsContainer.innerHTML = '';
+            state.leaveTypes.forEach(lt => {
+                const pill = document.createElement('button');
+                pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
+                pill.style.backgroundColor = lt.color;
+                pill.textContent = lt.name;
+                if (lt.id === modalBulkTypeId) {
+                    pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800');
+                }
+                pill.addEventListener('click', () => {
+                    modalBulkTypeId = lt.id;
+                    renderBulkPills();
+                    list.querySelectorAll('.leave-type-selector').forEach(container => {
+                        updateIndividualSelectorDisplay(container, modalBulkTypeId);
+                    });
+                });
+                bulkPillsContainer.appendChild(pill);
+            });
+        };
 
-// --- Event Listener Setup ---
-function setupEventListeners() {
-    const emailInput = document.getElementById('email-input');
-    const passwordInput = document.getElementById('password-input');
-    DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
-    DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
-    DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
-    DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
-    document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
-    
-    setupDoubleClickConfirm(
-        document.getElementById('sign-out-btn'),
-        'signOut',
-        'Click again to confirm sign out.',
-        appSignOut
-    );
+        renderBulkPills();
+        setupDayTypeToggle(document.getElementById('bulk-day-type-toggle'));
 
-    const passwordToggleBtn = document.getElementById('password-toggle-btn');
-    const passwordToggleIcon = document.getElementById('password-toggle-icon');
-    passwordToggleBtn.addEventListener('click', () => {
-        const isPassword = passwordInput.type === 'password';
-        passwordInput.type = isPassword ? 'text' : 'password';
-        passwordToggleIcon.classList.toggle('fa-eye', !isPassword);
-        passwordToggleIcon.classList.toggle('fa-eye-slash', isPassword);
-    });
+        sortedDates.forEach(dateKey => {
+            const item = document.createElement('div');
+            item.className = 'leave-day-item flex flex-col sm:flex-row items-center justify-between p-3 rounded-lg shadow-sm border';
+            item.dataset.dateKey = dateKey;
 
-    emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
-    passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' }); updateView(); });
-    DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' }); updateView(); });
-    
-    document.getElementById('prev-btn').addEventListener('click', async (e) => {
-        const button = e.currentTarget;
-        setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
-    
-        if (state.currentView === 'month') {
-            const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
-            setState({ currentMonth: newMonth });
-        } else {
-            const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
-            setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
-        }
-        updateView();
-        setButtonLoadingState(button, false);
-    });
-    
-    document.getElementById('next-btn').addEventListener('click', async (e) => {
-        const button = e.currentTarget;
-        setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
-    
-        if (state.currentView === 'month') {
-            const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
-            setState({ currentMonth: newMonth });
-        } else {
-            const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
-            setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
-        }
-        updateView();
-        setButtonLoadingState(button, false);
-    });
-    DOM.todayBtnDay.addEventListener('click', async () => {
-        setButtonLoadingState(DOM.todayBtnDay, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
-        const today = new Date();
-        setState({
-            selectedDate: today,
-            currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
+            const existingLeave = state.allStoredData[dateKey]?.leave;
+            const currentLeaveTypeId = existingLeave ? existingLeave.typeId : modalBulkTypeId;
+            const currentDayType = existingLeave ? existingLeave.dayType : 'full';
+
+            item.innerHTML = `
+                <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey)}</span>
+                <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end min-w-0">
+                    <div class="leave-type-selector relative flex-grow w-full sm:w-36 min-w-0">
+                    </div>
+                    <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
+                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full">Full</button>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+                    </div>
+                    <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(item);
+
+            createLeaveTypeSelector(item.querySelector('.leave-type-selector'), currentLeaveTypeId);
+            setupDayTypeToggle(item.querySelector('.day-type-toggle'));
         });
-        updateView();
-        setButtonLoadingState(DOM.todayBtnDay, false);
-    });
 
-    DOM.currentPeriodDisplay.addEventListener('click', () => {
-        setState({ pickerYear: state.currentView === 'month' ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
-        renderMonthPicker();
-        DOM.monthPickerModal.classList.remove('hidden');
-    });
-    
-    document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.add('hidden'));
-    document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
-        const button = e.currentTarget;
+        list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const item = e.currentTarget.closest('[data-date-key]');
+                if (item) {
+                    item.remove();
+                }
+            });
+        });
+    }
+
+    async function saveLoggedLeaves() {
+        const button = DOM.customizeLeaveModal.querySelector('#save-log-leave-btn');
         setButtonLoadingState(button, true);
         await new Promise(resolve => setTimeout(resolve, 50));
-        setState({ pickerYear: state.pickerYear - 1 });
-        renderMonthPicker();
-        setButtonLoadingState(button, false);
-    });
-    
-    document.getElementById('next-year-btn').addEventListener('click', async (e) => {
-        const button = e.currentTarget;
-        setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
-        setState({ pickerYear: state.pickerYear + 1 });
-        renderMonthPicker();
-        setButtonLoadingState(button, false);
-    });
-    DOM.dailyNoteInput.addEventListener('input', (e) => saveData({ type: 'SAVE_NOTE', payload: e.target.value }));
-    
-    const addNewSlotBtn = document.getElementById('add-new-slot-btn');
-    addNewSlotBtn.addEventListener('click', async () => {
-        setButtonLoadingState(addNewSlotBtn, true);
-        await saveData({ type: 'ADD_SLOT' });
-        setButtonLoadingState(addNewSlotBtn, false);
-    });
-    
-    document.getElementById('reset-data-btn').addEventListener('click', () => {
-        DOM.resetModalText.textContent = state.isOnlineMode
-            ? "This will permanently delete all your activity data from the cloud. This action cannot be undone."
-            : "This will permanently delete all your local activity data. This action cannot be undone.";
-        DOM.confirmResetModal.classList.remove('hidden');
-    });
-    document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.add('hidden'));
-    document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
 
-    const uploadCsvInput = document.getElementById('upload-csv-input');
-    DOM.uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
-    DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
-    uploadCsvInput.addEventListener('change', handleFileUpload);
+        const balances = calculateLeaveBalances();
+        const deltas = {};
+        state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
 
-    DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
-    document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
-    document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
-    setupDoubleClickConfirm(
-        DOM.deleteLeaveTypeBtn,
-        'deleteLeaveType', // A unique key for this action
-        'Click again to permanently delete this leave type and all its logged entries.',
-        deleteLeaveType
-    );      
-    DOM.leaveColorPicker.addEventListener('click', (e) => {
-        if (e.target.tagName === 'BUTTON') {
-            selectColorInPicker(e.target.dataset.color);
+        const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
+        let balanceError = false;
+        modalItems.forEach(item => {
+            const dateKey = item.dataset.dateKey;
+            const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
+            if (typeId === 'remove') return;
+
+            const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
+            const cost = dayType === 'half' ? 0.5 : 1;
+
+            const existingLeave = state.allStoredData[dateKey]?.leave;
+            let currentDelta = { ...deltas };
+            if (existingLeave) {
+                const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
+                if (existingLeave.typeId !== typeId) {
+                    currentDelta[existingLeave.typeId] -= oldCost;
+                }
+            }
+            currentDelta[typeId] += cost;
+
+            if (currentDelta[typeId] > (balances[typeId] || 0)) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === typeId);
+                showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
+                balanceError = true;
+            }
+        });
+
+        if (balanceError) {
+            setButtonLoadingState(button, false);
+            return;
         }
-    });
-    DOM.statsToggleBtn.addEventListener('click', () => {
-        DOM.leaveStatsSection.classList.toggle('hidden');
-        DOM.statsArrowDown.classList.toggle('hidden');
-        DOM.statsArrowUp.classList.toggle('hidden');
-    });
-    
-    DOM.logNewLeaveBtn.addEventListener('click', () => {
-        if (state.isLoggingLeave) {
-            setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.textContent = 'Log Leave';
-            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
-            showMessage('Leave logging cancelled.', 'info');
-            updateView();
+
+        const updatedData = { ...state.allStoredData };
+        const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
+
+        state.initialLeaveSelection.forEach(dateKey => {
+            if (!datesInModal.has(dateKey) && updatedData[dateKey]?.leave) {
+                updatedData[dateKey] = { ...updatedData[dateKey] };
+                delete updatedData[dateKey].leave;
+            }
+        });
+
+        modalItems.forEach(item => {
+            const dateKey = item.dataset.dateKey;
+            updatedData[dateKey] = { ...(updatedData[dateKey] || {}) };
+            const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
+
+            if (typeId === 'remove') {
+                delete updatedData[dateKey].leave;
+            } else {
+                const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
+                updatedData[dateKey].leave = { typeId, dayType };
+            }
+        });
+
+        if (state.isOnlineMode) {
+            await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
-            if (state.leaveTypes.length === 0) {
-                showMessage("Please add a leave type first, by clicking on '+' button on top of the calendar.", 'info');
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+        }
+
+        DOM.customizeLeaveModal.classList.add('hidden');
+        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
+        DOM.logNewLeaveBtn.textContent = 'Log Leave';
+        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+        updateView();
+        showMessage('Leaves saved successfully!', 'success');
+        setButtonLoadingState(button, false);
+    }
+
+    function handleBulkRemoveClick() {
+        const list = DOM.leaveDaysList;
+        list.querySelectorAll('.leave-day-item').forEach(item => {
+            const selectorContainer = item.querySelector('.leave-type-selector');
+            const trigger = selectorContainer.querySelector('.leave-type-selector-trigger');
+            trigger.dataset.typeId = 'remove';
+            trigger.innerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+        });
+        showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
+    }
+
+    // --- OPTIMIZATION: Event Delegation Setup for Daily View ---
+    function setupDailyViewEventListeners() {
+        const tableBody = DOM.dailyActivityTableBody;
+        if (!tableBody) return;
+
+        tableBody.addEventListener('click', e => {
+            const target = e.target;
+            const editableCell = target.closest('.activity-text-editable, .time-editable');
+            if (editableCell) {
+                handleInlineEditClick({ currentTarget: editableCell });
                 return;
             }
-            setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
-            DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
-            showMessage('Now select the days followed by the leave type pill.', 'info');
-        }
-    });
 
-    DOM.leavePillsContainer.addEventListener('click', (e) => {
-        const pill = e.target.closest('button');
-        if (!pill) return;
+            const button = target.closest('.icon-btn');
+            if (!button) return;
 
-        if (state.isLoggingLeave) {
-            const leaveTypeId = pill.dataset.id;
-            setState({ selectedLeaveTypeId: leaveTypeId });
-            renderLeavePills();
+            const row = button.closest('tr');
+            if (!row) return;
 
-            if (state.leaveSelection.size > 0) {
-                openLeaveCustomizationModal();
+            const timeKey = row.dataset.time;
+
+            if (button.classList.contains('move-up-btn')) {
+                handleMoveUpClick(row);
+            } else if (button.classList.contains('move-down-btn')) {
+                handleMoveDownClick(row);
+            } else if (button.classList.contains('delete-btn')) {
+                if (button.classList.contains('confirm-action')) {
+                    deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
+                    button.classList.remove('confirm-action');
+                    clearTimeout(button.dataset.timeoutId);
+                } else {
+                    tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
+                    button.classList.add('confirm-action');
+                    showMessage('Click again to confirm deletion.', 'info');
+                    const timeoutId = setTimeout(() => {
+                        button.classList.remove('confirm-action');
+                    }, 3000);
+                    button.dataset.timeoutId = timeoutId;
+                }
             }
-        }
-    });
+        });
 
-    DOM.calendarView.addEventListener('click', (e) => {
-        const cell = e.target.closest('.calendar-day-cell.current-month');
-        if (!cell) return;
-        
-        const dateKey = cell.dataset.date;
-
-        if (state.isLoggingLeave) {
-            const hasExistingLeave = !!state.allStoredData[dateKey]?.leave;
-
-            if (state.leaveSelection.has(dateKey)) {
-                state.leaveSelection.delete(dateKey);
-            } else {
-                state.leaveSelection.add(dateKey);
+        tableBody.addEventListener('blur', e => {
+            const target = e.target;
+            if (target.matches('.activity-text-editable, .time-editable')) {
+                handleInlineEditBlur({ currentTarget: target });
             }
-            renderCalendar();
+        }, true);
 
-            const selectionHasAnyLeave = Array.from(state.leaveSelection).some(dKey => state.allStoredData[dKey]?.leave);
-
-            if (state.leaveSelection.size > 0 && (hasExistingLeave || selectionHasAnyLeave)) {
-                openLeaveCustomizationModal();
-            }
-        } else {
-            const date = new Date(dateKey + 'T00:00:00');
-            setState({ selectedDate: date, currentView: 'day' });
-            updateView();
-        }
-    });
-
-    document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
-        DOM.customizeLeaveModal.classList.add('hidden');
-    });
-
-    document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
-    DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
-    
-    // Easter Egg Listener
-    DOM.logoContainer.addEventListener('click', handleLogoTap);
-
-    // ADDED: Listener for the new info toggle button
-    if (DOM.infoToggleBtn && DOM.infoDescription) {
-        DOM.infoToggleBtn.addEventListener('click', () => {
-            const description = DOM.infoDescription;
-            // Check if the description is currently open
-            if (description.style.maxHeight && description.style.maxHeight !== '0px') {
-                // If open, close it
-                description.style.maxHeight = '0px';
-                description.style.opacity = '0';
-            } else {
-                // If closed, open it
-                description.style.opacity = '1';
-                // Set max-height to its natural content height for a smooth transition
-                description.style.maxHeight = description.scrollHeight + 'px';
+        tableBody.addEventListener('keydown', e => {
+            const target = e.target;
+            if (target.matches('.activity-text-editable, .time-editable')) {
+                handleInlineEditKeydown(e);
             }
         });
     }
-}
 
-// --- App Initialization ---
-function handleSplashScreen() {
-    setTimeout(() => {
-        DOM.splashLoading.style.display = 'none';
-        DOM.tapToBegin.style.display = 'block';
-        DOM.splashScreen.addEventListener('click', () => {
-            DOM.tapToBegin.style.display = 'none';
+    // --- Event Listener Setup ---
+    function setupEventListeners() {
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
+        DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
+        DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
+        DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
+        document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
+
+        setupDoubleClickConfirm(
+            document.getElementById('sign-out-btn'),
+            'signOut',
+            'Click again to confirm sign out.',
+            appSignOut
+        );
+
+        const passwordToggleBtn = document.getElementById('password-toggle-btn');
+        const passwordToggleIcon = document.getElementById('password-toggle-icon');
+        passwordToggleBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            passwordToggleIcon.classList.toggle('fa-eye', !isPassword);
+            passwordToggleIcon.classList.toggle('fa-eye-slash', isPassword);
+        });
+
+        emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
+        passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
+        document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' });
+            updateView(); });
+        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' });
+            updateView(); });
+
+        document.getElementById('prev-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            if (state.currentView === 'month') {
+                const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
+                setState({ currentMonth: newMonth });
+            } else {
+                const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+            updateView();
+            setButtonLoadingState(button, false);
+        });
+
+        document.getElementById('next-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            if (state.currentView === 'month') {
+                const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
+                setState({ currentMonth: newMonth });
+            } else {
+                const newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+            updateView();
+            setButtonLoadingState(button, false);
+        });
+        DOM.todayBtnDay.addEventListener('click', async () => {
+            setButtonLoadingState(DOM.todayBtnDay, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            const today = new Date();
+            setState({
+                selectedDate: today,
+                currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
+            });
+            updateView();
+            setButtonLoadingState(DOM.todayBtnDay, false);
+        });
+
+        DOM.currentPeriodDisplay.addEventListener('click', () => {
+            setState({ pickerYear: state.currentView === 'month' ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
+            renderMonthPicker();
+            DOM.monthPickerModal.classList.remove('hidden');
+        });
+
+        document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.add('hidden'));
+        document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            setState({ pickerYear: state.pickerYear - 1 });
+            renderMonthPicker();
+            setButtonLoadingState(button, false);
+        });
+
+        document.getElementById('next-year-btn').addEventListener('click', async (e) => {
+            const button = e.currentTarget;
+            setButtonLoadingState(button, true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+            setState({ pickerYear: state.pickerYear + 1 });
+            renderMonthPicker();
+            setButtonLoadingState(button, false);
+        });
+        DOM.dailyNoteInput.addEventListener('input', (e) => saveData({ type: 'SAVE_NOTE', payload: e.target.value }));
+
+        const addNewSlotBtn = document.getElementById('add-new-slot-btn');
+        addNewSlotBtn.addEventListener('click', async () => {
+            setButtonLoadingState(addNewSlotBtn, true);
+            await saveData({ type: 'ADD_SLOT' });
+            setButtonLoadingState(addNewSlotBtn, false);
+        });
+
+        document.getElementById('reset-data-btn').addEventListener('click', () => {
+            DOM.resetModalText.textContent = state.isOnlineMode ?
+                "This will permanently delete all your activity data from the cloud. This action cannot be undone." :
+                "This will permanently delete all your local activity data. This action cannot be undone.";
+            DOM.confirmResetModal.classList.remove('hidden');
+        });
+        document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.add('hidden'));
+        document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
+
+        const uploadCsvInput = document.getElementById('upload-csv-input');
+        DOM.uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
+        DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
+        uploadCsvInput.addEventListener('change', handleFileUpload);
+
+        DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
+        document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
+        document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
+        setupDoubleClickConfirm(
+            DOM.deleteLeaveTypeBtn,
+            'deleteLeaveType',
+            'Click again to permanently delete this leave type and all its logged entries.',
+            deleteLeaveType
+        );
+        DOM.leaveColorPicker.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                selectColorInPicker(e.target.dataset.color);
+            }
+        });
+        DOM.statsToggleBtn.addEventListener('click', () => {
+            DOM.leaveStatsSection.classList.toggle('hidden');
+            DOM.statsArrowDown.classList.toggle('hidden');
+            DOM.statsArrowUp.classList.toggle('hidden');
+        });
+
+        DOM.logNewLeaveBtn.addEventListener('click', () => {
+            if (state.isLoggingLeave) {
+                setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+                DOM.logNewLeaveBtn.textContent = 'Log Leave';
+                DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+                showMessage('Leave logging cancelled.', 'info');
+                updateView();
+            } else {
+                if (state.leaveTypes.length === 0) {
+                    showMessage("Please add a leave type first, by clicking on '+' button on top of the calendar.", 'info');
+                    return;
+                }
+                setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
+                DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
+                DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
+                showMessage('Now select the days followed by the leave type pill.', 'info');
+            }
+        });
+
+        DOM.leavePillsContainer.addEventListener('click', (e) => {
+            const pill = e.target.closest('button');
+            if (!pill) return;
+
+            if (state.isLoggingLeave) {
+                const leaveTypeId = pill.dataset.id;
+                setState({ selectedLeaveTypeId: leaveTypeId });
+                renderLeavePills();
+
+                if (state.leaveSelection.size > 0) {
+                    openLeaveCustomizationModal();
+                }
+            }
+        });
+
+        DOM.calendarView.addEventListener('click', (e) => {
+            const cell = e.target.closest('.calendar-day-cell.current-month');
+            if (!cell) return;
+
+            const dateKey = cell.dataset.date;
+
+            if (state.isLoggingLeave) {
+                if (state.leaveSelection.has(dateKey)) {
+                    state.leaveSelection.delete(dateKey);
+                } else {
+                    state.leaveSelection.add(dateKey);
+                }
+                renderCalendar();
+
+                const selectionHasAnyLeave = Array.from(state.leaveSelection).some(dKey => state.allStoredData[dKey]?.leave);
+
+                if (state.leaveSelection.size > 0 && selectionHasAnyLeave) {
+                    openLeaveCustomizationModal();
+                }
+            } else {
+                const date = new Date(dateKey + 'T00:00:00');
+                setState({ selectedDate: date, currentView: 'day' });
+                updateView();
+            }
+        });
+
+        document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
+            DOM.customizeLeaveModal.classList.add('hidden');
+        });
+
+        document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
+        DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
+
+        DOM.logoContainer.addEventListener('click', handleLogoTap);
+
+        if (DOM.infoToggleBtn && DOM.infoDescription) {
+            DOM.infoToggleBtn.addEventListener('click', () => {
+                const description = DOM.infoDescription;
+                if (description.style.maxHeight && description.style.maxHeight !== '0px') {
+                    description.style.maxHeight = '0px';
+                    description.style.opacity = '0';
+                } else {
+                    description.style.opacity = '1';
+                    description.style.maxHeight = description.scrollHeight + 'px';
+                }
+            });
+        }
+    }
+
+    // --- App Initialization ---
+    function handleSplashScreen() {
+        setTimeout(() => {
             DOM.splashLoading.style.display = 'none';
-            DOM.splashText.classList.add('animating-out');
-            
-            initAuth();
+            DOM.tapToBegin.style.display = 'block';
+            DOM.splashScreen.addEventListener('click', () => {
+                DOM.tapToBegin.style.display = 'none';
+                DOM.splashLoading.style.display = 'none';
+                DOM.splashText.classList.add('animating-out');
 
-            setTimeout(() => {
-                DOM.splashScreen.style.zIndex = '-10';
-                DOM.splashScreen.style.cursor = 'default';
-                DOM.splashScreen.style.backgroundColor = 'transparent';
-            }, 400);
+                initAuth();
 
-            setTimeout(() => {
-                DOM.splashText.style.display = 'none';
-            }, 1000); // This should match the CSS animation duration
+                setTimeout(() => {
+                    DOM.splashScreen.style.zIndex = '-10';
+                    DOM.splashScreen.style.cursor = 'default';
+                    DOM.splashScreen.style.backgroundColor = 'transparent';
+                }, 400);
 
-        }, { once: true });
-    }, 50);
-}
+                setTimeout(() => {
+                    DOM.splashText.style.display = 'none';
+                }, 1000);
 
-function init() {
-    initUI();
-    setupEventListeners();
-    setupDailyViewEventListeners();
-    setupColorPicker();
-    loadTheme();
-    handleSplashScreen();
-    loadSplashScreenVideo();
-}
+            }, { once: true });
+        }, 50);
+    }
 
-document.addEventListener('DOMContentLoaded', init);
+    function init() {
+        initUI();
+        setupEventListeners();
+        setupDailyViewEventListeners();
+        setupColorPicker();
+        loadTheme();
+        handleSplashScreen();
+        loadSplashScreenVideo();
+    }
+
+    // Expose the init function to the global scope
+    return {
+        init: init
+    };
+})();
+
+document.addEventListener('DOMContentLoaded', TrackerApp.init);
