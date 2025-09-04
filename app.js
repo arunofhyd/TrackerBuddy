@@ -18,11 +18,29 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
+    const ACTION_TYPES = {
+        SAVE_NOTE: 'SAVE_NOTE',
+        ADD_SLOT: 'ADD_SLOT',
+        UPDATE_ACTIVITY_TEXT: 'UPDATE_ACTIVITY_TEXT',
+        UPDATE_TIME: 'UPDATE_TIME'
+    };
+
+    const VIEW_MODES = {
+        MONTH: 'month',
+        DAY: 'day'
+    };
+
+    const LEAVE_DAY_TYPES = {
+        FULL: 'full',
+        HALF: 'half'
+    };
+
     // --- Global App State ---
     let state = {
         currentMonth: new Date(),
         selectedDate: new Date(),
-        currentView: 'month',
+        currentView: VIEW_MODES.MONTH,
         allStoredData: {},
         userId: null,
         isOnlineMode: false,
@@ -114,7 +132,6 @@
             removeAllLeavesBtn: document.getElementById('remove-all-leaves-btn'),
             logoContainer: document.getElementById('logo-container'),
             appLogo: document.getElementById('app-logo'),
-            // ADDED: New elements for info toggle
             infoToggleBtn: document.getElementById('info-toggle-btn'),
             infoDescription: document.getElementById('info-description')
         };
@@ -222,7 +239,7 @@
     function updateView() {
         if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
 
-        const isMonthView = state.currentView === 'month';
+        const isMonthView = state.currentView === VIEW_MODES.MONTH;
         DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
         DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
         DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
@@ -277,7 +294,7 @@
             if (date.getDay() === 0) dayCell.classList.add('is-sunday');
             if (hasActivity) dayCell.classList.add('has-activity');
             if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
-            if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === 'day') dayCell.classList.add('selected-day');
+            if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) dayCell.classList.add('selected-day');
             if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
 
             let leaveIndicatorHTML = '';
@@ -300,7 +317,7 @@
             const dayNumberEl = dayCell.querySelector('.day-number');
             const dayNoteEl = dayCell.querySelector('.day-note');
 
-            if (leaveData && leaveData.dayType === 'full') {
+            if (leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL) {
                 dayNumberEl.style.color = 'white';
                 if (dayNoteEl) dayNoteEl.style.color = 'white';
             }
@@ -438,14 +455,12 @@
 
     async function saveData(action) {
         const dateKey = getYYYYMMDD(state.selectedDate);
-        // --- OPTIMIZATION: Avoid deep cloning the entire state.
-        // Create a shallow copy of the day's data or an empty object.
         const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
         let successMessage = null;
 
         const isNewDay = !state.allStoredData[dateKey] || (Object.keys(dayDataCopy).length === 0 && !dayDataCopy._userCleared);
 
-        if (isNewDay && (action.type === 'ADD_SLOT' || action.type === 'UPDATE_ACTIVITY_TEXT')) {
+        if (isNewDay && (action.type === ACTION_TYPES.ADD_SLOT || action.type === ACTION_TYPES.UPDATE_ACTIVITY_TEXT)) {
             if (state.selectedDate.getDay() !== 0) {
                 for (let h = 8; h <= 17; h++) {
                     const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
@@ -455,7 +470,7 @@
         }
 
         switch (action.type) {
-            case 'SAVE_NOTE': {
+            case ACTION_TYPES.SAVE_NOTE: {
                 if (action.payload) {
                     dayDataCopy.note = action.payload;
                 } else {
@@ -463,7 +478,7 @@
                 }
                 break;
             }
-            case 'ADD_SLOT': {
+            case ACTION_TYPES.ADD_SLOT: {
                 let newTimeKey = "00:00", counter = 0;
                 while (dayDataCopy[newTimeKey]) {
                     newTimeKey = `00:00-${++counter}`;
@@ -475,7 +490,7 @@
                 successMessage = "New slot added!";
                 break;
             }
-            case 'UPDATE_ACTIVITY_TEXT': {
+            case ACTION_TYPES.UPDATE_ACTIVITY_TEXT: {
                 if (dayDataCopy[action.payload.timeKey]) {
                     dayDataCopy[action.payload.timeKey].text = action.payload.newText;
                 } else {
@@ -486,7 +501,7 @@
                 successMessage = "Activity updated!";
                 break;
             }
-            case 'UPDATE_TIME': {
+            case ACTION_TYPES.UPDATE_TIME: {
                 const { oldTimeKey, newTimeKey } = action.payload;
                 if (!newTimeKey) {
                     showMessage("Time cannot be empty.", 'error');
@@ -506,7 +521,6 @@
             }
         }
 
-        // --- OPTIMIZATION: Create a new allStoredData object with just the updated day.
         const updatedData = {
             ...state.allStoredData,
             [dateKey]: dayDataCopy
@@ -515,9 +529,9 @@
         if (state.isOnlineMode && state.userId) {
             await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
         } else {
-                saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-                setState({ allStoredData: updatedData });
-                updateView();
+            saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+            setState({ allStoredData: updatedData });
+            updateView();
         }
         
         if (successMessage) {
@@ -572,7 +586,7 @@
         setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
 
         // Switch directly to app view
-            switchView(DOM.appView, DOM.loginView, updateView);
+        switchView(DOM.appView, DOM.loginView, updateView);
     }
 
     async function resetAllData() {
@@ -602,7 +616,6 @@
         const dayData = state.allStoredData[dateKey] || {};
         const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
         
-        // --- OPTIMIZATION: Create shallow copies instead of deep cloning.
         const newDayData = {};
         if (dayData.note) newDayData.note = dayData.note;
         if (dayData.leave) newDayData.leave = dayData.leave;
@@ -626,7 +639,6 @@
     }
 
     function deleteActivity(dateKey, timeKey) {
-        // --- OPTIMIZATION: Use shallow copies for performance.
         const dayData = state.allStoredData[dateKey];
         if (!dayData || !dayData[timeKey]) return;
 
@@ -749,7 +761,6 @@
             try {
                 const csvContent = e.target.result;
 
-                // --- OPTIMIZATION: Use shallow copy instead of deep clone
                 const dataCopy = { ...state.allStoredData };
                 const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
@@ -789,7 +800,6 @@
                                 console.warn(`Skipping row with invalid date format: ${line}`);
                                 return;
                             }
-                            // --- OPTIMIZATION: Only copy the day object if it exists to avoid mutation
                             if (!dataCopy[dateKey]) dataCopy[dateKey] = {};
                             else dataCopy[dateKey] = { ...dataCopy[dateKey] };
 
@@ -799,7 +809,7 @@
                             } else if (type.toUpperCase() === 'LEAVE') {
                                 dataCopy[dateKey].leave = {
                                     typeId: detail2,
-                                    dayType: (detail3 === 'half' || detail3 === 'full') ? detail3 : 'full'
+                                    dayType: (detail3 === LEAVE_DAY_TYPES.HALF || detail3 === LEAVE_DAY_TYPES.FULL) ? detail3 : LEAVE_DAY_TYPES.FULL
                                 };
                                 rowProcessed = true;
                             } else if (type.toUpperCase() === 'ACTIVITY') {
@@ -955,7 +965,6 @@
             return showMessage("Please enter your email address.", 'info');
         }
         setButtonLoadingState(button, true);
-        // Add the new class to the button to remove the underline during loading.
         button.classList.add('loading'); 
         try {
             await sendPasswordResetEmail(auth, email);
@@ -964,7 +973,6 @@
             showMessage(`Error sending reset email: ${error.message}`, 'error');
         } finally {
             setButtonLoadingState(button, false);
-            // Remove the new class after the loading state is finished.
             button.classList.remove('loading');
         }
     }
@@ -1083,9 +1091,9 @@
         const target = event.currentTarget;
         if (state.editingInlineTimeKey === target.dataset.time) {
             if (target.classList.contains('time-editable')) {
-                saveData({ type: 'UPDATE_TIME', payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
+                saveData({ type: ACTION_TYPES.UPDATE_TIME, payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
             } else {
-                saveData({ type: 'UPDATE_ACTIVITY_TEXT', payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
+                saveData({ type: ACTION_TYPES.UPDATE_ACTIVITY_TEXT, payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
             }
         }
         target.classList.remove('editing');
@@ -1164,50 +1172,49 @@
     }
 
     function loadSplashScreenVideo() {
-        const splashImage = document.getElementById('splash-image');
-        if (!splashImage) return;
+        const splashImage = document.getElementById('splash-image');
+        if (!splashImage) return;
 
-        const videoSrc = splashImage.dataset.videoSrc;
-        if (!videoSrc) return;
+        const videoSrc = splashImage.dataset.videoSrc;
+        if (!videoSrc) return;
 
-        const video = document.createElement('video');
-        video.id = 'splash-video';
-        video.style.position = 'absolute';
-        video.style.top = '50%';
-        video.style.left = '50%';
-        video.style.minWidth = '100%';
-        video.style.minHeight = '100%';
-        video.style.width = 'auto';
-        video.style.height = 'auto';
-        video.style.transform = 'translateX(-50%) translateY(-50%)';
-        video.style.objectFit = 'cover';
-        video.style.zIndex = '11'; // Place it on top of the image
-        video.style.opacity = '0'; // Start invisible for fade-in
-        video.style.transition = 'opacity 0.5s ease-in';
-        video.autoplay = true;
-        video.loop = true;
-        video.muted = true;
-        video.playsInline = true;
+        const video = document.createElement('video');
+        video.id = 'splash-video';
+        video.style.position = 'absolute';
+        video.style.top = '50%';
+        video.style.left = '50%';
+        video.style.minWidth = '100%';
+        video.style.minHeight = '100%';
+        video.style.width = 'auto';
+        video.style.height = 'auto';
+        video.style.transform = 'translateX(-50%) translateY(-50%)';
+        video.style.objectFit = 'cover';
+        video.style.zIndex = '11';
+        video.style.opacity = '0';
+        video.style.transition = 'opacity 0.5s ease-in';
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
 
-        const source = document.createElement('source');
-        source.src = videoSrc;
-        source.type = 'video/mp4';
-        video.appendChild(source);
+        const source = document.createElement('source');
+        source.src = videoSrc;
+        source.type = 'video/mp4';
+        video.appendChild(source);
 
         const track = document.createElement('track');
         track.kind = 'captions';
         track.label = 'English';
         track.srclang = 'en';
-        track.src = 'assets/captions.vtt'; // Path to your new file
+        track.src = 'assets/captions.vtt';
         video.appendChild(track);
 
-        // When the video is ready to play, fade it in
-        video.oncanplay = () => {
-            video.style.opacity = '1';
-        };
+        video.oncanplay = () => {
+            video.style.opacity = '1';
+        };
 
-        splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
-    }
+        splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
+    }
 
     
     // --- Leave Management ---
@@ -1252,10 +1259,9 @@
     }
 
     async function saveLeaveType() {
-        // Get the button and start the loading state
         const button = DOM.leaveTypeModal.querySelector('#save-leave-type-btn');
         setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50)); // Ensures spinner is visible
+        await new Promise(resolve => setTimeout(resolve, 50));
     
         const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
         const name = DOM.leaveNameInput.value.trim();
@@ -1265,14 +1271,14 @@
     
         if (!name || isNaN(totalDays) || !color) {
             showMessage('Please fill all fields and select a color.', 'error');
-            setButtonLoadingState(button, false); // Turn off spinner on error
+            setButtonLoadingState(button, false);
             return;
         }
     
         const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
         if (isColorTaken) {
             showMessage('This color is already used by another leave type.', 'error');
-            setButtonLoadingState(button, false); // Turn off spinner on error
+            setButtonLoadingState(button, false);
             return;
         }
     
@@ -1296,18 +1302,17 @@
         updateView();
         showMessage('Leave type saved!', 'success');
         
-        // Turn off spinner at the end
         setButtonLoadingState(button, false);
     }
+
     async function deleteLeaveType() {
         const id = DOM.editingLeaveTypeId.value;
         const newLeaveTypes = state.leaveTypes.filter(lt => lt.id !== id);
         setState({ leaveTypes: newLeaveTypes });
-        // --- OPTIMIZATION: Use shallow copy instead of deep clone
+
         const updatedActivities = { ...state.allStoredData };
         Object.keys(updatedActivities).forEach(dateKey => {
             if (updatedActivities[dateKey].leave?.typeId === id) {
-                // Ensure we don't mutate the original object
                 updatedActivities[dateKey] = { ...updatedActivities[dateKey] };
                 delete updatedActivities[dateKey].leave;
             }
@@ -1324,19 +1329,18 @@
         updateView();
         showMessage('Leave type deleted!', 'success');
     }
-   
+    
     async function saveLeaveTypes() {
         if (state.isOnlineMode) {
             await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
         } else {
             saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
-            updateView(); // Manual update for offline mode
+            updateView();
         }
         showMessage('Leave types reordered!', 'success');
     }
 
     function moveLeaveType(typeId, direction) {
-        // Create a copy to avoid directly changing the state
         const newLeaveTypes = [...state.leaveTypes];
         const index = newLeaveTypes.findIndex(lt => lt.id === typeId);
 
@@ -1345,10 +1349,8 @@
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= newLeaveTypes.length) return;
 
-        // Swap the elements in the new array
         [newLeaveTypes[index], newLeaveTypes[newIndex]] = [newLeaveTypes[newIndex], newLeaveTypes[index]];
         
-        // Formally update the state and then save
         setState({ leaveTypes: newLeaveTypes });
         saveLeaveTypes();
     }
@@ -1378,7 +1380,7 @@
 
         Object.values(state.allStoredData).forEach(dayData => {
             if (dayData.leave) {
-                const leaveValue = dayData.leave.dayType === 'half' ? 0.5 : 1;
+                const leaveValue = dayData.leave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
                 if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
                     leaveCounts[dayData.leave.typeId] += leaveValue;
                 }
@@ -1406,16 +1408,18 @@
 
         Object.values(state.allStoredData).forEach(dayData => {
             if (dayData.leave) {
-                if(dayData.leave.dayType === 'full') {
+                if(dayData.leave.dayType === LEAVE_DAY_TYPES.FULL) {
                     leaveCounts[dayData.leave.typeId] += 1;
-                } else if (dayData.leave.dayType === 'half') {
+                } else if (dayData.leave.dayType === LEAVE_DAY_TYPES.HALF) {
                     leaveCounts[dayData.leave.typeId] += 0.5;
                 }
             }
         });
 
         const statsHTML = state.leaveTypes.map((lt, index) => {
-            const used = leaveCounts[lt.id] || 0;
+            // --- MODIFICATION: UX Enhancement - Round "used" and "balance" values for display ---
+            const usedCalculation = leaveCounts[lt.id] || 0;
+            const used = parseFloat(usedCalculation.toFixed(2));
             const balanceCalculation = lt.totalDays - used;
             const balance = parseFloat(balanceCalculation.toFixed(2));
             
@@ -1546,7 +1550,6 @@
                 } else {
                     const newType = state.leaveTypes.find(lt => lt.id === newTypeId);
                     
-                    // --- THIS IS THE CORRECTED CODE BLOCK ---
                     newTriggerHTML = `
                         <span class="flex items-center w-full min-w-0">
                             <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
@@ -1572,12 +1575,12 @@
         const buttons = toggleElement.querySelectorAll('.toggle-btn');
         
         const updateUI = (value) => {
-            const isHalf = value === 'half';
+            const isHalf = value === LEAVE_DAY_TYPES.HALF;
             bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
             buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
         };
 
-        updateUI(toggleElement.dataset.selectedValue || 'full');
+        updateUI(toggleElement.dataset.selectedValue || LEAVE_DAY_TYPES.FULL);
 
         toggleElement.addEventListener('click', (e) => {
             const clickedButton = e.target.closest('.toggle-btn');
@@ -1594,7 +1597,7 @@
                     itemToggle.dataset.selectedValue = value;
                     const itemBg = itemToggle.querySelector('.toggle-bg');
                     const itemButtons = itemToggle.querySelectorAll('.toggle-btn');
-                    itemBg.style.transform = `translateX(${value === 'half' ? '100%' : '0'})`;
+                    itemBg.style.transform = `translateX(${value === LEAVE_DAY_TYPES.HALF ? '100%' : '0'})`;
                     itemButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
                 });
             }
@@ -1606,7 +1609,6 @@
         list.innerHTML = '';
         const sortedDates = Array.from(state.leaveSelection).sort();
         
-        // THIS HELPER FUNCTION IS NOW CORRECTED
         const updateIndividualSelectorDisplay = (container, newTypeId) => {
             const trigger = container.querySelector('.leave-type-selector-trigger');
             if (!trigger) return;
@@ -1665,7 +1667,7 @@
     
             const existingLeave = state.allStoredData[dateKey]?.leave;
             const currentLeaveTypeId = existingLeave ? existingLeave.typeId : modalBulkTypeId;
-            const currentDayType = existingLeave ? existingLeave.dayType : 'full';
+            const currentDayType = existingLeave ? existingLeave.dayType : LEAVE_DAY_TYPES.FULL;
     
             item.innerHTML = `
                 <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey)}</span>
@@ -1700,48 +1702,50 @@
     }
 
     async function saveLoggedLeaves() {
-        // Get the button and start the loading state
         const button = DOM.customizeLeaveModal.querySelector('#save-log-leave-btn');
         setButtonLoadingState(button, true);
         await new Promise(resolve => setTimeout(resolve, 50));
     
         const balances = calculateLeaveBalances();
-        const deltas = {};
-        state.leaveTypes.forEach(lt => { deltas[lt.id] = 0; });
-        
         const modalItems = DOM.leaveDaysList.querySelectorAll('[data-date-key]');
-        
-        // Check for potential balance errors before proceeding
         let balanceError = false;
+
+        // --- MODIFICATION: Logic Bug Fix - Replaced entire balance check with net change calculation ---
+        const changes = {}; // Use a new object to track net changes
+        state.leaveTypes.forEach(lt => { changes[lt.id] = 0; });
+
         modalItems.forEach(item => {
             const dateKey = item.dataset.dateKey;
-            const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
-            if (typeId === 'remove') return;
-    
-            const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
-            const cost = dayType === 'half' ? 0.5 : 1;
-    
-            const existingLeave = state.allStoredData[dateKey]?.leave;
-            // Create a temporary copy of deltas to calculate the change for this one item
-            let currentDelta = { ...deltas };
-            if (existingLeave) {
-                const oldCost = existingLeave.dayType === 'half' ? 0.5 : 1;
-                // Only adjust the delta if the leave type is changing
-                if (existingLeave.typeId !== typeId) {
-                     currentDelta[existingLeave.typeId] -= oldCost;
-                }
-            }
-            currentDelta[typeId] += cost;
+            const newTypeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
+            const newDayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
+            const newCost = newDayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
             
-            if (currentDelta[typeId] > (balances[typeId] || 0)) {
+            const existingLeave = state.allStoredData[dateKey]?.leave;
+
+            // If there was a leave on this day before, "refund" its cost from the changes
+            if (existingLeave) {
+                const oldCost = existingLeave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                changes[existingLeave.typeId] -= oldCost;
+            }
+
+            // If the new type is not 'remove', add the new cost to the changes
+            if (newTypeId !== 'remove') {
+                changes[newTypeId] += newCost;
+            }
+        });
+
+        // Now, check the final net changes against the current balances
+        for (const typeId in changes) {
+            if (changes[typeId] > (balances[typeId] || 0)) {
                 const leaveType = state.leaveTypes.find(lt => lt.id === typeId);
                 showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
                 balanceError = true;
+                break; // Exit the loop on the first error
             }
-        });
+        }
         
         if (balanceError) {
-            setButtonLoadingState(button, false); // Turn off spinner on error
+            setButtonLoadingState(button, false);
             return;
         }
         
@@ -1785,7 +1789,6 @@
         updateView();
         showMessage('Leaves saved successfully!', 'success');
     
-        // Turn off spinner at the end
         setButtonLoadingState(button, false);
     }
     
@@ -1805,18 +1808,15 @@
         const tableBody = DOM.dailyActivityTableBody;
         if (!tableBody) return;
 
-        // --- CLICK Event Delegation ---
         tableBody.addEventListener('click', e => {
             const target = e.target;
             
-            // Handle editable cell clicks
             const editableCell = target.closest('.activity-text-editable, .time-editable');
             if (editableCell) {
                 handleInlineEditClick({ currentTarget: editableCell });
-                return; // Stop further processing
+                return;
             }
 
-            // Handle button clicks
             const button = target.closest('.icon-btn');
             if (!button) return;
 
@@ -1835,7 +1835,6 @@
                     button.classList.remove('confirm-action');
                     clearTimeout(button.dataset.timeoutId);
                 } else {
-                    // Reset any other confirmations
                     tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
                     
                     button.classList.add('confirm-action');
@@ -1848,7 +1847,6 @@
             }
         });
 
-        // --- BLUR Event Delegation (using capture phase) ---
         tableBody.addEventListener('blur', e => {
             const target = e.target;
             if (target.matches('.activity-text-editable, .time-editable')) {
@@ -1856,7 +1854,6 @@
             }
         }, true);
 
-        // --- KEYDOWN Event Delegation ---
         tableBody.addEventListener('keydown', e => {
             const target = e.target;
             if (target.matches('.activity-text-editable, .time-editable')) {
@@ -1894,15 +1891,15 @@
         emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
         passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
         document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: 'month' }); updateView(); });
-        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: 'day' }); updateView(); });
+        DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: VIEW_MODES.MONTH }); updateView(); });
+        DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
         
         document.getElementById('prev-btn').addEventListener('click', async (e) => {
             const button = e.currentTarget;
             setButtonLoadingState(button, true);
             await new Promise(resolve => setTimeout(resolve, 50));
         
-            if (state.currentView === 'month') {
+            if (state.currentView === VIEW_MODES.MONTH) {
                 const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
                 setState({ currentMonth: newMonth });
             } else {
@@ -1918,7 +1915,7 @@
             setButtonLoadingState(button, true);
             await new Promise(resolve => setTimeout(resolve, 50));
         
-            if (state.currentView === 'month') {
+            if (state.currentView === VIEW_MODES.MONTH) {
                 const newMonth = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
                 setState({ currentMonth: newMonth });
             } else {
@@ -1941,7 +1938,7 @@
         });
 
         DOM.currentPeriodDisplay.addEventListener('click', () => {
-            setState({ pickerYear: state.currentView === 'month' ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
+            setState({ pickerYear: state.currentView === VIEW_MODES.MONTH ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
             renderMonthPicker();
             DOM.monthPickerModal.classList.remove('hidden');
         });
@@ -1964,15 +1961,15 @@
             renderMonthPicker();
             setButtonLoadingState(button, false);
         });
-      // With this new debounced version:
-          DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
-              saveData({ type: 'SAVE_NOTE', payload: e.target.value });
-          }, 500));      
-      
+
+        DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
+            saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
+        }, 500));        
+    
         const addNewSlotBtn = document.getElementById('add-new-slot-btn');
         addNewSlotBtn.addEventListener('click', async () => {
             setButtonLoadingState(addNewSlotBtn, true);
-            await saveData({ type: 'ADD_SLOT' });
+            await saveData({ type: ACTION_TYPES.ADD_SLOT });
             setButtonLoadingState(addNewSlotBtn, false);
         });
         
@@ -1995,10 +1992,10 @@
         document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
         setupDoubleClickConfirm(
             DOM.deleteLeaveTypeBtn,
-            'deleteLeaveType', // A unique key for this action
+            'deleteLeaveType', 
             'Click again to permanently delete this leave type and all its logged entries.',
             deleteLeaveType
-        );        
+        );      
         DOM.leaveColorPicker.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 selectColorInPicker(e.target.dataset.color);
@@ -2025,22 +2022,22 @@
                 setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
                 DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
                 DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
-                showMessage('Now select the days followed by the leave type pill.', 'info');
+                showMessage('Select days on the calendar and a leave type.', 'info');
             }
         });
 
+        // --- MODIFICATION: UX Enhancement - Flexible leave logging flow ---
         DOM.leavePillsContainer.addEventListener('click', (e) => {
             const pill = e.target.closest('button');
-            if (!pill) return;
+            if (!pill || !state.isLoggingLeave) return;
 
-            if (state.isLoggingLeave) {
-                const leaveTypeId = pill.dataset.id;
-                setState({ selectedLeaveTypeId: leaveTypeId });
-                renderLeavePills();
+            const leaveTypeId = pill.dataset.id;
+            setState({ selectedLeaveTypeId: leaveTypeId });
+            renderLeavePills(); // Re-render to show active pill
 
-                if (state.leaveSelection.size > 0) {
-                    openLeaveCustomizationModal();
-                }
+            // If days have already been selected, open the modal
+            if (state.leaveSelection.size > 0) {
+                openLeaveCustomizationModal();
             }
         });
 
@@ -2051,8 +2048,6 @@
             const dateKey = cell.dataset.date;
 
             if (state.isLoggingLeave) {
-                const hasExistingLeave = !!state.allStoredData[dateKey]?.leave;
-
                 if (state.leaveSelection.has(dateKey)) {
                     state.leaveSelection.delete(dateKey);
                 } else {
@@ -2060,14 +2055,13 @@
                 }
                 renderCalendar();
 
-                const selectionHasAnyLeave = Array.from(state.leaveSelection).some(dKey => state.allStoredData[dKey]?.leave);
-
-                if (state.leaveSelection.size > 0 && (hasExistingLeave || selectionHasAnyLeave)) {
+                // If a leave type has already been selected, open the modal
+                if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
                     openLeaveCustomizationModal();
                 }
             } else {
                 const date = new Date(dateKey + 'T00:00:00');
-                setState({ selectedDate: date, currentView: 'day' });
+                setState({ selectedDate: date, currentView: VIEW_MODES.DAY });
                 updateView();
             }
         });
@@ -2079,22 +2073,16 @@
         document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
         DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
         
-        // Easter Egg Listener
         DOM.logoContainer.addEventListener('click', handleLogoTap);
 
-        // ADDED: Listener for the new info toggle button
         if (DOM.infoToggleBtn && DOM.infoDescription) {
             DOM.infoToggleBtn.addEventListener('click', () => {
                 const description = DOM.infoDescription;
-                // Check if the description is currently open
                 if (description.style.maxHeight && description.style.maxHeight !== '0px') {
-                    // If open, close it
                     description.style.maxHeight = '0px';
                     description.style.opacity = '0';
                 } else {
-                    // If closed, open it
                     description.style.opacity = '1';
-                    // Set max-height to its natural content height for a smooth transition
                     description.style.maxHeight = description.scrollHeight + 'px';
                 }
             });
@@ -2121,7 +2109,7 @@
 
                 setTimeout(() => {
                     DOM.splashText.style.display = 'none';
-                }, 1000); // This should match the CSS animation duration
+                }, 1000);
 
             }, { once: true });
         }, 50);
