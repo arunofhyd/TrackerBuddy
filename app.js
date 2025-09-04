@@ -1416,7 +1416,8 @@
 
         const statsHTML = state.leaveTypes.map((lt, index) => {
             const used = leaveCounts[lt.id] || 0;
-            const balance = lt.totalDays - used;
+            const balanceCalculation = lt.totalDays - used;
+            const balance = parseFloat(balanceCalculation.toFixed(2));
             
             const isFirst = index === 0;
             const isLast = index === state.leaveTypes.length - 1;
