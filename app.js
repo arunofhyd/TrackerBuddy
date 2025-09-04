@@ -2022,7 +2022,7 @@
                 setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
                 DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
                 DOM.logNewLeaveBtn.classList.replace('btn-secondary', 'btn-danger');
-                showMessage('Select days on the calendar and a leave type.', 'info');
+                showMessage('Select days on the calendar and then a leave type pill.', 'info');
             }
         });
 
