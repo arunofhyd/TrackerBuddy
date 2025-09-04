@@ -773,7 +773,7 @@
                                 leaveTypesMap.set(detail1, {
                                     id: detail1,
                                     name: detail2,
-                                    totalDays: parseInt(detail3, 10) || 0,
+                                    totalDays: parseFloat(detail3) || 0,
                                     color: detail4
                                 });
                                 rowProcessed = true;
@@ -1259,7 +1259,7 @@
     
         const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
         const name = DOM.leaveNameInput.value.trim();
-        const totalDays = parseInt(DOM.leaveDaysInput.value, 10);
+        const totalDays = parseFloat(DOM.leaveDaysInput.value);
         const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
         const color = selectedColorEl ? selectedColorEl.dataset.color : null;
     
