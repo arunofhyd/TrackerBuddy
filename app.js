@@ -378,11 +378,6 @@ function renderDailyActivities() {
                 <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
             </td>
             <td class="py-3 px-4 text-sm flex space-x-1 justify-center items-center">
-                <button class="icon-btn info-btn" aria-label="Info">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </button>
                 <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                 </button>
@@ -422,7 +417,7 @@ function renderMonthPicker() {
 
             setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
             updateView();
-            DOM.monthPickerModal.classList.add('hidden');
+            DOM.monthPickerModal.classList.remove('visible');
         });
         DOM.monthGrid.appendChild(button);
     });
@@ -616,7 +611,7 @@ async function resetAllData() {
         updateView();
         showMessage("All local data has been reset.", 'success');
     }
-    DOM.confirmResetModal.classList.add('hidden');
+    DOM.confirmResetModal.classList.remove('visible');
     setButtonLoadingState(button, false);
 }
 
@@ -1228,7 +1223,7 @@ function loadSplashScreenVideo() {
 
 // --- Leave Management ---
 function openLeaveTypeModal(leaveType = null) {
-    DOM.leaveTypeModal.classList.remove('hidden');
+    DOM.leaveTypeModal.classList.add('visible');
     if (leaveType) {
         DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
         DOM.editingLeaveTypeId.value = leaveType.id;
@@ -1247,7 +1242,7 @@ function openLeaveTypeModal(leaveType = null) {
 }
 
 function closeLeaveTypeModal() {
-    DOM.leaveTypeModal.classList.add('hidden');
+    DOM.leaveTypeModal.classList.remove('visible');
 }
 
 function setupColorPicker() {
@@ -1429,11 +1424,11 @@ function openLeaveOverviewModal(leaveTypeId) {
     leaveDates.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     renderLeaveOverviewList(leaveDates, leaveType);
-    DOM.leaveOverviewModal.classList.remove('hidden');
+    DOM.leaveOverviewModal.classList.add('visible');
 }
 
 function closeLeaveOverviewModal() {
-    DOM.leaveOverviewModal.classList.add('hidden');
+    DOM.leaveOverviewModal.classList.remove('visible');
 }
 
 function renderLeaveOverviewList(leaveDates, leaveType) {
@@ -1512,7 +1507,7 @@ async function deleteLeaveDay(dateKey) {
 
     // Refresh the overview modal if it's open
     const currentLeaveTypeId = dayData.leave.typeId;
-    if (!DOM.leaveOverviewModal.classList.contains('hidden')) {
+    if (DOM.leaveOverviewModal.classList.contains('visible')) {
         setTimeout(() => openLeaveOverviewModal(currentLeaveTypeId), 100);
     }
 
@@ -1627,7 +1622,7 @@ function openLeaveCustomizationModal() {
         return;
     }
     setState({ initialLeaveSelection: new Set(state.leaveSelection) });
-    DOM.customizeLeaveModal.classList.remove('hidden');
+    DOM.customizeLeaveModal.classList.add('visible');
     renderLeaveCustomizationModal();
 }
 
@@ -1925,10 +1920,10 @@ async function saveLoggedLeaves() {
         setState({ allStoredData: updatedData });
     }
 
-    DOM.customizeLeaveModal.classList.add('hidden');
+    DOM.customizeLeaveModal.classList.remove('visible');
     setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
     DOM.logNewLeaveBtn.textContent = 'Log Leave';
-    DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-secondary');
+    DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
     updateView();
     showMessage('Leaves saved successfully!', 'success');
 
@@ -2083,10 +2078,10 @@ function setupEventListeners() {
     DOM.currentPeriodDisplay.addEventListener('click', () => {
         setState({ pickerYear: state.currentView === VIEW_MODES.MONTH ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
         renderMonthPicker();
-        DOM.monthPickerModal.classList.remove('hidden');
+        DOM.monthPickerModal.classList.add('visible');
     });
 
-    document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.add('hidden'));
+    document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.remove('visible'));
     document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
@@ -2120,9 +2115,9 @@ function setupEventListeners() {
         DOM.resetModalText.textContent = state.isOnlineMode
             ? "This will permanently delete all your activity data from the cloud. This action cannot be undone."
             : "This will permanently delete all your local activity data. This action cannot be undone.";
-        DOM.confirmResetModal.classList.remove('hidden');
+        DOM.confirmResetModal.classList.add('visible');
     });
-    document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.add('hidden'));
+    document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
     document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
 
     const uploadCsvInput = document.getElementById('upload-csv-input');
@@ -2145,7 +2140,7 @@ function setupEventListeners() {
         }
     });
     DOM.statsToggleBtn.addEventListener('click', () => {
-        DOM.leaveStatsSection.classList.toggle('hidden');
+        DOM.leaveStatsSection.classList.toggle('visible');
         DOM.statsArrowDown.classList.toggle('hidden');
         DOM.statsArrowUp.classList.toggle('hidden');
     });
@@ -2169,16 +2164,14 @@ function setupEventListeners() {
         }
     });
 
-    // --- MODIFICATION: UX Enhancement - Flexible leave logging flow ---
     DOM.leavePillsContainer.addEventListener('click', (e) => {
         const pill = e.target.closest('button');
         if (!pill || !state.isLoggingLeave) return;
 
         const leaveTypeId = pill.dataset.id;
         setState({ selectedLeaveTypeId: leaveTypeId });
-        renderLeavePills(); // Re-render to show active pill
+        renderLeavePills(); 
 
-        // If days have already been selected, open the modal
         if (state.leaveSelection.size > 0) {
             openLeaveCustomizationModal();
         }
@@ -2198,7 +2191,6 @@ function setupEventListeners() {
             }
             renderCalendar();
 
-            // If a leave type has already been selected, open the modal
             if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
                 openLeaveCustomizationModal();
             }
@@ -2210,7 +2202,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
-        DOM.customizeLeaveModal.classList.add('hidden');
+        DOM.customizeLeaveModal.classList.remove('visible');
     });
 
     document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
@@ -2231,10 +2223,8 @@ function setupEventListeners() {
         });
     }
 
-    // --- NEW: Leave Overview Modal Event Listeners ---
     document.getElementById('close-leave-overview-btn').addEventListener('click', closeLeaveOverviewModal);
 
-    // Event delegation for leave overview items
     DOM.overviewLeaveDaysList.addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.edit-leave-day-btn');
         const deleteBtn = e.target.closest('.delete-leave-day-btn');
