@@ -1454,7 +1454,7 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
                 </div>
             </div>
             <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 dark:bg-gray-600 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
+                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 dark p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full">Full</button>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half">Half</button>
