@@ -1011,14 +1011,18 @@ async function appSignOut() {
 function applyTheme(theme) {
     const lightIcon = document.getElementById('theme-icon-light');
     const darkIcon = document.getElementById('theme-icon-dark');
+    const themeColorMeta = document.getElementById('theme-color-meta');
+
     if (theme === 'dark') {
         document.body.classList.add('dark');
         lightIcon.classList.add('hidden');
         darkIcon.classList.remove('hidden');
+        if (themeColorMeta) themeColorMeta.content = '#000000';
     } else {
         document.body.classList.remove('dark');
         lightIcon.classList.remove('hidden');
         darkIcon.classList.add('hidden');
+        if (themeColorMeta) themeColorMeta.content = '#f0f2f5';
     }
 }
 
