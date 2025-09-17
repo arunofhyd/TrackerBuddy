@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app, 'us-central1');
+const functions = getFunctions(app, 'asia-south1');
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
