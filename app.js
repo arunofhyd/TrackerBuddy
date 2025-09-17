@@ -1,9 +1,4 @@
-// Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
-
+// --- Firebase Configuration ---
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
     authDomain: "trackerbuddyaoh.firebaseapp.com",
@@ -14,10 +9,10 @@ const firebaseConfig = {
 };
 
 // --- Initialize Firebase ---
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const functions = getFunctions(app, 'asia-south1');
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const functions = firebase.functions('asia-south1');
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
@@ -286,13 +281,13 @@ async function handleUserLogin(user) {
 
     // --- START OF THE FIX ---
     // Ensure a user document exists before subscribing to data
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = db.collection("users").doc(user.uid);
     try {
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
+        const userDoc = await userDocRef.get();
+        if (!userDoc.exists) {
             // Document doesn't exist, so create it with default values.
             // This is crucial for new users.
-            await setDoc(userDocRef, {
+            await userDocRef.set({
                 activities: {},
                 leaveTypes: [],
                 teamId: null,
@@ -533,9 +528,9 @@ function formatTextForDisplay(text) {
 }
 
 async function subscribeToData(userId, callback) {
-    const userDocRef = doc(db, "users", userId);
-    const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        const data = doc.exists() ? doc.data() : {};
+    const userDocRef = db.collection("users").doc(userId);
+    const unsubscribe = userDocRef.onSnapshot((doc) => {
+        const data = doc.exists ? doc.data() : {};
         setState({ 
             allStoredData: data.activities || {}, 
             leaveTypes: data.leaveTypes || [],
@@ -560,9 +555,9 @@ async function subscribeToTeamData(callback) {
     }
 
     // Subscribe to team document
-    const teamDocRef = doc(db, "teams", state.currentTeam);
-    const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => {
-        if (doc.exists()) {
+    const teamDocRef = db.collection("teams").doc(state.currentTeam);
+    const unsubscribeTeam = teamDocRef.onSnapshot((doc) => {
+        if (doc.exists) {
             const teamData = doc.data();
             const membersArray = Object.values(teamData.members || {});
             setState({
@@ -596,9 +591,9 @@ async function loadTeamMembersData() {
 
     if (!state.currentTeam) return;
 
-    const summaryCollectionRef = collection(db, "teams", state.currentTeam, "member_summaries");
+    const summaryCollectionRef = db.collection("teams").doc(state.currentTeam).collection("member_summaries");
 
-    const unsubscribe = onSnapshot(summaryCollectionRef, (snapshot) => {
+    const unsubscribe = summaryCollectionRef.onSnapshot((snapshot) => {
         const teamMembersData = { ...state.teamMembersData }; // Preserve existing data
 
         snapshot.docChanges().forEach((change) => {
@@ -756,7 +751,7 @@ function saveDataToLocalStorage(data) {
 async function saveDataToFirestore(data) {
     if (!state.userId) return;
     try {
-        await setDoc(doc(db, "users", state.userId), data, { merge: true });
+        await db.collection("users").doc(state.userId).set(data, { merge: true });
     } catch (error) {
         console.error("Error saving to Firestore:", error);
         showMessage("Error: Could not save data to the cloud.", 'error');
@@ -779,7 +774,7 @@ async function resetAllData() {
 
     if (state.isOnlineMode && state.userId) {
         try {
-            await deleteDoc(doc(db, "users", state.userId));
+            await db.collection("users").doc(state.userId).delete();
             showMessage("All cloud data has been reset.", 'success');
         } catch (error) {
             showMessage("Failed to reset cloud data.", 'error');
@@ -1083,7 +1078,7 @@ function handleUserLogout() {
 }
 
 function initAuth() {
-    onAuthStateChanged(auth, (user) => {
+    auth.onAuthStateChanged((user) => {
         if (user) {
             handleUserLogin(user);
         } else {
@@ -1119,7 +1114,7 @@ async function signUpWithEmail(email, password) {
 
     setButtonLoadingState(button, true);
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
@@ -1143,7 +1138,7 @@ async function editTeamName() {
 
     setButtonLoadingState(button, true);
     try {
-        const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
+        const editTeamNameCallable = functions.httpsCallable('editTeamName');
         await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
         showMessage('Team name updated successfully!', 'success');
         closeEditTeamNameModal();
@@ -1172,7 +1167,7 @@ async function signInWithEmail(email, password) {
 
     setButtonLoadingState(button, true);
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -1194,7 +1189,7 @@ async function resetPassword(email) {
     setButtonLoadingState(button, true);
     button.classList.add('loading');
     try {
-        await sendPasswordResetEmail(auth, email);
+        await auth.sendPasswordResetEmail(email);
         showMessage("Please check your SPAM folder for the password reset link.", 'success');
     } catch (error) {
         showMessage(`Error sending reset email: ${error.message}`, 'error');
@@ -1205,11 +1200,11 @@ async function resetPassword(email) {
 }
 
 async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
+    const provider = new firebase.auth.GoogleAuthProvider();
     const button = DOM.googleSigninBtn;
     setButtonLoadingState(button, true);
     try {
-        const result = await signInWithPopup(auth, provider);
+        const result = await auth.signInWithPopup(provider);
         handleUserLogin(result.user);
     } catch (error) {
         showMessage(`Google sign-in failed: ${error.message}`, 'error');
@@ -1221,7 +1216,7 @@ async function signInWithGoogle() {
 async function appSignOut() {
     if (state.isOnlineMode) {
         try {
-            await signOut(auth);
+            await auth.signOut();
             handleUserLogout();
         } catch (error) {
             showMessage(`Sign-out failed: ${error.message}`, 'error');
@@ -2365,7 +2360,7 @@ async function createTeam() {
     setButtonLoadingState(button, true);
 
     try {
-        const createTeamCallable = httpsCallable(functions, 'createTeam');
+        const createTeamCallable = functions.httpsCallable('createTeam');
         const result = await createTeamCallable({ teamName, displayName });
 
         showMessage(result.data.message, 'success');
@@ -2392,7 +2387,7 @@ async function joinTeam() {
     setButtonLoadingState(button, true);
 
     try {
-        const joinTeamCallable = httpsCallable(functions, 'joinTeam');
+        const joinTeamCallable = functions.httpsCallable('joinTeam');
         const result = await joinTeamCallable({ roomCode, displayName });
 
         showMessage(result.data.message, 'success');
@@ -2416,7 +2411,7 @@ async function editDisplayName() {
 
     setButtonLoadingState(button, true);
     try {
-        const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
+        const editDisplayNameCallable = functions.httpsCallable('editDisplayName');
         await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
         showMessage('Display name updated successfully!', 'success');
         closeEditDisplayNameModal();
@@ -2430,7 +2425,7 @@ async function editDisplayName() {
 
 async function leaveTeam(button) {
     try {
-        const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
+        const leaveTeamCallable = functions.httpsCallable('leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
         showMessage('Successfully left the team.', 'success');
         // No need to turn off loading state, as the button will be removed on re-render.
@@ -2443,7 +2438,7 @@ async function leaveTeam(button) {
 
 async function deleteTeam() {
     try {
-        const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
+        const deleteTeamCallable = functions.httpsCallable('deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
         showMessage('Team deleted successfully.', 'success');
     } catch (error) {
@@ -2478,7 +2473,7 @@ async function kickMember() {
     setButtonLoadingState(button, true);
 
     try {
-        const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
+        const kickTeamMemberCallable = functions.httpsCallable('kickTeamMember');
         await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
         showMessage('Team member kicked successfully!', 'success');
         closeKickMemberModal();
@@ -2702,8 +2697,8 @@ function setupEventListeners() {
         }
         console.log("Attempting to write a debug log...");
         try {
-            const debugColRef = collection(db, "debug_logs");
-            await addDoc(debugColRef, {
+            const debugColRef = db.collection("debug_logs");
+            await debugColRef.add({
                 message: "This is a direct test from the debug button.",
                 userId: state.userId,
                 timestamp: new Date()
