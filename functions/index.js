@@ -7,6 +7,76 @@ admin.initializeApp();
 const db = admin.firestore();
 
 /**
+ * Creates a new team with the authenticated user as the owner.
+ */
+exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
+  }
+
+  const { teamName, displayName } = request.data;
+  const userId = request.auth.uid;
+
+  if (!teamName || !displayName) {
+    throw new HttpsError("invalid-argument", "Please provide a valid team name and display name.");
+  }
+
+  // Generate a unique 8-character room code
+  const generateRoomCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const roomCode = generateRoomCode();
+  const teamRef = db.collection("teams").doc(roomCode);
+  const userRef = db.collection("users").doc(userId);
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      if (!userDoc.exists) {
+        throw new HttpsError("not-found", "User not found.");
+      }
+      if (userDoc.data().teamId) {
+        throw new HttpsError("already-exists", "You are already in a team.");
+      }
+
+      transaction.set(teamRef, {
+        name: teamName,
+        roomCode: roomCode,
+        ownerId: userId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        members: {
+          [userId]: {
+            userId: userId,
+            displayName: displayName,
+            role: "owner",
+            joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
+        },
+      });
+
+      transaction.update(userRef, {
+        teamId: roomCode,
+        teamRole: "owner",
+      });
+    });
+
+    return { status: "success", message: "Successfully created the team!", roomCode: roomCode };
+  } catch (error) {
+    console.error("Error creating team:", error);
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    throw new HttpsError("internal", "An unexpected error occurred. Please try again.");
+  }
+});
+
+/**
  * Allows an authenticated user to join an existing team.
  */
 exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
