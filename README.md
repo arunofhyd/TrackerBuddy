@@ -9,13 +9,17 @@
 
 ✅ **Daily Activity Logging:** Effortlessly log your work hours and daily tasks in a simple, intuitive table format.
 
-✈️ **Custom Leave Management:** Create your own leave types (e.g., Vacation, Sick, Personal), set annual balances, and track usage directly on the calendar.
+✈️ **Custom Leave Management:** Create your own leave types (e.g., Vacation, Sick, Personal), set annual balances, and track usage directly on the calendar. Log either **full-day** or **half-day** leaves for precise tracking.
 
 📊 **Stats at a Glance:** Instantly view your remaining leave balances for all categories.
 
 🔄 **Cloud Sync:** Sign in with Google or Email to seamlessly sync your data across all your devices.
 
 👤 **Guest Mode:** Start using the app immediately without an account. All data is saved locally on your device.
+
+🤝 **Team Management:** Create or join teams to share and manage leave balances with colleagues. Team owners can view a comprehensive dashboard of all members' leave usage.
+
+🎨 **Visual Team Dashboard:** A completely redesigned dashboard for team owners, featuring radial progress bars and detailed stats for a clear, at-a-glance overview of each member's leave balance.
 
 🌙 **Light & Dark Mode:** A beautiful, theme-aware interface that respects your system settings or can be toggled manually.
 
@@ -55,6 +59,11 @@ This application was built with performance as a top priority. By using a modern
     -   In Month View, click the `+` button to create a new leave type (e.g., "Vacation").
     -   Click the "Log Leave" button to enter selection mode.
     -   Select days on the calendar and then click the leave type pill to assign it.
+5.  **Team Collaboration (Online Mode Only):**
+    -   Click the "Teams" button to open the team management section.
+    -   Choose to **Create a Team** and set a team name and your display name.
+    -   Or, **Join a Team** using an 8-digit room code provided by a team owner.
+    -   Once in a team, owners can view the **Team Dashboard** to see members' leave balances.
 
 ---
 
