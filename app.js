@@ -1,4 +1,9 @@
-// --- Firebase Configuration ---
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
+
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
     authDomain: "trackerbuddyaoh.firebaseapp.com",
@@ -9,10 +14,10 @@ const firebaseConfig = {
 };
 
 // --- Initialize Firebase ---
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const functions = firebase.app().functions('asia-south1');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app, 'asia-south1');
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
@@ -281,13 +286,13 @@ async function handleUserLogin(user) {
 
     // --- START OF THE FIX ---
     // Ensure a user document exists before subscribing to data
-    const userDocRef = db.collection("users").doc(user.uid);
+    const userDocRef = doc(db, "users", user.uid);
     try {
-        const userDoc = await userDocRef.get();
-        if (!userDoc.exists) {
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
             // Document doesn't exist, so create it with default values.
             // This is crucial for new users.
-            await userDocRef.set({
+            await setDoc(userDocRef, {
                 activities: {},
                 leaveTypes: [],
                 teamId: null,
@@ -306,10 +311,7 @@ async function handleUserLogin(user) {
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, () => {
         // Team data will now be loaded on-demand when the user expands the team section.
-        // By the time this callback runs, `updateView` has already been called once
-        // inside the onSnapshot listener, populating the hidden app view.
-        // Now, we can simply switch to the view without a flicker.
-        switchView(DOM.appView, DOM.loadingView);
+        switchView(DOM.appView, DOM.loadingView, updateView);
     });
 }
 
@@ -531,9 +533,9 @@ function formatTextForDisplay(text) {
 }
 
 async function subscribeToData(userId, callback) {
-    const userDocRef = db.collection("users").doc(userId);
-    const unsubscribe = userDocRef.onSnapshot((doc) => {
-        const data = doc.exists ? doc.data() : {};
+    const userDocRef = doc(db, "users", userId);
+    const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        const data = doc.exists() ? doc.data() : {};
         setState({ 
             allStoredData: data.activities || {}, 
             leaveTypes: data.leaveTypes || [],
@@ -558,9 +560,9 @@ async function subscribeToTeamData(callback) {
     }
 
     // Subscribe to team document
-    const teamDocRef = db.collection("teams").doc(state.currentTeam);
-    const unsubscribeTeam = teamDocRef.onSnapshot((doc) => {
-        if (doc.exists) {
+    const teamDocRef = doc(db, "teams", state.currentTeam);
+    const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => {
+        if (doc.exists()) {
             const teamData = doc.data();
             const membersArray = Object.values(teamData.members || {});
             setState({
@@ -594,9 +596,9 @@ async function loadTeamMembersData() {
 
     if (!state.currentTeam) return;
 
-    const summaryCollectionRef = db.collection("teams").doc(state.currentTeam).collection("member_summaries");
+    const summaryCollectionRef = collection(db, "teams", state.currentTeam, "member_summaries");
 
-    const unsubscribe = summaryCollectionRef.onSnapshot((snapshot) => {
+    const unsubscribe = onSnapshot(summaryCollectionRef, (snapshot) => {
         const teamMembersData = { ...state.teamMembersData }; // Preserve existing data
 
         snapshot.docChanges().forEach((change) => {
@@ -754,7 +756,7 @@ function saveDataToLocalStorage(data) {
 async function saveDataToFirestore(data) {
     if (!state.userId) return;
     try {
-        await db.collection("users").doc(state.userId).set(data, { merge: true });
+        await setDoc(doc(db, "users", state.userId), data, { merge: true });
     } catch (error) {
         console.error("Error saving to Firestore:", error);
         showMessage("Error: Could not save data to the cloud.", 'error');
@@ -777,7 +779,7 @@ async function resetAllData() {
 
     if (state.isOnlineMode && state.userId) {
         try {
-            await db.collection("users").doc(state.userId).delete();
+            await deleteDoc(doc(db, "users", state.userId));
             showMessage("All cloud data has been reset.", 'success');
         } catch (error) {
             showMessage("Failed to reset cloud data.", 'error');
@@ -1081,7 +1083,7 @@ function handleUserLogout() {
 }
 
 function initAuth() {
-    auth.onAuthStateChanged((user) => {
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             handleUserLogin(user);
         } else {
@@ -1117,7 +1119,7 @@ async function signUpWithEmail(email, password) {
 
     setButtonLoadingState(button, true);
     try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
@@ -1141,7 +1143,7 @@ async function editTeamName() {
 
     setButtonLoadingState(button, true);
     try {
-        const editTeamNameCallable = functions.httpsCallable('editTeamName');
+        const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
         await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
         showMessage('Team name updated successfully!', 'success');
         closeEditTeamNameModal();
@@ -1170,7 +1172,7 @@ async function signInWithEmail(email, password) {
 
     setButtonLoadingState(button, true);
     try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
@@ -1192,7 +1194,7 @@ async function resetPassword(email) {
     setButtonLoadingState(button, true);
     button.classList.add('loading');
     try {
-        await auth.sendPasswordResetEmail(email);
+        await sendPasswordResetEmail(auth, email);
         showMessage("Please check your SPAM folder for the password reset link.", 'success');
     } catch (error) {
         showMessage(`Error sending reset email: ${error.message}`, 'error');
@@ -1203,11 +1205,11 @@ async function resetPassword(email) {
 }
 
 async function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
     const button = DOM.googleSigninBtn;
     setButtonLoadingState(button, true);
     try {
-        const result = await auth.signInWithPopup(provider);
+        const result = await signInWithPopup(auth, provider);
         handleUserLogin(result.user);
     } catch (error) {
         showMessage(`Google sign-in failed: ${error.message}`, 'error');
@@ -1219,7 +1221,7 @@ async function signInWithGoogle() {
 async function appSignOut() {
     if (state.isOnlineMode) {
         try {
-            await auth.signOut();
+            await signOut(auth);
             handleUserLogout();
         } catch (error) {
             showMessage(`Sign-out failed: ${error.message}`, 'error');
@@ -1859,8 +1861,8 @@ function openLeaveCustomizationModal() {
         return;
     }
     setState({ initialLeaveSelection: new Set(state.leaveSelection) });
-    renderLeaveCustomizationModal();
     DOM.customizeLeaveModal.classList.add('visible');
+    renderLeaveCustomizationModal();
 }
 
 function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
@@ -2363,7 +2365,7 @@ async function createTeam() {
     setButtonLoadingState(button, true);
 
     try {
-        const createTeamCallable = functions.httpsCallable('createTeam');
+        const createTeamCallable = httpsCallable(functions, 'createTeam');
         const result = await createTeamCallable({ teamName, displayName });
 
         showMessage(result.data.message, 'success');
@@ -2390,7 +2392,7 @@ async function joinTeam() {
     setButtonLoadingState(button, true);
 
     try {
-        const joinTeamCallable = functions.httpsCallable('joinTeam');
+        const joinTeamCallable = httpsCallable(functions, 'joinTeam');
         const result = await joinTeamCallable({ roomCode, displayName });
 
         showMessage(result.data.message, 'success');
@@ -2414,7 +2416,7 @@ async function editDisplayName() {
 
     setButtonLoadingState(button, true);
     try {
-        const editDisplayNameCallable = functions.httpsCallable('editDisplayName');
+        const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
         await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
         showMessage('Display name updated successfully!', 'success');
         closeEditDisplayNameModal();
@@ -2428,7 +2430,7 @@ async function editDisplayName() {
 
 async function leaveTeam(button) {
     try {
-        const leaveTeamCallable = functions.httpsCallable('leaveTeam');
+        const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
         showMessage('Successfully left the team.', 'success');
         // No need to turn off loading state, as the button will be removed on re-render.
@@ -2441,7 +2443,7 @@ async function leaveTeam(button) {
 
 async function deleteTeam() {
     try {
-        const deleteTeamCallable = functions.httpsCallable('deleteTeam');
+        const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
         showMessage('Team deleted successfully.', 'success');
     } catch (error) {
@@ -2476,7 +2478,7 @@ async function kickMember() {
     setButtonLoadingState(button, true);
 
     try {
-        const kickTeamMemberCallable = functions.httpsCallable('kickTeamMember');
+        const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
         await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
         showMessage('Team member kicked successfully!', 'success');
         closeKickMemberModal();
@@ -2488,12 +2490,9 @@ async function kickMember() {
     }
 }
 
-async function openTeamDashboard() {
-    // Awaiting a promise allows the event loop to continue,
-    // ensuring the loading spinner is rendered before this potentially long-running task.
-    await new Promise(resolve => setTimeout(resolve, 0));
-    renderTeamDashboard();
+function openTeamDashboard() {
     DOM.teamDashboardModal.classList.add('visible');
+    renderTeamDashboard();
 }
 
 function closeTeamDashboard() {
@@ -2703,8 +2702,8 @@ function setupEventListeners() {
         }
         console.log("Attempting to write a debug log...");
         try {
-            const debugColRef = db.collection("debug_logs");
-            await debugColRef.add({
+            const debugColRef = collection(db, "debug_logs");
+            await addDoc(debugColRef, {
                 message: "This is a direct test from the debug button.",
                 userId: state.userId,
                 timestamp: new Date()
@@ -3049,7 +3048,7 @@ function setupEventListeners() {
     document.getElementById('confirm-kick-btn').addEventListener('click', kickMember);
 
     // Delegated event listener for the team section
-    DOM.teamSection.addEventListener('click', async (e) => {
+    DOM.teamSection.addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (!button) return;
 
@@ -3078,11 +3077,7 @@ function setupEventListeners() {
         switch (action) {
             case 'create-team-btn': openCreateTeamModal(); break;
             case 'join-team-btn': openJoinTeamModal(); break;
-            case 'team-dashboard-btn':
-                setButtonLoadingState(button, true);
-                await openTeamDashboard();
-                setButtonLoadingState(button, false);
-                break;
+            case 'team-dashboard-btn': openTeamDashboard(); break;
             case 'edit-display-name-btn': openEditDisplayNameModal(); break;
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
