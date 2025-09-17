@@ -306,7 +306,10 @@ async function handleUserLogin(user) {
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, () => {
         // Team data will now be loaded on-demand when the user expands the team section.
-        switchView(DOM.appView, DOM.loadingView, updateView);
+        // By the time this callback runs, `updateView` has already been called once
+        // inside the onSnapshot listener, populating the hidden app view.
+        // Now, we can simply switch to the view without a flicker.
+        switchView(DOM.appView, DOM.loadingView);
     });
 }
 
@@ -1856,8 +1859,8 @@ function openLeaveCustomizationModal() {
         return;
     }
     setState({ initialLeaveSelection: new Set(state.leaveSelection) });
-    DOM.customizeLeaveModal.classList.add('visible');
     renderLeaveCustomizationModal();
+    DOM.customizeLeaveModal.classList.add('visible');
 }
 
 function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
@@ -2485,7 +2488,10 @@ async function kickMember() {
     }
 }
 
-function openTeamDashboard() {
+async function openTeamDashboard() {
+    // Awaiting a promise allows the event loop to continue,
+    // ensuring the loading spinner is rendered before this potentially long-running task.
+    await new Promise(resolve => setTimeout(resolve, 0));
     renderTeamDashboard();
     DOM.teamDashboardModal.classList.add('visible');
 }
@@ -3043,7 +3049,7 @@ function setupEventListeners() {
     document.getElementById('confirm-kick-btn').addEventListener('click', kickMember);
 
     // Delegated event listener for the team section
-    DOM.teamSection.addEventListener('click', (e) => {
+    DOM.teamSection.addEventListener('click', async (e) => {
         const button = e.target.closest('button');
         if (!button) return;
 
@@ -3072,7 +3078,11 @@ function setupEventListeners() {
         switch (action) {
             case 'create-team-btn': openCreateTeamModal(); break;
             case 'join-team-btn': openJoinTeamModal(); break;
-            case 'team-dashboard-btn': openTeamDashboard(); break;
+            case 'team-dashboard-btn':
+                setButtonLoadingState(button, true);
+                await openTeamDashboard();
+                setButtonLoadingState(button, false);
+                break;
             case 'edit-display-name-btn': openEditDisplayNameModal(); break;
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
