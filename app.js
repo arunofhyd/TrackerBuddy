@@ -174,6 +174,7 @@ function initUI() {
         teamArrowUp: document.getElementById('team-arrow-up'),
         createTeamModal: document.getElementById('create-team-modal'),
         teamNameInput: document.getElementById('team-name-input'),
+        teamOwnerDisplayNameInput: document.getElementById('team-owner-display-name-input'),
         joinTeamModal: document.getElementById('join-team-modal'),
         roomCodeInput: document.getElementById('room-code-input'),
         displayNameInput: document.getElementById('display-name-input'),
@@ -2296,6 +2297,9 @@ function renderTeamSection() {
 
 function openCreateTeamModal() {
     DOM.teamNameInput.value = '';
+    if (DOM.teamOwnerDisplayNameInput) {
+        DOM.teamOwnerDisplayNameInput.value = '';
+    }
     DOM.createTeamModal.classList.add('visible');
 }
 
@@ -2336,52 +2340,25 @@ function closeEditTeamNameModal() {
 async function createTeam() {
     const button = DOM.createTeamModal.querySelector('#save-create-team-btn');
     const teamName = DOM.teamNameInput.value.trim();
-    
-    if (!teamName) {
-        showMessage('Please enter a team name.', 'error');
+    const displayName = DOM.teamOwnerDisplayNameInput.value.trim();
+
+    if (!teamName || !displayName) {
+        showMessage('Please enter both a team name and your display name.', 'error');
         return;
     }
-    
+
     setButtonLoadingState(button, true);
-    
+
     try {
-        const roomCode = generateRoomCode();
-        const teamId = `team_${new Date().getTime()}`;
-        
-        const batch = writeBatch(db);
-        
-        // Create team document
-        const teamRef = doc(db, "teams", roomCode);
-        batch.set(teamRef, {
-            name: teamName,
-            roomCode: roomCode,
-            ownerId: state.userId,
-            createdAt: new Date(),
-            members: {
-                [state.userId]: {
-                    userId: state.userId,
-                    displayName: teamName + ' Owner',
-                    role: TEAM_ROLES.OWNER,
-                    joinedAt: new Date()
-                }
-            }
-        });
-        
-        // Update user document
-        const userRef = doc(db, "users", state.userId);
-        batch.set(userRef, {
-            teamId: roomCode,
-            teamRole: TEAM_ROLES.OWNER
-        }, { merge: true });
-        
-        await batch.commit();
-        
-        showMessage('Team created successfully!', 'success');
+        const createTeamCallable = httpsCallable(functions, 'createTeam');
+        const result = await createTeamCallable({ teamName, displayName });
+
+        showMessage(result.data.message, 'success');
         closeCreateTeamModal();
-        
+
     } catch (error) {
         console.error('Error creating team:', error);
-        showMessage('Failed to create team. Please try again.', 'error');
+        showMessage(`Failed to create team: ${error.message}`, 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
