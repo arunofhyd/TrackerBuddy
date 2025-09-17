@@ -2486,8 +2486,8 @@ async function kickMember() {
 }
 
 function openTeamDashboard() {
-    DOM.teamDashboardModal.classList.add('visible');
     renderTeamDashboard();
+    DOM.teamDashboardModal.classList.add('visible');
 }
 
 function closeTeamDashboard() {
