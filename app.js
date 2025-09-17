@@ -12,7 +12,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const functions = firebase.functions('asia-south1');
+const functions = firebase.app().functions('asia-south1');
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
