@@ -1,9 +1,9 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
-// --- Firebase Configuration ---
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
     authDomain: "trackerbuddyaoh.firebaseapp.com",
@@ -17,6 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app, 'us-central1');
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
@@ -36,6 +37,11 @@ const LEAVE_DAY_TYPES = {
     HALF: 'half'
 };
 
+const TEAM_ROLES = {
+    OWNER: 'owner',
+    MEMBER: 'member'
+};
+
 // --- Global App State ---
 let state = {
     currentMonth: new Date(),
@@ -53,7 +59,15 @@ let state = {
     selectedLeaveTypeId: null,
     leaveSelection: new Set(),
     initialLeaveSelection: new Set(),
-    logoTapCount: 0 // Easter Egg counter
+    logoTapCount: 0, // Easter Egg counter
+    // Team Management State
+    currentTeam: null,
+    teamName: null,
+    teamRole: null,
+    teamMembers: [],
+    teamMembersData: {},
+    unsubscribeFromTeam: null,
+    unsubscribeFromTeamMembers: []
 };
 
 // --- State Management ---
@@ -65,6 +79,12 @@ function setState(newState) {
 let DOM = {};
 
 // --- Utilities ---
+function sanitizeHTML(text) {
+    const temp = document.createElement('div');
+    temp.textContent = text;
+    return temp.innerHTML;
+}
+
 function debounce(func, delay) {
     let timeoutId;
     return function(...args) {
@@ -73,6 +93,15 @@ function debounce(func, delay) {
             func.apply(this, args);
         }, delay);
     };
+}
+
+function generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
 
 // --- UI Functions ---
@@ -137,7 +166,25 @@ function initUI() {
         leaveOverviewModal: document.getElementById('leave-overview-modal'),
         overviewLeaveTypeName: document.getElementById('overview-leave-type-name'),
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
-        overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message')
+        overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
+        // Team Management DOM References
+        teamToggleBtn: document.getElementById('team-toggle-btn'),
+        teamSection: document.getElementById('team-section'),
+        teamArrowDown: document.getElementById('team-arrow-down'),
+        teamArrowUp: document.getElementById('team-arrow-up'),
+        createTeamModal: document.getElementById('create-team-modal'),
+        teamNameInput: document.getElementById('team-name-input'),
+        joinTeamModal: document.getElementById('join-team-modal'),
+        roomCodeInput: document.getElementById('room-code-input'),
+        displayNameInput: document.getElementById('display-name-input'),
+        teamDashboardModal: document.getElementById('team-dashboard-modal'),
+        teamDashboardContent: document.getElementById('team-dashboard-content'),
+        editDisplayNameModal: document.getElementById('edit-display-name-modal'),
+        newDisplayNameInput: document.getElementById('new-display-name-input'),
+        editTeamNameModal: document.getElementById('edit-team-name-modal'),
+        newTeamNameInput: document.getElementById('new-team-name-input'),
+        confirmKickModal: document.getElementById('confirm-kick-modal'),
+        kickModalText: document.getElementById('kick-modal-text')
     };
 }
 
@@ -209,17 +256,45 @@ function switchView(viewToShow, viewToHide, callback) {
     }, 0);
 }
 
-function handleUserLogin(user) {
+async function handleUserLogin(user) {
     localStorage.setItem('sessionMode', 'online');
     if (state.unsubscribeFromFirestore) {
         state.unsubscribeFromFirestore();
     }
+    cleanupTeamSubscriptions();
+
     setState({ userId: user.uid, isOnlineMode: true });
     DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
 
     switchView(DOM.loadingView, DOM.loginView);
 
+    // --- START OF THE FIX ---
+    // Ensure a user document exists before subscribing to data
+    const userDocRef = doc(db, "users", user.uid);
+    try {
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
+            // Document doesn't exist, so create it with default values.
+            // This is crucial for new users.
+            await setDoc(userDocRef, {
+                activities: {},
+                leaveTypes: [],
+                teamId: null,
+                teamRole: null
+            });
+            console.log("New user document created in Firestore.");
+        }
+    } catch (error) {
+        console.error("Error ensuring user document exists:", error);
+        showMessage("There was a problem setting up your account.", "error");
+        // Optional: Handle this error more gracefully, e.g., by logging the user out.
+        return;
+    }
+    // --- END OF THE FIX ---
+
+    // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, () => {
+        // Team data will now be loaded on-demand when the user expands the team section.
         switchView(DOM.appView, DOM.loadingView, updateView);
     });
 }
@@ -262,6 +337,7 @@ function updateView() {
         renderCalendar();
         renderLeavePills();
         renderLeaveStats();
+        renderTeamSection();
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
         renderDailyActivities();
@@ -289,7 +365,6 @@ function renderCalendar() {
         const dateKey = getYYYYMMDD(date);
         const dayData = state.allStoredData[dateKey] || {};
         const noteText = dayData.note || '';
-        const sanitizedNote = noteText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
         const leaveData = dayData.leave;
 
@@ -313,7 +388,7 @@ function renderCalendar() {
             ${leaveIndicatorHTML}
             <div class="calendar-day-content">
                 <div class="day-number">${day}</div>
-                <div class="day-note-container">${noteText ? `<span class="day-note">${noteText}</span>` : ''}</div>
+                <div class="day-note-container">${noteText ? `<span class="day-note">${sanitizeHTML(noteText)}</span>` : ''}</div>
                 ${hasActivity ? '<div class="activity-indicator"></div>' : ''}
             </div>`;
         dayCell.dataset.date = dateKey;
@@ -445,7 +520,12 @@ async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
         const data = doc.exists() ? doc.data() : {};
-        setState({ allStoredData: data.activities || {}, leaveTypes: data.leaveTypes || [] });
+        setState({ 
+            allStoredData: data.activities || {}, 
+            leaveTypes: data.leaveTypes || [],
+            currentTeam: data.teamId || null,
+            teamRole: data.teamRole || null
+        });
 
         updateView();
 
@@ -455,6 +535,86 @@ async function subscribeToData(userId, callback) {
         }
     });
     setState({ unsubscribeFromFirestore: unsubscribe });
+}
+
+async function subscribeToTeamData(callback) {
+    if (!state.currentTeam) {
+        if (callback) callback();
+        return;
+    }
+
+    // Subscribe to team document
+    const teamDocRef = doc(db, "teams", state.currentTeam);
+    const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => {
+        if (doc.exists()) {
+            const teamData = doc.data();
+            const membersArray = Object.values(teamData.members || {});
+            setState({
+                teamName: teamData.name,
+                teamMembers: membersArray
+            });
+
+            // If user is owner, load all member data for the dashboard
+            if (state.teamRole === TEAM_ROLES.OWNER) {
+                loadTeamMembersData();
+            }
+            updateView();
+        } else {
+            // This can happen if the team is deleted.
+            cleanupTeamSubscriptions();
+            setState({ currentTeam: null, teamRole: null, teamName: null, teamMembers: [], teamMembersData: {} });
+            updateView();
+        }
+    });
+
+    setState({ unsubscribeFromTeam: unsubscribeTeam });
+    
+    if (callback) callback();
+}
+
+async function loadTeamMembersData() {
+    // Clean up existing member summary listeners
+    if (state.unsubscribeFromTeamMembers) {
+        state.unsubscribeFromTeamMembers.forEach(unsub => unsub());
+    }
+
+    if (!state.currentTeam) return;
+
+    const summaryCollectionRef = collection(db, "teams", state.currentTeam, "member_summaries");
+
+    const unsubscribe = onSnapshot(summaryCollectionRef, (snapshot) => {
+        const teamMembersData = { ...state.teamMembersData }; // Preserve existing data
+
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "removed") {
+                delete teamMembersData[change.doc.id];
+            } else {
+                teamMembersData[change.doc.id] = change.doc.data();
+            }
+        });
+
+        setState({ teamMembersData });
+
+        // If the dashboard is currently open, re-render it
+        if (DOM.teamDashboardModal.classList.contains('visible')) {
+            renderTeamDashboard();
+        }
+    }, (error) => {
+        console.error("Error listening to team member summaries:", error);
+        showMessage("Could not load real-time team member data.", "error");
+    });
+
+    setState({ unsubscribeFromTeamMembers: [unsubscribe] });
+}
+
+function cleanupTeamSubscriptions() {
+    if (state.unsubscribeFromTeam) {
+        state.unsubscribeFromTeam();
+        setState({ unsubscribeFromTeam: null });
+    }
+    
+    state.unsubscribeFromTeamMembers.forEach(unsub => unsub());
+    setState({ unsubscribeFromTeamMembers: [] });
 }
 
 async function saveData(action) {
@@ -531,7 +691,10 @@ async function saveData(action) {
     };
 
     if (state.isOnlineMode && state.userId) {
-        await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        await saveDataToFirestore({ 
+            activities: updatedData, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
         setState({ allStoredData: updatedData });
@@ -577,7 +740,7 @@ function saveDataToLocalStorage(data) {
 async function saveDataToFirestore(data) {
     if (!state.userId) return;
     try {
-        await setDoc(doc(db, "users", state.userId), data);
+        await setDoc(doc(db, "users", state.userId), data, { merge: true });
     } catch (error) {
         console.error("Error saving to Firestore:", error);
         showMessage("Error: Could not save data to the cloud.", 'error');
@@ -634,7 +797,10 @@ function updateActivityOrder() {
     const updatedData = { ...state.allStoredData, [dateKey]: newDayData };
 
     if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        saveDataToFirestore({ 
+            activities: updatedData, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
         setState({ allStoredData: updatedData });
@@ -656,7 +822,10 @@ function deleteActivity(dateKey, timeKey) {
     const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
 
     if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ activities: dataCopy, leaveTypes: state.leaveTypes });
+        saveDataToFirestore({ 
+            activities: dataCopy, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
         setState({ allStoredData: dataCopy });
@@ -838,7 +1007,10 @@ function handleFileUpload(event) {
             setState({ leaveTypes: finalLeaveTypes, allStoredData: dataCopy });
 
             if (state.isOnlineMode && state.userId) {
-                await saveDataToFirestore({ activities: dataCopy, leaveTypes: finalLeaveTypes });
+                await saveDataToFirestore({ 
+                    activities: dataCopy, 
+                    leaveTypes: finalLeaveTypes
+                });
             } else {
                 saveDataToLocalStorage({ activities: dataCopy, leaveTypes: finalLeaveTypes });
                 updateView();
@@ -859,6 +1031,10 @@ function handleUserLogout() {
     if (state.unsubscribeFromFirestore) {
         state.unsubscribeFromFirestore();
     }
+    
+    // Clean up team subscriptions
+    cleanupTeamSubscriptions();
+    
     localStorage.removeItem('sessionMode');
 
     if (DOM.splashScreen) {
@@ -876,7 +1052,15 @@ function handleUserLogout() {
         userId: null,
         isOnlineMode: false,
         unsubscribeFromFirestore: null,
-        logoTapCount: 0 // Reset easter egg counter
+        logoTapCount: 0, // Reset easter egg counter
+        // Reset team state
+        currentTeam: null,
+        teamName: null,
+        teamRole: null,
+        teamMembers: [],
+        teamMembersData: {},
+        unsubscribeFromTeam: null,
+        unsubscribeFromTeamMembers: []
     });
 
     switchView(DOM.loginView, DOM.appView);
@@ -927,6 +1111,29 @@ async function signUpWithEmail(email, password) {
         } else {
             showMessage(`Sign-up failed: ${error.message}`, 'error');
         }
+    } finally {
+        setButtonLoadingState(button, false);
+    }
+}
+
+async function editTeamName() {
+    const button = DOM.editTeamNameModal.querySelector('#save-edit-team-name-btn');
+    const newTeamName = DOM.newTeamNameInput.value.trim();
+
+    if (!newTeamName) {
+        showMessage('Please enter a team name.', 'error');
+        return;
+    }
+
+    setButtonLoadingState(button, true);
+    try {
+        const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
+        await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
+        showMessage('Team name updated successfully!', 'success');
+        closeEditTeamNameModal();
+    } catch (error) {
+        console.error('Error updating team name:', error);
+        showMessage(`Failed to update team name: ${error.message}`, 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -1301,7 +1508,10 @@ async function saveLeaveType() {
 
     setState({ leaveTypes: newLeaveTypes });
     if(state.isOnlineMode) {
-        await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
+        await saveDataToFirestore({ 
+            activities: state.allStoredData, 
+            leaveTypes: newLeaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: newLeaveTypes });
     }
@@ -1328,7 +1538,10 @@ async function deleteLeaveType() {
     setState({ allStoredData: updatedActivities });
 
     if(state.isOnlineMode) {
-        await saveDataToFirestore({ activities: updatedActivities, leaveTypes: newLeaveTypes });
+        await saveDataToFirestore({ 
+            activities: updatedActivities, 
+            leaveTypes: newLeaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
     }
@@ -1340,7 +1553,10 @@ async function deleteLeaveType() {
 
 async function saveLeaveTypes() {
     if (state.isOnlineMode) {
-        await saveDataToFirestore({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+        await saveDataToFirestore({ 
+            activities: state.allStoredData, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
         updateView();
@@ -1458,7 +1674,7 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
                 </div>
             </div>
             <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 dark p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
+                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full">Full</button>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half">Half</button>
@@ -1467,7 +1683,7 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
                     <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                     </button>
-                    <button class="delete-leave-day-btn icon-btn text-red-500 hover:text-red-700" title="Delete this leave entry">
+                    <button class="delete-leave-day-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700" title="Delete this leave entry">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
@@ -1503,7 +1719,10 @@ async function deleteLeaveDay(dateKey) {
     delete updatedData[dateKey].leave;
 
     if (state.isOnlineMode) {
-        await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        await saveDataToFirestore({ 
+            activities: updatedData, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
         setState({ allStoredData: updatedData });
@@ -1555,7 +1774,7 @@ function renderLeaveStats() {
             <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center min-w-0 pr-2">
-                        <h4 class="font-bold text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
+                        <h4 class="font-bold text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
@@ -1640,7 +1859,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
         triggerHTML = `
             <span class="flex items-center w-full min-w-0">
                 <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
-                <span class="font-medium text-sm truncate min-w-0">${selectedType.name}</span>
+                <span class="font-medium text-sm truncate min-w-0">${sanitizeHTML(selectedType.name)}</span>
             </span>
             <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
     } else {
@@ -1660,7 +1879,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
                 ${state.leaveTypes.map(lt => `
                     <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
                         <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
-                        <span class="truncate min-w-0" title="${lt.name}">${lt.name}</span>
+                        <span class="truncate min-w-0" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</span>
                     </button>
                 `).join('')}
             </div>
@@ -1695,7 +1914,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
                 newTriggerHTML = `
                     <span class="flex items-center w-full min-w-0">
                         <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
-                        <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
+                        <span class="font-medium text-sm truncate min-w-0">${sanitizeHTML(newType.name)}</span>
                     </span>
                     <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
             }
@@ -1918,7 +2137,10 @@ async function saveLoggedLeaves() {
     });
 
     if (state.isOnlineMode) {
-        await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+        await saveDataToFirestore({ 
+            activities: updatedData, 
+            leaveTypes: state.leaveTypes
+        });
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
         setState({ allStoredData: updatedData });
@@ -1926,7 +2148,7 @@ async function saveLoggedLeaves() {
 
     DOM.customizeLeaveModal.classList.remove('visible');
     setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-    DOM.logNewLeaveBtn.textContent = 'Log Leave';
+    DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> Log Leave';
     DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
     updateView();
     showMessage('Leaves saved successfully!', 'success');
@@ -1943,6 +2165,473 @@ function handleBulkRemoveClick() {
         trigger.innerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
     });
     showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
+}
+
+// --- Team Management Functions ---
+function renderTeamSection() {
+    const teamIcon = document.getElementById('team-icon');
+    if (teamIcon) {
+        if (state.currentTeam) {
+            teamIcon.className = 'fa-solid fa-users w-5 h-5 mr-2';
+        } else {
+            teamIcon.className = 'fa-regular fa-users w-5 h-5 mr-2';
+        }
+    }
+
+    if (!state.isOnlineMode) {
+        DOM.teamSection.innerHTML = '<p class="text-center text-gray-500">Team features are only available when signed in.</p>';
+        return;
+    }
+
+    if (!state.currentTeam) {
+        // No team - show create/join options
+        DOM.teamSection.innerHTML = `
+            <div class="text-center">
+                <h3 class="text-lg font-semibold mb-4">Team Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
+                        <button id="create-team-btn" class="w-full text-left">
+                            <div class="flex items-center justify-center mb-4">
+                                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <h4 class="text-xl font-bold text-center mb-2">Create Team</h4>
+                            <p class="text-center text-gray-600 dark:text-gray-400">Start a new team and invite others to join.</p>
+                        </button>
+                    </div>
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
+                        <button id="join-team-btn" class="w-full text-left">
+                            <div class="flex items-center justify-center mb-4">
+                                <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <h4 class="text-xl font-bold text-center mb-2">Join Team</h4>
+                            <p class="text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add event listeners for create/join buttons
+        document.getElementById('create-team-btn').addEventListener('click', openCreateTeamModal);
+        document.getElementById('join-team-btn').addEventListener('click', openJoinTeamModal);
+        
+    } else {
+        // Has team - show team info and actions
+        const isOwner = state.teamRole === TEAM_ROLES.OWNER;
+        const memberCount = state.teamMembers.length || 0;
+        
+        const teamInfo = `
+            <div class="space-y-6">
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold mb-2 flex items-center justify-center">
+                        <i class="fa-solid fa-user-group w-5 h-5 mr-2 text-blue-600"></i>
+                        <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
+                        ${isOwner ? `
+                        <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                        </button>
+                        ` : ''}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400">You are ${isOwner ? 'the owner' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-100 p-4 rounded-lg border">
+                    <h4 class="font-semibold mb-3 text-center">Team Room Code</h4>
+                    <div class="text-center">
+                        <div class="room-code">
+                            <span>${state.currentTeam}</span>
+                            <button id="copy-room-code-btn" class="icon-btn hover:bg-white/20 ml-2" title="Copy Code">
+                                <i class="fa-regular fa-copy text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">Share this code with others to invite them to your team.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-${isOwner ? '3' : '2'} gap-4">
+                    ${isOwner ? `
+                        <button id="team-dashboard-btn" class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Team Dashboard
+                        </button>
+                    ` : ''}
+                    <button id="edit-display-name-btn" class="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
+                        </svg>
+                        Change Name
+                    </button>
+                    ${isOwner ? `
+                        <button id="delete-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete Team
+                        </button>
+                    ` : `
+                        <button id="leave-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                            <i class="fa-solid fa-door-open w-5 h-5 mr-2"></i>
+                            Leave Team
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+        
+        DOM.teamSection.innerHTML = teamInfo;
+        
+        // Event listeners are now handled by delegation in setupEventListeners
+    }
+}
+
+function openCreateTeamModal() {
+    DOM.teamNameInput.value = '';
+    DOM.createTeamModal.classList.add('visible');
+}
+
+function closeCreateTeamModal() {
+    DOM.createTeamModal.classList.remove('visible');
+}
+
+function openJoinTeamModal() {
+    DOM.roomCodeInput.value = '';
+    DOM.displayNameInput.value = '';
+    DOM.joinTeamModal.classList.add('visible');
+}
+
+function closeJoinTeamModal() {
+    DOM.joinTeamModal.classList.remove('visible');
+}
+
+function openEditDisplayNameModal() {
+    // Find current user's display name
+    const currentMember = state.teamMembers.find(m => m.userId === state.userId);
+    DOM.newDisplayNameInput.value = currentMember?.displayName || '';
+    DOM.editDisplayNameModal.classList.add('visible');
+}
+
+function closeEditDisplayNameModal() {
+    DOM.editDisplayNameModal.classList.remove('visible');
+}
+
+function openEditTeamNameModal() {
+    DOM.newTeamNameInput.value = state.teamName || '';
+    DOM.editTeamNameModal.classList.add('visible');
+}
+
+function closeEditTeamNameModal() {
+    DOM.editTeamNameModal.classList.remove('visible');
+}
+
+async function createTeam() {
+    const button = DOM.createTeamModal.querySelector('#save-create-team-btn');
+    const teamName = DOM.teamNameInput.value.trim();
+    
+    if (!teamName) {
+        showMessage('Please enter a team name.', 'error');
+        return;
+    }
+    
+    setButtonLoadingState(button, true);
+    
+    try {
+        const roomCode = generateRoomCode();
+        const teamId = `team_${new Date().getTime()}`;
+        
+        const batch = writeBatch(db);
+        
+        // Create team document
+        const teamRef = doc(db, "teams", roomCode);
+        batch.set(teamRef, {
+            name: teamName,
+            roomCode: roomCode,
+            ownerId: state.userId,
+            createdAt: new Date(),
+            members: {
+                [state.userId]: {
+                    userId: state.userId,
+                    displayName: teamName + ' Owner',
+                    role: TEAM_ROLES.OWNER,
+                    joinedAt: new Date()
+                }
+            }
+        });
+        
+        // Update user document
+        const userRef = doc(db, "users", state.userId);
+        batch.set(userRef, {
+            teamId: roomCode,
+            teamRole: TEAM_ROLES.OWNER
+        }, { merge: true });
+        
+        await batch.commit();
+        
+        showMessage('Team created successfully!', 'success');
+        closeCreateTeamModal();
+        
+    } catch (error) {
+        console.error('Error creating team:', error);
+        showMessage('Failed to create team. Please try again.', 'error');
+    } finally {
+        setButtonLoadingState(button, false);
+    }
+}
+
+async function joinTeam() {
+    const button = DOM.joinTeamModal.querySelector('#save-join-team-btn');
+    const roomCode = DOM.roomCodeInput.value.trim().toUpperCase();
+    const displayName = DOM.displayNameInput.value.trim();
+
+    if (!roomCode || !displayName) {
+        showMessage('Please enter both room code and display name.', 'error');
+        return;
+    }
+
+    setButtonLoadingState(button, true);
+
+    try {
+        const joinTeamCallable = httpsCallable(functions, 'joinTeam');
+        const result = await joinTeamCallable({ roomCode, displayName });
+
+        showMessage(result.data.message, 'success');
+        closeJoinTeamModal();
+    } catch (error) {
+        console.error('Error calling joinTeam function:', error);
+        showMessage(`Failed to join team: ${error.message}`, 'error');
+    } finally {
+        setButtonLoadingState(button, false);
+    }
+}
+
+async function editDisplayName() {
+    const button = DOM.editDisplayNameModal.querySelector('#save-edit-name-btn');
+    const newDisplayName = DOM.newDisplayNameInput.value.trim();
+
+    if (!newDisplayName) {
+        showMessage('Please enter a display name.', 'error');
+        return;
+    }
+
+    setButtonLoadingState(button, true);
+    try {
+        const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
+        await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
+        showMessage('Display name updated successfully!', 'success');
+        closeEditDisplayNameModal();
+    } catch (error) {
+        console.error('Error updating display name:', error);
+        showMessage(`Failed to update display name: ${error.message}`, 'error');
+    } finally {
+        setButtonLoadingState(button, false);
+    }
+}
+
+async function leaveTeam(button) {
+    try {
+        const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
+        await leaveTeamCallable({ teamId: state.currentTeam });
+        showMessage('Successfully left the team.', 'success');
+        // No need to turn off loading state, as the button will be removed on re-render.
+    } catch (error) {
+        console.error('Error leaving team:', error);
+        showMessage(`Failed to leave team: ${error.message}`, 'error');
+        if (button) setButtonLoadingState(button, false); // Turn off loading on error
+    }
+}
+
+async function deleteTeam() {
+    try {
+        const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
+        await deleteTeamCallable({ teamId: state.currentTeam });
+        showMessage('Team deleted successfully.', 'success');
+    } catch (error) {
+        console.error('Error deleting team:', error);
+        showMessage(`Failed to delete team: ${error.message}`, 'error');
+    }
+}
+
+function copyRoomCode() {
+    navigator.clipboard.writeText(state.currentTeam).then(() => {
+        showMessage('Room code copied to clipboard!', 'success');
+    }).catch(() => {
+        showMessage('Failed to copy room code.', 'error');
+    });
+}
+
+function openKickMemberModal(memberId, memberName) {
+    DOM.kickModalText.innerHTML = `You are about to kick <strong>${sanitizeHTML(memberName)}</strong> from the team. This action cannot be undone.`;
+    DOM.confirmKickModal.dataset.memberId = memberId;
+    DOM.confirmKickModal.classList.add('visible');
+}
+
+function closeKickMemberModal() {
+    DOM.confirmKickModal.classList.remove('visible');
+}
+
+async function kickMember() {
+    const memberId = DOM.confirmKickModal.dataset.memberId;
+    if (!memberId) return;
+
+    const button = DOM.confirmKickModal.querySelector('#confirm-kick-btn');
+    setButtonLoadingState(button, true);
+
+    try {
+        const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
+        await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
+        showMessage('Team member kicked successfully!', 'success');
+        closeKickMemberModal();
+    } catch (error) {
+        console.error('Error kicking member:', error);
+        showMessage(`Failed to kick member: ${error.message}`, 'error');
+    } finally {
+        setButtonLoadingState(button, false);
+    }
+}
+
+function openTeamDashboard() {
+    DOM.teamDashboardModal.classList.add('visible');
+    renderTeamDashboard();
+}
+
+function closeTeamDashboard() {
+    DOM.teamDashboardModal.classList.remove('visible');
+}
+
+function renderTeamDashboard() {
+    // Remember which rows are open before re-rendering.
+    const openMemberIds = new Set();
+    DOM.teamDashboardContent.querySelectorAll('details[open]').forEach(detail => {
+        if (detail.dataset.userId) {
+            openMemberIds.add(detail.dataset.userId);
+        }
+    });
+    if (!state.teamMembers || state.teamMembers.length === 0) {
+        DOM.teamDashboardContent.innerHTML = '<p class="text-center text-gray-500">Loading team data...</p>';
+        return;
+    }
+
+    // Combine team member info with their summary data
+    const combinedMembers = state.teamMembers.map(member => ({
+        ...member,
+        summary: state.teamMembersData[member.userId] || {}
+    }));
+
+    const owner = combinedMembers.find(m => m.role === TEAM_ROLES.OWNER);
+    const members = combinedMembers.filter(m => m.role !== TEAM_ROLES.OWNER);
+    const sortedMembers = [
+        ...(owner ? [owner] : []),
+        ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
+    ];
+    
+    const membersHTML = sortedMembers.map(member => {
+        const balances = member.summary.leaveBalances || {};
+        const isOwner = member.role === TEAM_ROLES.OWNER;
+        
+        const leaveTypesHTML = Object.values(balances).length > 0
+    ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
+        const usedPercentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
+        const radius = 26;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (usedPercentage / 100) * circumference;
+
+        return `
+            <div class="leave-stat-card">
+                <div class="radial-progress-container">
+                    <svg class="w-full h-full" viewBox="0 0 60 60">
+                        <circle class="radial-progress-bg" cx="30" cy="30" r="${radius}"></circle>
+                        <circle class="radial-progress-bar"
+                                cx="30" cy="30" r="${radius}"
+                                stroke="${balance.color}"
+                                stroke-dasharray="${circumference}"
+                                stroke-dashoffset="${offset}"
+                                transform="rotate(-90 30 30)">
+                        </circle>
+                    </svg>
+                    <div class="radial-progress-center-text" style="color: ${balance.color};">
+                        ${Math.round(usedPercentage)}%
+                    </div>
+                </div>
+                <div class="stat-card-info">
+                    <h5>${sanitizeHTML(balance.name)}</h5>
+                    <p>Balance: ${balance.balance} days</p>
+                    <p>Used: ${balance.used} / ${balance.total} days</p>
+                </div>
+            </div>
+        `;
+    }).join('') + '</div>'
+    : '';
+        
+        return `
+           <details class="team-member-card ${isOwner ? 'team-owner-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
+                <summary class="flex items-center justify-between p-6 cursor-pointer">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            ${member.displayName.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="font-bold text-lg">${sanitizeHTML(member.displayName)}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${isOwner ? 'Team Owner' : 'Member'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        ${isOwner ? `
+                        <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-4">
+                            <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                        </div>
+                        ` : ''}
+                        ${(state.teamRole === TEAM_ROLES.OWNER && !isOwner) ? `
+                        <button class="kick-member-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700 mr-2" title="Kick Member" data-kick-member-id="${member.userId}" data-kick-member-name="${member.displayName}">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                        ` : ''}
+                        <svg class="w-6 h-6 text-gray-500 accordion-arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </summary>
+                <div class="team-member-details-content p-6 border-t border-gray-200 dark:border-gray-700">
+                    ${Object.keys(balances).length > 0 ? `
+                        <div>
+                            <h5 class="font-semibold mb-4 team-dashboard-title">Leave Balance Overview</h5>
+                            ${leaveTypesHTML}
+                        </div>
+                    ` : `
+                        <div class="text-center py-6 text-gray-500">
+                            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p>No leave types configured for this member.</p>
+                        </div>
+                    `}
+                </div>
+            </details>
+        `;
+    }).join('');
+    
+    DOM.teamDashboardContent.innerHTML = `
+        <div class="space-y-3">
+            ${membersHTML}
+        </div>
+    `;
+// Restore the open state of the rows that were open before.
+    if (openMemberIds.size > 0) {
+        openMemberIds.forEach(userId => {
+            const detailElement = DOM.teamDashboardContent.querySelector(`details[data-user-id="${userId}"]`);
+            if (detailElement) {
+                detailElement.open = true;
+            }
+        });
+    }
 }
 
 // --- OPTIMIZATION: Event Delegation Setup for Daily View ---
@@ -2013,7 +2702,28 @@ function setupEventListeners() {
     DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
     DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
     document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
-
+    // ADD THIS CODE AT THE END OF THE setupEventListeners FUNCTION
+    document.getElementById('force-debug-log-btn').addEventListener('click', async () => {
+        if (!state.userId) {
+            showMessage("You must be logged in to test this.", "error");
+            return;
+        }
+        console.log("Attempting to write a debug log...");
+        try {
+            const debugColRef = collection(db, "debug_logs");
+            await addDoc(debugColRef, {
+                message: "This is a direct test from the debug button.",
+                userId: state.userId,
+                timestamp: new Date()
+            });
+            showMessage("Debug log written successfully!", "success");
+            console.log("Debug log write was successful.");
+        } catch (error) {
+            showMessage(`Failed to write debug log: ${error.message}`, "error");
+            console.error("Error writing debug log:", error);
+        }
+    });
+    
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
@@ -2149,10 +2859,25 @@ function setupEventListeners() {
         DOM.statsArrowUp.classList.toggle('hidden');
     });
 
+    // Team toggle button
+    DOM.teamToggleBtn.addEventListener('click', () => {
+        const isVisible = DOM.teamSection.classList.toggle('visible');
+        DOM.teamArrowDown.classList.toggle('hidden');
+        DOM.teamArrowUp.classList.toggle('hidden');
+
+        if (isVisible && !state.unsubscribeFromTeam) {
+            // If the section is opened and we're not subscribed yet, subscribe.
+            subscribeToTeamData();
+        } else if (!isVisible && state.unsubscribeFromTeam) {
+            // If the section is closed and we are subscribed, clean up.
+            cleanupTeamSubscriptions();
+        }
+    });
+
     DOM.logNewLeaveBtn.addEventListener('click', () => {
         if (state.isLoggingLeave) {
             setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.textContent = 'Log Leave';
+            DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> Log Leave';
             DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
             showMessage('Leave logging cancelled.', 'info');
             updateView();
@@ -2162,7 +2887,7 @@ function setupEventListeners() {
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.textContent = 'Cancel Logging';
+            DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-times mr-2"></i> Cancel Logging';
             DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
             showMessage('Select days on the calendar and then a leave type pill.', 'info');
         }
@@ -2293,7 +3018,10 @@ function setupEventListeners() {
             updatedData[dateKey].leave.dayType = newValue;
             
             if (state.isOnlineMode) {
-                await saveDataToFirestore({ activities: updatedData, leaveTypes: state.leaveTypes });
+                await saveDataToFirestore({ 
+                    activities: updatedData, 
+                    leaveTypes: state.leaveTypes
+                });
             } else {
                 saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
                 setState({ allStoredData: updatedData });
@@ -2303,6 +3031,81 @@ function setupEventListeners() {
             updateView(); // Refresh stats in the main view
         }
     });
+
+    // Team Management Event Listeners
+    document.getElementById('cancel-create-team-btn').addEventListener('click', closeCreateTeamModal);
+    document.getElementById('save-create-team-btn').addEventListener('click', createTeam);
+    document.getElementById('cancel-join-team-btn').addEventListener('click', closeJoinTeamModal);
+    document.getElementById('save-join-team-btn').addEventListener('click', joinTeam);
+    document.getElementById('cancel-edit-name-btn').addEventListener('click', closeEditDisplayNameModal);
+    document.getElementById('save-edit-name-btn').addEventListener('click', editDisplayName);
+    document.getElementById('close-team-dashboard-btn').addEventListener('click', closeTeamDashboard);
+    document.getElementById('cancel-edit-team-name-btn').addEventListener('click', closeEditTeamNameModal);
+    document.getElementById('save-edit-team-name-btn').addEventListener('click', editTeamName);
+
+    DOM.teamDashboardContent.addEventListener('click', (e) => {
+        const kickBtn = e.target.closest('.kick-member-btn');
+        if (kickBtn) {
+            const memberId = kickBtn.dataset.kickMemberId;
+            const memberName = kickBtn.dataset.kickMemberName;
+            openKickMemberModal(memberId, memberName);
+        }
+    });
+
+    document.getElementById('cancel-kick-btn').addEventListener('click', closeKickMemberModal);
+    document.getElementById('confirm-kick-btn').addEventListener('click', kickMember);
+
+    // Delegated event listener for the team section
+    DOM.teamSection.addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const action = button.id;
+
+        const handleDoubleClick = (actionKey, message, callback) => {
+            if (button.classList.contains('confirm-action')) {
+                callback(button);
+                button.classList.remove('confirm-action');
+                clearTimeout(button.dataset.timeoutId);
+            } else {
+                DOM.teamSection.querySelectorAll('.confirm-action').forEach(el => {
+                    el.classList.remove('confirm-action');
+                    clearTimeout(el.dataset.timeoutId);
+                });
+
+                button.classList.add('confirm-action');
+                showMessage(message, 'info');
+                const timeoutId = setTimeout(() => {
+                    button.classList.remove('confirm-action');
+                }, 3000);
+                button.dataset.timeoutId = timeoutId;
+            }
+        };
+
+        switch (action) {
+            case 'create-team-btn': openCreateTeamModal(); break;
+            case 'join-team-btn': openJoinTeamModal(); break;
+            case 'team-dashboard-btn': openTeamDashboard(); break;
+            case 'edit-display-name-btn': openEditDisplayNameModal(); break;
+            case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
+            case 'copy-room-code-btn': copyRoomCode(); break;
+            case 'leave-team-btn':
+                handleDoubleClick('leaveTeam', 'Click again to confirm leaving the team.', (btn) => {
+                    setButtonLoadingState(btn, true);
+                    leaveTeam(btn);
+                });
+                break;
+            case 'delete-team-btn':
+                handleDoubleClick('deleteTeam', 'Click again to permanently delete the team.', deleteTeam);
+                break;
+        }
+    });
+
+    // Format room code input
+    DOM.roomCodeInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+    });
+
 }
 
 // --- App Initialization ---
