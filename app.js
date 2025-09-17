@@ -2173,9 +2173,9 @@ function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-users w-5 h-5 mr-2';
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
         } else {
-            teamIcon.className = 'fa-regular fa-users w-5 h-5 mr-2';
+            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
         }
     }
 
