@@ -42,6 +42,21 @@ const TEAM_ROLES = {
     MEMBER: 'member'
 };
 
+const COLOR_MAP = {
+    '#ef4444': 'Red',
+    '#f97316': 'Orange',
+    '#eab308': 'Yellow',
+    '#84cc16': 'Lime',
+    '#22c55e': 'Green',
+    '#14b8a6': 'Teal',
+    '#06b6d4': 'Cyan',
+    '#3b82f6': 'Blue',
+    '#8b5cf6': 'Violet',
+    '#d946ef': 'Fuchsia',
+    '#ec4899': 'Pink',
+    '#78716c': 'Gray'
+};
+
 // --- Global App State ---
 let state = {
     currentMonth: new Date(),
@@ -1458,9 +1473,9 @@ function closeLeaveTypeModal() {
 }
 
 function setupColorPicker() {
-    const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#ec4899', '#78716c'];
+    const colors = Object.keys(COLOR_MAP);
     DOM.leaveColorPicker.innerHTML = colors.map(color => `
-        <button type="button" data-color="${color}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
+        <button type="button" data-color="${color}" aria-label="Select color: ${COLOR_MAP[color]}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
     `).join('');
 }
 
