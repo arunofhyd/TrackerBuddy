@@ -791,7 +791,7 @@ function updateActivityOrder() {
     showMessage("Activities reordered!", 'success');
 }
 
-function deleteActivity(dateKey, timeKey) {
+async function deleteActivity(dateKey, timeKey) {
     const dayData = state.allStoredData[dateKey];
     if (!dayData || !dayData[timeKey]) return;
 
@@ -802,23 +802,29 @@ function deleteActivity(dateKey, timeKey) {
         dayDataCopy._userCleared = true;
     }
 
+    // Optimistically update the UI
     const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
+    setState({ allStoredData: dataCopy });
+    updateView();
+    showMessage("Activity deleted.", 'success');
 
-    // Update the local state immediately for a responsive UI
-    setState({ allStoredData: dataCopy }); 
-
+    // Persist the change to the backend
     if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ 
-            activities: dataCopy, 
-            leaveTypes: state.leaveTypes
-        });
+        try {
+            const userDocRef = doc(db, "users", state.userId);
+            // Use updateDoc to modify only the specific day's activities map
+            await updateDoc(userDocRef, {
+                [`activities.${dateKey}`]: dayDataCopy
+            });
+        } catch (error) {
+            console.error("Error deleting activity from Firestore:", error);
+            showMessage("Failed to save deletion to the cloud. Please refresh.", "error");
+            // Note: A more robust solution might revert the UI change here.
+        }
     } else {
+        // For local storage, we still save the entire object.
         saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
     }
-    
-    // Refresh the view to show the change
-    updateView(); 
-    showMessage("Activity deleted.", 'success');
 }
 
 // --- CSV Import/Export ---
@@ -2595,7 +2601,7 @@ function setupDailyViewEventListeners() {
     const tableBody = DOM.dailyActivityTableBody;
     if (!tableBody) return;
 
-    tableBody.addEventListener('click', e => {
+    tableBody.addEventListener('click', async e => {
         const target = e.target;
 
         const editableCell = target.closest('.activity-text-editable, .time-editable');
@@ -2618,7 +2624,7 @@ function setupDailyViewEventListeners() {
             handleMoveDownClick(row);
         } else if (button.classList.contains('delete-btn')) {
             if (button.classList.contains('confirm-action')) {
-                deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
+                await deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
                 button.classList.remove('confirm-action');
                 clearTimeout(button.dataset.timeoutId);
             } else {
