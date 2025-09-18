@@ -619,7 +619,7 @@ async function saveData(action) {
 
     switch (action.type) {
         case ACTION_TYPES.SAVE_NOTE: {
-            if (action.payload) {
+            if (action.payload && action.payload.trim()) {
                 dayDataCopy.note = action.payload;
             } else {
                 delete dayDataCopy.note;
