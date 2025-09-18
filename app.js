@@ -1351,7 +1351,7 @@ function handleInlineEditClick(event) {
 }
 
 function handleInlineEditBlur(event) {
-    const target = event.currentTarget;
+    const target = event.Target;
     if (state.editingInlineTimeKey === target.dataset.time) {
         if (target.classList.contains('time-editable')) {
             saveData({ type: ACTION_TYPES.UPDATE_TIME, payload: { oldTimeKey: target.dataset.time, newTimeKey: target.innerText.trim() } });
