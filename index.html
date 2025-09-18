@@ -554,15 +554,14 @@ body.dark .stat-card-info p {
                     <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
                     </div>
                 </div>
-                <button id="today-btn-day" class="hidden w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button>
                 <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
             </div>
             <div id="main-content-area" class="w-full">
                 <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
                 <div id="daily-view" class="hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                        <button id="add-new-slot-btn" class="px-6 py-2.5 btn-primary rounded-lg w-full sm:w-1/2 whitespace-nowrap flex items-center justify-center">Add New Slot <svg class="inline-block w-5 h-5 ml-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></button>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                        <div class="flex-grow"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                        <div><button id="today-btn-day" class="px-5 py-2.5 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button></div>
                     </div>
                     <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
                     <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
@@ -796,6 +795,12 @@ body.dark .stat-card-info p {
             <button id="confirm-kick-btn" class="px-5 py-2 btn-danger rounded-lg">Confirm Kick</button>
         </div>
     </div>
+</div>
+<!-- FAB -->
+<div id="add-slot-fab-container" class="hidden">
+    <button id="add-new-slot-fab" class="fixed bottom-8 right-8 w-14 h-14 rounded-full btn-primary flex items-center justify-center shadow-lg">
+        <i class="fas fa-plus text-2xl"></i>
+    </button>
 </div>
 <script src="app.js" type="module"></script>
 </body>
