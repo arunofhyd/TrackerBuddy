@@ -2762,11 +2762,13 @@ function setupEventListeners() {
     }, 500));
 
     const addNewSlotFab = document.getElementById('add-new-slot-fab');
-    addNewSlotFab.addEventListener('click', async () => {
-        setButtonLoadingState(addNewSlotFab, true);
-        await saveData({ type: ACTION_TYPES.ADD_SLOT });
-        setButtonLoadingState(addNewSlotFab, false);
-    });
+    if (addNewSlotFab) {
+        addNewSlotFab.addEventListener('click', async () => {
+            setButtonLoadingState(addNewSlotFab, true);
+            await saveData({ type: ACTION_TYPES.ADD_SLOT });
+            setButtonLoadingState(addNewSlotFab, false);
+        });
+    }
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
         DOM.resetModalText.textContent = state.isOnlineMode
