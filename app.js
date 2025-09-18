@@ -155,6 +155,7 @@ function initUI() {
         statsArrowDown: document.getElementById('stats-arrow-down'),
         statsArrowUp: document.getElementById('stats-arrow-up'),
         monthViewControls: document.getElementById('month-view-controls'),
+        dayViewTopControls: document.getElementById('day-view-top-controls'), // Added this line
         leavePillsContainer: document.getElementById('leave-pills-container'),
         todayBtnDay: document.getElementById('today-btn-day'),
         addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
@@ -303,7 +304,6 @@ function updateView() {
     if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
 
     const isMonthView = state.currentView === VIEW_MODES.MONTH;
-
     DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
     DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
     DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
@@ -312,16 +312,12 @@ function updateView() {
     DOM.calendarView.classList.toggle('hidden', !isMonthView);
     DOM.dailyView.classList.toggle('hidden', isMonthView);
 
-    // Explicitly show or hide the FAB container
     if (DOM.addSlotFabContainer) {
-        if (isMonthView) {
-            DOM.addSlotFabContainer.classList.add('hidden');
-        } else {
-            DOM.addSlotFabContainer.classList.remove('hidden');
-        }
+        DOM.addSlotFabContainer.classList.toggle('hidden', isMonthView);
     }
 
     DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
+    DOM.dayViewTopControls.classList.toggle('hidden', isMonthView); // Controls new day view controls
     DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
     DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView);
 
@@ -336,7 +332,6 @@ function updateView() {
         renderDailyActivities();
     }
 }
-
 function renderCalendar() {
     while (DOM.calendarView.children.length > 7) DOM.calendarView.removeChild(DOM.calendarView.lastChild);
 
