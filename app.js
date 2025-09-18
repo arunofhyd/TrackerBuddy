@@ -837,6 +837,9 @@ function deleteActivity(dateKey, timeKey) {
 
     const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
 
+    // Update the local state immediately for a responsive UI
+    setState({ allStoredData: dataCopy }); 
+
     if (state.isOnlineMode && state.userId) {
         saveDataToFirestore({ 
             activities: dataCopy, 
@@ -844,9 +847,10 @@ function deleteActivity(dateKey, timeKey) {
         });
     } else {
         saveDataToLocalStorage({ activities: dataCopy, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: dataCopy });
-        updateView();
     }
+    
+    // Refresh the view to show the change
+    updateView(); 
     showMessage("Activity deleted.", 'success');
 }
 
