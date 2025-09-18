@@ -1,6 +1,7 @@
 {
   "projects": {
-    "TrackerBuddy": "trackerbuddyaoh"
+    "TrackerBuddy": "trackerbuddyaoh",
+    "default": "trackerbuddyaoh"
   },
   "targets": {},
   "etags": {}
