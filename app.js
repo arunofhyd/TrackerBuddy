@@ -173,6 +173,7 @@ function initUI() {
         overviewLeaveTypeName: document.getElementById('overview-leave-type-name'),
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
+        addSlotFabContainer: document.getElementById('add-slot-fab-container'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -310,9 +311,10 @@ function updateView() {
     DOM.calendarView.classList.toggle('hidden', !isMonthView);
     DOM.dailyView.classList.toggle('hidden', isMonthView);
 
+    if(DOM.addSlotFabContainer) DOM.addSlotFabContainer.classList.toggle('hidden', isMonthView);
+
     DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
     DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
-    DOM.todayBtnDay.classList.toggle('hidden', isMonthView);
     DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView)
 
     if (isMonthView) {
@@ -2759,11 +2761,11 @@ function setupEventListeners() {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
     }, 500));
 
-    const addNewSlotBtn = document.getElementById('add-new-slot-btn');
-    addNewSlotBtn.addEventListener('click', async () => {
-        setButtonLoadingState(addNewSlotBtn, true);
+    const addNewSlotFab = document.getElementById('add-new-slot-fab');
+    addNewSlotFab.addEventListener('click', async () => {
+        setButtonLoadingState(addNewSlotFab, true);
         await saveData({ type: ACTION_TYPES.ADD_SLOT });
-        setButtonLoadingState(addNewSlotBtn, false);
+        setButtonLoadingState(addNewSlotFab, false);
     });
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
