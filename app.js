@@ -2756,10 +2756,10 @@ function setupEventListeners() {
         setButtonLoadingState(button, false);
     });
 
-    // Use 'change' event for more reliable saving when the user clicks away
-    DOM.dailyNoteInput.addEventListener('change', (e) => {
+    // Use debounced 'input' for a better UX
+    DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
-    });
+    }, 500));
 
     const addNewSlotBtn = document.getElementById('add-new-slot-btn');
     if (addNewSlotBtn) {
