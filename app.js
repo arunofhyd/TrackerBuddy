@@ -432,7 +432,7 @@ function renderDailyActivities() {
         const isLast = index === dailyActivitiesArray.length - 1;
 
         row.innerHTML = `
-            <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
+            <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${sanitizeHTML(activity.time)}</td>
             <td class="py-3 px-4 text-sm text-gray-900">
                 <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
             </td>
@@ -601,6 +601,69 @@ function cleanupTeamSubscriptions() {
     setState({ unsubscribeFromTeamMembers: [] });
 }
 
+async function persistData(data) {
+    if (state.isOnlineMode && state.userId) {
+        try {
+            await saveDataToFirestore(data);
+        } catch (error) {
+            console.error("Error saving to Firestore:", error);
+            showMessage("Error: Could not save changes. Please try again.", 'error');
+        }
+    } else {
+        saveDataToLocalStorage(data);
+    }
+}
+
+function handleSaveNote(dayDataCopy, payload) {
+    if (payload && payload.trim()) {
+        dayDataCopy.note = payload;
+    } else {
+        delete dayDataCopy.note;
+    }
+}
+
+function handleAddSlot(dayDataCopy) {
+    let newTimeKey = "00:00", counter = 0;
+    while (dayDataCopy[newTimeKey]) {
+        newTimeKey = `00:00-${++counter}`;
+    }
+    const existingKeys = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
+    const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
+    dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
+    delete dayDataCopy._userCleared;
+    return "New slot added!";
+}
+
+function handleUpdateActivityText(dayDataCopy, payload) {
+    if (dayDataCopy[payload.timeKey]) {
+        dayDataCopy[payload.timeKey].text = payload.newText;
+    } else {
+        const order = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
+        dayDataCopy[payload.timeKey] = { text: payload.newText, order };
+    }
+    delete dayDataCopy._userCleared;
+    return "Activity updated!";
+}
+
+function handleUpdateTime(dayDataCopy, payload) {
+    const { oldTimeKey, newTimeKey } = payload;
+    if (!newTimeKey) {
+        showMessage("Time cannot be empty.", 'error');
+        return null;
+    }
+    if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
+        showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+        return null;
+    }
+
+    if (oldTimeKey !== newTimeKey && dayDataCopy.hasOwnProperty(oldTimeKey)) {
+        Object.defineProperty(dayDataCopy, newTimeKey,
+            Object.getOwnPropertyDescriptor(dayDataCopy, oldTimeKey));
+        delete dayDataCopy[oldTimeKey];
+    }
+    return "Time updated!";
+}
+
 async function saveData(action) {
     const dateKey = getYYYYMMDD(state.selectedDate);
 
@@ -647,55 +710,18 @@ async function saveData(action) {
 
     switch (action.type) {
         case ACTION_TYPES.SAVE_NOTE:
-            if (action.payload && action.payload.trim()) {
-                dayDataCopy.note = action.payload;
-            } else {
-                delete dayDataCopy.note;
-            }
+            handleSaveNote(dayDataCopy, action.payload);
             break;
-        case ACTION_TYPES.ADD_SLOT: {
-            let newTimeKey = "00:00", counter = 0;
-            while (dayDataCopy[newTimeKey]) {
-                newTimeKey = `00:00-${++counter}`;
-            }
-            const existingKeys = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave');
-            const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
-            dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
-            delete dayDataCopy._userCleared;
-            successMessage = "New slot added!";
+        case ACTION_TYPES.ADD_SLOT:
+            successMessage = handleAddSlot(dayDataCopy);
             break;
-        }
-        case ACTION_TYPES.UPDATE_ACTIVITY_TEXT: {
-            if (dayDataCopy[action.payload.timeKey]) {
-                dayDataCopy[action.payload.timeKey].text = action.payload.newText;
-            } else {
-                const order = Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length;
-                dayDataCopy[action.payload.timeKey] = { text: action.payload.newText, order };
-            }
-            delete dayDataCopy._userCleared;
-            successMessage = "Activity updated!";
+        case ACTION_TYPES.UPDATE_ACTIVITY_TEXT:
+            successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
             break;
-        }
-        case ACTION_TYPES.UPDATE_TIME: {
-            const { oldTimeKey, newTimeKey } = action.payload;
-            if (!newTimeKey) {
-                showMessage("Time cannot be empty.", 'error');
-                return;
-            }
-            if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
-                showMessage(`Time "${newTimeKey}" already exists.`, 'error');
-                return;
-            }
-            const entry = dayDataCopy[oldTimeKey];
-            if (entry) {
-                dayDataCopy[newTimeKey] = entry;
-                if (oldTimeKey !== newTimeKey) {
-                    delete dayDataCopy[oldTimeKey];
-                }
-            }
-            successMessage = "Time updated!";
+        case ACTION_TYPES.UPDATE_TIME:
+            successMessage = handleUpdateTime(dayDataCopy, action.payload);
+            if (successMessage === null) return; // Error handled in helper
             break;
-        }
     }
 
     const updatedData = {
@@ -795,7 +821,7 @@ async function resetAllData() {
     setButtonLoadingState(button, false);
 }
 
-function updateActivityOrder() {
+async function updateActivityOrder() {
     const dateKey = getYYYYMMDD(state.selectedDate);
     const dayData = state.allStoredData[dateKey] || {};
     const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
@@ -813,13 +839,8 @@ function updateActivityOrder() {
 
     const updatedData = { ...state.allStoredData, [dateKey]: newDayData };
 
-    if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ 
-            activities: updatedData, 
-            leaveTypes: state.leaveTypes
-        });
-    } else {
-        saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+    await persistData({ activities: updatedData, leaveTypes: state.leaveTypes });
+    if (!state.isOnlineMode) {
         setState({ allStoredData: updatedData });
     }
     showMessage("Activities reordered!", 'success');
@@ -1558,14 +1579,7 @@ async function deleteLeaveType() {
     });
     setState({ allStoredData: updatedActivities });
 
-    if(state.isOnlineMode) {
-        await saveDataToFirestore({ 
-            activities: updatedActivities, 
-            leaveTypes: newLeaveTypes
-        });
-    } else {
-        saveDataToLocalStorage({ activities: updatedActivities, leaveTypes: newLeaveTypes });
-    }
+    await persistData({ activities: updatedActivities, leaveTypes: newLeaveTypes });
 
     closeLeaveTypeModal();
     updateView();
@@ -1573,19 +1587,14 @@ async function deleteLeaveType() {
 }
 
 async function saveLeaveTypes() {
-    if (state.isOnlineMode) {
-        await saveDataToFirestore({ 
-            activities: state.allStoredData, 
-            leaveTypes: state.leaveTypes
-        });
-    } else {
-        saveDataToLocalStorage({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+    await persistData({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+    if (!state.isOnlineMode) {
         updateView();
     }
     showMessage('Leave types reordered!', 'success');
 }
 
-function moveLeaveType(typeId, direction) {
+async function moveLeaveType(typeId, direction) {
     const newLeaveTypes = [...state.leaveTypes];
     const index = newLeaveTypes.findIndex(lt => lt.id === typeId);
 
@@ -1597,7 +1606,7 @@ function moveLeaveType(typeId, direction) {
     [newLeaveTypes[index], newLeaveTypes[newIndex]] = [newLeaveTypes[newIndex], newLeaveTypes[index]];
 
     setState({ leaveTypes: newLeaveTypes });
-    saveLeaveTypes();
+    await saveLeaveTypes();
 }
 
 function renderLeavePills() {
@@ -1844,10 +1853,10 @@ function renderLeaveStats() {
 
     // Add event listeners for move buttons
     DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.id;
             const direction = parseInt(e.currentTarget.dataset.direction, 10);
-            moveLeaveType(id, direction);
+            await moveLeaveType(id, direction);
         });
     });
 
