@@ -1335,6 +1335,7 @@ function handleInlineEditBlur(event) {
         } else {
             saveData({ type: ACTION_TYPES.UPDATE_ACTIVITY_TEXT, payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
         }
+        setState({ editingInlineTimeKey: null });
     }
     target.classList.remove('editing');
 }
