@@ -688,8 +688,10 @@ async function saveData(action) {
             }
             const entry = dayDataCopy[oldTimeKey];
             if (entry) {
-                delete dayDataCopy[oldTimeKey];
                 dayDataCopy[newTimeKey] = entry;
+                if (oldTimeKey !== newTimeKey) {
+                    delete dayDataCopy[oldTimeKey];
+                }
             }
             successMessage = "Time updated!";
             break;
