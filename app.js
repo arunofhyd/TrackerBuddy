@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -603,6 +603,34 @@ function cleanupTeamSubscriptions() {
 
 async function saveData(action) {
     const dateKey = getYYYYMMDD(state.selectedDate);
+
+    // --- Branch for online note saving ---
+    if (state.isOnlineMode && state.userId && action.type === ACTION_TYPES.SAVE_NOTE) {
+        const userDocRef = doc(db, "users", state.userId);
+        const fieldPath = `activities.${dateKey}.note`;
+        try {
+            if (action.payload && action.payload.trim()) {
+                await updateDoc(userDocRef, { [fieldPath]: action.payload });
+            } else {
+                await updateDoc(userDocRef, { [fieldPath]: deleteField() });
+            }
+        } catch (error) {
+            // This error can happen if the user doc or activities map doesn't exist yet.
+            // In that case, we can try to create it with setDoc merge.
+            if (error.code === 'not-found' || (error.message && error.message.includes("No document to update"))) {
+                 if (action.payload && action.payload.trim()) {
+                    await setDoc(userDocRef, { activities: { [dateKey]: { note: action.payload } } }, { merge: true });
+                 }
+                 // If we're trying to delete a note on a non-existent doc, we can just do nothing.
+            } else {
+                console.error("Error saving note to Firestore:", error);
+                showMessage("Error: Could not save note.", "error");
+            }
+        }
+        return; // Exit after handling the specific case
+    }
+
+    // --- Original logic for all other cases ---
     const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
     let successMessage = null;
 
@@ -618,14 +646,13 @@ async function saveData(action) {
     }
 
     switch (action.type) {
-        case ACTION_TYPES.SAVE_NOTE: {
+        case ACTION_TYPES.SAVE_NOTE:
             if (action.payload && action.payload.trim()) {
                 dayDataCopy.note = action.payload;
             } else {
                 delete dayDataCopy.note;
             }
             break;
-        }
         case ACTION_TYPES.ADD_SLOT: {
             let newTimeKey = "00:00", counter = 0;
             while (dayDataCopy[newTimeKey]) {
