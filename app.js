@@ -303,6 +303,7 @@ function updateView() {
     if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
 
     const isMonthView = state.currentView === VIEW_MODES.MONTH;
+
     DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
     DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
     DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
@@ -311,11 +312,18 @@ function updateView() {
     DOM.calendarView.classList.toggle('hidden', !isMonthView);
     DOM.dailyView.classList.toggle('hidden', isMonthView);
 
-    if(DOM.addSlotFabContainer) DOM.addSlotFabContainer.classList.toggle('hidden', isMonthView);
+    // Explicitly show or hide the FAB container
+    if (DOM.addSlotFabContainer) {
+        if (isMonthView) {
+            DOM.addSlotFabContainer.classList.add('hidden');
+        } else {
+            DOM.addSlotFabContainer.classList.remove('hidden');
+        }
+    }
 
     DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
     DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
-    DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView)
+    DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView);
 
     if (isMonthView) {
         DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
