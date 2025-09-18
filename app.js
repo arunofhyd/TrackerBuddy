@@ -701,15 +701,24 @@ async function saveData(action) {
         [dateKey]: dayDataCopy
     };
 
+    const originalData = state.allStoredData;
+    setState({ allStoredData: updatedData });
+    updateView();
+
     if (state.isOnlineMode && state.userId) {
-        await saveDataToFirestore({ 
-            activities: updatedData, 
-            leaveTypes: state.leaveTypes
-        });
+        try {
+            await saveDataToFirestore({
+                activities: updatedData,
+                leaveTypes: state.leaveTypes
+            });
+        } catch (error) {
+            console.error("Error saving to Firestore:", error);
+            showMessage("Error: Could not save changes. Reverting.", 'error');
+            setState({ allStoredData: originalData });
+            updateView();
+        }
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-        setState({ allStoredData: updatedData });
-        updateView();
     }
 
     if (successMessage) {
@@ -750,12 +759,7 @@ function saveDataToLocalStorage(data) {
 
 async function saveDataToFirestore(data) {
     if (!state.userId) return;
-    try {
-        await setDoc(doc(db, "users", state.userId), data, { merge: true });
-    } catch (error) {
-        console.error("Error saving to Firestore:", error);
-        showMessage("Error: Could not save data to the cloud.", 'error');
-    }
+    await setDoc(doc(db, "users", state.userId), data, { merge: true });
 }
 
 function loadOfflineData() {
@@ -2431,15 +2435,15 @@ async function leaveTeam(button) {
         const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
         showMessage('Successfully left the team.', 'success');
-        // No need to turn off loading state, as the button will be removed on re-render.
     } catch (error) {
         console.error('Error leaving team:', error);
         showMessage(`Failed to leave team: ${error.message}`, 'error');
-        if (button) setButtonLoadingState(button, false); // Turn off loading on error
+    } finally {
+        if (button) setButtonLoadingState(button, false);
     }
 }
 
-async function deleteTeam() {
+async function deleteTeam(button) {
     try {
         const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
@@ -2447,6 +2451,8 @@ async function deleteTeam() {
     } catch (error) {
         console.error('Error deleting team:', error);
         showMessage(`Failed to delete team: ${error.message}`, 'error');
+    } finally {
+        if (button) setButtonLoadingState(button, false);
     }
 }
 
@@ -3068,7 +3074,10 @@ function setupEventListeners() {
                 });
                 break;
             case 'delete-team-btn':
-                handleDoubleClick('deleteTeam', 'Click again to permanently delete the team.', deleteTeam);
+                handleDoubleClick('deleteTeam', 'Click again to permanently delete the team.', (btn) => {
+                    setButtonLoadingState(btn, true);
+                    deleteTeam(btn);
+                });
                 break;
         }
     });
