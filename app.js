@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -110,14 +110,6 @@ function debounce(func, delay) {
     };
 }
 
-function generateRoomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
 
 // --- UI Functions ---
 function initUI() {
@@ -824,7 +816,7 @@ function updateActivityOrder() {
     showMessage("Activities reordered!", 'success');
 }
 
-function deleteActivity(dateKey, timeKey) {
+async function deleteActivity(dateKey, timeKey) {
     const dayData = state.allStoredData[dateKey];
     if (!dayData || !dayData[timeKey]) return;
 
@@ -838,8 +830,8 @@ function deleteActivity(dateKey, timeKey) {
     const dataCopy = { ...state.allStoredData, [dateKey]: dayDataCopy };
 
     if (state.isOnlineMode && state.userId) {
-        saveDataToFirestore({ 
-            activities: dataCopy, 
+        await saveDataToFirestore({
+            activities: dataCopy,
             leaveTypes: state.leaveTypes
         });
     } else {
@@ -2631,7 +2623,7 @@ function setupDailyViewEventListeners() {
     const tableBody = DOM.dailyActivityTableBody;
     if (!tableBody) return;
 
-    tableBody.addEventListener('click', e => {
+    tableBody.addEventListener('click', async e => {
         const target = e.target;
 
         const editableCell = target.closest('.activity-text-editable, .time-editable');
@@ -2654,7 +2646,7 @@ function setupDailyViewEventListeners() {
             handleMoveDownClick(row);
         } else if (button.classList.contains('delete-btn')) {
             if (button.classList.contains('confirm-action')) {
-                deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
+                await deleteActivity(getYYYYMMDD(state.selectedDate), timeKey);
                 button.classList.remove('confirm-action');
                 clearTimeout(button.dataset.timeoutId);
             } else {
