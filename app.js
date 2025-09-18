@@ -155,7 +155,7 @@ function initUI() {
         statsArrowDown: document.getElementById('stats-arrow-down'),
         statsArrowUp: document.getElementById('stats-arrow-up'),
         monthViewControls: document.getElementById('month-view-controls'),
-        dayViewTopControls: document.getElementById('day-view-top-controls'), // Added this line
+        dayViewTopControls: document.getElementById('day-view-top-controls'),
         leavePillsContainer: document.getElementById('leave-pills-container'),
         todayBtnDay: document.getElementById('today-btn-day'),
         addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
@@ -174,7 +174,7 @@ function initUI() {
         overviewLeaveTypeName: document.getElementById('overview-leave-type-name'),
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
-        addSlotFabContainer: document.getElementById('add-slot-fab-container'),
+        addNewSlotBtn: document.getElementById('add-new-slot-btn'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -311,10 +311,6 @@ function updateView() {
 
     DOM.calendarView.classList.toggle('hidden', !isMonthView);
     DOM.dailyView.classList.toggle('hidden', isMonthView);
-
-    if (DOM.addSlotFabContainer) {
-        DOM.addSlotFabContainer.classList.toggle('hidden', isMonthView);
-    }
 
     DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
     DOM.dayViewTopControls.classList.toggle('hidden', isMonthView); // Controls new day view controls
@@ -2760,16 +2756,17 @@ function setupEventListeners() {
         setButtonLoadingState(button, false);
     });
 
-    DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
+    // Use 'change' event for more reliable saving when the user clicks away
+    DOM.dailyNoteInput.addEventListener('change', (e) => {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
-    }, 500));
+    });
 
-    const addNewSlotFab = document.getElementById('add-new-slot-fab');
-    if (addNewSlotFab) {
-        addNewSlotFab.addEventListener('click', async () => {
-            setButtonLoadingState(addNewSlotFab, true);
+    const addNewSlotBtn = document.getElementById('add-new-slot-btn');
+    if (addNewSlotBtn) {
+        addNewSlotBtn.addEventListener('click', async () => {
+            setButtonLoadingState(addNewSlotBtn, true);
             await saveData({ type: ACTION_TYPES.ADD_SLOT });
-            setButtonLoadingState(addNewSlotFab, false);
+            setButtonLoadingState(addNewSlotBtn, false);
         });
     }
 
