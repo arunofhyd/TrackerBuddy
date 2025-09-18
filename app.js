@@ -110,15 +110,6 @@ function debounce(func, delay) {
     };
 }
 
-function generateRoomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
-
 // --- UI Functions ---
 function initUI() {
     DOM = {
@@ -283,30 +274,6 @@ async function handleUserLogin(user) {
     DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
 
     switchView(DOM.loadingView, DOM.loginView);
-
-    // --- START OF THE FIX ---
-    // Ensure a user document exists before subscribing to data
-    const userDocRef = doc(db, "users", user.uid);
-    try {
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
-            // Document doesn't exist, so create it with default values.
-            // This is crucial for new users.
-            await setDoc(userDocRef, {
-                activities: {},
-                leaveTypes: [],
-                teamId: null,
-                teamRole: null
-            });
-            console.log("New user document created in Firestore.");
-        }
-    } catch (error) {
-        console.error("Error ensuring user document exists:", error);
-        showMessage("There was a problem setting up your account.", "error");
-        // Optional: Handle this error more gracefully, e.g., by logging the user out.
-        return;
-    }
-    // --- END OF THE FIX ---
 
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, () => {
@@ -1436,13 +1403,6 @@ function loadSplashScreenVideo() {
     source.src = videoSrc;
     source.type = 'video/mp4';
     video.appendChild(source);
-
-    const track = document.createElement('track');
-    track.kind = 'captions';
-    track.label = 'English';
-    track.srclang = 'en';
-    track.src = 'assets/captions.vtt';
-    video.appendChild(track);
 
     video.oncanplay = () => {
         video.style.opacity = '1';
@@ -2698,27 +2658,6 @@ function setupEventListeners() {
     DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
     DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
     document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
-    // ADD THIS CODE AT THE END OF THE setupEventListeners FUNCTION
-    document.getElementById('force-debug-log-btn').addEventListener('click', async () => {
-        if (!state.userId) {
-            showMessage("You must be logged in to test this.", "error");
-            return;
-        }
-        console.log("Attempting to write a debug log...");
-        try {
-            const debugColRef = collection(db, "debug_logs");
-            await addDoc(debugColRef, {
-                message: "This is a direct test from the debug button.",
-                userId: state.userId,
-                timestamp: new Date()
-            });
-            showMessage("Debug log written successfully!", "success");
-            console.log("Debug log write was successful.");
-        } catch (error) {
-            showMessage(`Failed to write debug log: ${error.message}`, "error");
-            console.error("Error writing debug log:", error);
-        }
-    });
     
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
