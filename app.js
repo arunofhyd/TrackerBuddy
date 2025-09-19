@@ -657,8 +657,7 @@ function handleUpdateTime(dayDataCopy, payload) {
     }
 
     if (oldTimeKey !== newTimeKey && dayDataCopy.hasOwnProperty(oldTimeKey)) {
-        Object.defineProperty(dayDataCopy, newTimeKey,
-            Object.getOwnPropertyDescriptor(dayDataCopy, oldTimeKey));
+        dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
         delete dayDataCopy[oldTimeKey];
     }
     return "Time updated!";
