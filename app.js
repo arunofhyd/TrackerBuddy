@@ -82,7 +82,9 @@ let state = {
     teamMembers: [],
     teamMembersData: {},
     unsubscribeFromTeam: null,
-    unsubscribeFromTeamMembers: []
+    unsubscribeFromTeamMembers: [],
+    // --- FIX: Add flag to prevent race conditions during updates ---
+    isUpdating: false
 };
 
 // --- State Management ---
@@ -236,8 +238,7 @@ function switchView(viewToShow, viewToHide, callback) {
 
     if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
         if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
-    }
-    else if (viewToShow === DOM.appView) {
+    } else if (viewToShow === DOM.appView) {
         loadTheme();
         if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
     }
@@ -361,9 +362,9 @@ function renderCalendar() {
         if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
 
         let leaveIndicatorHTML = '';
-        if(leaveData) {
+        if (leaveData) {
             const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
-            if(leaveType) {
+            if (leaveType) {
                 leaveIndicatorHTML = `<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
             }
         }
@@ -500,12 +501,18 @@ function formatTextForDisplay(text) {
     return tempDiv.innerHTML.replace(/\n/g, '<br>');
 }
 
+// --- FIX: Improved Firebase subscription with better conflict resolution ---
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        // Skip updates if we're currently updating to prevent race conditions
+        if (state.isUpdating) {
+            return;
+        }
+
         const data = doc.exists() ? doc.data() : {};
-        setState({ 
-            allStoredData: data.activities || {}, 
+        setState({
+            allStoredData: data.activities || {},
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
             teamRole: data.teamRole || null
@@ -552,7 +559,7 @@ async function subscribeToTeamData(callback) {
     });
 
     setState({ unsubscribeFromTeam: unsubscribeTeam });
-    
+
     if (callback) callback();
 }
 
@@ -596,7 +603,7 @@ function cleanupTeamSubscriptions() {
         state.unsubscribeFromTeam();
         setState({ unsubscribeFromTeam: null });
     }
-    
+
     state.unsubscribeFromTeamMembers.forEach(unsub => unsub());
     setState({ unsubscribeFromTeamMembers: [] });
 }
@@ -663,6 +670,7 @@ function handleUpdateTime(dayDataCopy, payload) {
     return "Time updated!";
 }
 
+// --- FIX: Improved saveData function with better race condition handling ---
 async function saveData(action) {
     const dateKey = getYYYYMMDD(state.selectedDate);
 
@@ -680,16 +688,75 @@ async function saveData(action) {
             // This error can happen if the user doc or activities map doesn't exist yet.
             // In that case, we can try to create it with setDoc merge.
             if (error.code === 'not-found' || (error.message && error.message.includes("No document to update"))) {
-                 if (action.payload && action.payload.trim()) {
+                if (action.payload && action.payload.trim()) {
                     await setDoc(userDocRef, { activities: { [dateKey]: { note: action.payload } } }, { merge: true });
-                 }
-                 // If we're trying to delete a note on a non-existent doc, we can just do nothing.
+                }
+                // If we're trying to delete a note on a non-existent doc, we can just do nothing.
             } else {
                 console.error("Error saving note to Firestore:", error);
                 showMessage("Error: Could not save note.", "error");
             }
         }
         return; // Exit after handling the specific case
+    }
+
+    // --- FIX: Special handling for time updates to prevent duplicates ---
+    if (state.isOnlineMode && state.userId && action.type === ACTION_TYPES.UPDATE_TIME) {
+        const { oldTimeKey, newTimeKey } = action.payload;
+
+        if (!newTimeKey) {
+            showMessage("Time cannot be empty.", 'error');
+            return;
+        }
+
+        const dayData = state.allStoredData[dateKey] || {};
+
+        if (dayData[newTimeKey] && oldTimeKey !== newTimeKey) {
+            showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+            return;
+        }
+
+        // Set updating flag to prevent Firebase listener from interfering
+        setState({ isUpdating: true });
+
+        try {
+            const userDocRef = doc(db, "users", state.userId);
+
+            if (oldTimeKey !== newTimeKey && dayData.hasOwnProperty(oldTimeKey)) {
+                // Create a batch to atomically update Firebase
+                const batch = writeBatch(db);
+
+                // Add the new field
+                const newFieldPath = `activities.${dateKey}.${newTimeKey}`;
+                batch.update(userDocRef, { [newFieldPath]: dayData[oldTimeKey] });
+
+                // Remove the old field
+                const oldFieldPath = `activities.${dateKey}.${oldTimeKey}`;
+                batch.update(userDocRef, { [oldFieldPath]: deleteField() });
+
+                // Execute the batch
+                await batch.commit();
+
+                // Update local state only after successful Firebase update
+                const updatedData = { ...state.allStoredData };
+                const dayDataCopy = { ...updatedData[dateKey] };
+                dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
+                delete dayDataCopy[oldTimeKey];
+                updatedData[dateKey] = dayDataCopy;
+
+                setState({ allStoredData: updatedData });
+                updateView();
+                showMessage("Time updated!", 'success');
+            }
+        } catch (error) {
+            console.error("Error updating time in Firestore:", error);
+            showMessage("Error: Could not update time. Please try again.", 'error');
+        } finally {
+            // Re-enable Firebase listener
+            setState({ isUpdating: false });
+        }
+
+        return; // Exit after handling time update
     }
 
     // --- Original logic for all other cases ---
@@ -1054,8 +1121,8 @@ function handleFileUpload(event) {
             setState({ leaveTypes: finalLeaveTypes, allStoredData: dataCopy });
 
             if (state.isOnlineMode && state.userId) {
-                await saveDataToFirestore({ 
-                    activities: dataCopy, 
+                await saveDataToFirestore({
+                    activities: dataCopy,
                     leaveTypes: finalLeaveTypes
                 });
             } else {
@@ -1065,7 +1132,7 @@ function handleFileUpload(event) {
 
             showMessage(`${processedRows} records imported/updated successfully!`, 'success');
             event.target.value = '';
-        } catch(err) {
+        } catch (err) {
             console.error("Error during CSV import:", err);
             showMessage("An error occurred while importing the file.", 'error');
         }
@@ -1078,10 +1145,10 @@ function handleUserLogout() {
     if (state.unsubscribeFromFirestore) {
         state.unsubscribeFromFirestore();
     }
-    
+
     // Clean up team subscriptions
     cleanupTeamSubscriptions();
-    
+
     localStorage.removeItem('sessionMode');
 
     if (DOM.splashScreen) {
@@ -1107,7 +1174,8 @@ function handleUserLogout() {
         teamMembers: [],
         teamMembersData: {},
         unsubscribeFromTeam: null,
-        unsubscribeFromTeamMembers: []
+        unsubscribeFromTeamMembers: [],
+        isUpdating: false // Reset update flag
     });
 
     switchView(DOM.loginView, DOM.appView);
@@ -1548,9 +1616,9 @@ async function saveLeaveType() {
     }
 
     setState({ leaveTypes: newLeaveTypes });
-    if(state.isOnlineMode) {
-        await saveDataToFirestore({ 
-            activities: state.allStoredData, 
+    if (state.isOnlineMode) {
+        await saveDataToFirestore({
+            activities: state.allStoredData,
             leaveTypes: newLeaveTypes
         });
     } else {
@@ -1748,8 +1816,8 @@ async function deleteLeaveDay(dateKey) {
     delete updatedData[dateKey].leave;
 
     if (state.isOnlineMode) {
-        await saveDataToFirestore({ 
-            activities: updatedData, 
+        await saveDataToFirestore({
+            activities: updatedData,
             leaveTypes: state.leaveTypes
         });
     } else {
@@ -1781,7 +1849,7 @@ function renderLeaveStats() {
 
     Object.values(state.allStoredData).forEach(dayData => {
         if (dayData.leave) {
-            if(dayData.leave.dayType === LEAVE_DAY_TYPES.FULL) {
+            if (dayData.leave.dayType === LEAVE_DAY_TYPES.FULL) {
                 leaveCounts[dayData.leave.typeId] += 1;
             } else if (dayData.leave.dayType === LEAVE_DAY_TYPES.HALF) {
                 leaveCounts[dayData.leave.typeId] += 0.5;
@@ -1841,7 +1909,7 @@ function renderLeaveStats() {
         `;
     }).join('');
     DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
-    
+
     // Add event listeners for edit buttons
     DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -2166,8 +2234,8 @@ async function saveLoggedLeaves() {
     });
 
     if (state.isOnlineMode) {
-        await saveDataToFirestore({ 
-            activities: updatedData, 
+        await saveDataToFirestore({
+            activities: updatedData,
             leaveTypes: state.leaveTypes
         });
     } else {
@@ -2247,16 +2315,16 @@ function renderTeamSection() {
                 </div>
             </div>
         `;
-        
+
         // Add event listeners for create/join buttons
         document.getElementById('create-team-btn').addEventListener('click', openCreateTeamModal);
         document.getElementById('join-team-btn').addEventListener('click', openJoinTeamModal);
-        
+
     } else {
         // Has team - show team info and actions
         const isOwner = state.teamRole === TEAM_ROLES.OWNER;
         const memberCount = state.teamMembers.length || 0;
-        
+
         const teamInfo = `
             <div class="space-y-6">
                 <div class="text-center">
@@ -2316,9 +2384,9 @@ function renderTeamSection() {
                 </div>
             </div>
         `;
-        
+
         DOM.teamSection.innerHTML = teamInfo;
-        
+
         // Event listeners are now handled by delegation in setupEventListeners
     }
 }
@@ -2539,19 +2607,19 @@ function renderTeamDashboard() {
         ...(owner ? [owner] : []),
         ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
     ];
-    
+
     const membersHTML = sortedMembers.map(member => {
         const balances = member.summary.leaveBalances || {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
-        
-        const leaveTypesHTML = Object.values(balances).length > 0
-    ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
-        const usedPercentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
-        const radius = 26;
-        const circumference = 2 * Math.PI * radius;
-        const offset = circumference - (usedPercentage / 100) * circumference;
 
-        return `
+        const leaveTypesHTML = Object.values(balances).length > 0
+            ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
+                const usedPercentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
+                const radius = 26;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (usedPercentage / 100) * circumference;
+
+                return `
             <div class="leave-stat-card">
                 <div class="radial-progress-container">
                     <svg class="w-full h-full" viewBox="0 0 60 60">
@@ -2575,9 +2643,9 @@ function renderTeamDashboard() {
                 </div>
             </div>
         `;
-    }).join('') + '</div>'
-    : '';
-        
+            }).join('') + '</div>'
+            : '';
+
         return `
            <details class="team-member-card ${isOwner ? 'team-owner-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
                 <summary class="flex items-center justify-between p-6 cursor-pointer">
@@ -2624,13 +2692,13 @@ function renderTeamDashboard() {
             </details>
         `;
     }).join('');
-    
+
     DOM.teamDashboardContent.innerHTML = `
         <div class="space-y-3">
             ${membersHTML}
         </div>
     `;
-// Restore the open state of the rows that were open before.
+    // Restore the open state of the rows that were open before.
     if (openMemberIds.size > 0) {
         openMemberIds.forEach(userId => {
             const detailElement = DOM.teamDashboardContent.querySelector(`details[data-user-id="${userId}"]`);
@@ -2709,7 +2777,7 @@ function setupEventListeners() {
     DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
     DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
     document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
-    
+
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
@@ -2888,7 +2956,7 @@ function setupEventListeners() {
 
         const leaveTypeId = pill.dataset.id;
         setState({ selectedLeaveTypeId: leaveTypeId });
-        renderLeavePills(); 
+        renderLeavePills();
 
         if (state.leaveSelection.size > 0) {
             openLeaveCustomizationModal();
@@ -2947,7 +3015,7 @@ function setupEventListeners() {
         const editBtn = e.target.closest('.edit-leave-day-btn');
         const deleteBtn = e.target.closest('.delete-leave-day-btn');
         const toggleBtn = e.target.closest('.toggle-btn');
-    
+
         if (editBtn) {
             const item = editBtn.closest('.leave-overview-item');
             const dateKey = item.dataset.dateKey;
@@ -2955,7 +3023,7 @@ function setupEventListeners() {
         } else if (deleteBtn) {
             const item = deleteBtn.closest('.leave-overview-item');
             const dateKey = item.dataset.dateKey;
-            
+
             if (deleteBtn.classList.contains('confirm-action')) {
                 deleteLeaveDay(dateKey);
                 deleteBtn.classList.remove('confirm-action');
@@ -2965,7 +3033,7 @@ function setupEventListeners() {
                     el.classList.remove('confirm-action');
                     clearTimeout(el.dataset.timeoutId);
                 });
-                
+
                 deleteBtn.classList.add('confirm-action');
                 showMessage('Click again to confirm deletion.', 'info');
                 const timeoutId = setTimeout(() => {
@@ -2977,14 +3045,14 @@ function setupEventListeners() {
             const toggle = toggleBtn.closest('.day-type-toggle');
             const newValue = toggleBtn.dataset.value;
             const oldValue = toggle.dataset.selectedValue;
-    
+
             if (newValue === oldValue) return; // No change
-    
+
             const item = toggleBtn.closest('.leave-overview-item');
             const dateKey = item.dataset.dateKey;
             const leaveData = state.allStoredData[dateKey]?.leave;
             if (!leaveData) return;
-    
+
             // Balance Check
             const costChange = (newValue === 'full' ? 1 : 0.5) - (oldValue === 'full' ? 1 : 0.5);
             if (costChange > 0) {
@@ -2995,27 +3063,27 @@ function setupEventListeners() {
                     return;
                 }
             }
-    
+
             // Update UI
             toggle.dataset.selectedValue = newValue;
             toggle.querySelector('.toggle-bg').style.transform = `translateX(${newValue === 'half' ? '100%' : '0'})`;
             toggle.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.value === newValue));
-    
+
             // Save Data
             const updatedData = { ...state.allStoredData };
             updatedData[dateKey] = { ...updatedData[dateKey] };
             updatedData[dateKey].leave.dayType = newValue;
-            
+
             if (state.isOnlineMode) {
-                await saveDataToFirestore({ 
-                    activities: updatedData, 
+                await saveDataToFirestore({
+                    activities: updatedData,
                     leaveTypes: state.leaveTypes
                 });
             } else {
                 saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
                 setState({ allStoredData: updatedData });
             }
-            
+
             showMessage('Leave day updated!', 'success');
             updateView(); // Refresh stats in the main view
         }
@@ -3097,7 +3165,6 @@ function setupEventListeners() {
     DOM.roomCodeInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
     });
-
 }
 
 // --- App Initialization ---
