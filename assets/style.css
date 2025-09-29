@@ -95,7 +95,7 @@
         .magic-particle { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background-color: #ffd700; border-radius: 50%; pointer-events: none; opacity: 0; animation: particle-burst 0.8s ease-out forwards; }
         @keyframes particle-burst { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
         /* --- Calendar Styles --- */
-        .calendar-day-cell { position: relative; height: 0; padding-top: 100%; cursor: pointer; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        .calendar-day-cell { aspect-ratio: 1 / 1; min-height: 100px; position: relative; cursor: pointer; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
         .calendar-day-content { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 8px; z-index: 10; }
         .leave-indicator { position: absolute; left: 0; bottom: 0; width: 100%; z-index: 5; transition: height 0.2s ease-in-out; }
         .leave-indicator.full-day { height: 100%; }
