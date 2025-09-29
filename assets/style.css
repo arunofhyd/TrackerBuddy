@@ -382,19 +382,20 @@ body.dark .stat-card-info p {
         body.dark #customize-leave-modal .font-medium { color: #f9fafb; }
         body.dark .leave-overview-item .font-medium { color: #f9fafb; }
         body.dark .leave-overview-item .text-gray-500 { color: #d1d5db; }
-        #leave-stats-section,
-#team-section {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s ease-in-out;
-}
-
-#leave-stats-section.visible,
-#team-section.visible {
-    grid-template-rows: 1fr;
-}
-
-#leave-stats-section > *,
-#team-section > * {
-    overflow: hidden;
-}
+        /* For the Stats Section */
+        #leave-stats-section, #team-section {
+            overflow: hidden;
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(10px);
+            /* Define transitions for all properties that will change */
+            transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.3s ease, margin-top 0.3s ease, padding 0.3s ease;
+        }
+        #leave-stats-section.visible, #team-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 65vh; /* A large value to accommodate content */
+            overflow-y: auto;
+            margin-top: 1rem;  /* Restore original spacing */
+            padding: 1rem;     /* Restore original spacing */
+        }
