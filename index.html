@@ -7,6 +7,14 @@
     <title>TrackerBuddy - Leave & Activity Tracker</title>
     <meta name="description" content="TrackerBuddy is a free, all-in-one app to track your daily activities, log work hours, and manage leave balances!">
     <meta name="keywords" content="trackerbuddy, activity tracker, leave tracker, work hours tracker, time log, attendance tracker, employee leave management, daily activity log, free tracker app, PTO tracker, leave balance, work schedule tracker, time off management">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "url": "https://trackerbuddy.vercel.app/",
+      "logo": "https://trackerbuddy.vercel.app/assets/logo.png"
+    }
+    </script>
     <link rel="manifest" href="manifest.json">
     <link href="assets/output.css" rel="stylesheet">
     <link rel="preload" as="image" href="assets/splashtext.webp" fetchpriority="high">
@@ -22,30 +30,23 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap">
     </noscript>
-    <link rel="icon" href="assets/logo.png" type="image/png">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="48x48">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="96x96">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="144x144">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="192x192">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="256x256">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="384x384">
-    <link rel="icon" href="assets/logo.png" type="image/png" sizes="512x512">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/logo.png">
-    <link rel="shortcut icon" href="assets/logo.png">
-    <link rel="apple-touch-icon" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="assets/logo.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png">
+    <!-- Optimal Favicon for all modern browsers -->
+    <link rel="icon" href="/assets/logo.png" type="image/png" sizes="any">
+    
+    <!-- Apple Touch Icon for iOS home screen -->
+    <link rel="apple-touch-icon" href="/assets/logo.png">
+    
+    <!-- PWA and Mobile Theming -->
+    <meta name="application-name" content="TrackerBuddy">
+    <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
-    <meta name="application-name" content="TrackerBuddy">
-    <meta name="msapplication-TileImage" content="assets/logo.png">
+    <meta name="msapplication-TileImage" content="/assets/logo.png">
     <meta name="msapplication-TileColor" content="#3b82f6">
     <meta name="theme-color" id="theme-color-meta" content="#3b82f6">
-    <link href="assets/style.css" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link href="/assets/style.css" rel="stylesheet">
 </head>
 <body>
 <a href="#main-content" class="skip-link">Skip to main content</a>
