@@ -505,8 +505,8 @@ function formatTextForDisplay(text) {
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        // Skip updates if we're currently updating to prevent race conditions
-        if (state.isUpdating) {
+        // Skip updates if we're currently updating or actively editing to prevent race conditions
+        if (state.isUpdating || state.editingInlineTimeKey) {
             return;
         }
 
@@ -672,6 +672,12 @@ function handleUpdateTime(dayDataCopy, payload) {
 
 // --- FIX: Improved saveData function with better race condition handling ---
 async function saveData(action) {
+    // Prevent concurrent updates
+    if (state.isUpdating) {
+        console.warn('Update already in progress, skipping...');
+        return;
+    }
+
     const dateKey = getYYYYMMDD(state.selectedDate);
 
     // --- Branch for online note saving ---
@@ -713,10 +719,11 @@ async function saveData(action) {
 
         if (dayData[newTimeKey] && oldTimeKey !== newTimeKey) {
             showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+            renderDailyActivities(); // Re-render to restore original state
             return;
         }
 
-        // Set updating flag to prevent Firebase listener from interfering
+        // Already set at function start
         setState({ isUpdating: true });
 
         try {
@@ -760,16 +767,25 @@ async function saveData(action) {
     }
 
     // --- Original logic for all other cases ---
+    // Set updating flag for all operations to prevent Firebase listener interference
+    setState({ isUpdating: true });
+
     const dayDataCopy = { ...(state.allStoredData[dateKey] || {}) };
     let successMessage = null;
 
-    const isNewDay = !state.allStoredData[dateKey] || (Object.keys(dayDataCopy).length === 0 && !dayDataCopy._userCleared);
+    // Check if this is a new day with no persisted activities
+    const hasPersistedActivities = state.allStoredData[dateKey] && Object.keys(state.allStoredData[dateKey]).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+    const isNewDay = !hasPersistedActivities && !dayDataCopy._userCleared;
 
+    // Add default slots for new days when user starts interacting
     if (isNewDay && (action.type === ACTION_TYPES.ADD_SLOT || action.type === ACTION_TYPES.UPDATE_ACTIVITY_TEXT)) {
         if (state.selectedDate.getDay() !== 0) {
             for (let h = 8; h <= 17; h++) {
                 const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
-                dayDataCopy[timeKey] = { text: "", order: h - 8 };
+                // Only add if not already present (prevents duplicates)
+                if (!dayDataCopy[timeKey]) {
+                    dayDataCopy[timeKey] = { text: "", order: h - 8 };
+                }
             }
         }
     }
@@ -786,7 +802,10 @@ async function saveData(action) {
             break;
         case ACTION_TYPES.UPDATE_TIME:
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
-            if (successMessage === null) return; // Error handled in helper
+            if (successMessage === null) {
+                setState({ isUpdating: false }); // Clear flag on error
+                return;
+            }
             break;
     }
 
@@ -810,9 +829,13 @@ async function saveData(action) {
             showMessage("Error: Could not save changes. Reverting.", 'error');
             setState({ allStoredData: originalData });
             updateView();
+        } finally {
+            // Always clear the updating flag
+            setState({ isUpdating: false });
         }
     } else {
         saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
+        setState({ isUpdating: false });
     }
 
     if (successMessage) {
@@ -1421,7 +1444,13 @@ function handleInlineEditBlur(event) {
     const target = event.currentTarget;
     if (state.editingInlineTimeKey === target.dataset.time) {
         if (target.classList.contains('time-editable')) {
-            saveData({ type: ACTION_TYPES.UPDATE_TIME, payload: { oldTimeKey: state.editingInlineTimeKey, newTimeKey: target.innerText.trim() } });
+            const oldTimeKey = state.editingInlineTimeKey;
+            const newTimeKey = target.innerText.trim();
+
+            // Only save if the time value has actually changed
+            if (oldTimeKey !== newTimeKey) {
+                saveData({ type: ACTION_TYPES.UPDATE_TIME, payload: { oldTimeKey, newTimeKey } });
+            }
         } else {
             saveData({ type: ACTION_TYPES.UPDATE_ACTIVITY_TEXT, payload: { timeKey: target.dataset.time, newText: target.innerText.trim() } });
         }
