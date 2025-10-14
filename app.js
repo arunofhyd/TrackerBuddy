@@ -393,7 +393,8 @@ function renderCalendar() {
     }
 
     const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
-    for (let i = 0; i < (7 - (totalCells % 7)) % 7; i++) {
+    const remainingCells = 42 - totalCells; // Ensure a 6-week (42-day) grid
+    for (let i = 0; i < remainingCells; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.className = 'calendar-day-cell other-month';
         emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
