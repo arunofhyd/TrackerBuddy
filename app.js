@@ -1002,14 +1002,24 @@ function downloadCSV() {
         const yearData = state.yearlyData[year];
         if (yearData.leaveOverrides) {
             Object.keys(yearData.leaveOverrides).forEach(leaveTypeId => {
-                const totalDays = yearData.leaveOverrides[leaveTypeId];
-                csvRows.push(["LEAVE_OVERRIDE", year, leaveTypeId, totalDays, ""]);
+                const overrideData = yearData.leaveOverrides[leaveTypeId] || {};
+                if (overrideData.totalDays !== undefined || overrideData.hidden) {
+                    csvRows.push([
+                        "LEAVE_OVERRIDE",
+                        year,
+                        leaveTypeId,
+                        overrideData.totalDays,
+                        overrideData.hidden ? "TRUE" : "FALSE"
+                    ]);
+                }
             });
         }
     });
 
     // Get all date keys from all years and sort them
-    const allDateKeys = Object.values(state.yearlyData).flatMap(yearData => Object.keys(yearData.activities));
+    const allDateKeys = Object.values(state.yearlyData)
+        .filter(yearData => yearData.activities) // Guard against years with no activities object
+        .flatMap(yearData => Object.keys(yearData.activities));
     const sortedDateKeys = [...new Set(allDateKeys)].sort();
 
     sortedDateKeys.forEach(dateKey => {
@@ -2765,7 +2775,8 @@ function renderTeamDashboard() {
     ];
 
     const membersHTML = sortedMembers.map(member => {
-        const balances = member.summary.leaveBalances || {};
+        const year = state.currentMonth.getFullYear();
+        const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[year] || {}) : {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
         const leaveTypesHTML = Object.values(balances).length > 0

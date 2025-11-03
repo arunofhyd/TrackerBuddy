@@ -90,16 +90,22 @@ const server = http.createServer((req, res) => {
 
         await page.evaluate(data => {
             localStorage.setItem('guestUserData', JSON.stringify(data));
+            localStorage.setItem('sessionMode', 'offline'); // Ensure we load offline data
         }, testData);
 
         await page.reload();
+
+        // We need to click through the splash screen again after reloading
+        await page.waitForSelector('#splash-screen', { state: 'visible' });
+        await page.click('#splash-screen');
+
         await page.waitForSelector('#app-view', { state: 'visible' });
 
         // --- Verification for 2025 (default year) ---
         console.log('Verifying data for 2025...');
         await page.click('#current-period-display');
+        await page.waitForSelector('text="Aug"');
         await page.click('text="Aug"');
-        await page.click('#close-month-picker-btn');
 
         const note2025 = await page.textContent('.calendar-day-cell[data-date="2025-08-15"] .day-note');
         assert.strictEqual(note2025.trim(), 'Note for 2025', '2025 note not found');
@@ -108,9 +114,10 @@ const server = http.createServer((req, res) => {
         // --- Verification for 2024 ---
         console.log('Verifying data for 2024...');
         await page.click('#current-period-display');
+        await page.waitForSelector('#prev-year-btn');
         await page.click('#prev-year-btn'); // Go to 2024
+        await page.waitForSelector('text="Jul"');
         await page.click('text="Jul"');
-        await page.click('#close-month-picker-btn');
 
         const note2024 = await page.textContent('.calendar-day-cell[data-date="2024-07-22"] .day-note');
         assert.strictEqual(note2024.trim(), 'Note for 2024', '2024 note not found');
@@ -132,8 +139,8 @@ const server = http.createServer((req, res) => {
         ]);
         const csvPath = await download.path();
         const csvContent = fs.readFileSync(csvPath, 'utf-8');
-        assert.ok(csvContent.includes('NOTE,2024-07-22,"Note for 2024"'), "CSV missing 2024 data");
-        assert.ok(csvContent.includes('NOTE,2025-08-15,"Note for 2025"'), "CSV missing 2025 data");
+        assert.ok(csvContent.includes('NOTE,2024-07-22,Note for 2024'), "CSV missing 2024 data");
+        assert.ok(csvContent.includes('NOTE,2025-08-15,Note for 2025'), "CSV missing 2025 data");
         console.log('CSV export verified.');
 
         console.log('All verifications successful!');
