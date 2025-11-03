@@ -647,18 +647,15 @@ function cleanupTeamSubscriptions() {
 }
 
 async function persistData(data) {
-    // Exclude yearlyData from being persisted, as it's managed separately
-    const { yearlyData, ...restData } = data;
-
     if (state.isOnlineMode && state.userId) {
         try {
-            await saveDataToFirestore(restData);
+            await saveDataToFirestore(data);
         } catch (error) {
             console.error("Error saving to Firestore:", error);
             showMessage("Error: Could not save changes. Please try again.", 'error');
         }
     } else {
-        saveDataToLocalStorage(restData);
+        saveDataToLocalStorage(data);
     }
 }
 
@@ -721,23 +718,21 @@ async function saveData(action) {
     const dateKey = getYYYYMMDD(state.selectedDate);
     const year = state.selectedDate.getFullYear();
 
-    const currentActivities = state.currentYearData.activities || {};
-    const dayDataCopy = { ...(currentActivities[dateKey] || {}) };
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
+    if (!updatedYearlyData[year]) {
+        updatedYearlyData[year] = { activities: {}, leaveOverrides: {} };
+    }
+    const dayDataCopy = { ...(updatedYearlyData[year].activities[dateKey] || {}) };
 
     let successMessage = null;
-
-    // Check if this is a new day with no persisted activities
-    const hasPersistedActivities = currentActivities[dateKey] && Object.keys(currentActivities[dateKey]).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+    const hasPersistedActivities = updatedYearlyData[year].activities[dateKey] && Object.keys(updatedYearlyData[year].activities[dateKey]).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
     const isNewDay = !hasPersistedActivities && !dayDataCopy._userCleared;
 
-    // Add default slots for new days when user starts interacting
     if (isNewDay && (action.type === ACTION_TYPES.ADD_SLOT || action.type === ACTION_TYPES.UPDATE_ACTIVITY_TEXT)) {
         if (state.selectedDate.getDay() !== 0) {
             for (let h = 8; h <= 17; h++) {
                 const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
-                if (!dayDataCopy[timeKey]) {
-                    dayDataCopy[timeKey] = { text: "", order: h - 8 };
-                }
+                if (!dayDataCopy[timeKey]) dayDataCopy[timeKey] = { text: "", order: h - 8 };
             }
         }
     }
@@ -761,30 +756,26 @@ async function saveData(action) {
             break;
     }
 
-    // Update local state optimistically
-    const updatedActivities = { ...currentActivities, [dateKey]: dayDataCopy };
-    const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
-    const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
+    updatedYearlyData[year].activities[dateKey] = dayDataCopy;
+    const currentYearData = updatedYearlyData[year] || { activities: {}, leaveOverrides: {} };
 
-    const originalYearlyData = state.yearlyData; // For rollback
-    setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
+    const originalYearlyData = state.yearlyData;
+    setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
     updateView();
 
-    // Prepare data for persistence
     const dataToSave = {
         yearlyData: updatedYearlyData,
-        leaveTypes: state.leaveTypes // Leave types are global
+        leaveTypes: state.leaveTypes
     };
 
     try {
-        await persistData(dataToSave); // persistData now handles both online/offline
-        if (successMessage) {
-            showMessage(successMessage, 'success');
-        }
+        await persistData(dataToSave);
+        if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
         console.error("Error persisting data:", error);
         showMessage("Error: Could not save changes. Reverting.", 'error');
-        setState({ yearlyData: originalYearlyData, currentYearData: originalYearlyData[year] || { activities: {}, leaveOverrides: {} } });
+        const revertedCurrentYearData = originalYearlyData[year] || { activities: {}, leaveOverrides: {} };
+        setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
         updateView();
     } finally {
         setState({ isUpdating: false });
@@ -851,7 +842,7 @@ function loadDataFromLocalStorage() {
 
 function saveDataToLocalStorage(data) {
     try {
-        localStorage.setItem('activityTrackerData', JSON.stringify(data));
+        localStorage.setItem('guestUserData', JSON.stringify(data));
     } catch (error) {
         console.error("Error saving local data:", error);
         showMessage("Could not save data locally.", 'error');
@@ -925,25 +916,29 @@ async function resetAllData() {
 async function updateActivityOrder() {
     const dateKey = getYYYYMMDD(state.selectedDate);
     const year = state.selectedDate.getFullYear();
-    const currentActivities = state.currentYearData.activities || {};
-    const dayData = currentActivities[dateKey] || {};
-    const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
+    if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey]) {
+        return;
+    }
+
+    const dayData = updatedYearlyData[year].activities[dateKey];
+    const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
     const newDayData = {};
+
     if (dayData.note) newDayData.note = dayData.note;
     if (dayData.leave) newDayData.leave = dayData.leave;
     if (dayData._userCleared) newDayData._userCleared = true;
 
     orderedTimeKeys.forEach((timeKey, index) => {
         const originalEntry = dayData[timeKey] || { text: '' };
-        newDayData[timeKey] = { text: originalEntry.text, order: index };
+        newDayData[timeKey] = { ...originalEntry, order: index };
     });
 
-    const updatedActivities = { ...currentActivities, [dateKey]: newDayData };
-    const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
-    const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
+    updatedYearlyData[year].activities[dateKey] = newDayData;
+    const currentYearData = updatedYearlyData[year];
 
-    setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
+    setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
 
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
@@ -956,29 +951,25 @@ async function updateActivityOrder() {
 }
 
 async function deleteActivity(dateKey, timeKey) {
-    const year = state.currentMonth.getFullYear();
-    const currentActivities = state.currentYearData.activities || {};
-    const dayData = currentActivities[dateKey];
+    const year = new Date(dateKey).getFullYear();
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
-    if (!dayData || !dayData[timeKey]) return;
-
-    const dayDataCopy = { ...dayData };
-    delete dayDataCopy[timeKey];
-
-    if (Object.keys(dayDataCopy).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
-        dayDataCopy._userCleared = true;
+    if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey][timeKey]) {
+        return;
     }
 
-    const updatedActivities = { ...currentActivities, [dateKey]: dayDataCopy };
-    const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
-    const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
+    delete updatedYearlyData[year].activities[dateKey][timeKey];
 
-    // Optimistically update UI
-    setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
+    if (Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
+        updatedYearlyData[year].activities[dateKey]._userCleared = true;
+    }
+
+    const currentYearData = updatedYearlyData[year];
+
+    setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
     updateView();
     showMessage("Activity deleted.", 'success');
 
-    // Persist changes
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
     } catch (error) {
@@ -1100,7 +1091,6 @@ function handleFileUpload(event) {
                 return showMessage("CSV file is empty or has no data.", 'error');
             }
 
-            // Create deep copies to modify
             const yearlyDataCopy = JSON.parse(JSON.stringify(state.yearlyData));
             const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
             let processedRows = 0;
@@ -1132,7 +1122,7 @@ function handleFileUpload(event) {
                         if (year && leaveTypeId && !isNaN(totalDays)) {
                             if (!yearlyDataCopy[year]) yearlyDataCopy[year] = { activities: {}, leaveOverrides: {} };
                             if (!yearlyDataCopy[year].leaveOverrides) yearlyDataCopy[year].leaveOverrides = {};
-                            yearlyDataCopy[year].leaveOverrides[leaveTypeId] = totalDays;
+                            yearlyDataCopy[year].leaveOverrides[leaveTypeId] = { totalDays };
                             rowProcessed = true;
                         }
                         break;
@@ -1142,11 +1132,11 @@ function handleFileUpload(event) {
                     case 'ACTIVITY':
                     case 'USER_CLEARED':
                         const dateKey = detail1;
-                        const activityYear = dateKey.substring(0, 4);
                         if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
                             console.warn(`Skipping row with invalid date format: ${line}`);
                             return;
                         }
+                        const activityYear = dateKey.substring(0, 4);
 
                         if (!yearlyDataCopy[activityYear]) yearlyDataCopy[activityYear] = { activities: {}, leaveOverrides: {} };
                         if (!yearlyDataCopy[activityYear].activities[dateKey]) yearlyDataCopy[activityYear].activities[dateKey] = {};
@@ -1175,22 +1165,23 @@ function handleFileUpload(event) {
             });
 
             const finalLeaveTypes = Array.from(leaveTypesMap.values());
-
-            // Update state
-            setState({ leaveTypes: finalLeaveTypes, yearlyData: yearlyDataCopy });
             const currentYear = state.currentMonth.getFullYear();
-            setState({currentYearData: yearlyDataCopy[currentYear] || { activities: {}, leaveOverrides: {} }});
+            const newCurrentYearData = yearlyDataCopy[currentYear] || { activities: {}, leaveOverrides: {} };
 
+            setState({
+                leaveTypes: finalLeaveTypes,
+                yearlyData: yearlyDataCopy,
+                currentYearData: newCurrentYearData
+            });
 
-            // Persist changes
             await persistData({
                 yearlyData: yearlyDataCopy,
                 leaveTypes: finalLeaveTypes
             });
 
             showMessage(`${processedRows} records imported/updated successfully!`, 'success');
-            event.target.value = ''; // Reset file input
-            updateView(); // Explicitly call updateView after successful import
+            event.target.value = '';
+            updateView();
         } catch (err) {
             console.error("Error during CSV import:", err);
             showMessage("An error occurred while importing the file.", 'error');
@@ -1249,10 +1240,7 @@ function initAuth() {
         } else {
             const sessionMode = localStorage.getItem('sessionMode');
             if (sessionMode === 'offline') {
-                const data = loadDataFromLocalStorage();
-                setState({ allStoredData: data.activities, leaveTypes: data.leaveTypes, isOnlineMode: false, userId: null });
-                document.querySelector('.main-container').classList.add('is-app-view');
-                switchView(DOM.appView, DOM.loadingView, updateView);
+                loadOfflineData(); // Centralized offline data loading
             } else {
                 switchView(DOM.loginView, DOM.loadingView);
             }
@@ -1788,9 +1776,10 @@ async function deleteLeaveType() {
 
     // Persist the changes
     try {
-        // We only need to persist the yearlyData, as leaveTypes are not changed
+        // We persist both yearlyData and the unaltered leaveTypes array
         await persistData({
-            yearlyData: updatedYearlyData
+            yearlyData: updatedYearlyData,
+            leaveTypes: state.leaveTypes
         });
         showMessage(`Leave type hidden for ${currentYear} and entries removed.`, 'success');
     } catch (error) {
@@ -1804,7 +1793,8 @@ async function deleteLeaveType() {
 }
 
 async function saveLeaveTypes() {
-    await persistData({ activities: state.allStoredData, leaveTypes: state.leaveTypes });
+    // Pass the entire state's yearlyData and leaveTypes to be persisted
+    await persistData({ yearlyData: state.yearlyData, leaveTypes: state.leaveTypes });
     if (!state.isOnlineMode) {
         updateView();
     }
@@ -1864,8 +1854,12 @@ function calculateLeaveBalances() {
         }
     });
 
+    const yearData = state.yearlyData[year] || {};
+    const overrides = yearData.leaveOverrides || {};
+
     visibleLeaveTypes.forEach(lt => {
-        balances[lt.id] = lt.totalDays - (leaveCounts[lt.id] || 0);
+        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+        balances[lt.id] = totalDays - (leaveCounts[lt.id] || 0);
     });
 
     return balances;
@@ -1965,37 +1959,36 @@ async function editLeaveDay(dateKey) {
 }
 
 async function deleteLeaveDay(dateKey) {
-    const year = state.currentMonth.getFullYear();
-    const currentActivities = state.currentYearData.activities || {};
-    const dayData = currentActivities[dateKey];
+    const year = new Date(dateKey).getFullYear();
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
-    if (!dayData || !dayData.leave) return;
+    if (!updatedYearlyData[year] || !updatedYearlyData[year].activities || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey].leave) {
+        return;
+    }
 
-    const originalLeaveTypeId = dayData.leave.typeId;
+    const originalLeaveTypeId = updatedYearlyData[year].activities[dateKey].leave.typeId;
 
-    const updatedDayData = { ...dayData };
-    delete updatedDayData.leave;
+    delete updatedYearlyData[year].activities[dateKey].leave;
 
-    const updatedActivities = { ...currentActivities, [dateKey]: updatedDayData };
-    const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
-    const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
+    const currentYear = state.currentMonth.getFullYear();
+    const currentYearData = updatedYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
 
     setState({
         yearlyData: updatedYearlyData,
-        currentYearData: updatedYearData
+        currentYearData: currentYearData
     });
 
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage('Leave entry deleted successfully!', 'success');
     } catch (error) {
-        // NOTE: Rollback logic could be added here if persistence fails
         console.error("Failed to delete leave day:", error);
         showMessage("Failed to save deletion.", "error");
+        // NOTE: A robust implementation might roll back the state change here.
     }
 
+    // If the overview modal for the affected leave type is open, refresh it.
     if (DOM.leaveOverviewModal.classList.contains('visible')) {
-        // The overview modal shows leaves for the current year, so this is correct
         setTimeout(() => openLeaveOverviewModal(originalLeaveTypeId), 100);
     }
 
@@ -3227,46 +3220,46 @@ function setupEventListeners() {
             const newValue = toggleBtn.dataset.value;
             const oldValue = toggle.dataset.selectedValue;
 
-            if (newValue === oldValue) return; // No change
+            if (newValue === oldValue) return;
 
             const item = toggleBtn.closest('.leave-overview-item');
             const dateKey = item.dataset.dateKey;
-            const leaveData = state.allStoredData[dateKey]?.leave;
+            const year = new Date(dateKey).getFullYear();
+
+            const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
+            const leaveData = updatedYearlyData[year]?.activities[dateKey]?.leave;
             if (!leaveData) return;
 
-            // Balance Check
             const costChange = (newValue === 'full' ? 1 : 0.5) - (oldValue === 'full' ? 1 : 0.5);
             if (costChange > 0) {
                 const balances = calculateLeaveBalances();
                 const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
-                if (balances[leaveData.typeId] < costChange) {
+                if (leaveType && balances[leaveData.typeId] < costChange) {
                     showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
                     return;
                 }
             }
 
-            // Update UI
             toggle.dataset.selectedValue = newValue;
             toggle.querySelector('.toggle-bg').style.transform = `translateX(${newValue === 'half' ? '100%' : '0'})`;
             toggle.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.value === newValue));
 
-            // Save Data
-            const updatedData = { ...state.allStoredData };
-            updatedData[dateKey] = { ...updatedData[dateKey] };
-            updatedData[dateKey].leave.dayType = newValue;
+            leaveData.dayType = newValue;
 
-            if (state.isOnlineMode) {
-                await saveDataToFirestore({
-                    activities: updatedData,
-                    leaveTypes: state.leaveTypes
-                });
-            } else {
-                saveDataToLocalStorage({ activities: updatedData, leaveTypes: state.leaveTypes });
-                setState({ allStoredData: updatedData });
+            const currentYear = state.currentMonth.getFullYear();
+            const currentYearData = updatedYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
+
+            setState({ yearlyData: updatedYearlyData, currentYearData });
+
+            try {
+                await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+                showMessage('Leave day updated!', 'success');
+            } catch (error) {
+                console.error("Failed to update leave day:", error);
+                showMessage("Failed to save update.", "error");
             }
 
-            showMessage('Leave day updated!', 'success');
-            updateView(); // Refresh stats in the main view
+            updateView();
         }
     });
 
