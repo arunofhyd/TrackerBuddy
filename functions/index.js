@@ -386,25 +386,9 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
     // Case 2: User joins a team or their data changes while in a team
     if (teamId) {
         const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
+        const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
 
-        const didLeaveDataChange = (beforeActivities, afterActivities) => {
-            const bActivities = beforeActivities || {};
-            const aActivities = afterActivities || {};
-            const allDates = new Set([...Object.keys(bActivities), ...Object.keys(aActivities)]);
-            for (const date of allDates) {
-                const beforeLeave = bActivities[date]?.leave;
-                const afterLeave = aActivities[date]?.leave;
-                if (JSON.stringify(beforeLeave) !== JSON.stringify(afterLeave)) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        
-        const leaveDataChanged = didLeaveDataChange(beforeData?.activities, afterData.activities);
-
-        // Update if leave data changed, leave types changed, or if user just joined/switched teams
-        if (leaveDataChanged || leaveTypesChanged || (teamId !== oldTeamId)) {
+        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId)) {
             const teamDoc = await db.collection("teams").doc(teamId).get();
             const teamData = teamDoc.exists ? teamDoc.data() : null;
             const memberInfo = teamData?.members?.[userId];
@@ -417,7 +401,12 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
 
             const leaveTypes = afterData.leaveTypes || [];
-            const activities = afterData.activities || {};
+            const yearlyData = afterData.yearlyData || {};
+            const currentYear = new Date().getFullYear().toString();
+            const currentYearData = yearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
+            const activities = currentYearData.activities || {};
+            const overrides = currentYearData.leaveOverrides || {};
+
             const LEAVE_DAY_TYPES = { FULL: 'full', HALF: 'half' };
 
             const leaveCounts = {};
@@ -441,13 +430,18 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             };
 
             leaveTypes.forEach(lt => {
+                // Ignore hidden leave types for the current year
+                if (overrides[lt.id]?.hidden) return;
+
+                const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
                 const used = leaveCounts[lt.id] || 0;
+
                 summaryData.leaveBalances[lt.id] = {
                     name: lt.name,
                     color: lt.color,
-                    total: lt.totalDays,
+                    total: totalDays,
                     used: parseFloat(used.toFixed(2)),
-                    balance: parseFloat((lt.totalDays - used).toFixed(2))
+                    balance: parseFloat((totalDays - used).toFixed(2))
                 };
             });
 
