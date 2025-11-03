@@ -414,10 +414,12 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             leaveTypes.forEach(lt => { leaveCounts[lt.id] = 0; });
 
             Object.values(activities).forEach(dayData => {
-                if (dayData.leave) {
-                    const leaveValue = dayData.leave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-                    if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
-                        leaveCounts[dayData.leave.typeId] += leaveValue;
+                // Ensure dayData.leave is a valid object with a typeId
+                if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
+                    const leaveInfo = dayData.leave;
+                    const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                    if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
+                        leaveCounts[leaveInfo.typeId] += leaveValue;
                     }
                 }
             });
