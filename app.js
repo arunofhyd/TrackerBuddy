@@ -2765,7 +2765,9 @@ function renderTeamDashboard() {
     ];
 
     const membersHTML = sortedMembers.map(member => {
-        const balances = member.summary.leaveBalances || {};
+        const year = state.currentMonth.getFullYear();
+        const yearlyBalances = member.summary.yearlyBalances || {};
+        const balances = yearlyBalances[year] || {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
         const leaveTypesHTML = Object.values(balances).length > 0
