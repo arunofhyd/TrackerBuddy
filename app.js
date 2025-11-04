@@ -624,10 +624,6 @@ async function loadTeamMembersData() {
 
         setState({ teamMembersData });
         
-        // --- TROUBLESHOOTING LOG START ---
-        console.log("Team Members Data Received (Summary Check):", teamMembersData);
-        // --- TROUBLESHOOTING LOG END ---
-
         // If the dashboard is currently open, re-render it
         if (DOM.teamDashboardModal.classList.contains('visible')) {
             renderTeamDashboard();
@@ -2185,9 +2181,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
                     </span>
                     <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
             }
-            if (newTriggerHTML) {
-                trigger.innerHTML = newTriggerHTML;
-            }
+            trigger.innerHTML = newTriggerHTML;
 
             closePanel();
             if (onTypeChangeCallback) {
@@ -2442,7 +2436,7 @@ function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-user-group w-5 h-5 mr-2';
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
         } else {
             teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
         }
@@ -2781,9 +2775,13 @@ function renderTeamDashboard() {
         ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
     ];
 
+    // --- FIX: Use the currently selected year from the app state ---
+    const dashboardYear = state.currentMonth.getFullYear().toString(); 
+    // --- END FIX ---
+
     const membersHTML = sortedMembers.map(member => {
-        // FIX: Use the year currently visible in the main app calendar
-        const dashboardYear = state.currentMonth.getFullYear().toString(); 
+        
+        // Get the balances for the currently selected year (dashboardYear)
         const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
@@ -3326,7 +3324,7 @@ function setupEventListeners() {
                 });
 
                 button.classList.add('confirm-action');
-                showMessage('Click again to confirm deletion.', 'info');
+                showMessage(message, 'info');
                 const timeoutId = setTimeout(() => {
                     button.classList.remove('confirm-action');
                 }, 3000);
