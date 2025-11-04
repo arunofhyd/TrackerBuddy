@@ -386,70 +386,121 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
     // Case 2: User joins a team or their data changes while in a team
     if (teamId) {
         const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
+        const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
+        const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
 
-        const didLeaveDataChange = (beforeActivities, afterActivities) => {
-            const bActivities = beforeActivities || {};
-            const aActivities = afterActivities || {};
-            const allDates = new Set([...Object.keys(bActivities), ...Object.keys(aActivities)]);
-            for (const date of allDates) {
-                const beforeLeave = bActivities[date]?.leave;
-                const afterLeave = aActivities[date]?.leave;
-                if (JSON.stringify(beforeLeave) !== JSON.stringify(afterLeave)) {
-                    return true;
+        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
+            
+            // --- DATA STRUCTURE MIGRATION (Server-Side) ---
+            // 1. Get a mutable copy of the latest yearlyData.
+            let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
+            
+            // 2. Check for and migrate old flat 'activities' data.
+            if (afterData.activities && Object.keys(afterData.activities).length > 0) {
+                const currentYear = new Date().getFullYear().toString();
+                
+                // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
+                if (!yearlyData.hasOwnProperty(currentYear)) {
+                     // Deep clone and insert the old flat structure under the current year
+                    yearlyData[currentYear] = { 
+                        activities: afterData.activities ? JSON.parse(JSON.stringify(afterData.activities)) : {}, 
+                        leaveOverrides: {} 
+                    };
                 }
+                // NOTE: If both old and new data exist for the current year, we prioritize the newer `yearlyData` key.
+                // The client app should handle cleaning up the old 'activities' field on save.
             }
-            return false;
-        };
-        
-        const leaveDataChanged = didLeaveDataChange(beforeData?.activities, afterData.activities);
+            // --- END MIGRATION ---
 
-        // Update if leave data changed, leave types changed, or if user just joined/switched teams
-        if (leaveDataChanged || leaveTypesChanged || (teamId !== oldTeamId)) {
             const teamDoc = await db.collection("teams").doc(teamId).get();
-            const teamData = teamDoc.exists ? teamDoc.data() : null;
-            const memberInfo = teamData?.members?.[userId];
-
+            if (!teamDoc.exists) {
+                console.log(`User ${userId} is in a non-existent team ${teamId}. Skipping summary update.`);
+                return;
+            }
+            const memberInfo = teamDoc.data()?.members?.[userId];
             if (!memberInfo) {
-                console.log(`User ${userId} claims to be in team ${teamId}, but not found in members list. Skipping summary update.`);
+                console.log(`User ${userId} not found in members list for team ${teamId}. Skipping summary update.`);
                 return;
             }
 
             const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
-
             const leaveTypes = afterData.leaveTypes || [];
-            const activities = afterData.activities || {};
-            const LEAVE_DAY_TYPES = { FULL: 'full', HALF: 'half' };
+            const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
-            const leaveCounts = {};
-            leaveTypes.forEach(lt => { leaveCounts[lt.id] = 0; });
+            // --- FIX: Logic to calculate and store balances per year ---
+            const yearlyLeaveBalances = {};
+            const systemYear = new Date().getFullYear().toString();
 
-            Object.values(activities).forEach(dayData => {
-                if (dayData.leave) {
-                    const leaveValue = dayData.leave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-                    if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
-                        leaveCounts[dayData.leave.typeId] += leaveValue;
+            // Determine all relevant years: all years with data, plus the current system year (if leave types exist)
+            const relevantYears = new Set(Object.keys(yearlyData));
+            if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
+                // Add current system year to ensure we calculate 0 balance for future use
+                relevantYears.add(systemYear);
+            }
+
+            // Loop through all relevant years
+            for (const year of relevantYears) {
+
+                const yearData = yearlyData[year] || {};
+                const activities = yearData.activities || {};
+                const overrides = yearData.leaveOverrides || {};
+
+                const leaveCounts = {};
+                
+                // Initialize counts for all global leave types
+                leaveTypes.forEach(lt => {
+                    leaveCounts[lt.id] = 0;
+                });
+
+                // Calculate used leave days from activities
+                Object.values(activities).forEach(dayData => {
+                    if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
+                        const leaveInfo = dayData.leave;
+                        const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                        if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
+                            leaveCounts[leaveInfo.typeId] += leaveValue;
+                        }
                     }
+                });
+
+                const leaveBalancesForYear = {};
+                
+                // Finalize balances for this year
+                leaveTypes.forEach(lt => {
+                    // Skip leave types that are marked as hidden for this specific year.
+                    if (overrides[lt.id]?.hidden) return;
+
+                    // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
+                    const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+                    const used = leaveCounts[lt.id] || 0;
+
+                    // Only include this leave type in the summary if it's configured for the year (totalDays > 0)
+                    // OR if there is an override defined.
+                    if (totalDays > 0 || overrides[lt.id]) {
+                        leaveBalancesForYear[lt.id] = {
+                            name: lt.name,
+                            color: lt.color,
+                            total: totalDays,
+                            used: parseFloat(used.toFixed(2)),
+                            balance: parseFloat((totalDays - used).toFixed(2)),
+                        };
+                    }
+                });
+                
+                // Only save the year's balance if leave types exist for it
+                if (Object.keys(leaveBalancesForYear).length > 0) {
+                    yearlyLeaveBalances[year] = leaveBalancesForYear;
                 }
-            });
+            } // end for loop
+            // --- FIX END ---
 
             const summaryData = {
                 userId: userId,
                 displayName: memberInfo.displayName,
                 role: memberInfo.role,
-                leaveBalances: {},
+                yearlyLeaveBalances: yearlyLeaveBalances, // <-- Correct, nested structure is used here
                 lastUpdated: admin.firestore.FieldValue.serverTimestamp()
             };
-
-            leaveTypes.forEach(lt => {
-                const used = leaveCounts[lt.id] || 0;
-                summaryData.leaveBalances[lt.id] = {
-                    name: lt.name,
-                    color: lt.color,
-                    total: lt.totalDays,
-                    used: parseFloat(used.toFixed(2)),
-                    balance: parseFloat((lt.totalDays - used).toFixed(2))
-                };
-            });
 
             try {
                 await summaryRef.set(summaryData);
