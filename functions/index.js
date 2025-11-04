@@ -388,19 +388,20 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
         const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
         const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
 
-        // Check if leave data changed based on the old FLAT structure (if it exists)
+        // We check for changes on either the new or old activity structure to ensure the summary updates
         const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
 
 
         if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
             
             // --- DATA STRUCTURE MIGRATION (Server-Side) ---
-            let yearlyData = afterData.yearlyData || {};
+            // We use a mutable copy of yearlyData for processing
+            let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
+            
+            // If the old activities field exists AND we haven't already migrated data for the current year, migrate it.
             if (afterData.activities && !yearlyData.hasOwnProperty(new Date().getFullYear().toString())) {
-                // If old activities exist and no yearly data yet, migrate it to the current year
                 const currentYear = new Date().getFullYear().toString();
                 yearlyData[currentYear] = { activities: afterData.activities, leaveOverrides: {} };
-                // NOTE: A separate process should ideally clean up the old 'activities' field on the user doc
             }
             // --- END MIGRATION ---
 
@@ -419,13 +420,12 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const leaveTypes = afterData.leaveTypes || [];
             const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
-            // --- FIX START: Logic to calculate and store balances per year ---
+            // --- FIX: Logic to calculate and store balances per year ---
             const yearlyLeaveBalances = {};
             const systemYear = new Date().getFullYear().toString();
 
-            // Determine all relevant years: years with data plus the current system year
+            // Determine all relevant years: all years with data, plus the current system year
             const relevantYears = new Set(Object.keys(yearlyData));
-            // Ensure the system year is processed if leave types are configured, even if no activity data exists yet
             if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
                 relevantYears.add(systemYear);
             }
