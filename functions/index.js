@@ -395,13 +395,21 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
         if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
             
             // --- DATA STRUCTURE MIGRATION (Server-Side) ---
-            // We use a mutable copy of yearlyData for processing
             let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
             
-            // If the old activities field exists AND we haven't already migrated data for the current year, migrate it.
-            if (afterData.activities && !yearlyData.hasOwnProperty(new Date().getFullYear().toString())) {
+            // Check if the old activities field exists AND if we have not processed that data before (by checking all data keys)
+            if (afterData.activities && Object.keys(afterData.activities).length > 0) {
                 const currentYear = new Date().getFullYear().toString();
-                yearlyData[currentYear] = { activities: afterData.activities, leaveOverrides: {} };
+                
+                // If yearlyData is completely empty, or if the current year key doesn't exist, use the old 'activities' data.
+                // NOTE: This assumes old activities are from the current system year, which is a necessary approximation.
+                if (Object.keys(yearlyData).length === 0 || !yearlyData.hasOwnProperty(currentYear)) {
+                     // Deep clone and insert the old flat structure under the current year
+                    yearlyData[currentYear] = { 
+                        activities: afterData.activities ? JSON.parse(JSON.stringify(afterData.activities)) : {}, 
+                        leaveOverrides: {} 
+                    };
+                }
             }
             // --- END MIGRATION ---
 
