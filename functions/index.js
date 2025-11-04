@@ -406,48 +406,52 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
             const yearlyLeaveBalances = {};
-            // Process all years present in the user's data to ensure the summary is comprehensive.
-            // The frontend will be responsible for displaying the correct year.
-            for (const year in yearlyData) {
-                if (Object.prototype.hasOwnProperty.call(yearlyData, year)) {
-                    const yearData = yearlyData[year] || {};
-                    const activities = yearData.activities || {};
-                    const overrides = yearData.leaveOverrides || {};
+            // --- FIX: Ensure summary is created even for users with no leave data ---
+            // We create a set of years to process. It includes all years from the user's
+            // data plus the current year. This guarantees that a summary is always
+            // created for the current year, even for new users.
+            const yearsToProcess = new Set(Object.keys(yearlyData));
+            const currentYear = new Date().getFullYear().toString();
+            yearsToProcess.add(currentYear);
 
-                    const leaveCounts = {};
-                    leaveTypes.forEach(lt => {
-                        leaveCounts[lt.id] = 0;
-                    });
+            for (const year of yearsToProcess) {
+                const yearData = yearlyData[year] || {};
+                const activities = yearData.activities || {};
+                const overrides = yearData.leaveOverrides || {};
 
-                    Object.values(activities).forEach(dayData => {
-                        if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
-                            const leaveInfo = dayData.leave;
-                            const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-                            if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
-                                leaveCounts[leaveInfo.typeId] += leaveValue;
-                            }
+                const leaveCounts = {};
+                leaveTypes.forEach(lt => {
+                    leaveCounts[lt.id] = 0;
+                });
+
+                Object.values(activities).forEach(dayData => {
+                    if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
+                        const leaveInfo = dayData.leave;
+                        const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                        if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
+                            leaveCounts[leaveInfo.typeId] += leaveValue;
                         }
-                    });
+                    }
+                });
 
-                    const leaveBalancesForYear = {};
-                    leaveTypes.forEach(lt => {
-                        // Skip leave types that are marked as hidden for this specific year.
-                        if (overrides[lt.id]?.hidden) return;
+                const leaveBalancesForYear = {};
+                leaveTypes.forEach(lt => {
+                    // Skip leave types that are marked as hidden for this specific year.
+                    if (overrides[lt.id]?.hidden) return;
 
-                        // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
-                        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-                        const used = leaveCounts[lt.id] || 0;
+                    // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
+                    const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+                    const used = leaveCounts[lt.id] || 0;
 
-                        leaveBalancesForYear[lt.id] = {
-                            name: lt.name,
-                            color: lt.color,
-                            total: totalDays,
-                            used: parseFloat(used.toFixed(2)),
-                            balance: parseFloat((totalDays - used).toFixed(2)),
-                        };
-                    });
-                    yearlyLeaveBalances[year] = leaveBalancesForYear;
-                }
+                    leaveBalancesForYear[lt.id] = {
+                        name: lt.name,
+                        color: lt.color,
+                        total: totalDays,
+                        used: parseFloat(used.toFixed(2)),
+                        balance: parseFloat((totalDays - used).toFixed(2)),
+                    };
+                });
+                yearlyLeaveBalances[year] = leaveBalancesForYear;
             }
 
             const summaryData = {
