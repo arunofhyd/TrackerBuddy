@@ -408,11 +408,22 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const yearlyLeaveBalances = {};
             const systemYear = new Date().getFullYear().toString();
 
-            // Determine all relevant years: years with data plus the current system year (if not already included)
+            // Determine all relevant years: years with data plus any year for which leave types exist
             const relevantYears = new Set(Object.keys(yearlyData));
+            // Add the current year if it's not present (in case user hasn't logged any data yet)
             if (!relevantYears.has(systemYear)) {
                 relevantYears.add(systemYear);
             }
+            
+            // If the user has *defined* leave types, ensure those years are included for configuration checks
+            // Even if no activity data exists for a year, if a leave override exists, we should process it.
+            // However, since we iterate over all leaveTypes inside the loop, we need to ensure the year exists in the loop.
+            // We already ensure the system year is there. We will now ensure any year with an override is present.
+            Object.keys(yearlyData).forEach(year => {
+                if (yearlyData[year]?.leaveOverrides) {
+                    relevantYears.add(year);
+                }
+            });
 
             // FIX: Iterate over all relevant years to generate a comprehensive summary
             for (const year of relevantYears) { 
@@ -436,6 +447,7 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
                 });
 
                 const leaveBalancesForYear = {};
+                // Only consider the configured leave types
                 leaveTypes.forEach(lt => {
                     // Skip leave types that are marked as hidden for this specific year.
                     if (overrides[lt.id]?.hidden) return;
@@ -444,16 +456,20 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
                     const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
                     const used = leaveCounts[lt.id] || 0;
 
-                    leaveBalancesForYear[lt.id] = {
-                        name: lt.name,
-                        color: lt.color,
-                        total: totalDays,
-                        used: parseFloat(used.toFixed(2)),
-                        balance: parseFloat((totalDays - used).toFixed(2)),
-                    };
+                    // FIX: Ensure this leave balance is generated if the leave type is defined globally, 
+                    // regardless of whether any days were used.
+                    if (totalDays !== undefined) {
+                        leaveBalancesForYear[lt.id] = {
+                            name: lt.name,
+                            color: lt.color,
+                            total: totalDays,
+                            used: parseFloat(used.toFixed(2)),
+                            balance: parseFloat((totalDays - used).toFixed(2)),
+                        };
+                    }
                 });
                 
-                // Only save the year's balance if there is any leave data configured for that year.
+                // Save the year's balance if any leave types are configured for that year.
                 if (Object.keys(leaveBalancesForYear).length > 0) {
                     yearlyLeaveBalances[year] = leaveBalancesForYear;
                 }
