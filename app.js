@@ -1675,9 +1675,11 @@ async function saveLeaveType() {
         return;
     }
 
-    const isColorTaken = state.leaveTypes.some(lt => lt.color === color && lt.id !== id);
+    const currentYear = state.currentMonth.getFullYear();
+    const visibleLeaveTypes = getVisibleLeaveTypesForYear(currentYear);
+    const isColorTaken = visibleLeaveTypes.some(lt => lt.color === color && lt.id !== id);
     if (isColorTaken) {
-        showMessage('This color is already used by another leave type.', 'error');
+        showMessage('This color is already used by another visible leave type for this year.', 'error');
         setButtonLoadingState(button, false);
         return;
     }
@@ -3124,7 +3126,9 @@ function setupEventListeners() {
             showMessage('Leave logging cancelled.', 'info');
             updateView();
         } else {
-            if (state.leaveTypes.length === 0) {
+            const year = state.currentMonth.getFullYear();
+            const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
+            if (visibleLeaveTypes.length === 0) {
                 showMessage("Please add a leave type first, by clicking on '+' button on top of the calendar.", 'info');
                 return;
             }

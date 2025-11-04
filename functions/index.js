@@ -406,42 +406,40 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
             const yearlyLeaveBalances = {};
-            const allYears = Object.keys(yearlyData);
+            const currentYear = new Date().getFullYear().toString();
 
-            for (const year of allYears) {
-                const yearData = yearlyData[year] || {};
-                const activities = yearData.activities || {};
-                const overrides = yearData.leaveOverrides || {};
+            // We only process the current year for the team dashboard for simplicity.
+            const yearData = yearlyData[currentYear] || {};
+            const activities = yearData.activities || {};
+            const overrides = yearData.leaveOverrides || {};
 
-                const leaveCounts = {};
-                leaveTypes.forEach(lt => { leaveCounts[lt.id] = 0; });
+            const leaveCounts = {};
+            leaveTypes.forEach(lt => { leaveCounts[lt.id] = 0; });
 
-                Object.values(activities).forEach(dayData => {
-                    // Ensure dayData.leave is a valid object with a typeId
-                    if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
-                        const leaveInfo = dayData.leave;
-                        const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-                        if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
-                            leaveCounts[leaveInfo.typeId] += leaveValue;
-                        }
+            Object.values(activities).forEach(dayData => {
+                if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
+                    const leaveInfo = dayData.leave;
+                    const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                    if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
+                        leaveCounts[leaveInfo.typeId] += leaveValue;
                     }
-                });
+                }
+            });
 
-                const leaveBalancesForYear = {};
-                leaveTypes.forEach(lt => {
-                    if (overrides[lt.id]?.hidden) return;
-                    const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-                    const used = leaveCounts[lt.id] || 0;
-                    leaveBalancesForYear[lt.id] = {
-                        name: lt.name,
-                        color: lt.color,
-                        total: totalDays,
-                        used: parseFloat(used.toFixed(2)),
-                        balance: parseFloat((totalDays - used).toFixed(2))
-                    };
-                });
-                yearlyLeaveBalances[year] = leaveBalancesForYear;
-            }
+            const leaveBalancesForYear = {};
+            leaveTypes.forEach(lt => {
+                if (overrides[lt.id]?.hidden) return;
+                const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+                const used = leaveCounts[lt.id] || 0;
+                leaveBalancesForYear[lt.id] = {
+                    name: lt.name,
+                    color: lt.color,
+                    total: totalDays,
+                    used: parseFloat(used.toFixed(2)),
+                    balance: parseFloat((totalDays - used).toFixed(2))
+                };
+            });
+            yearlyLeaveBalances[currentYear] = leaveBalancesForYear;
 
             const summaryData = {
                 userId: userId,
