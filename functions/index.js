@@ -387,29 +387,28 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
     if (teamId) {
         const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
         const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
-
-        // We check for changes on either the new or old activity structure to ensure the summary updates
         const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
-
 
         if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
             
             // --- DATA STRUCTURE MIGRATION (Server-Side) ---
+            // 1. Get a mutable copy of the latest yearlyData.
             let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
             
-            // Check if the old activities field exists AND if we have not processed that data before (by checking all data keys)
+            // 2. Check for and migrate old flat 'activities' data.
             if (afterData.activities && Object.keys(afterData.activities).length > 0) {
                 const currentYear = new Date().getFullYear().toString();
                 
-                // If yearlyData is completely empty, or if the current year key doesn't exist, use the old 'activities' data.
-                // NOTE: This assumes old activities are from the current system year, which is a necessary approximation.
-                if (Object.keys(yearlyData).length === 0 || !yearlyData.hasOwnProperty(currentYear)) {
+                // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
+                if (!yearlyData.hasOwnProperty(currentYear)) {
                      // Deep clone and insert the old flat structure under the current year
                     yearlyData[currentYear] = { 
                         activities: afterData.activities ? JSON.parse(JSON.stringify(afterData.activities)) : {}, 
                         leaveOverrides: {} 
                     };
                 }
+                // NOTE: If both old and new data exist for the current year, we prioritize the newer `yearlyData` key.
+                // The client app should handle cleaning up the old 'activities' field on save.
             }
             // --- END MIGRATION ---
 
@@ -432,9 +431,10 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             const yearlyLeaveBalances = {};
             const systemYear = new Date().getFullYear().toString();
 
-            // Determine all relevant years: all years with data, plus the current system year
+            // Determine all relevant years: all years with data, plus the current system year (if leave types exist)
             const relevantYears = new Set(Object.keys(yearlyData));
             if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
+                // Add current system year to ensure we calculate 0 balance for future use
                 relevantYears.add(systemYear);
             }
 
@@ -474,13 +474,17 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
                     const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
                     const used = leaveCounts[lt.id] || 0;
 
-                    leaveBalancesForYear[lt.id] = {
-                        name: lt.name,
-                        color: lt.color,
-                        total: totalDays,
-                        used: parseFloat(used.toFixed(2)),
-                        balance: parseFloat((totalDays - used).toFixed(2)),
-                    };
+                    // Only include this leave type in the summary if it's configured for the year (totalDays > 0)
+                    // OR if there is an override defined.
+                    if (totalDays > 0 || overrides[lt.id]) {
+                        leaveBalancesForYear[lt.id] = {
+                            name: lt.name,
+                            color: lt.color,
+                            total: totalDays,
+                            used: parseFloat(used.toFixed(2)),
+                            balance: parseFloat((totalDays - used).toFixed(2)),
+                        };
+                    }
                 });
                 
                 // Only save the year's balance if leave types exist for it
