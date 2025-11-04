@@ -1686,7 +1686,6 @@ async function saveLeaveType() {
 
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
-    const currentYear = state.currentMonth.getFullYear();
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
 
     if (existingIndex > -1) {
