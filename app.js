@@ -541,6 +541,9 @@ async function subscribeToData(userId, callback) {
                 // NOTE: We rely on the developer to have correctly implemented this migration in their environment
                 // For client-side logic, we proceed with the migrated data structure
                 data = migratedData;
+                // If you want to force save the new structure back to Firestore here, you can, 
+                // but usually the next user action handles it.
+                // await setDoc(userDocRef, migratedData, { merge: true }); 
                 console.warn("Using in-memory migrated data. Ensure Firestore migration is handled.");
             } catch (error) {
                 console.error("Error migrating user data structure:", error);
@@ -590,6 +593,16 @@ function migrateDataToYearlyStructure(data) {
         yearlyData: yearlyData
         // The old 'activities' field should be deleted on the next save operation
     };
+    
+    // For offline users, we need to immediately save the migrated data back to localStorage
+    if (!state.isOnlineMode) {
+        try {
+            localStorage.setItem("guestUserData", JSON.stringify(migratedData));
+            console.log("Migration complete and saved to localStorage.");
+        } catch (error) {
+            console.error("Failed to save migrated data to localStorage:", error);
+        }
+    }
     
     return migratedData;
 }
@@ -797,6 +810,12 @@ async function saveData(action) {
         yearlyData: updatedYearlyData,
         leaveTypes: state.leaveTypes
     };
+
+    // If migrating away from old structure, implicitly remove old field
+    if (state.isOnlineMode && state.yearlyData.activities) {
+        dataToSave.activities = deleteField();
+    }
+
 
     try {
         await persistData(dataToSave);
@@ -1622,7 +1641,7 @@ function openLeaveTypeModal(leaveType = null) {
 
         DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
         DOM.editingLeaveTypeId.value = leaveType.id;
-        DOM.leaveNameInput.value = totalDays;
+        DOM.leaveNameInput.value = leaveType.name; // FIX: Use name here, not totalDays
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
