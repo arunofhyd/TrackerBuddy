@@ -388,7 +388,22 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
         const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
         const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
 
-        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId)) {
+        // Check if leave data changed based on the old FLAT structure (if it exists)
+        const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
+
+
+        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
+            
+            // --- DATA STRUCTURE MIGRATION (Server-Side) ---
+            let yearlyData = afterData.yearlyData || {};
+            if (afterData.activities && !yearlyData.hasOwnProperty(new Date().getFullYear().toString())) {
+                // If old activities exist and no yearly data yet, migrate it to the current year
+                const currentYear = new Date().getFullYear().toString();
+                yearlyData[currentYear] = { activities: afterData.activities, leaveOverrides: {} };
+                // NOTE: A separate process should ideally clean up the old 'activities' field on the user doc
+            }
+            // --- END MIGRATION ---
+
             const teamDoc = await db.collection("teams").doc(teamId).get();
             if (!teamDoc.exists) {
                 console.log(`User ${userId} is in a non-existent team ${teamId}. Skipping summary update.`);
@@ -402,7 +417,6 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
 
             const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
             const leaveTypes = afterData.leaveTypes || [];
-            const yearlyData = afterData.yearlyData || {};
             const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
             // --- FIX START: Logic to calculate and store balances per year ---
@@ -484,4 +498,56 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             }
         }
     }
+});
+
+/**
+ * Updates a team member's summary document when their team document changes.
+ * This is used to keep displayName and role consistent in the team dashboard.
+ */
+exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1" }, async (event) => {
+    const teamId = event.params.teamId;
+    const beforeData = event.data?.before.data();
+    const afterData = event.data?.after.data();
+
+    if (!afterData) {
+        // Team was deleted. The subcollection of summaries is handled by the deleteTeam function.
+        console.log(`Team ${teamId} deleted.`);
+        return;
+    }
+
+    const beforeMembers = beforeData?.members || {};
+    const afterMembers = afterData.members || {};
+
+    const updatedMembers = [];
+    // Check for changed or new members
+    for (const memberId in afterMembers) {
+        const beforeMember = beforeMembers[memberId];
+        const afterMember = afterMembers[memberId];
+        if (!beforeMember || beforeMember.displayName !== afterMember.displayName || beforeMember.role !== afterMember.role) {
+            updatedMembers.push(memberId);
+        }
+    }
+
+    if (updatedMembers.length === 0) {
+        return;
+    }
+
+    const summaryCollection = db.collection("teams").doc(teamId).collection("member_summaries");
+    const promises = updatedMembers.map(async (memberId) => {
+        const memberData = afterMembers[memberId];
+        const summaryRef = summaryCollection.doc(memberId);
+        try {
+            // Use update with merge to avoid overwriting the whole document if it exists.
+            await summaryRef.set({
+                displayName: memberData.displayName,
+                role: memberData.role,
+                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            console.log(`Updated summary for member ${memberId} in team ${teamId} due to team doc change.`);
+        } catch (error) {
+            console.error(`Error updating summary for member ${memberId}:`, error);
+        }
+    });
+
+    await Promise.all(promises);
 });
