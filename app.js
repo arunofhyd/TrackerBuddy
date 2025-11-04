@@ -623,6 +623,10 @@ async function loadTeamMembersData() {
         });
 
         setState({ teamMembersData });
+        
+        // --- TROUBLESHOOTING LOG START ---
+        console.log("Team Members Data Received (Summary Check):", teamMembersData);
+        // --- TROUBLESHOOTING LOG END ---
 
         // If the dashboard is currently open, re-render it
         if (DOM.teamDashboardModal.classList.contains('visible')) {
@@ -3322,7 +3326,7 @@ function setupEventListeners() {
                 });
 
                 button.classList.add('confirm-action');
-                showMessage(message, 'info');
+                showMessage('Click again to confirm deletion.', 'info');
                 const timeoutId = setTimeout(() => {
                     button.classList.remove('confirm-action');
                 }, 3000);
