@@ -2776,8 +2776,8 @@ function renderTeamDashboard() {
     ];
 
     const membersHTML = sortedMembers.map(member => {
-        const year = state.currentMonth.getFullYear().toString();
-        const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[year] || {}) : {};
+        const currentYear = new Date().getFullYear().toString();
+        const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[currentYear] || {}) : {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
         const leaveTypesHTML = Object.values(balances).length > 0
@@ -3128,7 +3128,7 @@ function setupEventListeners() {
             const year = state.currentMonth.getFullYear();
             const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
             if (visibleLeaveTypes.length === 0) {
-                showMessage("Please add a leave type first, by clicking on '+' button on top of the calendar.", 'info');
+                showMessage("Please first add leave by clicking on + above the calendar.", 'info');
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
