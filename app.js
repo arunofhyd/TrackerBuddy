@@ -3114,6 +3114,14 @@ function setupEventListeners() {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
     }, 500));
 
+    document.getElementById('delete-daily-note-btn').addEventListener('click', () => {
+        if (DOM.dailyNoteInput.value) {
+            DOM.dailyNoteInput.value = '';
+            saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: '' });
+            showMessage("Daily note cleared.", 'success');
+        }
+    });
+
     const addNewSlotBtn = document.getElementById('add-new-slot-btn');
     if (addNewSlotBtn) {
         addNewSlotBtn.addEventListener('click', async () => {
