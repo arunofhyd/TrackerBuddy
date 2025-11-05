@@ -780,20 +780,23 @@ async function saveData(action) {
         }
     }
 
-    const actionHandlers = {
-        [ACTION_TYPES.SAVE_NOTE]: (data, payload) => (handleSaveNote(data, payload), null),
-        [ACTION_TYPES.ADD_SLOT]: data => handleAddSlot(data),
-        [ACTION_TYPES.UPDATE_ACTIVITY_TEXT]: (data, payload) => (handleUpdateActivityText(data, payload), "Activity updated!"),
-        [ACTION_TYPES.UPDATE_TIME]: (data, payload) => handleUpdateTime(data, payload),
-    };
-
-    const handler = actionHandlers[action.type];
-    if (handler) {
-        successMessage = handler(dayDataCopy, action.payload);
-        if (successMessage === null && action.type === ACTION_TYPES.UPDATE_TIME) {
-            setState({ isUpdating: false });
-            return;
-        }
+    switch (action.type) {
+        case ACTION_TYPES.SAVE_NOTE:
+            handleSaveNote(dayDataCopy, action.payload);
+            break;
+        case ACTION_TYPES.ADD_SLOT:
+            successMessage = handleAddSlot(dayDataCopy);
+            break;
+        case ACTION_TYPES.UPDATE_ACTIVITY_TEXT:
+            successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
+            break;
+        case ACTION_TYPES.UPDATE_TIME:
+            successMessage = handleUpdateTime(dayDataCopy, action.payload);
+            if (successMessage === null) {
+                setState({ isUpdating: false });
+                return;
+            }
+            break;
     }
 
     updatedYearlyData[year].activities[dateKey] = dayDataCopy;
@@ -964,29 +967,39 @@ async function updateActivityOrder() {
 }
 
 async function deleteActivity(dateKey, timeKey) {
+    // FIX: Add isUpdating flag to prevent race conditions with onSnapshot
+    if (state.isUpdating) {
+        console.warn('Update already in progress, skipping deletion...');
+        return;
+    }
+    setState({ isUpdating: true });
+
     const year = new Date(dateKey).getFullYear();
     const originalYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
     if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey][timeKey]) {
+        setState({ isUpdating: false });
         return;
     }
 
-    delete updatedYearlyData[year].activities[dateKey][timeKey];
+    try {
+        // Perform the deletion from the copied data
+        delete updatedYearlyData[year].activities[dateKey][timeKey];
 
-    const dayHasNoMoreActivities = Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0;
-    if (dayHasNoMoreActivities) {
-        updatedYearlyData[year].activities[dateKey]._userCleared = true;
-    }
+        const dayHasNoMoreActivities = Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0;
+        if (dayHasNoMoreActivities) {
+            updatedYearlyData[year].activities[dateKey]._userCleared = true;
+        }
 
-    const currentYearData = updatedYearlyData[year];
+        const currentYearData = updatedYearlyData[year];
 
-    // Optimistic UI update
-    setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
-    updateView();
+        // Optimistic UI update
+        setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
+        updateView();
 
-    if (state.isOnlineMode && state.userId) {
-        try {
+        // Persist the changes
+        if (state.isOnlineMode && state.userId) {
             const userDocRef = doc(db, "users", state.userId);
             const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
             const updates = { [fieldPathToDelete]: deleteField() };
@@ -996,20 +1009,22 @@ async function deleteActivity(dateKey, timeKey) {
             }
 
             await updateDoc(userDocRef, updates);
-            showMessage("Activity deleted.", 'success');
-        } catch (error) {
-            console.error("Failed to delete activity:", error);
-            showMessage("Failed to save deletion.", "error");
-            // Rollback
-            const currentYear = state.currentMonth.getFullYear();
-            const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
-            setState({ yearlyData: originalYearlyData, currentYearData: rolledBackCurrentYearData });
-            updateView();
+        } else {
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         }
-    } else {
-        // LocalStorage saves the whole object, so it's fine.
-        saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage("Activity deleted.", 'success');
+
+    } catch (error) {
+        console.error("Failed to delete activity:", error);
+        showMessage("Failed to save deletion.", "error");
+        // Rollback on error
+        const currentYear = state.currentMonth.getFullYear();
+        const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
+        setState({ yearlyData: originalYearlyData, currentYearData: rolledBackCurrentYearData });
+        updateView();
+    } finally {
+        // Ensure the flag is always reset
+        setState({ isUpdating: false });
     }
 }
 
@@ -2816,12 +2831,11 @@ function renderTeamDashboard() {
     
 
     const membersHTML = sortedMembers.map(member => {
-        // FIX: Safely access yearly leave balances and ensure it's a valid object.
-        const yearBalances = member.summary?.yearlyLeaveBalances?.[dashboardYear];
-        const balances = (yearBalances && typeof yearBalances === 'object') ? yearBalances : {};
+        // FIX: Look up balances using the correctly nested structure (yearlyLeaveBalances[year])
+        const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
-        const leaveTypesHTML = Object.keys(balances).length > 0
+        const leaveTypesHTML = Object.values(balances).length > 0
             ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
                 const usedPercentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
                 const radius = 26;
