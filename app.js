@@ -2819,11 +2819,12 @@ function renderTeamDashboard() {
     
 
     const membersHTML = sortedMembers.map(member => {
-        // FIX: Look up balances using the correctly nested structure (yearlyLeaveBalances[year])
-        const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
+        // FIX: Safely access yearly leave balances and ensure it's a valid object.
+        const yearBalances = member.summary?.yearlyLeaveBalances?.[dashboardYear];
+        const balances = (yearBalances && typeof yearBalances === 'object') ? yearBalances : {};
         const isOwner = member.role === TEAM_ROLES.OWNER;
 
-        const leaveTypesHTML = Object.values(balances).length > 0
+        const leaveTypesHTML = Object.keys(balances).length > 0
             ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
                 const usedPercentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
                 const radius = 26;
