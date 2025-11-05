@@ -705,7 +705,7 @@ function handleSaveNote(dayDataCopy, payload) {
     if (payload && payload.trim()) {
         dayDataCopy.note = payload;
     } else {
-        delete dayDataCopy.note;
+        dayDataCopy.note = '';
     }
 }
 
