@@ -281,10 +281,9 @@ async function handleUserLogin(user) {
     switchView(DOM.loadingView, DOM.loginView);
 
     // Now, with the user document guaranteed to exist, subscribe to data.
-    subscribeToData(user.uid, () => {
-        // Team data will now be loaded on-demand when the user expands the team section.
-        switchView(DOM.appView, DOM.loadingView, updateView);
-    });
+    subscribeToData(user.uid);
+    // Immediately switch to the app view. Data will load reactively once the Firestore listener resolves.
+    switchView(DOM.appView, DOM.loadingView, updateView);
 }
 
 function showMessage(msg, type = 'info') {
@@ -522,7 +521,7 @@ function formatTextForDisplay(text) {
 }
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
-async function subscribeToData(userId, callback) {
+async function subscribeToData(userId) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
         if (state.isUpdating || state.editingInlineTimeKey) {
@@ -563,11 +562,7 @@ async function subscribeToData(userId, callback) {
         });
 
         updateView();
-
-        if (callback) {
-            callback();
-            callback = null;
-        }
+        
     });
     setState({ unsubscribeFromFirestore: unsubscribe });
 }
@@ -1945,7 +1940,8 @@ function calculateLeaveBalances() {
 
     visibleLeaveTypes.forEach(lt => {
         const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-        balances[lt.id] = totalDays - (leaveCounts[lt.id] || 0);
+        const calculatedBalance = totalDays - (leaveCounts[lt.id] || 0);
+        balances[lt.id] = parseFloat(calculatedBalance.toFixed(2));
     });
 
     return balances;
@@ -2158,213 +2154,6 @@ function renderLeaveStats() {
     DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
     
     // 💡 FIX: Removed adding event listeners here; moved to setupEventListeners for delegation.
-}
-
-function openLeaveOverviewModal(leaveTypeId) {
-    const year = state.currentMonth.getFullYear();
-    const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
-    const leaveType = visibleLeaveTypes.find(lt => lt.id === leaveTypeId);
-    if (!leaveType) return;
-
-    DOM.overviewLeaveTypeName.textContent = leaveType.name;
-    DOM.overviewLeaveTypeName.title = leaveType.name;
-    DOM.overviewLeaveTypeName.style.color = leaveType.color;
-
-    const currentActivities = state.currentYearData.activities || {};
-    const leaveDates = [];
-
-    Object.keys(currentActivities).forEach(dateKey => {
-        const dayData = currentActivities[dateKey];
-        if (dayData.leave && dayData.leave.typeId === leaveTypeId) {
-            leaveDates.push({
-                date: dateKey,
-                dayType: dayData.leave.dayType,
-                formatted: formatDateForDisplay(dateKey)
-            });
-        }
-    });
-
-    leaveDates.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    renderLeaveOverviewList(leaveDates, leaveType);
-    DOM.leaveOverviewModal.classList.add('visible');
-}
-
-function closeLeaveOverviewModal() {
-    DOM.leaveOverviewModal.classList.remove('visible');
-}
-
-function renderLeaveOverviewList(leaveDates, leaveType) {
-    DOM.overviewLeaveDaysList.innerHTML = '';
-
-    if (leaveDates.length === 0) {
-        DOM.overviewNoLeavesMessage.classList.remove('hidden');
-        return;
-    }
-
-    DOM.overviewNoLeavesMessage.classList.add('hidden');
-
-    leaveDates.forEach(leaveDate => {
-        const item = document.createElement('div');
-        item.className = 'leave-overview-item flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors gap-y-2';
-        item.dataset.dateKey = leaveDate.date;
-
-        item.innerHTML = `
-            <div class="flex items-center space-x-3 w-full sm:w-auto min-w-0">
-                <div class="w-4 h-4 rounded-full flex-shrink-0" style="background-color: ${leaveType.color};"></div>
-                <div class="flex-grow min-w-0">
-                    <span class="font-medium truncate" title="${leaveDate.formatted}">${leaveDate.formatted}</span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
-                    <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full">Full</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half">Half</button>
-                </div>
-                <div class="flex items-center space-x-1 flex-shrink-0">
-                    <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
-                    </button>
-                    <button class="delete-leave-day-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700" title="Delete this leave entry">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-
-        DOM.overviewLeaveDaysList.appendChild(item);
-    });
-}
-
-async function editLeaveDay(dateKey) {
-    // Close the overview modal
-    closeLeaveOverviewModal();
-
-    // Set up the customization modal with just this one day
-    setState({
-        leaveSelection: new Set([dateKey]),
-        initialLeaveSelection: new Set([dateKey]),
-        isLoggingLeave: false,
-        selectedLeaveTypeId: null
-    });
-
-    // Open the customization modal
-    openLeaveCustomizationModal();
-}
-
-async function deleteLeaveDay(dateKey) {
-    const year = new Date(dateKey).getFullYear();
-    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
-
-    if (!updatedYearlyData[year] || !updatedYearlyData[year].activities || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey].leave) {
-        return;
-    }
-
-    const originalLeaveTypeId = updatedYearlyData[year].activities[dateKey].leave.typeId;
-
-    delete updatedYearlyData[year].activities[dateKey].leave;
-
-    const currentYear = state.currentMonth.getFullYear();
-    const currentYearData = updatedYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
-
-    setState({
-        yearlyData: updatedYearlyData,
-        currentYearData: currentYearData
-    });
-
-    try {
-        if (state.isOnlineMode && state.userId) {
-            const userDocRef = doc(db, "users", state.userId);
-            const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.leave`;
-            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
-            await updateDoc(userDocRef, { [fieldPathToDelete]: deleteField() });
-        } else {
-            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
-        }
-        showMessage('Leave entry deleted successfully!', 'success');
-    } catch (error) {
-        console.error("Failed to delete leave day:", error);
-        showMessage("Failed to save deletion.", "error");
-        // NOTE: A robust implementation might roll back the state change here.
-    }
-
-    // If the overview modal for the affected leave type is open, refresh it.
-    if (DOM.leaveOverviewModal.classList.contains('visible')) {
-        setTimeout(() => openLeaveOverviewModal(originalLeaveTypeId), 100);
-    }
-
-    updateView();
-}
-
-function renderLeaveStats() {
-    DOM.leaveStatsSection.innerHTML = '';
-    const year = state.currentMonth.getFullYear();
-    const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
-
-    if (visibleLeaveTypes.length === 0) {
-        DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined for this year.</p>';
-        return;
-    }
-
-    const balances = calculateLeaveBalances();
-    const yearData = state.yearlyData[year] || {};
-    const overrides = yearData.leaveOverrides || {};
-
-    const statsHTML = visibleLeaveTypes.map((lt, index) => {
-        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-        const calculatedBalance = balances[lt.id] !== undefined ? balances[lt.id] : totalDays;
-        const calculatedUsed = totalDays - calculatedBalance;
-
-        const used = parseFloat(calculatedUsed.toFixed(2));
-        const balance = parseFloat(calculatedBalance.toFixed(2));
-
-        const isFirst = index === 0;
-        const isLast = index === visibleLeaveTypes.length - 1;
-
-        return `
-            <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
-                <div class="flex justify-between items-start">
-                    <div class="flex items-center min-w-0 pr-2">
-                        <h4 class="font-bold text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
-                    </div>
-                    
-                    <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                        </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2 mt-2 text-center">
-                    <div class="bg-gray-100 p-2 rounded">
-                        <p class="text-xs text-gray-500">Used</p>
-                        <p class="font-bold text-xl text-gray-800">${used}</p>
-                    </div>
-                    <div class="p-2 rounded balance-box">
-                        <p class="text-xs stats-label">Balance</p>
-                        <p class="font-bold text-xl stats-value">${balance}</p>
-                    </div>
-                </div>
-                <div class="bg-gray-100 p-2 rounded mt-2 text-center">
-                    <p class="text-xs text-gray-500">Total</p>
-                    <p class="font-bold text-xl text-gray-800">${totalDays}</p>
-                </div>
-            </div>
-        `;
-    }).join('');
-    DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
-    // Event listener setup is handled via delegation in setupEventListeners (Fix 5)
 }
 
 function openLeaveCustomizationModal() {
@@ -2847,6 +2636,75 @@ function renderTeamSection() {
             </div>
         `;
 
+        // Add event listeners for create/join buttons
+        document.getElementById('create-team-btn').addEventListener('click', openCreateTeamModal);
+        document.getElementById('join-team-btn').addEventListener('click', openJoinTeamModal);
+
+    } else {
+        // Has team - show team info and actions
+        const isOwner = state.teamRole === TEAM_ROLES.OWNER;
+        const memberCount = state.teamMembers.length || 0;
+
+        const teamInfo = `
+            <div class="space-y-6">
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold mb-2 flex items-center justify-center">
+                        <i class="fa-solid fa-user-group w-5 h-5 mr-2 text-blue-600"></i>
+                        <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
+                        ${isOwner ? `
+                        <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                        </button>
+                        ` : ''}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400">You are ${isOwner ? 'the owner' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-100 p-4 rounded-lg border">
+                    <h4 class="font-semibold mb-3 text-center">Team Room Code</h4>
+                    <div class="text-center">
+                        <div class="room-code">
+                            <span>${state.currentTeam}</span>
+                            <button id="copy-room-code-btn" class="icon-btn hover:bg-white/20 ml-2" title="Copy Code">
+                                <i class="fa-regular fa-copy text-white"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">Share this code with others to invite them to your team.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-${isOwner ? '3' : '2'} gap-4">
+                    ${isOwner ? `
+                        <button id="team-dashboard-btn" class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Team Dashboard
+                        </button>
+                    ` : ''}
+                    <button id="edit-display-name-btn" class="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
+                        </svg>
+                        Change Name
+                    </button>
+                    ${isOwner ? `
+                        <button id="delete-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete Team
+                        </button>
+                    ` : `
+                        <button id="leave-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                            <i class="fa-solid fa-door-open w-5 h-5 mr-2"></i>
+                            Leave Team
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+
         DOM.teamSection.innerHTML = teamInfo;
 
         // Event listeners are now handled by delegation in setupEventListeners
@@ -3129,7 +2987,7 @@ function renderTeamDashboard() {
                         ${isOwner ? `
                         <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-4">
                             <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1-81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                         </div>
                         ` : ''}
