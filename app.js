@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -691,7 +691,16 @@ function cleanupTeamSubscriptions() {
 async function persistData(data) {
     if (state.isOnlineMode && state.userId) {
         try {
-            await saveDataToFirestore(data);
+            // Check if the data contains only a deleteField operation (e.g., from saveLoggedLeaves or deleteActivity)
+            const isDeletionOnly = data.yearlyData === undefined && Object.keys(data).length > 0 && Object.values(data).every(v => v === deleteField());
+            
+            if (isDeletionOnly) {
+                // If it's a deletion, use updateDoc
+                await updateDoc(doc(db, "users", state.userId), data);
+            } else {
+                // Otherwise, use setDoc for merging the state object
+                await setDoc(doc(db, "users", state.userId), data, { merge: true });
+            }
         } catch (error) {
             console.error("Error saving to Firestore:", error);
             showMessage("Error: Could not save changes. Please try again.", 'error');
@@ -701,11 +710,12 @@ async function persistData(data) {
     }
 }
 
+// 💡 FIX: Set note to empty string instead of deleting property to fix Firestore merge issue
 function handleSaveNote(dayDataCopy, payload) {
     if (payload && payload.trim()) {
         dayDataCopy.note = payload;
     } else {
-        dayDataCopy.note = '';
+        dayDataCopy.note = ''; 
     }
 }
 
@@ -812,12 +822,13 @@ async function saveData(action) {
     };
 
     // If migrating away from old structure, implicitly remove old field
-    if (state.isOnlineMode && state.yearlyData.activities) {
+    if (state.isOnlineMode && originalYearlyData.activities) { // Check original state for old field presence
         dataToSave.activities = deleteField();
     }
 
 
     try {
+        // The check for deletion is now inside persistData
         await persistData(dataToSave);
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
@@ -942,7 +953,7 @@ async function updateActivityOrder() {
     const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
     const newDayData = {};
 
-    if (dayData.note) newDayData.note = dayData.note;
+    if (dayData.note !== undefined) newDayData.note = dayData.note;
     if (dayData.leave) newDayData.leave = dayData.leave;
     if (dayData._userCleared) newDayData._userCleared = true;
 
@@ -956,8 +967,13 @@ async function updateActivityOrder() {
 
     setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
 
+    const dataToSave = {
+        yearlyData: updatedYearlyData,
+        leaveTypes: state.leaveTypes
+    };
+
     try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        await persistData(dataToSave);
         showMessage("Activities reordered!", 'success');
     } catch (error) {
         console.error("Failed to reorder activities:", error);
@@ -988,8 +1004,11 @@ async function deleteActivity(dateKey, timeKey) {
         delete updatedYearlyData[year].activities[dateKey][timeKey];
 
         const dayHasNoMoreActivities = Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0;
+        
+        const updates = {};
         if (dayHasNoMoreActivities) {
             updatedYearlyData[year].activities[dateKey]._userCleared = true;
+            updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
         }
 
         const currentYearData = updatedYearlyData[year];
@@ -1002,13 +1021,11 @@ async function deleteActivity(dateKey, timeKey) {
         if (state.isOnlineMode && state.userId) {
             const userDocRef = doc(db, "users", state.userId);
             const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
-            const updates = { [fieldPathToDelete]: deleteField() };
-
-            if (dayHasNoMoreActivities) {
-                updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
-            }
-
+            
+            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
+            updates[fieldPathToDelete] = deleteField();
             await updateDoc(userDocRef, updates);
+
         } else {
             saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         }
@@ -1077,7 +1094,7 @@ function downloadCSV() {
         if (!dayData) return;
 
         // Export Note, Leave, User Cleared Flag, and Activities for the day
-        if (dayData.note) {
+        if (dayData.note !== undefined && dayData.note !== "") { // Check for explicit empty string
             csvRows.push(["NOTE", dateKey, dayData.note, "", ""]);
         }
         if (dayData.leave) {
@@ -1235,10 +1252,17 @@ function handleFileUpload(event) {
                 currentYearData: newCurrentYearData
             });
 
-            await persistData({
+            const dataToSave = {
                 yearlyData: yearlyDataCopy,
                 leaveTypes: finalLeaveTypes
-            });
+            };
+
+            // If migrating away from old structure, implicitly remove old field
+            if (state.isOnlineMode && state.yearlyData.activities) {
+                dataToSave.activities = deleteField();
+            }
+
+            await persistData(dataToSave);
 
             showMessage(`${processedRows} records imported/updated successfully!`, 'success');
             event.target.value = '';
@@ -2030,6 +2054,7 @@ async function deleteLeaveDay(dateKey) {
 
     const originalLeaveTypeId = updatedYearlyData[year].activities[dateKey].leave.typeId;
 
+    // Local deletion
     delete updatedYearlyData[year].activities[dateKey].leave;
 
     const currentYear = state.currentMonth.getFullYear();
@@ -2041,7 +2066,14 @@ async function deleteLeaveDay(dateKey) {
     });
 
     try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        if (state.isOnlineMode && state.userId) {
+            const userDocRef = doc(db, "users", state.userId);
+            const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.leave`;
+            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
+            await updateDoc(userDocRef, { [fieldPathToDelete]: deleteField() });
+        } else {
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        }
         showMessage('Leave entry deleted successfully!', 'success');
     } catch (error) {
         console.error("Failed to delete leave day:", error);
@@ -2124,31 +2156,215 @@ function renderLeaveStats() {
         `;
     }).join('');
     DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
+    
+    // 💡 FIX: Removed adding event listeners here; moved to setupEventListeners for delegation.
+}
 
-    // Add event listeners for edit buttons
-    DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
-            if (leaveType) openLeaveTypeModal(leaveType);
-        });
+function openLeaveOverviewModal(leaveTypeId) {
+    const year = state.currentMonth.getFullYear();
+    const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
+    const leaveType = visibleLeaveTypes.find(lt => lt.id === leaveTypeId);
+    if (!leaveType) return;
+
+    DOM.overviewLeaveTypeName.textContent = leaveType.name;
+    DOM.overviewLeaveTypeName.title = leaveType.name;
+    DOM.overviewLeaveTypeName.style.color = leaveType.color;
+
+    const currentActivities = state.currentYearData.activities || {};
+    const leaveDates = [];
+
+    Object.keys(currentActivities).forEach(dateKey => {
+        const dayData = currentActivities[dateKey];
+        if (dayData.leave && dayData.leave.typeId === leaveTypeId) {
+            leaveDates.push({
+                date: dateKey,
+                dayType: dayData.leave.dayType,
+                formatted: formatDateForDisplay(dateKey)
+            });
+        }
     });
 
-    // Add event listeners for move buttons
-    DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.dataset.id;
-            const direction = parseInt(e.currentTarget.dataset.direction, 10);
-            await moveLeaveType(id, direction);
-        });
+    leaveDates.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    renderLeaveOverviewList(leaveDates, leaveType);
+    DOM.leaveOverviewModal.classList.add('visible');
+}
+
+function closeLeaveOverviewModal() {
+    DOM.leaveOverviewModal.classList.remove('visible');
+}
+
+function renderLeaveOverviewList(leaveDates, leaveType) {
+    DOM.overviewLeaveDaysList.innerHTML = '';
+
+    if (leaveDates.length === 0) {
+        DOM.overviewNoLeavesMessage.classList.remove('hidden');
+        return;
+    }
+
+    DOM.overviewNoLeavesMessage.classList.add('hidden');
+
+    leaveDates.forEach(leaveDate => {
+        const item = document.createElement('div');
+        item.className = 'leave-overview-item flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors gap-y-2';
+        item.dataset.dateKey = leaveDate.date;
+
+        item.innerHTML = `
+            <div class="flex items-center space-x-3 w-full sm:w-auto min-w-0">
+                <div class="w-4 h-4 rounded-full flex-shrink-0" style="background-color: ${leaveType.color};"></div>
+                <div class="flex-grow min-w-0">
+                    <span class="font-medium truncate" title="${leaveDate.formatted}">${leaveDate.formatted}</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
+                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
+                    <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full">Full</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half">Half</button>
+                </div>
+                <div class="flex items-center space-x-1 flex-shrink-0">
+                    <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                    </button>
+                    <button class="delete-leave-day-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700" title="Delete this leave entry">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        DOM.overviewLeaveDaysList.appendChild(item);
+    });
+}
+
+async function editLeaveDay(dateKey) {
+    // Close the overview modal
+    closeLeaveOverviewModal();
+
+    // Set up the customization modal with just this one day
+    setState({
+        leaveSelection: new Set([dateKey]),
+        initialLeaveSelection: new Set([dateKey]),
+        isLoggingLeave: false,
+        selectedLeaveTypeId: null
     });
 
-    // Add event listeners for info buttons
-    DOM.leaveStatsSection.querySelectorAll('.info-leave-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const leaveTypeId = e.currentTarget.dataset.id;
-            openLeaveOverviewModal(leaveTypeId);
-        });
+    // Open the customization modal
+    openLeaveCustomizationModal();
+}
+
+async function deleteLeaveDay(dateKey) {
+    const year = new Date(dateKey).getFullYear();
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
+
+    if (!updatedYearlyData[year] || !updatedYearlyData[year].activities || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey].leave) {
+        return;
+    }
+
+    const originalLeaveTypeId = updatedYearlyData[year].activities[dateKey].leave.typeId;
+
+    delete updatedYearlyData[year].activities[dateKey].leave;
+
+    const currentYear = state.currentMonth.getFullYear();
+    const currentYearData = updatedYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
+
+    setState({
+        yearlyData: updatedYearlyData,
+        currentYearData: currentYearData
     });
+
+    try {
+        if (state.isOnlineMode && state.userId) {
+            const userDocRef = doc(db, "users", state.userId);
+            const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.leave`;
+            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
+            await updateDoc(userDocRef, { [fieldPathToDelete]: deleteField() });
+        } else {
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        }
+        showMessage('Leave entry deleted successfully!', 'success');
+    } catch (error) {
+        console.error("Failed to delete leave day:", error);
+        showMessage("Failed to save deletion.", "error");
+        // NOTE: A robust implementation might roll back the state change here.
+    }
+
+    // If the overview modal for the affected leave type is open, refresh it.
+    if (DOM.leaveOverviewModal.classList.contains('visible')) {
+        setTimeout(() => openLeaveOverviewModal(originalLeaveTypeId), 100);
+    }
+
+    updateView();
+}
+
+function renderLeaveStats() {
+    DOM.leaveStatsSection.innerHTML = '';
+    const year = state.currentMonth.getFullYear();
+    const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
+
+    if (visibleLeaveTypes.length === 0) {
+        DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined for this year.</p>';
+        return;
+    }
+
+    const balances = calculateLeaveBalances();
+    const yearData = state.yearlyData[year] || {};
+    const overrides = yearData.leaveOverrides || {};
+
+    const statsHTML = visibleLeaveTypes.map((lt, index) => {
+        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+        const calculatedBalance = balances[lt.id] !== undefined ? balances[lt.id] : totalDays;
+        const calculatedUsed = totalDays - calculatedBalance;
+
+        const used = parseFloat(calculatedUsed.toFixed(2));
+        const balance = parseFloat(calculatedBalance.toFixed(2));
+
+        const isFirst = index === 0;
+        const isLast = index === visibleLeaveTypes.length - 1;
+
+        return `
+            <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center min-w-0 pr-2">
+                        <h4 class="font-bold text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
+                    </div>
+                    
+                    <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
+                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </button>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2 text-center">
+                    <div class="bg-gray-100 p-2 rounded">
+                        <p class="text-xs text-gray-500">Used</p>
+                        <p class="font-bold text-xl text-gray-800">${used}</p>
+                    </div>
+                    <div class="p-2 rounded balance-box">
+                        <p class="text-xs stats-label">Balance</p>
+                        <p class="font-bold text-xl stats-value">${balance}</p>
+                    </div>
+                </div>
+                <div class="bg-gray-100 p-2 rounded mt-2 text-center">
+                    <p class="text-xs text-gray-500">Total</p>
+                    <p class="font-bold text-xl text-gray-800">${totalDays}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
+    // Event listener setup is handled via delegation in setupEventListeners (Fix 5)
 }
 
 function openLeaveCustomizationModal() {
@@ -2430,10 +2646,19 @@ async function saveLoggedLeaves() {
 
     const updatedActivities = { ...currentActivities };
     const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
+    
+    // Changes specific to firestore for deletion
+    const firestoreDeletions = {}; 
+    const firestoreUpdates = {};
 
     state.initialLeaveSelection.forEach(dateKey => {
         if (!datesInModal.has(dateKey) && updatedActivities[dateKey]?.leave) {
+            // If it was selected before but removed from the modal, delete it
             delete updatedActivities[dateKey].leave;
+            if (state.isOnlineMode) {
+                 const fieldPath = `yearlyData.${year}.activities.${dateKey}.leave`;
+                 firestoreDeletions[fieldPath] = deleteField();
+            }
         }
     });
 
@@ -2444,18 +2669,37 @@ async function saveLoggedLeaves() {
 
         if (typeId === 'remove') {
             delete updatedActivities[dateKey].leave;
+            if (state.isOnlineMode) {
+                const fieldPath = `yearlyData.${year}.activities.${dateKey}.leave`;
+                firestoreDeletions[fieldPath] = deleteField();
+            }
         } else {
             const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
             updatedActivities[dateKey].leave = { typeId, dayType };
+            // Prepare for merge/setDoc, only if we are not using a pure deletion payload
+            if (!state.isOnlineMode || Object.keys(firestoreDeletions).length === 0) {
+                 firestoreUpdates[`yearlyData.${year}.activities.${dateKey}.leave`] = { typeId, dayType };
+            }
         }
     });
 
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
+    
+    // If there were deletions, update firestore first with explicit deletions
+    if (state.isOnlineMode && Object.keys(firestoreDeletions).length > 0) {
+         try {
+            await updateDoc(doc(db, "users", state.userId), firestoreDeletions);
+         } catch (e) {
+            console.error("Error batch deleting leaves:", e);
+            showMessage("Failed to remove old leaves. Data may be inconsistent.", "error");
+         }
+    }
 
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
+        // Now save the current state. The deletion is already handled above if needed.
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage('Leaves saved successfully!', 'success');
     } catch (error) {
@@ -3030,12 +3274,16 @@ function setupEventListeners() {
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
+        // 💡 FIX: Clone Date object before mutation
+        let newCurrentMonth = new Date(state.currentMonth); 
 
         if (state.currentView === VIEW_MODES.MONTH) {
-            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
+            newCurrentMonth.setMonth(newCurrentMonth.getMonth() - 1);
+            newDate = newCurrentMonth;
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+            newDate = new Date(state.selectedDate); // Clone selectedDate
+            newDate.setDate(newDate.getDate() - 1);
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3055,12 +3303,16 @@ function setupEventListeners() {
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
+        // 💡 FIX: Clone Date object before mutation
+        let newCurrentMonth = new Date(state.currentMonth); 
 
         if (state.currentView === VIEW_MODES.MONTH) {
-            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
+            newCurrentMonth.setMonth(newCurrentMonth.getMonth() + 1);
+            newDate = newCurrentMonth;
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+            newDate = new Date(state.selectedDate); // Clone selectedDate
+            newDate.setDate(newDate.getDate() + 1);
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3155,6 +3407,25 @@ function setupEventListeners() {
         DOM.leaveStatsSection.classList.toggle('visible');
         DOM.statsArrowDown.classList.toggle('hidden');
         DOM.statsArrowUp.classList.toggle('hidden');
+    });
+
+    // 💡 FIX 5B: Delegated event listener for leave stats buttons
+    DOM.leaveStatsSection.addEventListener('click', async (e) => {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        const id = target.dataset.id;
+        if (!id) return;
+
+        if (target.classList.contains('edit-leave-type-btn')) {
+            const leaveType = state.leaveTypes.find(lt => lt.id === id);
+            if (leaveType) openLeaveTypeModal(leaveType);
+        } else if (target.classList.contains('move-leave-btn')) {
+            const direction = parseInt(target.dataset.direction, 10);
+            await moveLeaveType(id, direction);
+        } else if (target.classList.contains('info-leave-btn')) {
+            openLeaveOverviewModal(id);
+        }
     });
 
     // Team toggle button
