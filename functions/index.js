@@ -372,14 +372,6 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
     const teamId = afterData.teamId;
     const oldTeamId = beforeData?.teamId;
 
-    const yearlyData = afterData.yearlyData || {}; // New data structure for activities
-    const leaveTypes = afterData.leaveTypes || [];
-
-    // Check for relevant changes that affect the summary
-    const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(yearlyData);
-    const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(leaveTypes);
-    const teamIdChanged = teamId !== oldTeamId;
-
     // Case 1: User leaves or is removed from a team
     if (oldTeamId && !teamId) {
         const summaryRef = db.collection("teams").doc(oldTeamId).collection("member_summaries").doc(userId);
@@ -393,9 +385,33 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
 
     // Case 2: User joins a team or their data changes while in a team
     if (teamId) {
-        // 💡 FIX: Removed oldActivitiesChanged condition and migration logic (Fix 3)
-        if (yearlyDataChanged || leaveTypesChanged || teamIdChanged) {
+        const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
+        const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
+        const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
+
+        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
             
+            // --- DATA STRUCTURE MIGRATION (Server-Side) ---
+            // 1. Get a mutable copy of the latest yearlyData.
+            let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
+            
+            // 2. Check for and migrate old flat 'activities' data.
+            if (afterData.activities && Object.keys(afterData.activities).length > 0) {
+                const currentYear = new Date().getFullYear().toString();
+                
+                // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
+                if (!yearlyData.hasOwnProperty(currentYear)) {
+                     // Deep clone and insert the old flat structure under the current year
+                    yearlyData[currentYear] = { 
+                        activities: afterData.activities ? JSON.parse(JSON.stringify(afterData.activities)) : {}, 
+                        leaveOverrides: {} 
+                    };
+                }
+                // NOTE: If both old and new data exist for the current year, we prioritize the newer `yearlyData` key.
+                // The client app should handle cleaning up the old 'activities' field on save.
+            }
+            // --- END MIGRATION ---
+
             const teamDoc = await db.collection("teams").doc(teamId).get();
             if (!teamDoc.exists) {
                 console.log(`User ${userId} is in a non-existent team ${teamId}. Skipping summary update.`);
@@ -408,6 +424,7 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             }
 
             const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
+            const leaveTypes = afterData.leaveTypes || [];
             const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
             // --- FIX: Logic to calculate and store balances per year ---
