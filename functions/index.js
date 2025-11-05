@@ -512,7 +512,7 @@ exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}"
             };
 
             try {
-                await summaryRef.set(summaryData);
+                await summaryRef.set(summaryData, { merge: true });
                 console.log(`Updated summary for user ${userId} in team ${teamId}`);
             } catch (error) {
                 console.error("Error setting summary for user:", error);
