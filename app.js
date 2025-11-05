@@ -968,6 +968,7 @@ async function updateActivityOrder() {
 
 async function deleteActivity(dateKey, timeKey) {
     const year = new Date(dateKey).getFullYear();
+    const originalYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
     if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey][timeKey]) {
@@ -976,22 +977,42 @@ async function deleteActivity(dateKey, timeKey) {
 
     delete updatedYearlyData[year].activities[dateKey][timeKey];
 
-    if (Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0) {
+    const dayHasNoMoreActivities = Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0;
+    if (dayHasNoMoreActivities) {
         updatedYearlyData[year].activities[dateKey]._userCleared = true;
     }
 
     const currentYearData = updatedYearlyData[year];
 
+    // Optimistic UI update
     setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
     updateView();
-    showMessage("Activity deleted.", 'success');
 
-    try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
-    } catch (error) {
-        console.error("Failed to delete activity:", error);
-        showMessage("Failed to save deletion.", "error");
-        // NOTE: Consider rolling back state
+    if (state.isOnlineMode && state.userId) {
+        try {
+            const userDocRef = doc(db, "users", state.userId);
+            const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
+            const updates = { [fieldPathToDelete]: deleteField() };
+
+            if (dayHasNoMoreActivities) {
+                updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
+            }
+
+            await updateDoc(userDocRef, updates);
+            showMessage("Activity deleted.", 'success');
+        } catch (error) {
+            console.error("Failed to delete activity:", error);
+            showMessage("Failed to save deletion.", "error");
+            // Rollback
+            const currentYear = state.currentMonth.getFullYear();
+            const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
+            setState({ yearlyData: originalYearlyData, currentYearData: rolledBackCurrentYearData });
+            updateView();
+        }
+    } else {
+        // LocalStorage saves the whole object, so it's fine.
+        saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        showMessage("Activity deleted.", 'success');
     }
 }
 
