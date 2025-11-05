@@ -780,23 +780,20 @@ async function saveData(action) {
         }
     }
 
-    switch (action.type) {
-        case ACTION_TYPES.SAVE_NOTE:
-            handleSaveNote(dayDataCopy, action.payload);
-            break;
-        case ACTION_TYPES.ADD_SLOT:
-            successMessage = handleAddSlot(dayDataCopy);
-            break;
-        case ACTION_TYPES.UPDATE_ACTIVITY_TEXT:
-            successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
-            break;
-        case ACTION_TYPES.UPDATE_TIME:
-            successMessage = handleUpdateTime(dayDataCopy, action.payload);
-            if (successMessage === null) {
-                setState({ isUpdating: false });
-                return;
-            }
-            break;
+    const actionHandlers = {
+        [ACTION_TYPES.SAVE_NOTE]: (data, payload) => (handleSaveNote(data, payload), null),
+        [ACTION_TYPES.ADD_SLOT]: data => handleAddSlot(data),
+        [ACTION_TYPES.UPDATE_ACTIVITY_TEXT]: (data, payload) => (handleUpdateActivityText(data, payload), "Activity updated!"),
+        [ACTION_TYPES.UPDATE_TIME]: (data, payload) => handleUpdateTime(data, payload),
+    };
+
+    const handler = actionHandlers[action.type];
+    if (handler) {
+        successMessage = handler(dayDataCopy, action.payload);
+        if (successMessage === null && action.type === ACTION_TYPES.UPDATE_TIME) {
+            setState({ isUpdating: false });
+            return;
+        }
     }
 
     updatedYearlyData[year].activities[dateKey] = dayDataCopy;
