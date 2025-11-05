@@ -6,6 +6,25 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
+// Helper function to delete all documents in a collection or subcollection
+async function deleteCollection(collectionPath, batchSize = 500) {
+    const collectionRef = db.collection(collectionPath);
+    const query = collectionRef.orderBy('__name__').limit(batchSize);
+
+    while (true) {
+        const snapshot = await query.get();
+        if (snapshot.size === 0) {
+            return;
+        }
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+    }
+}
+
 /**
  * Creates a new team with the authenticated user as the owner.
  */
@@ -254,20 +273,10 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
         throw new HttpsError("permission-denied", "Only the team owner can delete the team.");
     }
 
-    // Delete the member_summaries subcollection first.
-    // This is not perfectly transactional, but it's better to orphan a team doc than the subcollection.
-    const summaryCollectionRef = db.collection("teams").doc(teamId).collection("member_summaries");
-    const summaryDocs = await summaryCollectionRef.limit(500).get(); // Limit to 500 to stay within batch limits
-    const deleteSummaryBatch = db.batch();
-    summaryDocs.forEach(doc => {
-        deleteSummaryBatch.delete(doc.ref);
-    });
-    await deleteSummaryBatch.commit();
+    // Recursively delete the member_summaries subcollection.
+    const summaryCollectionPath = `teams/${teamId}/member_summaries`;
+    await deleteCollection(summaryCollectionPath);
 
-    // If there were more than 500 summaries, we'd need a more complex recursive delete function.
-    if (summaryDocs.size === 500) {
-        console.warn(`Team ${teamId} had 500 or more summaries. Not all may have been deleted.`);
-    }
 
     const members = teamDoc.data().members || {};
     const finalBatch = db.batch();
