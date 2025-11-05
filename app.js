@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -281,9 +281,10 @@ async function handleUserLogin(user) {
     switchView(DOM.loadingView, DOM.loginView);
 
     // Now, with the user document guaranteed to exist, subscribe to data.
-    subscribeToData(user.uid);
-    // Immediately switch to the app view. Data will load reactively once the Firestore listener resolves.
-    switchView(DOM.appView, DOM.loadingView, updateView);
+    subscribeToData(user.uid, () => {
+        // Team data will now be loaded on-demand when the user expands the team section.
+        switchView(DOM.appView, DOM.loadingView, updateView);
+    });
 }
 
 function showMessage(msg, type = 'info') {
@@ -521,7 +522,7 @@ function formatTextForDisplay(text) {
 }
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
-async function subscribeToData(userId) {
+async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
         if (state.isUpdating || state.editingInlineTimeKey) {
@@ -562,7 +563,11 @@ async function subscribeToData(userId) {
         });
 
         updateView();
-        
+
+        if (callback) {
+            callback();
+            callback = null;
+        }
     });
     setState({ unsubscribeFromFirestore: unsubscribe });
 }
@@ -686,16 +691,7 @@ function cleanupTeamSubscriptions() {
 async function persistData(data) {
     if (state.isOnlineMode && state.userId) {
         try {
-            // Check if the data contains only a deleteField operation (e.g., from saveLoggedLeaves or deleteActivity)
-            const isDeletionOnly = data.yearlyData === undefined && Object.keys(data).length > 0 && Object.values(data).every(v => v === deleteField());
-            
-            if (isDeletionOnly) {
-                // If it's a deletion, use updateDoc
-                await updateDoc(doc(db, "users", state.userId), data);
-            } else {
-                // Otherwise, use setDoc for merging the state object
-                await setDoc(doc(db, "users", state.userId), data, { merge: true });
-            }
+            await saveDataToFirestore(data);
         } catch (error) {
             console.error("Error saving to Firestore:", error);
             showMessage("Error: Could not save changes. Please try again.", 'error');
@@ -705,12 +701,11 @@ async function persistData(data) {
     }
 }
 
-// 💡 FIX: Set note to empty string instead of deleting property to fix Firestore merge issue
 function handleSaveNote(dayDataCopy, payload) {
     if (payload && payload.trim()) {
         dayDataCopy.note = payload;
     } else {
-        dayDataCopy.note = ''; 
+        dayDataCopy.note = '';
     }
 }
 
@@ -817,13 +812,12 @@ async function saveData(action) {
     };
 
     // If migrating away from old structure, implicitly remove old field
-    if (state.isOnlineMode && originalYearlyData.activities) { // Check original state for old field presence
+    if (state.isOnlineMode && state.yearlyData.activities) {
         dataToSave.activities = deleteField();
     }
 
 
     try {
-        // The check for deletion is now inside persistData
         await persistData(dataToSave);
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
@@ -948,7 +942,7 @@ async function updateActivityOrder() {
     const orderedTimeKeys = Array.from(DOM.dailyActivityTableBody.children).map(row => row.dataset.time);
     const newDayData = {};
 
-    if (dayData.note !== undefined) newDayData.note = dayData.note;
+    if (dayData.note) newDayData.note = dayData.note;
     if (dayData.leave) newDayData.leave = dayData.leave;
     if (dayData._userCleared) newDayData._userCleared = true;
 
@@ -962,13 +956,8 @@ async function updateActivityOrder() {
 
     setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
 
-    const dataToSave = {
-        yearlyData: updatedYearlyData,
-        leaveTypes: state.leaveTypes
-    };
-
     try {
-        await persistData(dataToSave);
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage("Activities reordered!", 'success');
     } catch (error) {
         console.error("Failed to reorder activities:", error);
@@ -999,11 +988,8 @@ async function deleteActivity(dateKey, timeKey) {
         delete updatedYearlyData[year].activities[dateKey][timeKey];
 
         const dayHasNoMoreActivities = Object.keys(updatedYearlyData[year].activities[dateKey]).filter(k => k !== '_userCleared' && k !== 'note' && k !== 'leave').length === 0;
-        
-        const updates = {};
         if (dayHasNoMoreActivities) {
             updatedYearlyData[year].activities[dateKey]._userCleared = true;
-            updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
         }
 
         const currentYearData = updatedYearlyData[year];
@@ -1016,11 +1002,13 @@ async function deleteActivity(dateKey, timeKey) {
         if (state.isOnlineMode && state.userId) {
             const userDocRef = doc(db, "users", state.userId);
             const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
-            
-            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
-            updates[fieldPathToDelete] = deleteField();
-            await updateDoc(userDocRef, updates);
+            const updates = { [fieldPathToDelete]: deleteField() };
 
+            if (dayHasNoMoreActivities) {
+                updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
+            }
+
+            await updateDoc(userDocRef, updates);
         } else {
             saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         }
@@ -1089,7 +1077,7 @@ function downloadCSV() {
         if (!dayData) return;
 
         // Export Note, Leave, User Cleared Flag, and Activities for the day
-        if (dayData.note !== undefined && dayData.note !== "") { // Check for explicit empty string
+        if (dayData.note) {
             csvRows.push(["NOTE", dateKey, dayData.note, "", ""]);
         }
         if (dayData.leave) {
@@ -1247,17 +1235,10 @@ function handleFileUpload(event) {
                 currentYearData: newCurrentYearData
             });
 
-            const dataToSave = {
+            await persistData({
                 yearlyData: yearlyDataCopy,
                 leaveTypes: finalLeaveTypes
-            };
-
-            // If migrating away from old structure, implicitly remove old field
-            if (state.isOnlineMode && state.yearlyData.activities) {
-                dataToSave.activities = deleteField();
-            }
-
-            await persistData(dataToSave);
+            });
 
             showMessage(`${processedRows} records imported/updated successfully!`, 'success');
             event.target.value = '';
@@ -1940,8 +1921,7 @@ function calculateLeaveBalances() {
 
     visibleLeaveTypes.forEach(lt => {
         const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-        const calculatedBalance = totalDays - (leaveCounts[lt.id] || 0);
-        balances[lt.id] = parseFloat(calculatedBalance.toFixed(2));
+        balances[lt.id] = totalDays - (leaveCounts[lt.id] || 0);
     });
 
     return balances;
@@ -2050,7 +2030,6 @@ async function deleteLeaveDay(dateKey) {
 
     const originalLeaveTypeId = updatedYearlyData[year].activities[dateKey].leave.typeId;
 
-    // Local deletion
     delete updatedYearlyData[year].activities[dateKey].leave;
 
     const currentYear = state.currentMonth.getFullYear();
@@ -2062,14 +2041,7 @@ async function deleteLeaveDay(dateKey) {
     });
 
     try {
-        if (state.isOnlineMode && state.userId) {
-            const userDocRef = doc(db, "users", state.userId);
-            const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.leave`;
-            // 🚨 FIX: Explicitly delete the field using updateDoc and deleteField
-            await updateDoc(userDocRef, { [fieldPathToDelete]: deleteField() });
-        } else {
-            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
-        }
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage('Leave entry deleted successfully!', 'success');
     } catch (error) {
         console.error("Failed to delete leave day:", error);
@@ -2152,8 +2124,31 @@ function renderLeaveStats() {
         `;
     }).join('');
     DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
-    
-    // 💡 FIX: Removed adding event listeners here; moved to setupEventListeners for delegation.
+
+    // Add event listeners for edit buttons
+    DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
+            if (leaveType) openLeaveTypeModal(leaveType);
+        });
+    });
+
+    // Add event listeners for move buttons
+    DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.id;
+            const direction = parseInt(e.currentTarget.dataset.direction, 10);
+            await moveLeaveType(id, direction);
+        });
+    });
+
+    // Add event listeners for info buttons
+    DOM.leaveStatsSection.querySelectorAll('.info-leave-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const leaveTypeId = e.currentTarget.dataset.id;
+            openLeaveOverviewModal(leaveTypeId);
+        });
+    });
 }
 
 function openLeaveCustomizationModal() {
@@ -2435,19 +2430,10 @@ async function saveLoggedLeaves() {
 
     const updatedActivities = { ...currentActivities };
     const datesInModal = new Set(Array.from(modalItems).map(item => item.dataset.dateKey));
-    
-    // Changes specific to firestore for deletion
-    const firestoreDeletions = {}; 
-    const firestoreUpdates = {};
 
     state.initialLeaveSelection.forEach(dateKey => {
         if (!datesInModal.has(dateKey) && updatedActivities[dateKey]?.leave) {
-            // If it was selected before but removed from the modal, delete it
             delete updatedActivities[dateKey].leave;
-            if (state.isOnlineMode) {
-                 const fieldPath = `yearlyData.${year}.activities.${dateKey}.leave`;
-                 firestoreDeletions[fieldPath] = deleteField();
-            }
         }
     });
 
@@ -2458,37 +2444,18 @@ async function saveLoggedLeaves() {
 
         if (typeId === 'remove') {
             delete updatedActivities[dateKey].leave;
-            if (state.isOnlineMode) {
-                const fieldPath = `yearlyData.${year}.activities.${dateKey}.leave`;
-                firestoreDeletions[fieldPath] = deleteField();
-            }
         } else {
             const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
             updatedActivities[dateKey].leave = { typeId, dayType };
-            // Prepare for merge/setDoc, only if we are not using a pure deletion payload
-            if (!state.isOnlineMode || Object.keys(firestoreDeletions).length === 0) {
-                 firestoreUpdates[`yearlyData.${year}.activities.${dateKey}.leave`] = { typeId, dayType };
-            }
         }
     });
 
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
-    
-    // If there were deletions, update firestore first with explicit deletions
-    if (state.isOnlineMode && Object.keys(firestoreDeletions).length > 0) {
-         try {
-            await updateDoc(doc(db, "users", state.userId), firestoreDeletions);
-         } catch (e) {
-            console.error("Error batch deleting leaves:", e);
-            showMessage("Failed to remove old leaves. Data may be inconsistent.", "error");
-         }
-    }
 
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
-        // Now save the current state. The deletion is already handled above if needed.
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         showMessage('Leaves saved successfully!', 'success');
     } catch (error) {
@@ -2563,75 +2530,6 @@ function renderTeamSection() {
                             <p class="text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
                         </button>
                     </div>
-                </div>
-            </div>
-        `;
-
-        // Add event listeners for create/join buttons
-        document.getElementById('create-team-btn').addEventListener('click', openCreateTeamModal);
-        document.getElementById('join-team-btn').addEventListener('click', openJoinTeamModal);
-
-    } else {
-        // Has team - show team info and actions
-        const isOwner = state.teamRole === TEAM_ROLES.OWNER;
-        const memberCount = state.teamMembers.length || 0;
-
-        const teamInfo = `
-            <div class="space-y-6">
-                <div class="text-center">
-                    <h3 class="text-lg font-semibold mb-2 flex items-center justify-center">
-                        <i class="fa-solid fa-user-group w-5 h-5 mr-2 text-blue-600"></i>
-                        <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
-                        ${isOwner ? `
-                        <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
-                        </button>
-                        ` : ''}
-                    </h3>
-                    <p class="text-gray-600 dark:text-gray-400">You are ${isOwner ? 'the owner' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
-                </div>
-                
-                <div class="bg-white dark:bg-gray-100 p-4 rounded-lg border">
-                    <h4 class="font-semibold mb-3 text-center">Team Room Code</h4>
-                    <div class="text-center">
-                        <div class="room-code">
-                            <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:bg-white/20 ml-2" title="Copy Code">
-                                <i class="fa-regular fa-copy text-white"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">Share this code with others to invite them to your team.</p>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-${isOwner ? '3' : '2'} gap-4">
-                    ${isOwner ? `
-                        <button id="team-dashboard-btn" class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                            Team Dashboard
-                        </button>
-                    ` : ''}
-                    <button id="edit-display-name-btn" class="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
-                        </svg>
-                        Change Name
-                    </button>
-                    ${isOwner ? `
-                        <button id="delete-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            Delete Team
-                        </button>
-                    ` : `
-                        <button id="leave-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
-                            <i class="fa-solid fa-door-open w-5 h-5 mr-2"></i>
-                            Leave Team
-                        </button>
-                    `}
                 </div>
             </div>
         `;
@@ -2987,7 +2885,7 @@ function renderTeamDashboard() {
                         ${isOwner ? `
                         <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-4">
                             <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1-81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                         </div>
                         ` : ''}
@@ -3132,16 +3030,12 @@ function setupEventListeners() {
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
-        // 💡 FIX: Clone Date object before mutation
-        let newCurrentMonth = new Date(state.currentMonth); 
 
         if (state.currentView === VIEW_MODES.MONTH) {
-            newCurrentMonth.setMonth(newCurrentMonth.getMonth() - 1);
-            newDate = newCurrentMonth;
+            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate); // Clone selectedDate
-            newDate.setDate(newDate.getDate() - 1);
+            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3161,16 +3055,12 @@ function setupEventListeners() {
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
-        // 💡 FIX: Clone Date object before mutation
-        let newCurrentMonth = new Date(state.currentMonth); 
 
         if (state.currentView === VIEW_MODES.MONTH) {
-            newCurrentMonth.setMonth(newCurrentMonth.getMonth() + 1);
-            newDate = newCurrentMonth;
+            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate); // Clone selectedDate
-            newDate.setDate(newDate.getDate() + 1);
+            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3265,25 +3155,6 @@ function setupEventListeners() {
         DOM.leaveStatsSection.classList.toggle('visible');
         DOM.statsArrowDown.classList.toggle('hidden');
         DOM.statsArrowUp.classList.toggle('hidden');
-    });
-
-    // 💡 FIX 5B: Delegated event listener for leave stats buttons
-    DOM.leaveStatsSection.addEventListener('click', async (e) => {
-        const target = e.target.closest('button');
-        if (!target) return;
-
-        const id = target.dataset.id;
-        if (!id) return;
-
-        if (target.classList.contains('edit-leave-type-btn')) {
-            const leaveType = state.leaveTypes.find(lt => lt.id === id);
-            if (leaveType) openLeaveTypeModal(leaveType);
-        } else if (target.classList.contains('move-leave-btn')) {
-            const direction = parseInt(target.dataset.direction, 10);
-            await moveLeaveType(id, direction);
-        } else if (target.classList.contains('info-leave-btn')) {
-            openLeaveOverviewModal(id);
-        }
     });
 
     // Team toggle button
