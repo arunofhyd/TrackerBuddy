@@ -816,6 +816,18 @@ async function saveData(action) {
         dataToSave.activities = deleteField();
     }
 
+    // FIX: explicitly delete the old time key from Firestore when updating time
+    if (action.type === ACTION_TYPES.UPDATE_TIME && state.isOnlineMode && state.userId) {
+        const { oldTimeKey } = action.payload;
+        // Create a partial clone to avoid mutating the state
+        dataToSave.yearlyData = { ...updatedYearlyData };
+        dataToSave.yearlyData[year] = { ...updatedYearlyData[year] };
+        dataToSave.yearlyData[year].activities = { ...updatedYearlyData[year].activities };
+        dataToSave.yearlyData[year].activities[dateKey] = { ...updatedYearlyData[year].activities[dateKey] };
+        
+        // Add the delete sentinel
+        dataToSave.yearlyData[year].activities[dateKey][oldTimeKey] = deleteField();
+    }
 
     try {
         await persistData(dataToSave);
