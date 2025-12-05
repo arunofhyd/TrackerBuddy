@@ -26,6 +26,46 @@ async function deleteCollection(collectionPath, batchSize = 500) {
 }
 
 /**
+ * Grants Pro access to a user.
+ * SECURITY WARNING: Update the admin email check before deploying to production.
+ */
+exports.grantProAccess = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    // SECURITY: Restrict this function to a specific admin email.
+    // Replace 'admin@trackerbuddy.com' with your actual admin email address.
+    const ADMIN_EMAIL = 'arunthomas04042001@gmail.com';
+    if (request.auth.token.email !== ADMIN_EMAIL) {
+        throw new HttpsError("permission-denied", "Only the administrator can perform this action.");
+    }
+
+    let targetUserId = request.data.userId;
+    const targetEmail = request.data.email;
+
+    if (!targetUserId && !targetEmail) {
+        throw new HttpsError("invalid-argument", "Please provide a User ID or Email Address.");
+    }
+
+    if (targetEmail) {
+        try {
+            const userRecord = await admin.auth().getUserByEmail(targetEmail);
+            targetUserId = userRecord.uid;
+        } catch (error) {
+            console.error("Error fetching user by email:", error);
+            if (error.code === 'auth/user-not-found') {
+                throw new HttpsError("not-found", `No user found with email: ${targetEmail}`);
+            }
+            throw new HttpsError("internal", "Error finding user by email.");
+        }
+    }
+
+    await db.collection("users").doc(targetUserId).set({ isPro: true }, { merge: true });
+    return { success: true, message: `Pro access granted to ${targetEmail || targetUserId}.` };
+});
+
+/**
  * Creates a new team with the authenticated user as the owner.
  */
 exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
@@ -35,6 +75,12 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   const { teamName, displayName } = request.data;
   const userId = request.auth.uid;
+
+  // Check for Pro subscription
+  const userSnapshot = await db.collection("users").doc(userId).get();
+  if (!userSnapshot.exists || !userSnapshot.data().isPro) {
+      throw new HttpsError("permission-denied", "Team features are only available to Pro users.");
+  }
 
   if (!teamName || !displayName) {
     throw new HttpsError("invalid-argument", "Please provide a valid team name and display name.");
@@ -105,6 +151,12 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   const { roomCode, displayName } = request.data;
   const userId = request.auth.uid;
+
+  // Check for Pro subscription
+  const userSnapshot = await db.collection("users").doc(userId).get();
+  if (!userSnapshot.exists || !userSnapshot.data().isPro) {
+      throw new HttpsError("permission-denied", "Team features are only available to Pro users.");
+  }
 
   if (!roomCode || roomCode.length !== 8 || !displayName) {
     throw new HttpsError("invalid-argument", "Please provide a valid room code and display name.");

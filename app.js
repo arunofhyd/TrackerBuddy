@@ -86,8 +86,13 @@ let state = {
     unsubscribeFromTeam: null,
     unsubscribeFromTeamMembers: [],
     // --- FIX: Add flag to prevent race conditions during updates ---
-    isUpdating: false
+    isUpdating: false,
+    isPro: false, // Default to non-pro
+    userEmail: null // Store email for admin check
 };
+
+// --- CONSTANTS ---
+const ADMIN_EMAIL = 'arunthomas04042001@gmail.com'; // Replace with actual admin email
 
 // --- State Management ---
 function setState(newState) {
@@ -179,6 +184,10 @@ function initUI() {
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
         addNewSlotBtn: document.getElementById('add-new-slot-btn'),
+        // Admin DOM References
+        adminSection: document.getElementById('admin-section'),
+        adminGrantProBtn: document.getElementById('admin-grant-pro-btn'),
+        adminUserIdInput: document.getElementById('admin-user-id-input'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -275,7 +284,7 @@ async function handleUserLogin(user) {
     }
     cleanupTeamSubscriptions();
 
-    setState({ userId: user.uid, isOnlineMode: true });
+    setState({ userId: user.uid, userEmail: user.email, isOnlineMode: true });
     DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
 
     switchView(DOM.loadingView, DOM.loginView);
@@ -326,6 +335,7 @@ function updateView() {
         renderLeavePills();
         renderLeaveStats();
         renderTeamSection();
+        renderAdminSection();
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
         renderDailyActivities();
@@ -559,7 +569,8 @@ async function subscribeToData(userId, callback) {
             currentYearData: currentYearData,
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
-            teamRole: data.teamRole || null
+            teamRole: data.teamRole || null,
+            isPro: !!data.isPro // Ensure boolean
         });
 
         updateView();
@@ -2494,6 +2505,67 @@ function handleBulkRemoveClick() {
     showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
 }
 
+// --- Admin Functions ---
+function renderAdminSection() {
+    if (!DOM.adminSection) {
+        // Create admin section if it doesn't exist in DOM
+        const adminDiv = document.createElement('div');
+        adminDiv.id = 'admin-section';
+        adminDiv.className = 'hidden mt-8 border-t pt-4';
+        adminDiv.innerHTML = `
+            <h3 class="text-lg font-bold text-red-600 mb-2">Admin Panel</h3>
+            <div class="bg-red-50 p-4 rounded border border-red-200">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Grant Pro Access</label>
+                <div class="flex gap-2">
+                    <input type="text" id="admin-user-id-input" placeholder="User Email" class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <button id="admin-grant-pro-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Grant
+                    </button>
+                </div>
+            </div>
+        `;
+        // Insert after team section
+        if (DOM.teamSection) {
+            DOM.teamSection.parentNode.insertBefore(adminDiv, DOM.teamSection.nextSibling);
+        } else {
+            DOM.contentWrapper.appendChild(adminDiv);
+        }
+
+        // Update DOM refs
+        DOM.adminSection = adminDiv;
+        DOM.adminGrantProBtn = document.getElementById('admin-grant-pro-btn');
+        DOM.adminUserIdInput = document.getElementById('admin-user-id-input');
+
+        // Attach listener
+        DOM.adminGrantProBtn.addEventListener('click', async () => {
+            const inputVal = DOM.adminUserIdInput.value.trim();
+            if (!inputVal) return showMessage('Enter a User Email', 'error');
+
+            setButtonLoadingState(DOM.adminGrantProBtn, true);
+            try {
+                const grantPro = httpsCallable(functions, 'grantProAccess');
+                // Assume input is email if it contains '@', otherwise treat as userId (though UI says Email)
+                const payload = inputVal.includes('@') ? { email: inputVal } : { userId: inputVal };
+
+                const result = await grantPro(payload);
+                showMessage(result.data.message, 'success');
+                DOM.adminUserIdInput.value = '';
+            } catch (error) {
+                console.error(error);
+                showMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                setButtonLoadingState(DOM.adminGrantProBtn, false);
+            }
+        });
+    }
+
+    if (state.userEmail === ADMIN_EMAIL) {
+        DOM.adminSection.classList.remove('hidden');
+    } else {
+        DOM.adminSection.classList.add('hidden');
+    }
+}
+
 // --- Team Management Functions ---
 function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
@@ -2507,6 +2579,25 @@ function renderTeamSection() {
 
     if (!state.isOnlineMode) {
         DOM.teamSection.innerHTML = '<p class="text-center text-gray-500">Team features are only available when signed in.</p>';
+        return;
+    }
+
+    if (!state.isPro) {
+        // Pro Locked View
+        DOM.teamSection.innerHTML = `
+            <div class="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <i class="fas fa-crown text-white text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">Pro Feature Locked</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    Team management is exclusively available to Pro users. Upgrade your account to create or join teams, manage leave balances, and collaborate with your colleagues.
+                </p>
+                <button class="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold rounded-full shadow hover:shadow-lg transform hover:-translate-y-0.5 transition-all" onclick="alert('Contact the administrator to upgrade to Pro!')">
+                    Upgrade to Pro
+                </button>
+            </div>
+        `;
         return;
     }
 
