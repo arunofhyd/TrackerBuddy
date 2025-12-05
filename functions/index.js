@@ -61,8 +61,99 @@ exports.grantProAccess = onCall({ region: "asia-south1" }, async (request) => {
         }
     }
 
-    await db.collection("users").doc(targetUserId).set({ isPro: true }, { merge: true });
+    await db.collection("users").doc(targetUserId).set({
+        isPro: true,
+        proSince: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
     return { success: true, message: `Pro access granted to ${targetEmail || targetUserId}.` };
+});
+
+/**
+ * Revokes Pro access from a user.
+ */
+exports.revokeProAccess = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const ADMIN_EMAIL = 'arunthomas04042001@gmail.com';
+    if (request.auth.token.email !== ADMIN_EMAIL) {
+        throw new HttpsError("permission-denied", "Only the administrator can perform this action.");
+    }
+
+    let targetUserId = request.data.userId;
+    const targetEmail = request.data.email;
+
+    if (!targetUserId && !targetEmail) {
+        throw new HttpsError("invalid-argument", "Please provide a User ID or Email Address.");
+    }
+
+    if (targetEmail) {
+        try {
+            const userRecord = await admin.auth().getUserByEmail(targetEmail);
+            targetUserId = userRecord.uid;
+        } catch (error) {
+            console.error("Error fetching user by email:", error);
+            if (error.code === 'auth/user-not-found') {
+                throw new HttpsError("not-found", `No user found with email: ${targetEmail}`);
+            }
+            throw new HttpsError("internal", "Error finding user by email.");
+        }
+    }
+
+    await db.collection("users").doc(targetUserId).set({
+        isPro: false,
+        proSince: admin.firestore.FieldValue.delete()
+    }, { merge: true });
+
+    return { success: true, message: `Pro access revoked for ${targetEmail || targetUserId}.` };
+});
+
+/**
+ * Gets a list of all Pro users.
+ */
+exports.getProUsers = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const ADMIN_EMAIL = 'arunthomas04042001@gmail.com';
+    if (request.auth.token.email !== ADMIN_EMAIL) {
+        throw new HttpsError("permission-denied", "Only the administrator can perform this action.");
+    }
+
+    try {
+        const snapshot = await db.collection("users").where("isPro", "==", true).get();
+        const users = [];
+
+        // We need to fetch email from Auth because Firestore 'users' collection might not have it
+        // Note: This might be slow if there are many users, but for an admin panel it's acceptable.
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            let email = data.email || "Unknown";
+            let displayName = data.displayName || "Unknown";
+
+            try {
+                const userRecord = await admin.auth().getUser(doc.id);
+                email = userRecord.email;
+                displayName = userRecord.displayName || displayName;
+            } catch (e) {
+                console.warn(`Could not fetch Auth data for user ${doc.id}`, e);
+            }
+
+            users.push({
+                uid: doc.id,
+                email: email,
+                displayName: displayName,
+                proSince: data.proSince ? data.proSince.toDate().toISOString() : null
+            });
+        }
+
+        return { success: true, users: users };
+    } catch (error) {
+        console.error("Error fetching pro users:", error);
+        throw new HttpsError("internal", "Failed to fetch pro users.");
+    }
 });
 
 /**

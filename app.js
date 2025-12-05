@@ -2511,16 +2511,46 @@ function renderAdminSection() {
         // Create admin section if it doesn't exist in DOM
         const adminDiv = document.createElement('div');
         adminDiv.id = 'admin-section';
-        adminDiv.className = 'hidden mt-8 border-t pt-4';
+        adminDiv.className = 'hidden mt-8';
         adminDiv.innerHTML = `
-            <h3 class="text-lg font-bold text-red-600 mb-2">Admin Panel</h3>
-            <div class="bg-red-50 p-4 rounded border border-red-200">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Grant Pro Access</label>
-                <div class="flex gap-2">
-                    <input type="text" id="admin-user-id-input" placeholder="User Email" class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <button id="admin-grant-pro-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                        Grant
-                    </button>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user-shield text-red-600 dark:text-red-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Admin Panel</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Manage user subscriptions</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Grant Pro Access</label>
+                        <div class="flex gap-3">
+                            <div class="relative flex-grow">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-envelope text-gray-400"></i>
+                                </div>
+                                <input type="text" id="admin-user-id-input" placeholder="User Email or ID" class="w-full pl-10 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 transition-colors">
+                            </div>
+                            <button id="admin-grant-pro-btn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors flex items-center">
+                                <i class="fas fa-check mr-2"></i> Grant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <button id="admin-view-pro-users-btn" class="w-full flex justify-between items-center px-4 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors text-left focus:outline-none">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">View Pro Users List</span>
+                            <i id="admin-pro-list-arrow" class="fas fa-chevron-down text-gray-500 transition-transform"></i>
+                        </button>
+                        <div id="admin-pro-users-list-container" class="hidden mt-2">
+                             <div id="admin-pro-users-list" class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                 <p class="text-center text-gray-500 py-4">Loading...</p>
+                             </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -2535,6 +2565,10 @@ function renderAdminSection() {
         DOM.adminSection = adminDiv;
         DOM.adminGrantProBtn = document.getElementById('admin-grant-pro-btn');
         DOM.adminUserIdInput = document.getElementById('admin-user-id-input');
+        const viewProUsersBtn = document.getElementById('admin-view-pro-users-btn');
+        const proUsersListContainer = document.getElementById('admin-pro-users-list-container');
+        const proUsersList = document.getElementById('admin-pro-users-list');
+        const arrow = document.getElementById('admin-pro-list-arrow');
 
         // Attach listener
         DOM.adminGrantProBtn.addEventListener('click', async () => {
@@ -2550,6 +2584,10 @@ function renderAdminSection() {
                 const result = await grantPro(payload);
                 showMessage(result.data.message, 'success');
                 DOM.adminUserIdInput.value = '';
+                // Refresh list if open
+                if (!proUsersListContainer.classList.contains('hidden')) {
+                    fetchAndRenderProUsers();
+                }
             } catch (error) {
                 console.error(error);
                 showMessage(`Error: ${error.message}`, 'error');
@@ -2557,6 +2595,73 @@ function renderAdminSection() {
                 setButtonLoadingState(DOM.adminGrantProBtn, false);
             }
         });
+
+        viewProUsersBtn.addEventListener('click', () => {
+            const isHidden = proUsersListContainer.classList.toggle('hidden');
+            arrow.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (!isHidden) {
+                fetchAndRenderProUsers();
+            }
+        });
+
+        async function fetchAndRenderProUsers() {
+            proUsersList.innerHTML = '<div class="flex justify-center py-4"><i class="fas fa-spinner fa-spin text-gray-500"></i></div>';
+            try {
+                const getProUsers = httpsCallable(functions, 'getProUsers');
+                const result = await getProUsers();
+                const users = result.data.users || [];
+
+                if (users.length === 0) {
+                    proUsersList.innerHTML = '<p class="text-center text-gray-500 py-4">No Pro users found.</p>';
+                    return;
+                }
+
+                proUsersList.innerHTML = users.map(user => {
+                    const dateStr = user.proSince ? new Date(user.proSince).toLocaleDateString() : 'N/A';
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600">
+                            <div class="min-w-0 flex-1 mr-3">
+                                <p class="font-medium text-gray-900 dark:text-gray-100 truncate" title="${sanitizeHTML(user.email)}">${sanitizeHTML(user.email)}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Since: ${dateStr}</p>
+                            </div>
+                            <button class="revoke-pro-btn px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 rounded border border-red-200 dark:border-red-800 transition-colors" data-email="${user.email}" data-uid="${user.uid}">
+                                Revoke
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add event listeners for revoke buttons
+                proUsersList.querySelectorAll('.revoke-pro-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const email = e.currentTarget.dataset.email;
+                        const uid = e.currentTarget.dataset.uid;
+
+                        if (!confirm(`Are you sure you want to revoke Pro access for ${email}?`)) return;
+
+                        const originalContent = e.currentTarget.innerHTML;
+                        e.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        e.currentTarget.disabled = true;
+
+                        try {
+                            const revokeProAccess = httpsCallable(functions, 'revokeProAccess');
+                            await revokeProAccess({ email: email, userId: uid });
+                            showMessage(`Revoked access for ${email}`, 'success');
+                            fetchAndRenderProUsers(); // Refresh list
+                        } catch (error) {
+                            console.error(error);
+                            showMessage(`Error: ${error.message}`, 'error');
+                            e.currentTarget.innerHTML = originalContent;
+                            e.currentTarget.disabled = false;
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error fetching pro users:", error);
+                proUsersList.innerHTML = '<p class="text-center text-red-500 py-4">Failed to load users.</p>';
+            }
+        }
     }
 
     if (state.userEmail === ADMIN_EMAIL) {
@@ -2585,7 +2690,7 @@ function renderTeamSection() {
     if (!state.isPro) {
         // Pro Locked View
         DOM.teamSection.innerHTML = `
-            <div class="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+            <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 shadow-sm">
                 <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                     <i class="fas fa-crown text-white text-3xl"></i>
                 </div>
