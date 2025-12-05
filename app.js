@@ -2591,11 +2591,11 @@ function renderTeamSection() {
                 </div>
                 <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">Pro Feature Locked</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    Team management is exclusively available to Pro users. Upgrade your account to create or join teams, manage leave balances, and collaborate with your colleagues.
+                    Team management is exclusively available to Pro users. Reach out to the dev to upgrade to Pro!
                 </p>
-                <button class="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold rounded-full shadow hover:shadow-lg transform hover:-translate-y-0.5 transition-all" onclick="alert('Contact the administrator to upgrade to Pro!')">
-                    Upgrade to Pro
-                </button>
+                <a href="mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro%20Request" class="inline-block px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-bold rounded-full shadow hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
+                    Contact Dev
+                </a>
             </div>
         `;
         return;
