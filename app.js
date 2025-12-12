@@ -86,7 +86,8 @@ let state = {
     unsubscribeFromTeam: null,
     unsubscribeFromTeamMembers: [],
     // --- FIX: Add flag to prevent race conditions during updates ---
-    isUpdating: false
+    isUpdating: false,
+    pendingSaveCount: 0
 };
 
 // --- State Management ---
@@ -525,7 +526,8 @@ function formatTextForDisplay(text) {
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-        if (state.isUpdating || state.editingInlineTimeKey) {
+        // Prevent external updates from overwriting local state while user is typing/saving
+        if (state.pendingSaveCount > 0 || state.editingInlineTimeKey) {
             return;
         }
 
@@ -688,10 +690,10 @@ function cleanupTeamSubscriptions() {
     setState({ unsubscribeFromTeamMembers: [] });
 }
 
-async function persistData(data) {
+async function persistData(data, partialUpdate = null) {
     if (state.isOnlineMode && state.userId) {
         try {
-            await saveDataToFirestore(data);
+            await saveDataToFirestore(data, partialUpdate);
         } catch (error) {
             console.error("Error saving to Firestore:", error);
             showMessage("Error: Could not save changes. Please try again.", 'error');
@@ -718,7 +720,7 @@ function handleAddSlot(dayDataCopy) {
     const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
     dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
     delete dayDataCopy._userCleared;
-    return "New slot added!";
+    return { message: "New slot added!", newTimeKey };
 }
 
 function handleUpdateActivityText(dayDataCopy, payload) {
@@ -750,13 +752,10 @@ function handleUpdateTime(dayDataCopy, payload) {
     return "Time updated!";
 }
 
-// FIX: Update saveData to work with multi-year structure
+// FIX: Update saveData to work with multi-year structure and granular updates
 async function saveData(action) {
-    if (state.isUpdating) {
-        console.warn('Update already in progress, skipping...');
-        return;
-    }
-    setState({ isUpdating: true });
+    // Non-blocking save - allow concurrent local updates but track pending saves
+    state.pendingSaveCount++;
 
     const dateKey = getYYYYMMDD(state.selectedDate);
     const year = state.selectedDate.getFullYear();
@@ -768,8 +767,12 @@ async function saveData(action) {
     const dayDataCopy = { ...(updatedYearlyData[year].activities[dateKey] || {}) };
 
     let successMessage = null;
+    let partialUpdate = null;
+
+    // Check if it's a new day (empty or just userCleared)
     const hasPersistedActivities = updatedYearlyData[year].activities[dateKey] && Object.keys(updatedYearlyData[year].activities[dateKey]).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
     const isNewDay = !hasPersistedActivities && !dayDataCopy._userCleared;
+    let populatedDefaultSlots = false;
 
     if (isNewDay && (action.type === ACTION_TYPES.ADD_SLOT || action.type === ACTION_TYPES.UPDATE_ACTIVITY_TEXT)) {
         if (state.selectedDate.getDay() !== 0) {
@@ -777,15 +780,19 @@ async function saveData(action) {
                 const timeKey = `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`;
                 if (!dayDataCopy[timeKey]) dayDataCopy[timeKey] = { text: "", order: h - 8 };
             }
+            populatedDefaultSlots = true;
         }
     }
+
+    let addSlotResult = null;
 
     switch (action.type) {
         case ACTION_TYPES.SAVE_NOTE:
             handleSaveNote(dayDataCopy, action.payload);
             break;
         case ACTION_TYPES.ADD_SLOT:
-            successMessage = handleAddSlot(dayDataCopy);
+            addSlotResult = handleAddSlot(dayDataCopy);
+            successMessage = addSlotResult.message;
             break;
         case ACTION_TYPES.UPDATE_ACTIVITY_TEXT:
             successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
@@ -793,7 +800,7 @@ async function saveData(action) {
         case ACTION_TYPES.UPDATE_TIME:
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
             if (successMessage === null) {
-                setState({ isUpdating: false });
+                state.pendingSaveCount--;
                 return;
             }
             break;
@@ -801,10 +808,48 @@ async function saveData(action) {
 
     updatedYearlyData[year].activities[dateKey] = dayDataCopy;
     const currentYearData = updatedYearlyData[year] || { activities: {}, leaveOverrides: {} };
-
     const originalYearlyData = state.yearlyData;
+
+    // Optimistic UI update
     setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
     updateView();
+
+    // Construct Partial Update for Firestore
+    const basePath = `yearlyData.${year}.activities.${dateKey}`;
+
+    if (populatedDefaultSlots) {
+        // If we populated default slots, update the whole day object
+        partialUpdate = {
+            [basePath]: dayDataCopy
+        };
+    } else {
+        // Granular updates
+        partialUpdate = {};
+
+        // Handle _userCleared flag removal
+        if (dayDataCopy._userCleared === undefined && originalYearlyData[year]?.activities?.[dateKey]?._userCleared) {
+             partialUpdate[`${basePath}._userCleared`] = deleteField();
+        }
+
+        if (action.type === ACTION_TYPES.SAVE_NOTE) {
+             partialUpdate[`${basePath}.note`] = dayDataCopy.note || "";
+        } else if (action.type === ACTION_TYPES.ADD_SLOT && addSlotResult) {
+             const { newTimeKey } = addSlotResult;
+             partialUpdate[`${basePath}.${newTimeKey}`] = dayDataCopy[newTimeKey];
+        } else if (action.type === ACTION_TYPES.UPDATE_ACTIVITY_TEXT) {
+             const { timeKey, newText } = action.payload;
+             // Ensure we update the whole slot object if it was just created (rare race) or just the text if it existed
+             if (originalYearlyData[year]?.activities?.[dateKey]?.[timeKey]) {
+                 partialUpdate[`${basePath}.${timeKey}.text`] = newText;
+             } else {
+                 partialUpdate[`${basePath}.${timeKey}`] = dayDataCopy[timeKey];
+             }
+        } else if (action.type === ACTION_TYPES.UPDATE_TIME) {
+             const { oldTimeKey, newTimeKey } = action.payload;
+             partialUpdate[`${basePath}.${oldTimeKey}`] = deleteField();
+             partialUpdate[`${basePath}.${newTimeKey}`] = dayDataCopy[newTimeKey];
+        }
+    }
 
     const dataToSave = {
         yearlyData: updatedYearlyData,
@@ -814,23 +859,11 @@ async function saveData(action) {
     // If migrating away from old structure, implicitly remove old field
     if (state.isOnlineMode && state.yearlyData.activities) {
         dataToSave.activities = deleteField();
-    }
-
-    // FIX: explicitly delete the old time key from Firestore when updating time
-    if (action.type === ACTION_TYPES.UPDATE_TIME && state.isOnlineMode && state.userId) {
-        const { oldTimeKey } = action.payload;
-        // Create a partial clone to avoid mutating the state
-        dataToSave.yearlyData = { ...updatedYearlyData };
-        dataToSave.yearlyData[year] = { ...updatedYearlyData[year] };
-        dataToSave.yearlyData[year].activities = { ...updatedYearlyData[year].activities };
-        dataToSave.yearlyData[year].activities[dateKey] = { ...updatedYearlyData[year].activities[dateKey] };
-        
-        // Add the delete sentinel
-        dataToSave.yearlyData[year].activities[dateKey][oldTimeKey] = deleteField();
+        if (partialUpdate) partialUpdate['activities'] = deleteField();
     }
 
     try {
-        await persistData(dataToSave);
+        await persistData(dataToSave, partialUpdate);
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
         console.error("Error persisting data:", error);
@@ -839,7 +872,7 @@ async function saveData(action) {
         setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
         updateView();
     } finally {
-        setState({ isUpdating: false });
+        state.pendingSaveCount--;
     }
 }
 
@@ -875,8 +908,18 @@ function saveDataToLocalStorage(data) {
     }
 }
 
-async function saveDataToFirestore(data) {
+async function saveDataToFirestore(data, partialUpdate = null) {
     if (!state.userId) return;
+
+    if (partialUpdate) {
+        try {
+            await updateDoc(doc(db, "users", state.userId), partialUpdate);
+            return;
+        } catch (e) {
+            // Fallback to full save if partial update fails (e.g. document doesn't exist)
+            console.warn("Partial update failed, falling back to full merge:", e);
+        }
+    }
     // FIX: Save with the new data structure
     await setDoc(doc(db, "users", state.userId), data, { merge: true });
 }
@@ -979,19 +1022,15 @@ async function updateActivityOrder() {
 }
 
 async function deleteActivity(dateKey, timeKey) {
-    // FIX: Add isUpdating flag to prevent race conditions with onSnapshot
-    if (state.isUpdating) {
-        console.warn('Update already in progress, skipping deletion...');
-        return;
-    }
-    setState({ isUpdating: true });
+    // Non-blocking save
+    state.pendingSaveCount++;
 
     const year = new Date(dateKey).getFullYear();
     const originalYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
     if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey][timeKey]) {
-        setState({ isUpdating: false });
+        state.pendingSaveCount--;
         return;
     }
 
@@ -1035,8 +1074,7 @@ async function deleteActivity(dateKey, timeKey) {
         setState({ yearlyData: originalYearlyData, currentYearData: rolledBackCurrentYearData });
         updateView();
     } finally {
-        // Ensure the flag is always reset
-        setState({ isUpdating: false });
+        state.pendingSaveCount--;
     }
 }
 
@@ -1300,7 +1338,8 @@ function handleUserLogout() {
         teamMembersData: {},
         unsubscribeFromTeam: null,
         unsubscribeFromTeamMembers: [],
-        isUpdating: false
+        isUpdating: false,
+        pendingSaveCount: 0
     });
 
     switchView(DOM.loginView, DOM.appView);
