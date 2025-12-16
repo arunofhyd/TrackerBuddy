@@ -527,3 +527,12 @@ body.dark .spotlight-result-text {
 body.dark .spotlight-empty-state {
     color: #9ca3af;
 }
+
+/* Spotlight Header Styling */
+.spotlight-header {
+    background-color: #ffffff;
+}
+
+body.dark .spotlight-header {
+    background-color: #1f2937;
+}
