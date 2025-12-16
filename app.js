@@ -3062,8 +3062,9 @@ function openSpotlight() {
     // Allow transition
     setTimeout(() => {
         DOM.spotlightModal.classList.remove('opacity-0', 'pointer-events-none');
-        DOM.spotlightModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
-        DOM.spotlightModal.querySelector('div').classList.add('scale-100', 'opacity-100');
+        const modalContent = DOM.spotlightModal.querySelector('div');
+        modalContent.classList.remove('translate-y-[-20px]', 'opacity-0');
+        // No need to add classes, default state is translate-y-0 opacity-100
     }, 10);
     DOM.spotlightInput.focus();
 
@@ -3079,12 +3080,12 @@ function openSpotlight() {
 
 function closeSpotlight() {
     DOM.spotlightModal.classList.add('opacity-0', 'pointer-events-none');
-    DOM.spotlightModal.querySelector('div').classList.remove('scale-100', 'opacity-100');
-    DOM.spotlightModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+    const modalContent = DOM.spotlightModal.querySelector('div');
+    modalContent.classList.add('translate-y-[-20px]', 'opacity-0');
 
     setTimeout(() => {
         DOM.spotlightModal.classList.add('hidden');
-    }, 200); // Match duration-200
+    }, 300); // Match duration-300
 }
 
 function performSearch(query) {
