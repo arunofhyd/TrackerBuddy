@@ -399,3 +399,131 @@ body.dark .stat-card-info p {
             margin-top: 1rem;  /* Restore original spacing */
             padding: 1rem;     /* Restore original spacing */
         }
+
+/* --- Spotlight Search Styles --- */
+.spotlight-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.spotlight-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.spotlight-modal {
+    width: 100%;
+    max-width: 42rem; /* max-w-2xl */
+    background-color: white;
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-in-out;
+    margin: 0 1rem;
+}
+
+.spotlight-overlay.visible .spotlight-modal {
+    transform: scale(1);
+}
+
+.spotlight-input-wrapper {
+    position: relative;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.spotlight-input {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-left: 3.5rem; /* Space for icon */
+    padding-right: 4rem;  /* Space for Esc button */
+    font-size: 1.125rem; /* text-lg */
+    color: #1f2937;
+    outline: none;
+}
+
+.spotlight-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.spotlight-esc-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #9ca3af;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    pointer-events: none; /* Just a visual indicator usually */
+}
+
+.spotlight-results {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+/* Dark Mode Overrides */
+body.dark .spotlight-modal {
+    background-color: #1f2937;
+    border: 1px solid #374151;
+}
+
+body.dark .spotlight-input-wrapper {
+    border-bottom-color: #374151;
+}
+
+body.dark .spotlight-input {
+    color: #f9fafb;
+}
+
+body.dark .spotlight-icon {
+    color: #6b7280;
+}
+
+body.dark .spotlight-esc-btn {
+    color: #6b7280;
+    border-color: #374151;
+}
+
+body.dark .spotlight-result-item:hover {
+    background-color: #374151;
+}
+
+body.dark .spotlight-result-date {
+    color: #9ca3af;
+}
+
+body.dark .spotlight-result-text {
+    color: #d1d5db;
+}
+
+body.dark .spotlight-empty-state {
+    color: #9ca3af;
+}

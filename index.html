@@ -239,27 +239,25 @@
 </div>
     <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"><i class="fas fa-envelope text-base"></i><span>Reach out to the dev</span></a></footer>
 </div>
-<div id="spotlight-modal" class="fixed inset-0 z-50 hidden flex items-start justify-center pt-32 bg-gray-900/60 backdrop-blur-md transition-opacity duration-300 opacity-0 pointer-events-none">
-    <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-out translate-y-[-20px] opacity-0">
-        <div class="relative border-b border-gray-200">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <i class="fas fa-search text-gray-400 text-xl"></i>
-            </div>
-            <input id="spotlight-input" type="text" class="w-full pl-14 pr-12 py-4 text-xl text-gray-800 bg-transparent focus:outline-none placeholder-gray-400" placeholder="Search activities, notes, or leave..." autocomplete="off">
-            <button id="spotlight-close-btn" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600">
-                <span class="text-sm font-medium border border-gray-300 rounded px-2 py-0.5">Esc</span>
+<div id="spotlight-modal" class="spotlight-overlay">
+    <div class="spotlight-modal">
+        <div class="spotlight-input-wrapper">
+            <i class="fas fa-search spotlight-icon"></i>
+            <input id="spotlight-input" type="text" class="spotlight-input" placeholder="Search activities, notes, or leave..." autocomplete="off">
+            <button id="spotlight-close-btn" class="spotlight-esc-btn">
+                Esc
             </button>
         </div>
-        <div id="spotlight-content" class="bg-gray-50 flex flex-col max-h-[60vh]">
-            <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200 bg-gray-100 text-sm text-gray-600">
+        <div id="spotlight-content" class="flex flex-col">
+            <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
                 <span id="spotlight-count" class="font-medium"></span>
-                <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 transition-colors">
+                <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     <span id="spotlight-sort-label">Newest First</span>
                     <i class="fas fa-sort-amount-down ml-2"></i>
                 </button>
             </div>
-            <div id="spotlight-results-list" class="overflow-y-auto p-2 space-y-2"></div>
-            <div id="spotlight-empty-state" class="hidden py-8 text-center text-gray-500">
+            <div id="spotlight-results-list" class="spotlight-results px-2 space-y-2"></div>
+            <div id="spotlight-empty-state" class="hidden py-8 text-center text-gray-500 dark:text-gray-400">
                 <p>No matching activities found.</p>
             </div>
         </div>

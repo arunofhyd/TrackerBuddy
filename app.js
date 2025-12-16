@@ -3058,14 +3058,7 @@ function setupDailyViewEventListeners() {
 
 // --- Search Functionality (Spotlight) ---
 function openSpotlight() {
-    DOM.spotlightModal.classList.remove('hidden');
-    // Allow transition
-    setTimeout(() => {
-        DOM.spotlightModal.classList.remove('opacity-0', 'pointer-events-none');
-        const modalContent = DOM.spotlightModal.querySelector('div');
-        modalContent.classList.remove('translate-y-[-20px]', 'opacity-0');
-        // No need to add classes, default state is translate-y-0 opacity-100
-    }, 10);
+    DOM.spotlightModal.classList.add('visible');
     DOM.spotlightInput.focus();
 
     // If there's a previous query, perform search again to refresh results
@@ -3079,13 +3072,7 @@ function openSpotlight() {
 }
 
 function closeSpotlight() {
-    DOM.spotlightModal.classList.add('opacity-0', 'pointer-events-none');
-    const modalContent = DOM.spotlightModal.querySelector('div');
-    modalContent.classList.add('translate-y-[-20px]', 'opacity-0');
-
-    setTimeout(() => {
-        DOM.spotlightModal.classList.add('hidden');
-    }, 300); // Match duration-300
+    DOM.spotlightModal.classList.remove('visible');
 }
 
 function performSearch(query) {
@@ -3095,8 +3082,8 @@ function performSearch(query) {
         DOM.spotlightResultsList.innerHTML = '';
         DOM.spotlightEmptyState.classList.add('hidden');
         DOM.spotlightCount.textContent = '';
-        // If query cleared, do we clear navigation context? Maybe not, keep history.
-        // But for now, let's keep it simple.
+        // Clear navigation context so standard navigation resumes
+        setState({ searchResultDates: [] });
         return;
     }
 
@@ -3198,7 +3185,7 @@ function renderSearchResults(results) {
 
     results.forEach(result => {
         const item = document.createElement('div');
-        item.className = 'bg-white p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors flex items-start group';
+        item.className = 'spotlight-result-item bg-white p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors flex items-start group';
 
         let iconHtml = '';
         let contentHtml = '';
