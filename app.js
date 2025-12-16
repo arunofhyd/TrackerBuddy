@@ -180,6 +180,13 @@ function initUI() {
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
         addNewSlotBtn: document.getElementById('add-new-slot-btn'),
+        // Search DOM References
+        dayViewSearchInput: document.getElementById('day-view-search-input'),
+        clearSearchBtn: document.getElementById('clear-search-btn'),
+        searchResultsView: document.getElementById('search-results-view'),
+        searchResultsList: document.getElementById('search-results-list'),
+        noSearchResultsMessage: document.getElementById('no-search-results-message'),
+        dailyViewContainer: document.getElementById('daily-view-container'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -330,6 +337,20 @@ function updateView() {
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
         renderDailyActivities();
+        // Ensure search input is cleared when switching back to day view or changing date if search is active but not explicitly cleared?
+        // Actually, if we switch dates, we probably want to show the day's activities.
+        // But if the search is active, the table is hidden.
+        // Let's re-evaluate search state on updateView for Day View.
+        if (DOM.dayViewSearchInput.value.trim() !== '') {
+            performSearch(DOM.dayViewSearchInput.value.trim());
+        } else {
+            DOM.searchResultsView.classList.add('hidden');
+            DOM.dailyViewContainer.classList.remove('hidden');
+            // If there are activities, noDailyActivitiesMessage is handled in renderDailyActivities
+            // but if there are none, we need to ensure it's visible if appropriate.
+            // renderDailyActivities() handles the table rows and the "no activities" message visibility.
+            // It does NOT handle hiding the dailyViewContainer itself, which we do for search.
+        }
     }
 }
 function renderCalendar() {
@@ -3042,6 +3063,141 @@ function setupDailyViewEventListeners() {
     });
 }
 
+// --- Search Functionality ---
+function performSearch(query) {
+    if (!query) {
+        DOM.searchResultsView.classList.add('hidden');
+        DOM.dailyViewContainer.classList.remove('hidden');
+        DOM.clearSearchBtn.classList.add('hidden');
+        // Let renderDailyActivities decide if "No activities" message should show
+        renderDailyActivities();
+        return;
+    }
+
+    DOM.clearSearchBtn.classList.remove('hidden');
+    DOM.searchResultsView.classList.remove('hidden');
+    DOM.dailyViewContainer.classList.add('hidden');
+    DOM.noDailyActivitiesMessage.classList.add('hidden'); // Hide day-view empty message
+    DOM.searchResultsList.innerHTML = '';
+
+    const lowerQuery = query.toLowerCase();
+    const results = [];
+
+    // Iterate through all years in state.yearlyData
+    Object.keys(state.yearlyData).forEach(year => {
+        const yearData = state.yearlyData[year];
+        if (!yearData.activities) return;
+
+        Object.keys(yearData.activities).forEach(dateKey => {
+            const dayData = yearData.activities[dateKey];
+
+            // Search in Note
+            if (dayData.note && dayData.note.toLowerCase().includes(lowerQuery)) {
+                results.push({
+                    type: 'note',
+                    date: dateKey,
+                    content: dayData.note,
+                    formattedDate: formatDateForDisplay(dateKey)
+                });
+            }
+
+            // Search in Leave
+            if (dayData.leave) {
+                const leaveType = state.leaveTypes.find(lt => lt.id === dayData.leave.typeId);
+                if (leaveType && leaveType.name.toLowerCase().includes(lowerQuery)) {
+                    results.push({
+                        type: 'leave',
+                        date: dateKey,
+                        content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? 'Full Day' : 'Half Day'})`,
+                        formattedDate: formatDateForDisplay(dateKey),
+                        color: leaveType.color
+                    });
+                }
+            }
+
+            // Search in Activities
+            Object.keys(dayData).forEach(key => {
+                if (key !== 'note' && key !== 'leave' && key !== '_userCleared' && typeof dayData[key] === 'object' && dayData[key].text) {
+                    if (dayData[key].text.toLowerCase().includes(lowerQuery)) {
+                        results.push({
+                            type: 'activity',
+                            date: dateKey,
+                            time: key,
+                            content: dayData[key].text,
+                            formattedDate: formatDateForDisplay(dateKey)
+                        });
+                    }
+                }
+            });
+        });
+    });
+
+    // Sort results by date (newest first? or oldest first? usually newest is better for logs, but calendar is usually chronological)
+    // Let's do chronological
+    results.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    renderSearchResults(results);
+}
+
+function renderSearchResults(results) {
+    if (results.length === 0) {
+        DOM.noSearchResultsMessage.classList.remove('hidden');
+        return;
+    }
+    DOM.noSearchResultsMessage.classList.add('hidden');
+
+    results.forEach(result => {
+        const item = document.createElement('div');
+        item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors';
+
+        let iconHtml = '';
+        let contentHtml = '';
+
+        if (result.type === 'note') {
+            iconHtml = '<div class="text-yellow-500 mr-3"><i class="fas fa-sticky-note"></i></div>';
+            contentHtml = `<p class="font-medium text-gray-800">Note: <span class="font-normal text-gray-600">${sanitizeHTML(result.content)}</span></p>`;
+        } else if (result.type === 'leave') {
+            iconHtml = `<div class="mr-3" style="color: ${result.color};"><i class="fas fa-calendar-check"></i></div>`;
+            contentHtml = `<p class="font-medium" style="color: ${result.color};">${sanitizeHTML(result.content)}</p>`;
+        } else {
+            iconHtml = '<div class="text-blue-500 mr-3"><i class="fas fa-clock"></i></div>';
+            contentHtml = `
+                <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-gray-500 uppercase">${sanitizeHTML(result.time)}</span>
+                    <p class="text-gray-800">${sanitizeHTML(result.content)}</p>
+                </div>`;
+        }
+
+        item.innerHTML = `
+            <div class="flex items-start">
+                ${iconHtml}
+                <div class="flex-grow">
+                    <h5 class="text-sm font-bold text-gray-500 mb-1">${result.formattedDate}</h5>
+                    ${contentHtml}
+                </div>
+                <div class="text-gray-400">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        `;
+
+        item.addEventListener('click', () => {
+            const date = new Date(result.date + 'T00:00:00');
+            setState({ selectedDate: date });
+
+            // Clear search and show day view for that date
+            DOM.dayViewSearchInput.value = '';
+            DOM.searchResultsView.classList.add('hidden');
+            DOM.dailyViewContainer.classList.remove('hidden');
+            DOM.clearSearchBtn.classList.add('hidden');
+
+            updateView();
+        });
+
+        DOM.searchResultsList.appendChild(item);
+    });
+}
+
 // --- Event Listener Setup ---
 function setupEventListeners() {
     const emailInput = document.getElementById('email-input');
@@ -3164,6 +3320,21 @@ function setupEventListeners() {
     DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
     }, 500));
+
+    // Search Input Listener
+    if (DOM.dayViewSearchInput) {
+        DOM.dayViewSearchInput.addEventListener('input', debounce((e) => {
+            performSearch(e.target.value.trim());
+        }, 300));
+    }
+
+    if (DOM.clearSearchBtn) {
+        DOM.clearSearchBtn.addEventListener('click', () => {
+            DOM.dayViewSearchInput.value = '';
+            performSearch('');
+            DOM.dayViewSearchInput.focus();
+        });
+    }
 
     const addNewSlotBtn = document.getElementById('add-new-slot-btn');
     if (addNewSlotBtn) {
