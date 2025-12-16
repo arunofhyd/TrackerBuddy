@@ -88,6 +88,7 @@ let state = {
     // Search State
     searchResultDates: [], // Sorted list of date keys for navigation
     searchSortOrder: 'newest', // 'newest' or 'oldest'
+    searchScope: 'year', // 'year' or 'global'
     searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
@@ -193,6 +194,8 @@ function initUI() {
         spotlightSortLabel: document.getElementById('spotlight-sort-label'),
         spotlightEmptyState: document.getElementById('spotlight-empty-state'),
         spotlightCount: document.getElementById('spotlight-count'),
+        spotlightScopeBtn: document.getElementById('spotlight-scope-btn'),
+        spotlightScopeLabel: document.getElementById('spotlight-scope-label'),
         openSpotlightBtn: document.getElementById('open-spotlight-btn'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
@@ -3091,10 +3094,17 @@ function performSearch(query) {
     const results = [];
     const foundDateKeys = new Set();
 
-    // Iterate through all years in state.yearlyData
-    Object.keys(state.yearlyData).forEach(year => {
+    // Determine which years to search
+    let yearsToSearch = [];
+    if (state.searchScope === 'global') {
+        yearsToSearch = Object.keys(state.yearlyData);
+    } else {
+        yearsToSearch = [state.currentMonth.getFullYear().toString()];
+    }
+
+    yearsToSearch.forEach(year => {
         const yearData = state.yearlyData[year];
-        if (!yearData.activities) return;
+        if (!yearData || !yearData.activities) return;
 
         Object.keys(yearData.activities).forEach(dateKey => {
             const dayData = yearData.activities[dateKey];
@@ -3158,6 +3168,18 @@ function performSearch(query) {
 function toggleSearchSort() {
     const newOrder = state.searchSortOrder === 'newest' ? 'oldest' : 'newest';
     setState({ searchSortOrder: newOrder });
+    performSearch(state.searchQuery);
+}
+
+function toggleSearchScope() {
+    const newScope = state.searchScope === 'year' ? 'global' : 'year';
+    setState({ searchScope: newScope });
+
+    // Update button text
+    if (DOM.spotlightScopeLabel) {
+        DOM.spotlightScopeLabel.textContent = newScope === 'year' ? 'Current Year' : 'All Years';
+    }
+
     performSearch(state.searchQuery);
 }
 
@@ -3455,6 +3477,10 @@ function setupEventListeners() {
 
     if (DOM.spotlightSortBtn) {
         DOM.spotlightSortBtn.addEventListener('click', toggleSearchSort);
+    }
+
+    if (DOM.spotlightScopeBtn) {
+        DOM.spotlightScopeBtn.addEventListener('click', toggleSearchScope);
     }
 
     // Global shortcut for spotlight (e.g. Ctrl+K or /) could be added here if desired

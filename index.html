@@ -249,8 +249,12 @@
             </button>
         </div>
         <div id="spotlight-content" class="flex flex-col">
-            <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200 spotlight-header dark:bg-gray-800 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
                 <span id="spotlight-count" class="font-medium"></span>
+                <button id="spotlight-scope-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs">
+                    <i class="fas fa-filter mr-2"></i>
+                    <span id="spotlight-scope-label">Current Year</span>
+                </button>
                 <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                     <span id="spotlight-sort-label">Newest First</span>
                     <i class="fas fa-sort-amount-down ml-2"></i>
