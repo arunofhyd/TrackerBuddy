@@ -85,6 +85,10 @@ let state = {
     teamMembersData: {},
     unsubscribeFromTeam: null,
     unsubscribeFromTeamMembers: [],
+    // Search State
+    searchResultDates: [], // Sorted list of date keys for navigation
+    searchSortOrder: 'newest', // 'newest' or 'oldest'
+    searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
     pendingSaveCount: 0
@@ -180,13 +184,16 @@ function initUI() {
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
         addNewSlotBtn: document.getElementById('add-new-slot-btn'),
-        // Search DOM References
-        dayViewSearchInput: document.getElementById('day-view-search-input'),
-        clearSearchBtn: document.getElementById('clear-search-btn'),
-        searchResultsView: document.getElementById('search-results-view'),
-        searchResultsList: document.getElementById('search-results-list'),
-        noSearchResultsMessage: document.getElementById('no-search-results-message'),
-        dailyViewContainer: document.getElementById('daily-view-container'),
+        // Search DOM References (Spotlight)
+        spotlightModal: document.getElementById('spotlight-modal'),
+        spotlightInput: document.getElementById('spotlight-input'),
+        spotlightCloseBtn: document.getElementById('spotlight-close-btn'),
+        spotlightResultsList: document.getElementById('spotlight-results-list'),
+        spotlightSortBtn: document.getElementById('spotlight-sort-btn'),
+        spotlightSortLabel: document.getElementById('spotlight-sort-label'),
+        spotlightEmptyState: document.getElementById('spotlight-empty-state'),
+        spotlightCount: document.getElementById('spotlight-count'),
+        openSpotlightBtn: document.getElementById('open-spotlight-btn'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -337,20 +344,6 @@ function updateView() {
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
         renderDailyActivities();
-        // Ensure search input is cleared when switching back to day view or changing date if search is active but not explicitly cleared?
-        // Actually, if we switch dates, we probably want to show the day's activities.
-        // But if the search is active, the table is hidden.
-        // Let's re-evaluate search state on updateView for Day View.
-        if (DOM.dayViewSearchInput.value.trim() !== '') {
-            performSearch(DOM.dayViewSearchInput.value.trim());
-        } else {
-            DOM.searchResultsView.classList.add('hidden');
-            DOM.dailyViewContainer.classList.remove('hidden');
-            // If there are activities, noDailyActivitiesMessage is handled in renderDailyActivities
-            // but if there are none, we need to ensure it's visible if appropriate.
-            // renderDailyActivities() handles the table rows and the "no activities" message visibility.
-            // It does NOT handle hiding the dailyViewContainer itself, which we do for search.
-        }
     }
 }
 function renderCalendar() {
@@ -3063,25 +3056,52 @@ function setupDailyViewEventListeners() {
     });
 }
 
-// --- Search Functionality ---
+// --- Search Functionality (Spotlight) ---
+function openSpotlight() {
+    DOM.spotlightModal.classList.remove('hidden');
+    // Allow transition
+    setTimeout(() => {
+        DOM.spotlightModal.classList.remove('opacity-0', 'pointer-events-none');
+        DOM.spotlightModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+        DOM.spotlightModal.querySelector('div').classList.add('scale-100', 'opacity-100');
+    }, 10);
+    DOM.spotlightInput.focus();
+
+    // If there's a previous query, perform search again to refresh results
+    if (state.searchQuery) {
+        performSearch(state.searchQuery);
+    } else {
+        DOM.spotlightResultsList.innerHTML = '';
+        DOM.spotlightEmptyState.classList.add('hidden');
+        DOM.spotlightCount.textContent = '';
+    }
+}
+
+function closeSpotlight() {
+    DOM.spotlightModal.classList.add('opacity-0', 'pointer-events-none');
+    DOM.spotlightModal.querySelector('div').classList.remove('scale-100', 'opacity-100');
+    DOM.spotlightModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+
+    setTimeout(() => {
+        DOM.spotlightModal.classList.add('hidden');
+    }, 200); // Match duration-200
+}
+
 function performSearch(query) {
+    setState({ searchQuery: query });
+
     if (!query) {
-        DOM.searchResultsView.classList.add('hidden');
-        DOM.dailyViewContainer.classList.remove('hidden');
-        DOM.clearSearchBtn.classList.add('hidden');
-        // Let renderDailyActivities decide if "No activities" message should show
-        renderDailyActivities();
+        DOM.spotlightResultsList.innerHTML = '';
+        DOM.spotlightEmptyState.classList.add('hidden');
+        DOM.spotlightCount.textContent = '';
+        // If query cleared, do we clear navigation context? Maybe not, keep history.
+        // But for now, let's keep it simple.
         return;
     }
 
-    DOM.clearSearchBtn.classList.remove('hidden');
-    DOM.searchResultsView.classList.remove('hidden');
-    DOM.dailyViewContainer.classList.add('hidden');
-    DOM.noDailyActivitiesMessage.classList.add('hidden'); // Hide day-view empty message
-    DOM.searchResultsList.innerHTML = '';
-
     const lowerQuery = query.toLowerCase();
     const results = [];
+    const foundDateKeys = new Set();
 
     // Iterate through all years in state.yearlyData
     Object.keys(state.yearlyData).forEach(year => {
@@ -3090,6 +3110,7 @@ function performSearch(query) {
 
         Object.keys(yearData.activities).forEach(dateKey => {
             const dayData = yearData.activities[dateKey];
+            let matchFound = false;
 
             // Search in Note
             if (dayData.note && dayData.note.toLowerCase().includes(lowerQuery)) {
@@ -3099,6 +3120,7 @@ function performSearch(query) {
                     content: dayData.note,
                     formattedDate: formatDateForDisplay(dateKey)
                 });
+                matchFound = true;
             }
 
             // Search in Leave
@@ -3112,6 +3134,7 @@ function performSearch(query) {
                         formattedDate: formatDateForDisplay(dateKey),
                         color: leaveType.color
                     });
+                    matchFound = true;
                 }
             }
 
@@ -3126,41 +3149,67 @@ function performSearch(query) {
                             content: dayData[key].text,
                             formattedDate: formatDateForDisplay(dateKey)
                         });
+                        matchFound = true;
                     }
                 }
             });
+
+            if (matchFound) {
+                foundDateKeys.add(dateKey);
+            }
         });
     });
 
-    // Sort results by date (newest first? or oldest first? usually newest is better for logs, but calendar is usually chronological)
-    // Let's do chronological
-    results.sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Store sorted date keys for navigation (always chronological)
+    const sortedDateKeys = Array.from(foundDateKeys).sort();
+    setState({ searchResultDates: sortedDateKeys });
 
     renderSearchResults(results);
 }
 
+function toggleSearchSort() {
+    const newOrder = state.searchSortOrder === 'newest' ? 'oldest' : 'newest';
+    setState({ searchSortOrder: newOrder });
+    performSearch(state.searchQuery);
+}
+
 function renderSearchResults(results) {
+    DOM.spotlightResultsList.innerHTML = '';
+
+    // Sort results for display
+    if (state.searchSortOrder === 'newest') {
+        results.sort((a, b) => new Date(b.date) - new Date(a.date));
+        DOM.spotlightSortLabel.textContent = "Newest First";
+        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ml-2";
+    } else {
+        results.sort((a, b) => new Date(a.date) - new Date(b.date));
+        DOM.spotlightSortLabel.textContent = "Oldest First";
+        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up mr-2";
+    }
+
+    DOM.spotlightCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
+
     if (results.length === 0) {
-        DOM.noSearchResultsMessage.classList.remove('hidden');
+        DOM.spotlightEmptyState.classList.remove('hidden');
         return;
     }
-    DOM.noSearchResultsMessage.classList.add('hidden');
+    DOM.spotlightEmptyState.classList.add('hidden');
 
     results.forEach(result => {
         const item = document.createElement('div');
-        item.className = 'bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors';
+        item.className = 'bg-white p-3 rounded-lg border border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors flex items-start group';
 
         let iconHtml = '';
         let contentHtml = '';
 
         if (result.type === 'note') {
-            iconHtml = '<div class="text-yellow-500 mr-3"><i class="fas fa-sticky-note"></i></div>';
+            iconHtml = '<div class="text-yellow-500 mr-3 mt-1"><i class="fas fa-sticky-note"></i></div>';
             contentHtml = `<p class="font-medium text-gray-800">Note: <span class="font-normal text-gray-600">${sanitizeHTML(result.content)}</span></p>`;
         } else if (result.type === 'leave') {
-            iconHtml = `<div class="mr-3" style="color: ${result.color};"><i class="fas fa-calendar-check"></i></div>`;
+            iconHtml = `<div class="mr-3 mt-1" style="color: ${result.color};"><i class="fas fa-calendar-check"></i></div>`;
             contentHtml = `<p class="font-medium" style="color: ${result.color};">${sanitizeHTML(result.content)}</p>`;
         } else {
-            iconHtml = '<div class="text-blue-500 mr-3"><i class="fas fa-clock"></i></div>';
+            iconHtml = '<div class="text-blue-500 mr-3 mt-1"><i class="fas fa-clock"></i></div>';
             contentHtml = `
                 <div class="flex flex-col">
                     <span class="text-xs font-semibold text-gray-500 uppercase">${sanitizeHTML(result.time)}</span>
@@ -3169,32 +3218,24 @@ function renderSearchResults(results) {
         }
 
         item.innerHTML = `
-            <div class="flex items-start">
-                ${iconHtml}
-                <div class="flex-grow">
+            ${iconHtml}
+            <div class="flex-grow">
+                <div class="flex justify-between">
                     <h5 class="text-sm font-bold text-gray-500 mb-1">${result.formattedDate}</h5>
-                    ${contentHtml}
+                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400 transition-colors"></i>
                 </div>
-                <div class="text-gray-400">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+                ${contentHtml}
             </div>
         `;
 
         item.addEventListener('click', () => {
             const date = new Date(result.date + 'T00:00:00');
-            setState({ selectedDate: date });
-
-            // Clear search and show day view for that date
-            DOM.dayViewSearchInput.value = '';
-            DOM.searchResultsView.classList.add('hidden');
-            DOM.dailyViewContainer.classList.remove('hidden');
-            DOM.clearSearchBtn.classList.add('hidden');
-
+            setState({ selectedDate: date, currentView: VIEW_MODES.DAY });
+            closeSpotlight();
             updateView();
         });
 
-        DOM.searchResultsList.appendChild(item);
+        DOM.spotlightResultsList.appendChild(item);
     });
 }
 
@@ -3242,7 +3283,45 @@ function setupEventListeners() {
             newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+            // Check if we are in search navigation mode (Day View + Active Search Results)
+            if (state.searchResultDates.length > 0) {
+                const currentKey = getYYYYMMDD(state.selectedDate);
+                // searchResultDates is always sorted ascending (oldest to newest)
+                const currentIndex = state.searchResultDates.indexOf(currentKey);
+
+                let newIndex;
+                if (currentIndex === -1) {
+                    // Not in list, find closest previous date
+                     // Since list is sorted ascending, we look for the last date smaller than current
+                    newIndex = -1;
+                     for (let i = state.searchResultDates.length - 1; i >= 0; i--) {
+                         if (state.searchResultDates[i] < currentKey) {
+                             newIndex = i;
+                             break;
+                         }
+                     }
+                     if (newIndex === -1 && state.searchResultDates.length > 0) {
+                         // If no previous date, wrap to end or stay? Let's wrap to end for better UX
+                         newIndex = state.searchResultDates.length - 1;
+                     }
+                } else {
+                    newIndex = currentIndex - 1;
+                    if (newIndex < 0) {
+                        // Wrap around
+                         newIndex = state.searchResultDates.length - 1;
+                    }
+                }
+
+                if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
+                    newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
+                    showMessage(`Viewing search result ${newIndex + 1} of ${state.searchResultDates.length}`, 'info');
+                } else {
+                    // Fallback to standard nav if empty (shouldn't happen due to check)
+                     newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+                }
+            } else {
+                 newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+            }
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3267,7 +3346,43 @@ function setupEventListeners() {
             newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
             setState({ currentMonth: newDate });
         } else {
-            newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+            // Check if we are in search navigation mode (Day View + Active Search Results)
+             if (state.searchResultDates.length > 0) {
+                 const currentKey = getYYYYMMDD(state.selectedDate);
+                 // searchResultDates is always sorted ascending (oldest to newest)
+                 const currentIndex = state.searchResultDates.indexOf(currentKey);
+
+                 let newIndex;
+                 if (currentIndex === -1) {
+                     // Not in list, find closest next date
+                     newIndex = -1;
+                     for (let i = 0; i < state.searchResultDates.length; i++) {
+                         if (state.searchResultDates[i] > currentKey) {
+                             newIndex = i;
+                             break;
+                         }
+                     }
+                      if (newIndex === -1 && state.searchResultDates.length > 0) {
+                          // Wrap to start
+                          newIndex = 0;
+                      }
+                 } else {
+                     newIndex = currentIndex + 1;
+                     if (newIndex >= state.searchResultDates.length) {
+                         // Wrap around
+                          newIndex = 0;
+                     }
+                 }
+
+                 if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
+                     newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
+                     showMessage(`Viewing search result ${newIndex + 1} of ${state.searchResultDates.length}`, 'info');
+                 } else {
+                      newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+                 }
+             } else {
+                 newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
+             }
             setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
         }
 
@@ -3321,20 +3436,49 @@ function setupEventListeners() {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
     }, 500));
 
-    // Search Input Listener
-    if (DOM.dayViewSearchInput) {
-        DOM.dayViewSearchInput.addEventListener('input', debounce((e) => {
-            performSearch(e.target.value.trim());
-        }, 300));
+    // Spotlight Search Listeners
+    if (DOM.openSpotlightBtn) {
+        DOM.openSpotlightBtn.addEventListener('click', openSpotlight);
     }
 
-    if (DOM.clearSearchBtn) {
-        DOM.clearSearchBtn.addEventListener('click', () => {
-            DOM.dayViewSearchInput.value = '';
-            performSearch('');
-            DOM.dayViewSearchInput.focus();
+    if (DOM.spotlightCloseBtn) {
+        DOM.spotlightCloseBtn.addEventListener('click', closeSpotlight);
+    }
+
+    if (DOM.spotlightModal) {
+        DOM.spotlightModal.addEventListener('click', (e) => {
+            if (e.target === DOM.spotlightModal) {
+                closeSpotlight();
+            }
         });
     }
+
+    if (DOM.spotlightInput) {
+        DOM.spotlightInput.addEventListener('input', debounce((e) => {
+            performSearch(e.target.value.trim());
+        }, 300));
+
+        DOM.spotlightInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSpotlight();
+            }
+        });
+    }
+
+    if (DOM.spotlightSortBtn) {
+        DOM.spotlightSortBtn.addEventListener('click', toggleSearchSort);
+    }
+
+    // Global shortcut for spotlight (e.g. Ctrl+K or /) could be added here if desired
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            openSpotlight();
+        }
+        if (e.key === 'Escape' && !DOM.spotlightModal.classList.contains('hidden')) {
+            closeSpotlight();
+        }
+    });
 
     const addNewSlotBtn = document.getElementById('add-new-slot-btn');
     if (addNewSlotBtn) {
