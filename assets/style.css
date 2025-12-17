@@ -536,3 +536,13 @@ body.dark .spotlight-empty-state {
 body.dark .spotlight-header {
     background-color: #1f2937;
 }
+/* Spotlight Scope Button colors */
+#spotlight-scope-btn {
+    background-color: #f3f4f6; /* gray-100 */
+    color: #4b5563; /* gray-600 */
+}
+
+body.dark #spotlight-scope-btn {
+    background-color: #374151; /* gray-700 */
+    color: #9ca3af; /* gray-400 */
+}
