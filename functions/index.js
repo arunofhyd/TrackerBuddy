@@ -25,6 +25,132 @@ async function deleteCollection(collectionPath, batchSize = 500) {
     }
 }
 
+// Helper function to calculate and save member summary
+// This is used by syncTeamMemberSummary, joinTeam, and createTeam
+async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInfo) {
+    if (!userData || !teamId || !memberInfo) {
+        console.log(`Missing data for summary calculation for user ${userId}`);
+        return;
+    }
+
+    // --- DATA STRUCTURE MIGRATION (Server-Side) ---
+    // 1. Get a mutable copy of the latest yearlyData.
+    let yearlyData = userData.yearlyData ? JSON.parse(JSON.stringify(userData.yearlyData)) : {};
+
+    // 2. Check for and migrate old flat 'activities' data.
+    if (userData.activities && Object.keys(userData.activities).length > 0) {
+        const currentYear = new Date().getFullYear().toString();
+
+        // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
+        if (!yearlyData.hasOwnProperty(currentYear)) {
+                // Deep clone and insert the old flat structure under the current year
+            yearlyData[currentYear] = {
+                activities: userData.activities ? JSON.parse(JSON.stringify(userData.activities)) : {},
+                leaveOverrides: {}
+            };
+        }
+    }
+    // --- END MIGRATION ---
+
+    const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
+    const leaveTypes = userData.leaveTypes || [];
+    const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
+
+    const yearlyLeaveBalances = {};
+    const systemYear = new Date().getFullYear().toString();
+
+    // Determine all relevant years: all years with data, plus the current system year (if leave types exist)
+    const relevantYears = new Set(Object.keys(yearlyData));
+    if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
+        // Add current system year to ensure we calculate 0 balance for future use
+        relevantYears.add(systemYear);
+    }
+
+    // Loop through all relevant years
+    for (const year of relevantYears) {
+
+        const yearData = yearlyData[year] || {};
+        const activities = yearData.activities || {};
+        const overrides = yearData.leaveOverrides || {};
+
+        const leaveCounts = {};
+
+        // Initialize counts for all global leave types
+        leaveTypes.forEach(lt => {
+            leaveCounts[lt.id] = 0;
+        });
+
+        // Calculate used leave days from activities
+        Object.values(activities).forEach(dayData => {
+            if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
+                const leaveInfo = dayData.leave;
+                const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+                if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
+                    leaveCounts[leaveInfo.typeId] += leaveValue;
+                }
+            }
+        });
+
+        const leaveBalancesForYear = {};
+
+        // Finalize balances for this year
+        leaveTypes.forEach(lt => {
+            // Skip leave types that are marked as hidden for this specific year.
+            if (overrides[lt.id]?.hidden) return;
+
+            // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
+            const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+            const used = leaveCounts[lt.id] || 0;
+
+            // Only include this leave type in the summary if it's configured for the year (totalDays > 0)
+            // OR if there is an override defined.
+            if (totalDays > 0 || overrides[lt.id]) {
+                leaveBalancesForYear[lt.id] = {
+                    name: lt.name,
+                    color: lt.color,
+                    total: totalDays,
+                    used: parseFloat(used.toFixed(2)),
+                    balance: parseFloat((totalDays - used).toFixed(2)),
+                };
+            }
+        });
+
+        // Only save the year's balance if leave types exist for it
+        if (Object.keys(leaveBalancesForYear).length > 0) {
+            yearlyLeaveBalances[year] = leaveBalancesForYear;
+        }
+    } // end for loop
+
+    const summaryData = {
+        userId: userId,
+        displayName: memberInfo.displayName,
+        role: memberInfo.role,
+        yearlyLeaveBalances: yearlyLeaveBalances,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+        await summaryRef.set(summaryData, { merge: true });
+        console.log(`Updated summary for user ${userId} in team ${teamId}`);
+    } catch (error) {
+        console.error("Error setting summary for user:", error);
+        throw error;
+    }
+}
+
+// Helper function to delete member summary
+async function deleteMemberSummary(userId, teamId) {
+    if (!userId || !teamId) return;
+    const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
+    try {
+        await summaryRef.delete();
+        console.log(`Deleted summary for user ${userId} from team ${teamId}`);
+    } catch (error) {
+        console.error("Error deleting summary:", error);
+    }
+}
+
+
 /**
  * Creates a new team with the authenticated user as the owner.
  */
@@ -55,14 +181,25 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   const userRef = db.collection("users").doc(userId);
 
   try {
-    await db.runTransaction(async (transaction) => {
-      const userDoc = await transaction.get(userRef);
-      if (!userDoc.exists) {
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
         throw new HttpsError("not-found", "User not found.");
-      }
-      if (userDoc.data().teamId) {
+    }
+    const userData = userDoc.data();
+
+    await db.runTransaction(async (transaction) => {
+      // Re-fetch user in transaction for consistency check
+      const tUserDoc = await transaction.get(userRef);
+      if (tUserDoc.data().teamId) {
         throw new HttpsError("already-exists", "You are already in a team.");
       }
+
+      const memberInfo = {
+        userId: userId,
+        displayName: displayName,
+        role: "owner",
+        joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
 
       transaction.set(teamRef, {
         name: teamName,
@@ -70,12 +207,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
         ownerId: userId,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         members: {
-          [userId]: {
-            userId: userId,
-            displayName: displayName,
-            role: "owner",
-            joinedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
+          [userId]: memberInfo,
         },
       });
 
@@ -84,6 +216,18 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
         teamRole: "owner",
       });
     });
+
+    // Post-transaction: Create initial summary for the owner
+    // We fetch fresh data or use existing if acceptable. Using existing userData for speed.
+    // Note: Transaction ensures team existence, but we do summary update outside transaction
+    // to avoid complexity, or we could assume eventual consistency.
+    // However, for immediate dashboard access, we should do it here.
+    const memberInfo = {
+        userId: userId,
+        displayName: displayName,
+        role: "owner"
+    };
+    await calculateAndSaveMemberSummary(userId, roomCode, userData, memberInfo);
 
     return { status: "success", message: "Successfully created the team!", roomCode: roomCode };
   } catch (error) {
@@ -114,6 +258,12 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   const userRef = db.collection("users").doc(userId);
 
   try {
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+        throw new HttpsError("not-found", "User not found.");
+    }
+    const userData = userDoc.data();
+
     await db.runTransaction(async (transaction) => {
       const teamDoc = await transaction.get(teamRef);
       if (!teamDoc.exists) {
@@ -126,13 +276,15 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
         throw new HttpsError("already-exists", "You are already a member of this team.");
       }
 
-      transaction.update(teamRef, {
-        [`members.${userId}`]: {
+      const memberInfo = {
           userId: userId,
           displayName: displayName,
           role: "member",
           joinedAt: new Date(),
-        },
+      };
+
+      transaction.update(teamRef, {
+        [`members.${userId}`]: memberInfo,
       });
 
       transaction.set(userRef, {
@@ -140,6 +292,14 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
         teamRole: "member",
       }, { merge: true });
     });
+
+    // Create summary for the new member
+    const memberInfo = {
+        userId: userId,
+        displayName: displayName,
+        role: "member"
+    };
+    await calculateAndSaveMemberSummary(userId, roomCode, userData, memberInfo);
 
     return { status: "success", message: "Successfully joined the team!" };
   } catch (error) {
@@ -244,6 +404,10 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   }, { merge: true });
 
   await batch.commit();
+
+  // Delete the summary
+  await deleteMemberSummary(userId, teamId);
+
   return { status: "success", message: "You have left the team." };
 });
 
@@ -342,6 +506,9 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
 
         await batch.commit();
 
+        // Delete the summary
+        await deleteMemberSummary(memberId, teamId);
+
         return { success: true, message: "Team member successfully kicked." };
 
     } catch (error) {
@@ -355,175 +522,51 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 /**
- * Updates a team member's summary document when their user document changes.
- * This is used to keep leave balance data consistent in the team dashboard.
+ * Manually synchronizes the team member summary.
+ * Call this function from the client when leave data changes.
+ * Replacing the expensive background trigger.
  */
-exports.updateTeamMemberSummary = onDocumentWritten({ document: "users/{userId}", region: "asia-south1" }, async (event) => {
-    const userId = event.params.userId;
-    const beforeData = event.data?.before.data();
-    const afterData = event.data?.after.data();
-
-    // If document is deleted, the afterData is null.
-    if (!afterData) {
-        // The user was deleted. If they were in a team, their summary should be deleted.
-        if (beforeData?.teamId) {
-            const summaryRef = db.collection("teams").doc(beforeData.teamId).collection("member_summaries").doc(userId);
-            try {
-                await summaryRef.delete();
-                console.log(`Deleted summary for deleted user ${userId} from team ${beforeData.teamId}`);
-            } catch (error) {
-                console.error("Error deleting summary for deleted user:", error);
-            }
-        }
-        return;
+exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
     }
 
-    const teamId = afterData.teamId;
-    const oldTeamId = beforeData?.teamId;
+    const userId = request.auth.uid;
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
 
-    // Case 1: User leaves or is removed from a team
-    if (oldTeamId && !teamId) {
-        const summaryRef = db.collection("teams").doc(oldTeamId).collection("member_summaries").doc(userId);
-        try {
-            await summaryRef.delete();
-            console.log(`Deleted summary for user ${userId} who left team ${oldTeamId}`);
-        } catch (error) {
-            console.error("Error deleting summary for user who left team:", error);
-        }
+    if (!userDoc.exists) {
+        throw new HttpsError("not-found", "User data not found.");
     }
 
-    // Case 2: User joins a team or their data changes while in a team
-    if (teamId) {
-        const leaveTypesChanged = JSON.stringify(beforeData?.leaveTypes) !== JSON.stringify(afterData.leaveTypes);
-        const yearlyDataChanged = JSON.stringify(beforeData?.yearlyData) !== JSON.stringify(afterData.yearlyData);
-        const oldActivitiesChanged = JSON.stringify(beforeData?.activities) !== JSON.stringify(afterData.activities);
+    const userData = userDoc.data();
+    const teamId = userData.teamId;
 
-        if (yearlyDataChanged || leaveTypesChanged || (teamId !== oldTeamId) || oldActivitiesChanged) {
-            
-            // --- DATA STRUCTURE MIGRATION (Server-Side) ---
-            // 1. Get a mutable copy of the latest yearlyData.
-            let yearlyData = afterData.yearlyData ? JSON.parse(JSON.stringify(afterData.yearlyData)) : {}; 
-            
-            // 2. Check for and migrate old flat 'activities' data.
-            if (afterData.activities && Object.keys(afterData.activities).length > 0) {
-                const currentYear = new Date().getFullYear().toString();
-                
-                // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
-                if (!yearlyData.hasOwnProperty(currentYear)) {
-                     // Deep clone and insert the old flat structure under the current year
-                    yearlyData[currentYear] = { 
-                        activities: afterData.activities ? JSON.parse(JSON.stringify(afterData.activities)) : {}, 
-                        leaveOverrides: {} 
-                    };
-                }
-                // NOTE: If both old and new data exist for the current year, we prioritize the newer `yearlyData` key.
-                // The client app should handle cleaning up the old 'activities' field on save.
-            }
-            // --- END MIGRATION ---
-
-            const teamDoc = await db.collection("teams").doc(teamId).get();
-            if (!teamDoc.exists) {
-                console.log(`User ${userId} is in a non-existent team ${teamId}. Skipping summary update.`);
-                return;
-            }
-            const memberInfo = teamDoc.data()?.members?.[userId];
-            if (!memberInfo) {
-                console.log(`User ${userId} not found in members list for team ${teamId}. Skipping summary update.`);
-                return;
-            }
-
-            const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
-            const leaveTypes = afterData.leaveTypes || [];
-            const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
-
-            // --- FIX: Logic to calculate and store balances per year ---
-            const yearlyLeaveBalances = {};
-            const systemYear = new Date().getFullYear().toString();
-
-            // Determine all relevant years: all years with data, plus the current system year (if leave types exist)
-            const relevantYears = new Set(Object.keys(yearlyData));
-            if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
-                // Add current system year to ensure we calculate 0 balance for future use
-                relevantYears.add(systemYear);
-            }
-
-            // Loop through all relevant years
-            for (const year of relevantYears) {
-
-                const yearData = yearlyData[year] || {};
-                const activities = yearData.activities || {};
-                const overrides = yearData.leaveOverrides || {};
-
-                const leaveCounts = {};
-                
-                // Initialize counts for all global leave types
-                leaveTypes.forEach(lt => {
-                    leaveCounts[lt.id] = 0;
-                });
-
-                // Calculate used leave days from activities
-                Object.values(activities).forEach(dayData => {
-                    if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
-                        const leaveInfo = dayData.leave;
-                        const leaveValue = leaveInfo.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-                        if (leaveCounts.hasOwnProperty(leaveInfo.typeId)) {
-                            leaveCounts[leaveInfo.typeId] += leaveValue;
-                        }
-                    }
-                });
-
-                const leaveBalancesForYear = {};
-                
-                // Finalize balances for this year
-                leaveTypes.forEach(lt => {
-                    // Skip leave types that are marked as hidden for this specific year.
-                    if (overrides[lt.id]?.hidden) return;
-
-                    // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
-                    const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-                    const used = leaveCounts[lt.id] || 0;
-
-                    // Only include this leave type in the summary if it's configured for the year (totalDays > 0)
-                    // OR if there is an override defined.
-                    if (totalDays > 0 || overrides[lt.id]) {
-                        leaveBalancesForYear[lt.id] = {
-                            name: lt.name,
-                            color: lt.color,
-                            total: totalDays,
-                            used: parseFloat(used.toFixed(2)),
-                            balance: parseFloat((totalDays - used).toFixed(2)),
-                        };
-                    }
-                });
-                
-                // Only save the year's balance if leave types exist for it
-                if (Object.keys(leaveBalancesForYear).length > 0) {
-                    yearlyLeaveBalances[year] = leaveBalancesForYear;
-                }
-            } // end for loop
-            // --- FIX END ---
-
-            const summaryData = {
-                userId: userId,
-                displayName: memberInfo.displayName,
-                role: memberInfo.role,
-                yearlyLeaveBalances: yearlyLeaveBalances, // <-- Correct, nested structure is used here
-                lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-            };
-
-            try {
-                await summaryRef.set(summaryData, { merge: true });
-                console.log(`Updated summary for user ${userId} in team ${teamId}`);
-            } catch (error) {
-                console.error("Error setting summary for user:", error);
-            }
-        }
+    if (!teamId) {
+        // User is not in a team, nothing to update.
+        return { status: "no-team", message: "User is not in a team." };
     }
+
+    const teamDoc = await db.collection("teams").doc(teamId).get();
+    if (!teamDoc.exists) {
+        // Team ID exists in user doc but team is gone. Should self-repair ideally.
+        return { status: "team-missing", message: "Team not found." };
+    }
+
+    const memberInfo = teamDoc.data()?.members?.[userId];
+    if (!memberInfo) {
+        // User thinks they are in team, but team doesn't list them.
+        return { status: "not-member", message: "User not in team members list." };
+    }
+
+    await calculateAndSaveMemberSummary(userId, teamId, userData, memberInfo);
+    return { status: "success", message: "Summary synced." };
 });
 
 /**
  * Updates a team member's summary document when their team document changes.
  * This is used to keep displayName and role consistent in the team dashboard.
+ * We keep this trigger as it is low volume (only runs on team metadata updates).
  */
 exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1" }, async (event) => {
     const teamId = event.params.teamId;
