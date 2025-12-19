@@ -697,6 +697,23 @@ async function loadTeamMembersData() {
     setState({ unsubscribeFromTeamMembers: [unsubscribe] });
 }
 
+async function triggerTeamSync() {
+    if (!state.isOnlineMode || !state.userId || !state.currentTeam) return;
+
+    try {
+        console.log("Triggering team summary sync...");
+        const syncCallable = httpsCallable(functions, 'syncTeamMemberSummary');
+        // We don't await this to keep the UI responsive, but we catch errors.
+        syncCallable().then(() => {
+            console.log("Team summary synced successfully.");
+        }).catch(error => {
+             console.error("Failed to sync team summary:", error);
+        });
+    } catch (error) {
+        console.error("Error triggering team sync:", error);
+    }
+}
+
 function cleanupTeamSubscriptions() {
     if (state.unsubscribeFromTeam) {
         state.unsubscribeFromTeam();
@@ -983,6 +1000,7 @@ async function resetAllData() {
             }, { merge: false }); // merge:false replaces the document
 
             // This will trigger onSnapshot, which will update the local state.
+            triggerTeamSync();
             showMessage("All cloud data has been reset.", 'success');
 
         } catch (error) {
@@ -1306,6 +1324,7 @@ function handleFileUpload(event) {
                 yearlyData: yearlyDataCopy,
                 leaveTypes: finalLeaveTypes
             });
+        triggerTeamSync();
 
             showMessage(`${processedRows} records imported/updated successfully!`, 'success');
             event.target.value = '';
@@ -1856,6 +1875,7 @@ async function saveLeaveType() {
             yearlyData: updatedYearlyData,
             leaveTypes: newLeaveTypes
         });
+        triggerTeamSync();
         showMessage('Leave type saved!', 'success');
     } catch (error) {
         console.error("Failed to save leave type:", error);
@@ -1911,6 +1931,7 @@ async function deleteLeaveType() {
             yearlyData: updatedYearlyData,
             leaveTypes: state.leaveTypes
         });
+        triggerTeamSync();
         showMessage(`Leave type hidden for ${currentYear} and entries removed.`, 'success');
     } catch (error) {
         console.error("Failed to hide leave type:", error);
@@ -1925,6 +1946,7 @@ async function deleteLeaveType() {
 async function saveLeaveTypes() {
     // Pass the entire state's yearlyData and leaveTypes to be persisted
     await persistData({ yearlyData: state.yearlyData, leaveTypes: state.leaveTypes });
+    triggerTeamSync();
     if (!state.isOnlineMode) {
         updateView();
     }
@@ -2110,6 +2132,7 @@ async function deleteLeaveDay(dateKey) {
 
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        triggerTeamSync();
         showMessage('Leave entry deleted successfully!', 'success');
     } catch (error) {
         console.error("Failed to delete leave day:", error);
@@ -2525,6 +2548,7 @@ async function saveLoggedLeaves() {
 
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        triggerTeamSync();
         showMessage('Leaves saved successfully!', 'success');
     } catch (error) {
         console.error("Failed to save logged leaves:", error);
@@ -3702,6 +3726,7 @@ function setupEventListeners() {
 
             try {
                 await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+                triggerTeamSync();
                 showMessage('Leave day updated!', 'success');
             } catch (error) {
                 console.error("Failed to update leave day:", error);
