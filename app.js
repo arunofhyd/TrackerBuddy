@@ -3241,7 +3241,7 @@ function renderSearchResults(results) {
     } else {
         results.sort((a, b) => new Date(a.date) - new Date(b.date));
         DOM.spotlightSortLabel.textContent = "Oldest First";
-        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up mr-2";
+        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ml-2";
     }
 
     DOM.spotlightCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
