@@ -2596,30 +2596,30 @@ function renderTeamSection() {
             <div class="text-center">
                 <h3 class="text-lg font-semibold mb-4">Team Management</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
                         <button id="create-team-btn" class="w-full text-left">
-                            <div class="flex items-center justify-center mb-4">
-                                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center justify-center mb-3 sm:mb-4">
+                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-xl font-bold text-center mb-2">Create Team</h4>
-                            <p class="text-center text-gray-600 dark:text-gray-400">Start a new team and invite others to join.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Create Team</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Start a new team and invite others to join.</p>
                         </button>
                     </div>
-                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
                         <button id="join-team-btn" class="w-full text-left">
-                            <div class="flex items-center justify-center mb-4">
-                                <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center justify-center mb-3 sm:mb-4">
+                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-xl font-bold text-center mb-2">Join Team</h4>
-                            <p class="text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Join Team</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
                         </button>
                     </div>
                 </div>
@@ -2636,58 +2636,58 @@ function renderTeamSection() {
         const memberCount = state.teamMembers.length || 0;
 
         const teamInfo = `
-            <div class="space-y-6">
+            <div class="space-y-4 sm:space-y-6">
                 <div class="text-center">
-                    <h3 class="text-lg font-semibold mb-2 flex items-center justify-center">
-                        <i class="fa-solid fa-user-group w-5 h-5 mr-2 text-blue-600"></i>
+                    <h3 class="text-base sm:text-lg font-semibold mb-2 flex items-center justify-center">
+                        <i class="fa-solid fa-user-group w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600"></i>
                         <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
                         ${isAdmin ? `
                         <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                         ` : ''}
                     </h3>
-                    <p class="text-gray-600 dark:text-gray-400">You are ${isAdmin ? 'the admin' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">You are ${isAdmin ? 'the admin' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
                 </div>
                 
-                <div class="bg-white dark:bg-gray-100 p-4 rounded-lg border">
-                    <h4 class="font-semibold mb-3 text-center">Team Room Code</h4>
+                <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
+                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">Team Room Code</h4>
                     <div class="text-center">
-                        <div class="room-code">
+                        <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
                             <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="Copy Code">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">Share this code with others to invite them to your team.</p>
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">Share this code with others to invite them to your team.</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
                     ${isAdmin ? `
-                        <button id="team-dashboard-btn" class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button id="team-dashboard-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             Team Dashboard
                         </button>
                     ` : ''}
-                    <button id="edit-display-name-btn" class="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
                         Change Name
                     </button>
                     ${isAdmin ? `
-                        <button id="delete-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             Delete Team
                         </button>
                     ` : `
-                        <button id="leave-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
-                            <i class="fa-solid fa-door-open w-5 h-5 mr-2"></i>
+                        <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                            <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             Leave Team
                         </button>
                     `}
@@ -2963,7 +2963,7 @@ function renderTeamDashboard() {
 
         return `
            <details class="team-member-card ${isAdmin ? 'team-admin-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
-                <summary class="flex items-center justify-between p-4 sm:p-6 cursor-pointer">
+                <summary class="flex items-center justify-between p-3 sm:p-6 cursor-pointer">
                     <div class="flex items-center">
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
                             ${member.displayName.charAt(0).toUpperCase()}
@@ -2975,7 +2975,7 @@ function renderTeamDashboard() {
                     </div>
                     <div class="flex items-center">
                         ${isAdmin ? `
-                        <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-4">
+                        <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-2 sm:mr-4">
                             <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
@@ -2989,10 +2989,10 @@ function renderTeamDashboard() {
                         <svg class="w-6 h-6 text-gray-500 accordion-arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </summary>
-                <div class="team-member-details-content p-6 border-t border-gray-200 dark:border-gray-700">
+                <div class="team-member-details-content p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
                     ${Object.keys(balances).length > 0 ? `
                         <div>
-                            <h5 class="font-semibold mb-4 team-dashboard-title">Leave Balance Overview (${dashboardYear})</h5>
+                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">Leave Balance Overview (${dashboardYear})</h5>
                             ${leaveTypesHTML}
                         </div>
                     ` : `
