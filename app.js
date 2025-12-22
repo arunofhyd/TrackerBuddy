@@ -3645,14 +3645,7 @@ function setupEventListeners() {
 
     if (DOM.infoToggleBtn && DOM.infoDescription) {
         DOM.infoToggleBtn.addEventListener('click', () => {
-            const description = DOM.infoDescription;
-            if (description.style.maxHeight && description.style.maxHeight !== '0px') {
-                description.style.maxHeight = '0px';
-                description.style.opacity = '0';
-            } else {
-                description.style.opacity = '1';
-                description.style.maxHeight = description.scrollHeight + 'px';
-            }
+            DOM.infoDescription.classList.toggle('visible');
         });
     }
 
