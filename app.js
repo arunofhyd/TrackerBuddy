@@ -535,16 +535,27 @@ function formatDateForDisplay(dateString) {
 }
 
 function formatTextForDisplay(text, highlightQuery = '') {
-    const tempDiv = document.createElement('div');
-    tempDiv.textContent = text || '';
-    let html = tempDiv.innerHTML.replace(/\n/g, '<br>');
+    const safeText = text || '';
 
-    if (highlightQuery) {
-        const escapedQuery = highlightQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(${escapedQuery})`, 'gi');
-        html = html.replace(regex, '<span class="bg-yellow-200 text-gray-900">$1</span>');
+    if (!highlightQuery) {
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = safeText;
+        return tempDiv.innerHTML.replace(/\n/g, '<br>');
     }
-    return html;
+
+    const escapedQuery = highlightQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = safeText.split(new RegExp(`(${escapedQuery})`, 'gi'));
+
+    return parts.map(part => {
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = part;
+        const escapedPart = tempDiv.innerHTML.replace(/\n/g, '<br>');
+
+        if (part.toLowerCase() === highlightQuery.toLowerCase()) {
+            return `<span class="search-highlight">${escapedPart}</span>`;
+        }
+        return escapedPart;
+    }).join('');
 }
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
