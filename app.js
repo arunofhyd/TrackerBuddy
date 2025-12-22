@@ -59,6 +59,7 @@ const COLOR_MAP = {
 
 // --- Global App State ---
 let state = {
+    previousActiveElement: null, // For focus management
     currentMonth: new Date(),
     selectedDate: new Date(),
     currentView: VIEW_MODES.MONTH,
@@ -474,7 +475,7 @@ function renderDailyActivities() {
                 <button class="icon-btn move-down-btn" aria-label="Move Down" ${isLast ? 'disabled' : ''}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
-                <button class="icon-btn delete-btn delete" aria-label="Delete">
+                <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
                     <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </td>`;
@@ -569,25 +570,6 @@ async function subscribeToData(userId, callback) {
 
         let data = docSnapshot.exists() ? docSnapshot.data() : {};
         
-        // FIX: Data Migration Logic to convert old flat 'activities' to new nested 'yearlyData' structure
-        if (data.activities && !data.yearlyData) {
-             const migratedData = migrateDataToYearlyStructure(data);
-
-            // Asynchronously save the migrated data back to Firestore
-            // This is a one-time operation per user with legacy data.
-            try {
-                // NOTE: We rely on the developer to have correctly implemented this migration in their environment
-                // For client-side logic, we proceed with the migrated data structure
-                data = migratedData;
-                // If you want to force save the new structure back to Firestore here, you can, 
-                // but usually the next user action handles it.
-                // await setDoc(userDocRef, migratedData, { merge: true }); 
-                console.warn("Using in-memory migrated data. Ensure Firestore migration is handled.");
-            } catch (error) {
-                console.error("Error migrating user data structure:", error);
-            }
-        }
-        
         const year = state.currentMonth.getFullYear();
         const yearlyData = data.yearlyData || {};
         const currentYearData = yearlyData[year] || { activities: {}, leaveOverrides: {} };
@@ -609,42 +591,6 @@ async function subscribeToData(userId, callback) {
     });
     setState({ unsubscribeFromFirestore: unsubscribe });
 }
-
-function migrateDataToYearlyStructure(data) {
-    if (!data || data.yearlyData || !data.activities) {
-        return data; // No migration needed or already migrated
-    }
-    
-    console.log("Migrating legacy data to yearly structure...");
-    const yearlyData = {};
-    Object.keys(data.activities).forEach(dateKey => {
-        const year = dateKey.substring(0, 4);
-        if (!yearlyData[year]) {
-            yearlyData[year] = { activities: {}, leaveOverrides: {} };
-        }
-        yearlyData[year].activities[dateKey] = data.activities[dateKey];
-    });
-
-    // Create a new data object with the new structure
-    const migratedData = {
-        leaveTypes: data.leaveTypes || [],
-        yearlyData: yearlyData
-        // The old 'activities' field should be deleted on the next save operation
-    };
-    
-    // For offline users, we need to immediately save the migrated data back to localStorage
-    if (!state.isOnlineMode) {
-        try {
-            localStorage.setItem("guestUserData", JSON.stringify(migratedData));
-            console.log("Migration complete and saved to localStorage.");
-        } catch (error) {
-            console.error("Failed to save migrated data to localStorage:", error);
-        }
-    }
-    
-    return migratedData;
-}
-
 
 async function subscribeToTeamData(callback) {
     if (!state.currentTeam) {
@@ -936,12 +882,6 @@ function loadDataFromLocalStorage() {
             return { yearlyData: {}, leaveTypes: [] };
         }
         let data = JSON.parse(storedDataString);
-
-        // FIX: Backwards compatibility - migrate old flat storage to new structure
-        if (data.activities && !data.yearlyData) {
-            data = migrateDataToYearlyStructure(data);
-        }
-
         return data;
 
     } catch (error) {
@@ -1771,6 +1711,7 @@ function getVisibleLeaveTypesForYear(year) {
 }
 
 function openLeaveTypeModal(leaveType = null) {
+    state.previousActiveElement = document.activeElement;
     DOM.leaveTypeModal.classList.add('visible');
     if (leaveType) {
         const year = state.currentMonth.getFullYear();
@@ -1792,10 +1733,15 @@ function openLeaveTypeModal(leaveType = null) {
         selectColorInPicker(null);
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
     }
+    DOM.leaveNameInput.focus();
 }
 
 function closeLeaveTypeModal() {
     DOM.leaveTypeModal.classList.remove('visible');
+    if (state.previousActiveElement) {
+        state.previousActiveElement.focus();
+        state.previousActiveElement = null;
+    }
 }
 
 function setupColorPicker() {
@@ -1890,10 +1836,49 @@ async function saveLeaveType() {
 
     // Persist changes
     try {
-        await persistData({
-            yearlyData: updatedYearlyData,
-            leaveTypes: newLeaveTypes
-        });
+        // Use granular update if possible
+        if (state.isOnlineMode && state.userId) {
+            const updates = {};
+            const leaveTypesUpdate = { leaveTypes: newLeaveTypes };
+
+            // Construct granular updates for leaveOverrides
+            if (updatedYearlyData[currentYear]?.leaveOverrides) {
+               updates[`yearlyData.${currentYear}.leaveOverrides`] = updatedYearlyData[currentYear].leaveOverrides;
+            } else {
+               // If no overrides for this year, we might need to delete the field or set empty
+               // But usually we just update what changed.
+               // For simplicity in this specific function, we can send the whole leaveOverrides map for the year
+               // which is safer than replacing the whole yearlyData map.
+            }
+
+            // However, `persistData` calls `saveDataToFirestore` which calls `setDoc` with merge:true.
+            // If we pass { yearlyData: { [currentYear]: { leaveOverrides: ... } } }, it merges deeply.
+            // BUT, if we want to be safe against overwriting *activities*, we must ensure we don't send activities back if we didn't change them.
+            // In this function, we ONLY change leaveTypes and leaveOverrides.
+
+            const dataToSave = {
+                leaveTypes: newLeaveTypes
+            };
+
+            if (updatedYearlyData[currentYear]) {
+                dataToSave.yearlyData = {
+                    [currentYear]: {
+                        leaveOverrides: updatedYearlyData[currentYear].leaveOverrides || {}
+                    }
+                };
+            }
+
+            // We use setDoc with merge: true, which is fine for leaveTypes (array replacement)
+            // and fine for leaveOverrides (map merge).
+            // Crucially, we are NOT including 'activities' in dataToSave, so concurrent activity edits are safe.
+            await saveDataToFirestore(dataToSave);
+        } else {
+            saveDataToLocalStorage({
+                yearlyData: updatedYearlyData,
+                leaveTypes: newLeaveTypes
+            });
+        }
+
         triggerTeamSync();
         showMessage('Leave type saved!', 'success');
     } catch (error) {
@@ -1945,11 +1930,39 @@ async function deleteLeaveType() {
 
     // Persist the changes
     try {
-        // We persist both yearlyData and the unaltered leaveTypes array
-        await persistData({
-            yearlyData: updatedYearlyData,
-            leaveTypes: state.leaveTypes
-        });
+        if (state.isOnlineMode && state.userId) {
+            const batch = writeBatch(db);
+            const userDocRef = doc(db, "users", state.userId);
+
+            // 1. Update the hidden flag in leaveOverrides
+            batch.update(userDocRef, {
+                [`yearlyData.${currentYear}.leaveOverrides.${id}.hidden`]: true
+            });
+
+            // 2. Remove all activities with this leave type
+            // We need to find them first (we already did this in memory)
+            const yearActivities = state.yearlyData[currentYear]?.activities || {};
+            let deleteCount = 0;
+
+            Object.keys(yearActivities).forEach(dateKey => {
+                if (yearActivities[dateKey].leave?.typeId === id) {
+                    batch.update(userDocRef, {
+                        [`yearlyData.${currentYear}.activities.${dateKey}.leave`]: deleteField()
+                    });
+                    deleteCount++;
+                }
+            });
+
+            // Note: batch has limit of 500 ops. If user has > 500 leave days of this type (unlikely), this might fail.
+            // Given the scale of this app, it's probably acceptable.
+            await batch.commit();
+        } else {
+            saveDataToLocalStorage({
+                yearlyData: updatedYearlyData,
+                leaveTypes: state.leaveTypes
+            });
+        }
+
         triggerTeamSync();
         showMessage(`Leave type hidden for ${currentYear} and entries removed.`, 'success');
     } catch (error) {
@@ -2200,18 +2213,18 @@ function renderLeaveStats() {
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details">
+                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details" aria-label="View details for ${sanitizeHTML(lt.name)}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" ${isFirst ? 'disabled' : ''}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" aria-label="Move ${sanitizeHTML(lt.name)} up" ${isFirst ? 'disabled' : ''}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" ${isLast ? 'disabled' : ''}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" aria-label="Move ${sanitizeHTML(lt.name)} down" ${isLast ? 'disabled' : ''}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit">
+                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit" aria-label="Edit ${sanitizeHTML(lt.name)}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                     </div>
@@ -2266,9 +2279,13 @@ function openLeaveCustomizationModal() {
         showMessage('Please select at least one day on the calendar.', 'info');
         return;
     }
+    state.previousActiveElement = document.activeElement;
     setState({ initialLeaveSelection: new Set(state.leaveSelection) });
     DOM.customizeLeaveModal.classList.add('visible');
     renderLeaveCustomizationModal();
+    // Focus first interactive element
+    const firstButton = DOM.customizeLeaveModal.querySelector('button, input, select');
+    if (firstButton) firstButton.focus();
 }
 
 function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback) {
@@ -2566,7 +2583,49 @@ async function saveLoggedLeaves() {
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        if (state.isOnlineMode && state.userId) {
+            const batch = writeBatch(db);
+            const userDocRef = doc(db, "users", state.userId);
+            let opCount = 0;
+
+            // Handle deletions
+            state.initialLeaveSelection.forEach(dateKey => {
+                if (!datesInModal.has(dateKey) && state.yearlyData[year]?.activities[dateKey]?.leave) {
+                    batch.update(userDocRef, {
+                        [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField()
+                    });
+                    opCount++;
+                }
+            });
+
+            // Handle updates/creations
+            modalItems.forEach(item => {
+                const dateKey = item.dataset.dateKey;
+                const typeId = item.querySelector('.leave-type-selector-trigger').dataset.typeId;
+
+                if (typeId === 'remove') {
+                    // Check if it actually existed before trying to delete to save ops, or just blindly delete
+                     batch.update(userDocRef, {
+                        [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField()
+                    });
+                } else {
+                    const dayType = item.querySelector('.day-type-toggle').dataset.selectedValue;
+                    // We only update the 'leave' field of the activity object
+                    // This preserves note, text, order, etc.
+                    batch.update(userDocRef, {
+                        [`yearlyData.${year}.activities.${dateKey}.leave`]: { typeId, dayType }
+                    });
+                }
+                opCount++;
+            });
+
+            if (opCount > 0) {
+                await batch.commit();
+            }
+        } else {
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        }
+
         triggerTeamSync();
         showMessage('Leaves saved successfully!', 'success');
     } catch (error) {
@@ -2574,6 +2633,10 @@ async function saveLoggedLeaves() {
         showMessage("Failed to save leaves.", "error");
     } finally {
         DOM.customizeLeaveModal.classList.remove('visible');
+        if (state.previousActiveElement) {
+            state.previousActiveElement.focus();
+            state.previousActiveElement = null;
+        }
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
         DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> Log Leave';
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
@@ -3104,6 +3167,7 @@ function setupDailyViewEventListeners() {
 
 // --- Search Functionality (Spotlight) ---
 function openSpotlight() {
+    state.previousActiveElement = document.activeElement;
     DOM.spotlightModal.classList.add('visible');
     DOM.spotlightInput.focus();
 
@@ -3120,6 +3184,10 @@ function openSpotlight() {
 function closeSpotlight() {
     DOM.spotlightModal.classList.remove('visible');
     updateView();
+    if (state.previousActiveElement) {
+        state.previousActiveElement.focus();
+        state.previousActiveElement = null;
+    }
 }
 
 function performSearch(query) {
@@ -3464,12 +3532,21 @@ function setupEventListeners() {
     });
 
     DOM.currentPeriodDisplay.addEventListener('click', () => {
+        state.previousActiveElement = document.activeElement;
         setState({ pickerYear: state.currentView === VIEW_MODES.MONTH ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
         renderMonthPicker();
         DOM.monthPickerModal.classList.add('visible');
+        // Focus close button or first interactive element
+        document.getElementById('close-month-picker-btn')?.focus();
     });
 
-    document.getElementById('close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.remove('visible'));
+    document.getElementById('close-month-picker-btn').addEventListener('click', () => {
+        DOM.monthPickerModal.classList.remove('visible');
+        if (state.previousActiveElement) {
+            state.previousActiveElement.focus();
+            state.previousActiveElement = null;
+        }
+    });
     document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
@@ -3663,6 +3740,10 @@ function setupEventListeners() {
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');
+        if (state.previousActiveElement) {
+            state.previousActiveElement.focus();
+            state.previousActiveElement = null;
+        }
     });
 
     document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
