@@ -3,6 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
+import { html, render } from 'https://cdn.jsdelivr.net/npm/lit-html@3.1.2/lit-html.js';
+import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@3.3.1/+esm';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -18,6 +20,102 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app, 'asia-south1');
+
+// --- Translation Service ---
+class TranslationService {
+    constructor() {
+        this.currentLang = 'en';
+        this.translations = {};
+        this.supportedLangs = [
+            { code: 'en', name: 'English' },
+            { code: 'es', name: 'Español' },
+            { code: 'fr', name: 'Français' },
+            { code: 'de', name: 'Deutsch' },
+            { code: 'zh', name: '中文' },
+            { code: 'ja', name: '日本語' },
+            { code: 'ko', name: '한국어' },
+            { code: 'pt', name: 'Português' },
+            { code: 'ru', name: 'Русский' },
+            { code: 'ar', name: 'العربية' },
+            { code: 'hi', name: 'हिन्दी' },
+            { code: 'it', name: 'Italiano' },
+            { code: 'nl', name: 'Nederlands' },
+            { code: 'pl', name: 'Polski' },
+            { code: 'vi', name: 'Tiếng Việt' },
+            { code: 'th', name: 'ไทย' },
+            { code: 'id', name: 'Bahasa Indonesia' },
+            { code: 'ms', name: 'Bahasa Melayu' },
+            { code: 'ta', name: 'தமிழ்' },
+            { code: 'ml', name: 'മലയാളം' }
+        ];
+    }
+
+    async init() {
+        // Check localStorage first, then browser preference
+        const savedLang = localStorage.getItem('appLanguage');
+        const userLang = navigator.language.split('-')[0];
+        const supportedCodes = this.supportedLangs.map(l => l.code);
+
+        if (savedLang && supportedCodes.includes(savedLang)) {
+            this.currentLang = savedLang;
+        } else {
+            this.currentLang = supportedCodes.includes(userLang) ? userLang : 'en';
+        }
+
+    try {
+        await this.loadTranslations(this.currentLang);
+    } catch (e) {
+        console.error("Init translation failed", e);
+    }
+        this.translatePage();
+    }
+
+    async setLanguage(langCode) {
+        if (this.currentLang === langCode) return;
+
+        this.currentLang = langCode;
+        localStorage.setItem('appLanguage', langCode);
+        await this.loadTranslations(langCode);
+        this.translatePage();
+    }
+
+    async loadTranslations(lang) {
+        try {
+            const response = await fetch(`assets/i18n/${lang}.json`);
+            this.translations = await response.json();
+        } catch (error) {
+            console.error('Failed to load translations:', error);
+        }
+    }
+
+    t(key) {
+        return this.translations[key] || key;
+    }
+
+    translatePage() {
+        document.documentElement.lang = this.currentLang;
+        if (this.currentLang === 'ar') {
+            document.documentElement.dir = 'rtl';
+        } else {
+            document.documentElement.dir = 'ltr';
+        }
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            if (this.translations[key]) {
+                el.textContent = this.translations[key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.dataset.i18nPlaceholder;
+            if (this.translations[key]) {
+                el.placeholder = this.translations[key];
+            }
+        });
+        updateView();
+    }
+}
+const i18n = new TranslationService();
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
@@ -341,7 +439,7 @@ function updateView() {
     DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView);
 
     if (isMonthView) {
-        DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString(i18n.currentLang, { month: 'long', year: 'numeric' });
         renderCalendar();
         renderLeavePills();
         renderLeaveStats();
@@ -352,7 +450,11 @@ function updateView() {
     }
 }
 function renderCalendar() {
-    while (DOM.calendarView.children.length > 7) DOM.calendarView.removeChild(DOM.calendarView.lastChild);
+    // Preserve the header row (first 7 children)
+    // Actually, lit-html replacing innerHTML will remove the header rows if I target DOM.calendarView directly.
+    // I will recreate the header in lit-html for simplicity, using i18n
+    const days = i18n.translations.days || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const header = days.map((day, i) => html`<div class="py-3 text-center text-sm font-semibold ${i === 0 ? 'text-red-500' : 'text-gray-700'}">${day}</div>`);
 
     const year = state.currentMonth.getFullYear();
     const month = state.currentMonth.getMonth();
@@ -360,80 +462,66 @@ function renderCalendar() {
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const today = new Date();
     
-    // FIX: Use currentYearData.activities for the current calendar view
     const currentActivities = state.currentYearData.activities || {};
+    const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
+    const emptyCellsBefore = [];
     for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day-cell other-month';
-        emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
-        DOM.calendarView.appendChild(emptyCell);
+        emptyCellsBefore.push(html`<div class="calendar-day-cell other-month"><div class="calendar-day-content"></div></div>`);
     }
 
+    const dayCells = [];
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const date = new Date(year, month, day);
         const dateKey = getYYYYMMDD(date);
-        // FIX: Use currentActivities
         const dayData = currentActivities[dateKey] || {}; 
         const noteText = dayData.note || '';
         const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
         const leaveData = dayData.leave;
 
-        const dayCell = document.createElement('div');
-        dayCell.className = 'calendar-day-cell current-month';
-        if (date.getDay() === 0) dayCell.classList.add('is-sunday');
-        if (hasActivity) dayCell.classList.add('has-activity');
-        if (getYYYYMMDD(date) === getYYYYMMDD(today)) dayCell.classList.add('is-today');
-        if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) dayCell.classList.add('selected-day');
-        if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) dayCell.classList.add('leave-selecting');
-
-        let leaveIndicatorHTML = '';
+        let leaveIndicator = html``;
         if (leaveData) {
-            // FIX: Use getVisibleLeaveTypesForYear to filter based on overrides
-            const visibleLeaveTypes = getVisibleLeaveTypesForYear(year); 
             const leaveType = visibleLeaveTypes.find(lt => lt.id === leaveData.typeId);
             if (leaveType) {
-                leaveIndicatorHTML = `<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
+                leaveIndicator = html`<div class="leave-indicator ${leaveData.dayType}-day" style="background-color: ${leaveType.color};"></div>`;
             }
         }
 
-        dayCell.innerHTML = `
-            ${leaveIndicatorHTML}
-            <div class="calendar-day-content">
-                <div class="day-number">${day}</div>
-                <div class="day-note-container">${noteText ? `<span class="day-note">${sanitizeHTML(noteText)}</span>` : ''}</div>
-                ${hasActivity ? '<div class="activity-indicator"></div>' : ''}
-            </div>`;
-        dayCell.dataset.date = dateKey;
+        const classes = ['calendar-day-cell', 'current-month'];
+        if (date.getDay() === 0) classes.push('is-sunday');
+        if (hasActivity) classes.push('has-activity');
+        if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
+        if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
+        if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) classes.push('leave-selecting');
 
-        const dayNumberEl = dayCell.querySelector('.day-number');
-        const dayNoteEl = dayCell.querySelector('.day-note');
+        const isFullLeave = leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL;
+        const isSunday = date.getDay() === 0;
 
-        if (leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL) {
-            dayNumberEl.style.color = 'white';
-            if (dayNoteEl) dayNoteEl.style.color = 'white';
-        }
-        if (date.getDay() === 0) {
-            dayNumberEl.style.color = '#ef4444';
-        }
-
-        DOM.calendarView.appendChild(dayCell);
+        dayCells.push(html`
+            <div class="${classes.join(' ')}" data-date="${dateKey}">
+                ${leaveIndicator}
+                <div class="calendar-day-content">
+                    <div class="day-number" style="${isFullLeave ? 'color: white' : (isSunday ? 'color: #ef4444' : '')}">${day}</div>
+                    <div class="day-note-container">
+                        ${noteText ? html`<span class="day-note" style="${isFullLeave ? 'color: white' : ''}">${noteText}</span>` : ''}
+                    </div>
+                    ${hasActivity ? html`<div class="activity-indicator"></div>` : ''}
+                </div>
+            </div>`);
     }
 
     const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
-    const remainingCells = 42 - totalCells; // Ensure a 6-week (42-day) grid
+    const remainingCells = 42 - totalCells;
+    const emptyCellsAfter = [];
     for (let i = 0; i < remainingCells; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'calendar-day-cell other-month';
-        emptyCell.innerHTML = '<div class="calendar-day-content"></div>';
-        DOM.calendarView.appendChild(emptyCell);
+        emptyCellsAfter.push(html`<div class="calendar-day-cell other-month"><div class="calendar-day-content"></div></div>`);
     }
+
+    render(html`${header}${emptyCellsBefore}${dayCells}${emptyCellsAfter}`, DOM.calendarView);
 }
 
 function renderDailyActivities() {
-    DOM.dailyActivityTableBody.innerHTML = '';
     const dateKey = getYYYYMMDD(state.selectedDate);
-    // FIX: Use currentYearData.activities
     const currentActivities = state.currentYearData.activities || {};
     const dailyActivitiesMap = currentActivities[dateKey] || {};
     let dailyActivitiesArray = [];
@@ -455,48 +543,43 @@ function renderDailyActivities() {
 
     DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
 
-    dailyActivitiesArray.forEach((activity, index) => {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-100 transition-colors duration-150';
-        row.dataset.time = activity.time;
-
+    const rows = dailyActivitiesArray.map((activity, index) => {
         const isFirst = index === 0;
         const isLast = index === dailyActivitiesArray.length - 1;
 
-        row.innerHTML = `
-            <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${sanitizeHTML(activity.time)}</td>
+        return html`
+        <tr class="hover:bg-gray-100 transition-colors duration-150" data-time="${activity.time}">
+            <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
             <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
-                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text, state.searchQuery)}</div>
+                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
             </td>
             <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex space-x-1 justify-center items-center">
-                <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
+                <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                 </button>
-                <button class="icon-btn move-down-btn" aria-label="Move Down" ${isLast ? 'disabled' : ''}>
+                <button class="icon-btn move-down-btn" aria-label="Move Down" ?disabled=${isLast}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
                 <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
                     <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
-            </td>`;
-        DOM.dailyActivityTableBody.appendChild(row);
+            </td>
+        </tr>`;
     });
+
+    render(html`${rows}`, DOM.dailyActivityTableBody);
 }
 
 function renderMonthPicker() {
-    DOM.monthGrid.innerHTML = '';
     DOM.pickerYearDisplay.textContent = state.pickerYear;
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = i18n.translations.months || ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    monthNames.forEach((name, index) => {
-        const button = document.createElement('button');
-        button.className = 'px-4 py-3 rounded-lg font-medium text-gray-800 bg-gray-100 hover:bg-blue-100 hover:text-blue-700';
-        button.textContent = name;
-        if (state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth()) {
-            button.classList.add('bg-blue-500', 'text-white');
-            button.classList.remove('bg-gray-100', 'text-gray-800');
-        }
-        button.addEventListener('click', () => {
+    const months = monthNames.map((name, index) => {
+        const isCurrentMonth = state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth();
+        const classes = `px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${isCurrentMonth ? 'bg-blue-500 text-white' : 'text-gray-800 bg-gray-100 hover:bg-blue-100 hover:text-blue-700'}`;
+
+        return html`
+        <button class="${classes}" @click=${() => {
             const newYear = state.pickerYear;
             const currentYear = state.currentMonth.getFullYear();
 
@@ -518,21 +601,20 @@ function renderMonthPicker() {
             setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
             updateView();
             DOM.monthPickerModal.classList.remove('visible');
-        });
-        DOM.monthGrid.appendChild(button);
+        }}>${name}</button>`;
     });
+
+    render(html`${months}`, DOM.monthGrid);
 }
 
 function getYYYYMMDD(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return format(date, 'yyyy-MM-dd');
 }
 
 function formatDateForDisplay(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
+    const [y, m, d] = dateString.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString(i18n.currentLang, { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 function formatTextForDisplay(text, highlightQuery = '') {
@@ -2001,21 +2083,22 @@ async function moveLeaveType(typeId, direction) {
 }
 
 function renderLeavePills() {
-    DOM.leavePillsContainer.innerHTML = '';
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
-    visibleLeaveTypes.forEach(lt => {
-        const pill = document.createElement('button');
-        pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105';
-        pill.style.backgroundColor = lt.color;
-        pill.textContent = lt.name;
-        pill.dataset.id = lt.id;
-        if (state.isLoggingLeave && state.selectedLeaveTypeId === lt.id) {
-            pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
-        }
-        DOM.leavePillsContainer.appendChild(pill);
+    const pills = visibleLeaveTypes.map(lt => {
+        const isSelected = state.isLoggingLeave && state.selectedLeaveTypeId === lt.id;
+        const classes = `flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105 ${isSelected ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`;
+
+        return html`
+        <button class="${classes}"
+                style="background-color: ${lt.color};"
+                data-id="${lt.id}">
+            ${lt.name}
+        </button>`;
     });
+
+    render(html`${pills}`, DOM.leavePillsContainer);
 }
 
 function calculateLeaveBalances() {
@@ -2181,12 +2264,11 @@ async function deleteLeaveDay(dateKey) {
 }
 
 function renderLeaveStats() {
-    DOM.leaveStatsSection.innerHTML = '';
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
     if (visibleLeaveTypes.length === 0) {
-        DOM.leaveStatsSection.innerHTML = '<p class="text-center text-gray-500">No leave types defined for this year.</p>';
+        render(html`<p class="text-center text-gray-500">${i18n.t('noLeaveTypesDefined')}</p>`, DOM.leaveStatsSection);
         return;
     }
 
@@ -2194,84 +2276,64 @@ function renderLeaveStats() {
     const yearData = state.yearlyData[year] || {};
     const overrides = yearData.leaveOverrides || {};
 
-    const statsHTML = visibleLeaveTypes.map((lt, index) => {
+    const stats = visibleLeaveTypes.map((lt, index) => {
         const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
         const calculatedBalance = balances[lt.id] !== undefined ? balances[lt.id] : totalDays;
         const calculatedUsed = totalDays - calculatedBalance;
 
         const used = parseFloat(calculatedUsed.toFixed(2));
         const balance = parseFloat(calculatedBalance.toFixed(2));
-
+        const percentage = totalDays > 0 ? Math.min(100, Math.max(0, (used / totalDays) * 100)) : 0;
         const isFirst = index === 0;
         const isLast = index === visibleLeaveTypes.length - 1;
 
-        return `
+        // Use arrow functions in event listeners to capture 'lt'
+        return html`
             <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center min-w-0 pr-2">
-                        <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
+                        <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details" aria-label="View details for ${sanitizeHTML(lt.name)}">
+                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('viewLeaveDetails')}" aria-label="${i18n.t('viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" aria-label="Move ${sanitizeHTML(lt.name)} up" ${isFirst ? 'disabled' : ''}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="${i18n.t('moveUp')}" aria-label="${i18n.t('moveUp')} ${lt.name}" ?disabled=${isFirst} @click=${() => moveLeaveType(lt.id, -1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" aria-label="Move ${sanitizeHTML(lt.name)} down" ${isLast ? 'disabled' : ''}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="${i18n.t('moveDown')}" aria-label="${i18n.t('moveDown')} ${lt.name}" ?disabled=${isLast} @click=${() => moveLeaveType(lt.id, 1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit" aria-label="Edit ${sanitizeHTML(lt.name)}">
+                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="${i18n.t('edit')}" aria-label="${i18n.t('edit')} ${lt.name}" @click=${() => openLeaveTypeModal(lt)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-2 text-center">
                     <div class="bg-gray-100 p-2 rounded">
-                        <p class="text-xs text-gray-500">Used</p>
+                        <p class="text-xs text-gray-500">${i18n.t('used')}</p>
                         <p class="font-bold text-lg sm:text-xl text-gray-800">${used}</p>
                     </div>
                     <div class="p-2 rounded balance-box">
-                        <p class="text-xs stats-label">Balance</p>
+                        <p class="text-xs stats-label">${i18n.t('balance')}</p>
                         <p class="font-bold text-lg sm:text-xl stats-value">${balance}</p>
                     </div>
                 </div>
                 <div class="bg-gray-100 p-2 rounded mt-2 text-center">
-                    <p class="text-xs text-gray-500">Total</p>
+                    <p class="text-xs text-gray-500">${i18n.t('total')}</p>
                     <p class="font-bold text-lg sm:text-xl text-gray-800">${totalDays}</p>
+                    <div class="progress-bg h-2 mt-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="progress-bar h-2 rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${lt.color};"></div>
+                    </div>
                 </div>
             </div>
         `;
-    }).join('');
-    DOM.leaveStatsSection.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${statsHTML}</div>`;
-
-    // Add event listeners for edit buttons
-    DOM.leaveStatsSection.querySelectorAll('.edit-leave-type-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const leaveType = state.leaveTypes.find(lt => lt.id === e.currentTarget.dataset.id);
-            if (leaveType) openLeaveTypeModal(leaveType);
-        });
     });
 
-    // Add event listeners for move buttons
-    DOM.leaveStatsSection.querySelectorAll('.move-leave-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const id = e.currentTarget.dataset.id;
-            const direction = parseInt(e.currentTarget.dataset.direction, 10);
-            await moveLeaveType(id, direction);
-        });
-    });
-
-    // Add event listeners for info buttons
-    DOM.leaveStatsSection.querySelectorAll('.info-leave-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const leaveTypeId = e.currentTarget.dataset.id;
-            openLeaveOverviewModal(leaveTypeId);
-        });
-    });
+    render(html`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">${stats}</div>`, DOM.leaveStatsSection);
 }
 
 function openLeaveCustomizationModal() {
@@ -2668,7 +2730,7 @@ function renderTeamSection() {
     }
 
     if (!state.isOnlineMode) {
-        DOM.teamSection.innerHTML = '<p class="text-center text-gray-500">Team features are only available when signed in.</p>';
+        DOM.teamSection.innerHTML = `<p class="text-center text-gray-500">${i18n.t('teamFeaturesOffline')}</p>`;
         return;
     }
 
@@ -2676,7 +2738,7 @@ function renderTeamSection() {
         // No team - show create/join options
         DOM.teamSection.innerHTML = `
             <div class="text-center">
-                <h3 class="text-lg font-semibold mb-4">Team Management</h3>
+                <h3 class="text-lg font-semibold mb-4">${i18n.t('teamManagement')}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
                         <button id="create-team-btn" class="w-full text-left">
@@ -2687,8 +2749,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Create Team</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Start a new team and invite others to join.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('createTeam')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('createTeamDesc')}</p>
                         </button>
                     </div>
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
@@ -2700,8 +2762,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Join Team</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('joinTeam')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('joinTeamDesc')}</p>
                         </button>
                     </div>
                 </div>
@@ -2729,20 +2791,20 @@ function renderTeamSection() {
                         </button>
                         ` : ''}
                     </h3>
-                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">You are ${isAdmin ? 'the admin' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">${isAdmin ? i18n.t('youAreAdmin') : i18n.t('youAreMember')} • ${memberCount === 1 ? i18n.t('memberCount').replace('{count}', memberCount) : i18n.t('membersCount').replace('{count}', memberCount)}</p>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
-                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">Team Room Code</h4>
+                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">${i18n.t('teamRoomCode')}</h4>
                     <div class="text-center">
                         <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="Copy Code">
+                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="${i18n.t('copyCode')}">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">Share this code with others to invite them to your team.</p>
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('shareCodeMessage')}</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
@@ -2751,26 +2813,26 @@ function renderTeamSection() {
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            Team Dashboard
+                            ${i18n.t('teamDashboard')}
                         </button>
                     ` : ''}
                     <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
-                        Change Name
+                        ${i18n.t('changeName')}
                     </button>
                     ${isAdmin ? `
                         <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Delete Team
+                            ${i18n.t('deleteTeam')}
                         </button>
                     ` : `
                         <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
-                            Leave Team
+                            ${i18n.t('leaveTeam')}
                         </button>
                     `}
                 </div>
@@ -2936,7 +2998,7 @@ function copyRoomCode() {
 }
 
 function openKickMemberModal(memberId, memberName) {
-    DOM.kickModalText.innerHTML = `You are about to kick <strong>${sanitizeHTML(memberName)}</strong> from the team. This action cannot be undone.`;
+    DOM.kickModalText.innerHTML = i18n.t('confirmKickMessage').replace('{name}', sanitizeHTML(memberName));
     DOM.confirmKickModal.dataset.memberId = memberId;
     DOM.confirmKickModal.classList.add('visible');
 }
@@ -3074,7 +3136,7 @@ function renderTeamDashboard() {
                 <div class="team-member-details-content p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
                     ${Object.keys(balances).length > 0 ? `
                         <div>
-                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">Leave Balance Overview (${dashboardYear})</h5>
+                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">${i18n.t('leaveBalanceOverview')} (${dashboardYear})</h5>
                             ${leaveTypesHTML}
                         </div>
                     ` : `
@@ -3082,7 +3144,7 @@ function renderTeamDashboard() {
                             <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p>No leave types configured or summary available for this member in ${dashboardYear}.</p>
+                            <p>${i18n.t('noLeaveTypesOrSummary').replace('{year}', dashboardYear)}</p>
                         </div>
                     `}
                 </div>
@@ -3377,7 +3439,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
-        'Click again to confirm sign out.',
+        i18n.t('confirmSignOut'),
         appSignOut
     );
 
@@ -3611,6 +3673,48 @@ function setupEventListeners() {
         DOM.exitSearchBtn.addEventListener('click', exitSearchMode);
     }
 
+    // Language Switcher Logic
+    const openLangBtn = document.getElementById('open-lang-btn');
+    const closeLangBtn = document.getElementById('close-lang-btn');
+    const languageModal = document.getElementById('language-modal');
+    const languageList = document.getElementById('language-list');
+
+    if (openLangBtn && languageModal && languageList) {
+        openLangBtn.addEventListener('click', () => {
+            // Render language options
+            languageList.innerHTML = ''; // Clear existing
+            i18n.supportedLangs.forEach(lang => {
+                const isActive = lang.code === i18n.currentLang;
+                const option = document.createElement('div');
+                option.className = `language-option ${isActive ? 'active' : ''}`;
+                option.dataset.lang = lang.code;
+
+                // You could use a flag icon here if desired, but text is robust
+                option.innerHTML = `
+                    <span class="text-base font-medium text-gray-800 dark:text-gray-200">${lang.name}</span>
+                    ${isActive ? '<i class="fas fa-check ml-auto text-blue-500"></i>' : ''}
+                `;
+
+                option.addEventListener('click', () => {
+                    i18n.setLanguage(lang.code);
+                    languageModal.classList.remove('visible');
+                });
+
+                languageList.appendChild(option);
+            });
+
+            languageModal.classList.add('visible');
+        });
+
+        const closeLangModal = () => languageModal.classList.remove('visible');
+
+        if (closeLangBtn) closeLangBtn.addEventListener('click', closeLangModal);
+
+        languageModal.addEventListener('click', (e) => {
+            if (e.target === languageModal) closeLangModal();
+        });
+    }
+
     // Global shortcut for spotlight (e.g. Ctrl+K or /) could be added here if desired
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -3651,7 +3755,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         DOM.deleteLeaveTypeBtn,
         'deleteLeaveType',
-        'Click again to permanently delete this leave type and all its logged entries.',
+        i18n.t('confirmDeleteLeaveType'),
         deleteLeaveType
     );
     DOM.leaveColorPicker.addEventListener('click', (e) => {
@@ -3896,13 +4000,13 @@ function setupEventListeners() {
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
             case 'leave-team-btn':
-                handleDoubleClick('leaveTeam', 'Click again to confirm leaving the team.', (btn) => {
+                handleDoubleClick('leaveTeam', i18n.t('confirmLeaveTeam'), (btn) => {
                     setButtonLoadingState(btn, true);
                     leaveTeam(btn);
                 });
                 break;
             case 'delete-team-btn':
-                handleDoubleClick('deleteTeam', 'Click again to permanently delete the team.', (btn) => {
+                handleDoubleClick('deleteTeam', i18n.t('confirmDeleteTeam'), (btn) => {
                     setButtonLoadingState(btn, true);
                     deleteTeam(btn);
                 });
@@ -3925,31 +4029,40 @@ function exitSearchMode() {
 // --- App Initialization ---
 function handleSplashScreen() {
     setTimeout(() => {
-        DOM.splashLoading.style.display = 'none';
-        DOM.tapToBegin.style.display = 'block';
-        DOM.splashScreen.addEventListener('click', () => {
-            DOM.tapToBegin.style.display = 'none';
-            DOM.splashLoading.style.display = 'none';
-            DOM.splashText.classList.add('animating-out');
+        if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+        if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'block';
+        if (DOM.splashScreen) {
+            DOM.splashScreen.addEventListener('click', () => {
+                if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'none';
+                if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+                if (DOM.splashText) DOM.splashText.classList.add('animating-out');
 
-            initAuth();
+                initAuth();
 
-            setTimeout(() => {
-                DOM.splashScreen.style.zIndex = '-10';
-                DOM.splashScreen.style.cursor = 'default';
-                DOM.splashScreen.style.backgroundColor = 'transparent';
-            }, 400);
+                setTimeout(() => {
+                    if (DOM.splashScreen) {
+                        DOM.splashScreen.style.zIndex = '-10';
+                        DOM.splashScreen.style.cursor = 'default';
+                        DOM.splashScreen.style.backgroundColor = 'transparent';
+                    }
+                }, 400);
 
-            setTimeout(() => {
-                DOM.splashText.style.display = 'none';
-            }, 1000);
+                setTimeout(() => {
+                    if (DOM.splashText) DOM.splashText.style.display = 'none';
+                }, 1000);
 
-        }, { once: true });
+            }, { once: true });
+        }
     }, 50);
 }
 
-function init() {
+async function init() {
     initUI();
+    try {
+        await i18n.init(); // Initialize i18n and wait for it
+    } catch (e) {
+        console.error("i18n init error:", e);
+    }
     setupEventListeners();
     setupDailyViewEventListeners();
     setupColorPicker();

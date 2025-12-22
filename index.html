@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="iExbroKtO4ZRq3ZjUsyY8JJowXvx-yHOy4yQq0iS6vY" />
-    <title>TrackerBuddy - Leave & Activity Tracker</title>
+    <title data-i18n="appTitle">TrackerBuddy - Leave & Activity Tracker</title>
     <meta name="description" content="TrackerBuddy is a free, all-in-one app to track your daily activities, log work hours, and manage leave balances!">
     <meta name="keywords" content="trackerbuddy, activity tracker, leave tracker, work hours tracker, time log, attendance tracker, employee leave management, daily activity log, free tracker app, PTO tracker, leave balance, work schedule tracker, time off management">
     <script type="application/ld+json">
@@ -63,7 +63,7 @@
     </div>
     <div id="tap-to-begin" class="tap-to-begin" style="display: none;">
         <i class="fas fa-hand-pointer tap-icon"></i>
-        Tap to Begin
+        <span data-i18n="splashText">Tap to Begin</span>
     </div>
 </div>
 <div class="main-container">
@@ -79,9 +79,9 @@
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
             <div class="login-container rounded-xl shadow-2xl p-6 sm:p-8 text-center transform transition-all duration-300">
                  <img src="/assets/logo_rounded.webp" class="w-24 h-24 mb-4 mx-auto rounded-full object-cover logo-glow transition-all duration-300" alt="TrackerBuddy Logo">
-                <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-2 sm:mb-4 break-words transition-colors duration-300">TrackerBuddy</h1>
+                <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-2 sm:mb-4 break-words transition-colors duration-300" data-i18n="appTitle">TrackerBuddy</h1>
                 <div class="flex items-center justify-center gap-2 mb-2 sm:mb-4">
-                    <p class="subtitle-text text-sm sm:text-base transition-colors duration-300">Your all-in-one tracker.</p>
+                    <p class="subtitle-text text-sm sm:text-base transition-colors duration-300" data-i18n="appSubtitle">Your all-in-one tracker.</p>
                     <button id="info-toggle-btn" class="subtitle-text hover:text-blue-500 focus:outline-none transition-colors duration-200" title="Show description">
                         <i class="fas fa-info-circle"></i>
                     </button>
@@ -118,26 +118,26 @@
                     </div>
                 </div>
                 <div class="text-right mb-4">
-                    <button id="forgot-password-btn" class="text-sm forgot-password-btn hover:underline focus:outline-none transition-colors duration-200">Forgot Password?</button>
+                    <button id="forgot-password-btn" class="text-sm forgot-password-btn hover:underline focus:outline-none transition-colors duration-200" data-i18n="forgotPassword">Forgot Password?</button>
                 </div>
                 <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
-                    <button id="email-signin-btn" class="w-full btn-primary py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign In</button>
-                    <button id="email-signup-btn" class="w-full signup-btn py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign Up</button>
+                    <button id="email-signin-btn" class="w-full btn-primary py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105" data-i18n="signIn">Sign In</button>
+                    <button id="email-signup-btn" class="w-full signup-btn py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105" data-i18n="signUp">Sign Up</button>
                 </div>
                 <div class="relative flex py-3 sm:py-4 items-center">
                     <div class="flex-grow border-t divider-line transition-colors duration-300"></div>
-                    <span class="flex-shrink mx-2 sm:mx-4 divider-text text-xs sm:text-sm font-medium px-2 transition-colors duration-300">OR</span>
+                    <span class="flex-shrink mx-2 sm:mx-4 divider-text text-xs sm:text-sm font-medium px-2 transition-colors duration-300" data-i18n="or">OR</span>
                     <div class="flex-grow border-t divider-line transition-colors duration-300"></div>
                 </div>
                 <div class="space-y-3 sm:space-y-4">
                     <button id="google-signin-btn" class="w-full google-btn py-2 sm:py-3 px-3 sm:px-4 rounded-lg flex items-center justify-center text-base sm:text-lg font-semibold transition-all duration-200">
                         <img src="/assets/google.webp" class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" alt="Google icon">
-                        Continue with Google
+                        <span data-i18n="continueWithGoogle">Continue with Google</span>
                     </button>
                     <button id="anon-continue-btn" class="w-full guest-btn py-2 px-3 sm:px-4 rounded-lg text-base sm:text-lg font-semibold transition-all duration-200">
                         <div class="flex flex-col items-center">
-                            <span>Continue as Guest</span>
-                            <span class="text-xs font-normal opacity-70 mt-1">(Saves data only on this device)</span>
+                            <span data-i18n="continueAsGuest">Continue as Guest</span>
+                            <span class="text-xs font-normal opacity-70 mt-1" data-i18n="guestNote">(Saves data only on this device)</span>
                         </div>
                     </button>
                 </div>
@@ -151,6 +151,11 @@
         </button>
         <button id="open-spotlight-btn" class="relative z-20 bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14" aria-label="Open search">
             <i class="fas fa-search text-lg sm:text-xl"></i>
+        </button>
+    </div>
+    <div id="lang-fab" class="fixed z-40" style="bottom: 1.5rem; left: 1.5rem;">
+        <button id="open-lang-btn" class="relative z-20 bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14" aria-label="Switch Language">
+            <i class="fas fa-language text-lg sm:text-xl"></i>
         </button>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-4 sm:p-6 md:p-8">
@@ -169,8 +174,8 @@
         <main id="main-content">
             <div class="flex flex-col space-y-3 sm:space-y-4 mb-6 sm:mb-8 w-full">
                 <div class="flex space-x-3 sm:space-x-4 w-full">
-                    <button id="month-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold btn-primary rounded-lg">Month View</button>
-                    <button id="day-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-semibold btn-secondary rounded-lg">Day View</button>
+                    <button id="month-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold btn-primary rounded-lg" data-i18n="monthView">Month View</button>
+                    <button id="day-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-semibold btn-secondary rounded-lg" data-i18n="dayView">Day View</button>
                 </div>
                 <div class="flex items-center justify-between w-full">
                     <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12" aria-label="Previous period"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
@@ -186,46 +191,46 @@
             </div>
                 <div id="day-view-top-controls" class="hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-base sm:text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                        <div class="sm:w-1/2"><button id="today-btn-day" class="w-full px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button></div>
+                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-base sm:text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)" data-i18n-placeholder="dailyNote"></div>
+                        <div class="sm:w-1/2"><button id="today-btn-day" class="w-full px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg" data-i18n="today">Today</button></div>
                     </div>
                 </div>
                 <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
             </div>
             <div id="main-content-area" class="w-full">
-                <div id="calendar-view" class="grid grid-cols-7 gap-3"><div class="py-3 text-center text-sm font-semibold text-red-500">Sun</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Mon</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Tue</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Wed</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Thu</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Fri</div><div class="py-3 text-center text-sm font-semibold text-gray-700">Sat</div></div>
+                <div id="calendar-view" class="grid grid-cols-7 gap-3"></div>
                 <div id="daily-view" class="hidden">
-                    <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
-                    <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
+                    <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6" data-i18n="time">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6" data-i18n="activity">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6" data-i18n="actions">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
+                    <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden" data-i18n="noActivitiesRecorded">No activities recorded for this day.</p>
                     <div id="day-view-bottom-controls">
                         <div class="my-6 text-center">
                             <button id="add-new-slot-btn" class="px-6 py-3 btn-primary-outline rounded-lg flex items-center justify-center mx-auto font-semibold">
-                                <i class="fas fa-plus mr-2"></i> Add Activity Slot
+                                <i class="fas fa-plus mr-2"></i> <span data-i18n="addActivitySlot">Add Activity Slot</span>
                             </button>
                         </div>
                         <hr class="my-6 border-gray-300">
                         <div class="flex flex-col md:flex-row gap-4">
-                            <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Restore Data</button>
-                            <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> Backup Data</button>
+                            <button id="upload-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <span data-i18n="restoreData">Restore Data</span></button>
+                            <button id="download-csv-btn" class="w-full md:w-1/2 px-5 py-3 btn-primary rounded-lg flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span data-i18n="backupData">Backup Data</span></button>
                         </div>
-                        <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg">Reset All Data</button></div>
+                        <div class="mt-4"><button id="reset-data-btn" class="w-full px-5 py-3 text-base font-semibold bg-white text-red-500 border-2 border-red-500 rounded-lg" data-i18n="resetAllData">Reset All Data</button></div>
                     </div>
                 </div>
                 <div id="month-view-bottom-controls">
                     <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 flex flex-col md:flex-row gap-3 sm:gap-4">
                         <button id="log-new-leave-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-primary rounded-lg flex items-center justify-center">
                             <i class="fas fa-calendar-plus mr-2"></i>
-                            Log Leave
+                            <span data-i18n="logLeave">Log Leave</span>
                         </button>
                         <button id="stats-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-lg flex items-center justify-center">
                             <i class="fas fa-chart-bar mr-2"></i>
-                            Stats
+                            <span data-i18n="stats">Stats</span>
                             <svg id="stats-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             <svg id="stats-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
                         <button id="team-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-lg flex items-center justify-center">
                             <i id="team-icon" class="fa-solid fa-user w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
-                            Teams
+                            <span data-i18n="teams">Teams</span>
                             <svg id="team-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             <svg id="team-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
@@ -240,13 +245,13 @@
         </div>
 </div>
 </div>
-    <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"><i class="fas fa-envelope text-base"></i><span>Reach out to the dev</span></a></footer>
+    <footer id="main-footer" class="mt-10 text-center"><a href="mailto:arunthomas04042001@gmail.com" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"><i class="fas fa-envelope text-base"></i><span data-i18n="reachOut">Reach out to the dev</span></a></footer>
 </div>
 <div id="spotlight-modal" class="spotlight-overlay">
     <div class="spotlight-modal">
         <div class="spotlight-input-wrapper">
             <i class="fas fa-search spotlight-icon"></i>
-            <input id="spotlight-input" type="text" class="spotlight-input" placeholder="Search activities, notes, or leave..." autocomplete="off">
+            <input id="spotlight-input" type="text" class="spotlight-input" placeholder="Search activities, notes, or leave..." data-i18n-placeholder="searchPlaceholder" autocomplete="off">
             <button id="spotlight-close-btn" class="spotlight-esc-btn" aria-label="Close search">
                 Esc
             </button>
@@ -256,24 +261,37 @@
                 <span id="spotlight-count" class="font-medium"></span>
                 <button id="spotlight-scope-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs" aria-label="Toggle search scope">
                     <i class="fas fa-filter mr-2"></i>
-                    <span id="spotlight-scope-label">Current Year</span>
+                    <span id="spotlight-scope-label" data-i18n="currentYear">Current Year</span>
                 </button>
                 <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors" aria-label="Toggle sort order">
-                    <span id="spotlight-sort-label">Newest First</span>
+                    <span id="spotlight-sort-label" data-i18n="newestFirst">Newest First</span>
                     <i class="fas fa-sort-amount-down ml-2"></i>
                 </button>
             </div>
             <div id="spotlight-results-list" class="spotlight-results px-2 space-y-2"></div>
             <div id="spotlight-empty-state" class="hidden py-8 text-center text-gray-500 dark:text-gray-400">
-                <p>No matching activities found.</p>
+                <p data-i18n="noResults">No matching activities found.</p>
             </div>
+        </div>
+    </div>
+</div>
+<div id="language-modal" class="spotlight-overlay">
+    <div class="spotlight-modal max-w-sm mx-auto">
+        <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 rounded-t-xl">
+            <h3 class="text-lg font-bold" data-i18n="selectLanguage">Select Language</h3>
+            <button id="close-lang-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        <div id="language-list" class="overflow-y-auto p-2 rounded-b-xl" style="max-height: 60vh; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
+            <!-- Language options will be injected here -->
         </div>
     </div>
 </div>
 <div id="leave-overview-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] grid grid-rows-[auto_auto_1fr] mt-8">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold truncate">Leave Overview</h2>
+            <h2 class="text-2xl font-bold truncate" data-i18n="leaveOverview">Leave Overview</h2>
             <button id="close-leave-overview-btn" class="icon-btn" aria-label="Close leave overview">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -283,73 +301,73 @@
         <h3 id="overview-leave-type-name" class="text-xl font-semibold mb-4 truncate">Leave Type</h3>
         <div class="overflow-y-auto min-h-0 py-1 pr-2"> 
             <div id="overview-leave-days-list" class="space-y-3"></div>
-            <p id="overview-no-leaves-message" class="text-center text-gray-500 italic mt-6 hidden">No leave entries found for this type.</p>
+            <p id="overview-no-leaves-message" class="text-center text-gray-500 italic mt-6 hidden" data-i18n="noLeaveEntries">No leave entries found for this type.</p>
         </div>
     </div>
 </div>
 <div id="edit-team-name-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Change Team Name</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="changeName">Change Team Name</h2>
         <div class="space-y-4">
             <div>
-                <label for="new-team-name-input" class="block text-sm font-medium mb-1">New Team Name</label>
-                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name">
+                <label for="new-team-name-input" class="block text-sm font-medium mb-1" data-i18n="teamName">New Team Name</label>
+                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name" data-i18n-placeholder="enterTeamName">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-edit-team-name-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-edit-team-name-btn" class="px-5 py-2 btn-primary rounded-lg">Save Changes</button>
+            <button id="cancel-edit-team-name-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-edit-team-name-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="saveChanges">Save Changes</button>
         </div>
     </div>
 </div>
 <div id="leave-type-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 id="leave-type-modal-title" class="text-2xl font-bold mb-6 text-center">Add New Leave Type</h2>
+        <h2 id="leave-type-modal-title" class="text-2xl font-bold mb-6 text-center" data-i18n="addNewLeaveType">Add New Leave Type</h2>
         <div class="space-y-4">
             <input type="hidden" id="editing-leave-type-id">
             <div>
-                <label for="leave-name-input" class="block text-sm font-medium mb-1">Leave Name</label>
+                <label for="leave-name-input" class="block text-sm font-medium mb-1" data-i18n="leaveName">Leave Name</label>
                 <input type="text" id="leave-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
-                <label for="leave-days-input" class="block text-sm font-medium mb-1">Total Days per Year</label>
+                <label for="leave-days-input" class="block text-sm font-medium mb-1" data-i18n="totalDaysPerYear">Total Days per Year</label>
                 <input type="number" id="leave-days-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
-                <label class="block text-sm font-medium mb-2">Color</label>
+                <label class="block text-sm font-medium mb-2" data-i18n="color">Color</label>
                 <div id="leave-color-picker" class="grid grid-cols-6 gap-2">
                 </div>
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="delete-leave-type-btn" class="hidden px-5 py-2 btn-danger rounded-lg">Delete</button>
-            <button id="cancel-leave-type-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-leave-type-btn" class="px-5 py-2 btn-primary rounded-lg">Save</button>
+            <button id="delete-leave-type-btn" class="hidden px-5 py-2 btn-danger rounded-lg" data-i18n="delete">Delete</button>
+            <button id="cancel-leave-type-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-leave-type-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="save">Save</button>
         </div>
     </div>
 </div>
 <div id="customize-leave-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-3xl">
-        <h2 class="text-2xl font-bold mb-4 text-center">Log Leave</h2>
-        <p class="text-center mb-6">Assign a leave type and duration for each selected day.</p>
+        <h2 class="text-2xl font-bold mb-4 text-center" data-i18n="logLeaveTitle">Log Leave</h2>
+        <p class="text-center mb-6" data-i18n="logLeaveDesc">Assign a leave type and duration for each selected day.</p>
         <div id="bulk-leave-controls" class="p-4 mb-6 border rounded-lg flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
-            <span class="font-semibold flex-shrink-0">Apply to All:</span>
+            <span class="font-semibold flex-shrink-0" data-i18n="applyToAll">Apply to All:</span>
             <div id="modal-leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap p-2">
             </div>
             <div class="flex items-center space-x-2 flex-shrink-0">
                 <div id="bulk-day-type-toggle" class="day-type-toggle relative flex w-28 h-8 items-center rounded-full p-1 cursor-pointer flex-shrink-0" data-selected-value="full">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full shadow-md transition-transform duration-300 ease-in-out"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold active" data-value="full">Full</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold active" data-value="full" data-i18n="full">Full</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">Half</button>
                 </div>
-                <button id="remove-all-leaves-btn" class="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow bg-red-500 hover:bg-red-600 transition-colors flex items-center gap-1.5"><i class="fas fa-trash-alt"></i>Remove</button>
+                <button id="remove-all-leaves-btn" class="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow bg-red-500 hover:bg-red-600 transition-colors flex items-center gap-1.5"><i class="fas fa-trash-alt"></i><span data-i18n="remove">Remove</span></button>
             </div>
         </div>
         <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-4 pr-2">
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg">Save</button>
+            <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="save">Save</button>
         </div>
     </div>
 </div>
@@ -366,62 +384,62 @@
         </div>
         <div id="month-grid" class="grid grid-cols-3 gap-3"></div>
         <div class="flex justify-end mt-6">
-            <button id="close-month-picker-btn" class="px-5 py-2 btn-secondary rounded-lg">Close</button>
+            <button id="close-month-picker-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="close">Close</button>
         </div>
     </div>
 </div>
 <div id="confirm-reset-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-4 text-center">Are you sure?</h2>
+        <h2 class="text-2xl font-bold mb-4 text-center" data-i18n="areYouSure">Are you sure?</h2>
         <p id="reset-modal-text" class="mb-6 text-center"></p>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-reset-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="confirm-reset-btn" class="px-5 py-2 btn-danger rounded-lg">Confirm Reset</button>
+            <button id="cancel-reset-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="confirm-reset-btn" class="px-5 py-2 btn-danger rounded-lg" data-i18n="confirmReset">Confirm Reset</button>
         </div>
     </div>
 </div>
 <div id="create-team-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Create New Team</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="createTeam">Create New Team</h2>
         <div class="space-y-4">
             <div>
-                <label for="team-name-input" class="block text-sm font-medium mb-1">Team Name</label>
-                <input type="text" id="team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter team name">
+                <label for="team-name-input" class="block text-sm font-medium mb-1" data-i18n="teamName">Team Name</label>
+                <input type="text" id="team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter team name" data-i18n-placeholder="enterTeamName">
             </div>
             <div>
-                                <label for="team-admin-display-name-input" class="block text-sm font-medium mb-1">Your Display Name</label>
-                                <input type="text" id="team-admin-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                                <label for="team-admin-display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">Your Display Name</label>
+                                <input type="text" id="team-admin-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-create-team-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-create-team-btn" class="px-5 py-2 btn-primary rounded-lg">Create Team</button>
+            <button id="cancel-create-team-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-create-team-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="createTeam">Create Team</button>
         </div>
     </div>
 </div>
 <div id="join-team-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Join Team</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="joinTeam">Join Team</h2>
         <div class="space-y-4">
             <div>
-                <label for="room-code-input" class="block text-sm font-medium mb-1">Room Code</label>
-                <input type="text" id="room-code-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono tracking-wider uppercase" placeholder="Enter 8-digit room code" maxlength="8">
+                <label for="room-code-input" class="block text-sm font-medium mb-1" data-i18n="roomCode">Room Code</label>
+                <input type="text" id="room-code-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono tracking-wider uppercase" placeholder="Enter 8-digit room code" maxlength="8" data-i18n-placeholder="enterRoomCode">
             </div>
             <div>
-                <label for="display-name-input" class="block text-sm font-medium mb-1">Your Display Name</label>
-                <input type="text" id="display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                <label for="display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">Your Display Name</label>
+                <input type="text" id="display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-join-team-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-join-team-btn" class="px-5 py-2 btn-primary rounded-lg">Join Team</button>
+            <button id="cancel-join-team-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-join-team-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="joinTeam">Join Team</button>
         </div>
     </div>
 </div>
 <div id="team-dashboard-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] grid grid-rows-[auto_1fr] mt-8">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold truncate">Team Dashboard</h2>
+            <h2 class="text-2xl font-bold truncate" data-i18n="teamDashboard">Team Dashboard</h2>
             <button id="close-team-dashboard-btn" class="icon-btn" aria-label="Close team dashboard">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -435,26 +453,26 @@
 </div>
 <div id="edit-display-name-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center">Change Display Name</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="changeName">Change Display Name</h2>
         <div class="space-y-4">
             <div>
-                <label for="new-display-name-input" class="block text-sm font-medium mb-1">New Display Name</label>
-                <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                <label for="new-display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">New Display Name</label>
+                <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-edit-name-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="save-edit-name-btn" class="px-5 py-2 btn-primary rounded-lg">Save Changes</button>
+            <button id="cancel-edit-name-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="save-edit-name-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="saveChanges">Save Changes</button>
         </div>
     </div>
 </div>
 <div id="confirm-kick-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-4 text-center">Are you sure?</h2>
+        <h2 class="text-2xl font-bold mb-4 text-center" data-i18n="areYouSure">Are you sure?</h2>
         <p id="kick-modal-text" class="mb-6 text-center"></p>
         <div class="flex justify-end mt-6 space-x-3">
-            <button id="cancel-kick-btn" class="px-5 py-2 btn-secondary rounded-lg">Cancel</button>
-            <button id="confirm-kick-btn" class="px-5 py-2 btn-danger rounded-lg">Confirm Kick</button>
+            <button id="cancel-kick-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
+            <button id="confirm-kick-btn" class="px-5 py-2 btn-danger rounded-lg" data-i18n="confirmKick">Confirm Kick</button>
         </div>
     </div>
 </div>
