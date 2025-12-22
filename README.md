@@ -21,7 +21,11 @@
 
  PWA **Ready:** Installable as a Progressive Web App (PWA) on your mobile device or desktop for a native-like experience.
 
- ↔️ **Data Portability:** Easily import and export all your activity and leave data as a `.csv` file for backups or reporting.
+ ↔️ **Backup & Restore:** Easily backup and restore all your activity and leave data as a `.csv` file.
+
+ 👥 **Team Management:** Create or join teams, assign an Admin, and view a shared dashboard of member leave balances.
+
+ 🔍 **Spotlight Search:** Quickly find activities, notes, or leave entries across any year with a powerful search tool (Ctrl/Cmd + K).
 
 ---
 
@@ -42,7 +46,7 @@ This application was built with performance as a top priority. By using a modern
 
 -   **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6 Modules)
 -   **Styling:** Tailwind CSS (via an optimized build)
--   **Backend & Database:** Firebase (Firestore for database, Firebase Authentication for users)
+-   **Backend & Database:** Firebase (Firestore, Authentication, Cloud Functions)
 
 ---
 
@@ -55,6 +59,8 @@ This application was built with performance as a top priority. By using a modern
     -   In Month View, click the `+` button to create a new leave type (e.g., "Vacation").
     -   Click the "Log Leave" button to enter selection mode.
     -   Select days on the calendar and then click the leave type pill to assign it.
+5.  **Team Features:** (Online only) Open the "Team" section to create a new team or join an existing one using a room code. View your team dashboard to see member summaries.
+6.  **Search:** Use the Search icon or press `Ctrl + K` to open Spotlight and search through all your records.
 
 ---
 
