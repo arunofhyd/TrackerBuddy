@@ -3687,7 +3687,7 @@ function setupEventListeners() {
 
                 // You could use a flag icon here if desired, but text is robust
                 option.innerHTML = `
-                    <span class="text-base font-medium">${lang.name}</span>
+                    <span class="text-base font-medium text-gray-800 dark:text-gray-200">${lang.name}</span>
                     ${isActive ? '<i class="fas fa-check ml-auto text-blue-500"></i>' : ''}
                 `;
 

@@ -637,8 +637,6 @@ body.dark #spotlight-scope-btn {
 
 #lang-fab button {
     transition: transform 0.2s, background-color 0.2s;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
 }
 
 #lang-fab button:active {
