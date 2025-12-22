@@ -2726,7 +2726,7 @@ function renderTeamSection() {
     }
 
     if (!state.isOnlineMode) {
-        DOM.teamSection.innerHTML = '<p class="text-center text-gray-500">Team features are only available when signed in.</p>';
+        DOM.teamSection.innerHTML = `<p class="text-center text-gray-500">${i18n.t('teamFeaturesOffline')}</p>`;
         return;
     }
 
@@ -2734,7 +2734,7 @@ function renderTeamSection() {
         // No team - show create/join options
         DOM.teamSection.innerHTML = `
             <div class="text-center">
-                <h3 class="text-lg font-semibold mb-4">Team Management</h3>
+                <h3 class="text-lg font-semibold mb-4">${i18n.t('teamManagement')}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
                         <button id="create-team-btn" class="w-full text-left">
@@ -2745,8 +2745,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Create Team</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Start a new team and invite others to join.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('createTeam')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('createTeamDesc')}</p>
                         </button>
                     </div>
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
@@ -2758,8 +2758,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">Join Team</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">Enter a room code to join an existing team.</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('joinTeam')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('joinTeamDesc')}</p>
                         </button>
                     </div>
                 </div>
@@ -2787,20 +2787,20 @@ function renderTeamSection() {
                         </button>
                         ` : ''}
                     </h3>
-                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">You are ${isAdmin ? 'the admin' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">${isAdmin ? i18n.t('youAreAdmin') : i18n.t('youAreMember')} • ${memberCount === 1 ? i18n.t('memberCount').replace('{count}', memberCount) : i18n.t('membersCount').replace('{count}', memberCount)}</p>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
-                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">Team Room Code</h4>
+                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">${i18n.t('teamRoomCode')}</h4>
                     <div class="text-center">
                         <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="Copy Code">
+                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="${i18n.t('copyCode')}">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">Share this code with others to invite them to your team.</p>
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('shareCodeMessage')}</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
@@ -2809,26 +2809,26 @@ function renderTeamSection() {
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            Team Dashboard
+                            ${i18n.t('teamDashboard')}
                         </button>
                     ` : ''}
                     <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
-                        Change Name
+                        ${i18n.t('changeName')}
                     </button>
                     ${isAdmin ? `
                         <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Delete Team
+                            ${i18n.t('deleteTeam')}
                         </button>
                     ` : `
                         <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
-                            Leave Team
+                            ${i18n.t('leaveTeam')}
                         </button>
                     `}
                 </div>
@@ -2994,7 +2994,7 @@ function copyRoomCode() {
 }
 
 function openKickMemberModal(memberId, memberName) {
-    DOM.kickModalText.innerHTML = `You are about to kick <strong>${sanitizeHTML(memberName)}</strong> from the team. This action cannot be undone.`;
+    DOM.kickModalText.innerHTML = i18n.t('confirmKickMessage').replace('{name}', sanitizeHTML(memberName));
     DOM.confirmKickModal.dataset.memberId = memberId;
     DOM.confirmKickModal.classList.add('visible');
 }
@@ -3132,7 +3132,7 @@ function renderTeamDashboard() {
                 <div class="team-member-details-content p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
                     ${Object.keys(balances).length > 0 ? `
                         <div>
-                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">Leave Balance Overview (${dashboardYear})</h5>
+                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">${i18n.t('leaveBalanceOverview')} (${dashboardYear})</h5>
                             ${leaveTypesHTML}
                         </div>
                     ` : `
@@ -3140,7 +3140,7 @@ function renderTeamDashboard() {
                             <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p>No leave types configured or summary available for this member in ${dashboardYear}.</p>
+                            <p>${i18n.t('noLeaveTypesOrSummary').replace('{year}', dashboardYear)}</p>
                         </div>
                     `}
                 </div>
@@ -3435,7 +3435,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
-        'Click again to confirm sign out.',
+        i18n.t('confirmSignOut'),
         appSignOut
     );
 
@@ -3751,7 +3751,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         DOM.deleteLeaveTypeBtn,
         'deleteLeaveType',
-        'Click again to permanently delete this leave type and all its logged entries.',
+        i18n.t('confirmDeleteLeaveType'),
         deleteLeaveType
     );
     DOM.leaveColorPicker.addEventListener('click', (e) => {
@@ -3996,13 +3996,13 @@ function setupEventListeners() {
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
             case 'leave-team-btn':
-                handleDoubleClick('leaveTeam', 'Click again to confirm leaving the team.', (btn) => {
+                handleDoubleClick('leaveTeam', i18n.t('confirmLeaveTeam'), (btn) => {
                     setButtonLoadingState(btn, true);
                     leaveTeam(btn);
                 });
                 break;
             case 'delete-team-btn':
-                handleDoubleClick('deleteTeam', 'Click again to permanently delete the team.', (btn) => {
+                handleDoubleClick('deleteTeam', i18n.t('confirmDeleteTeam'), (btn) => {
                     setButtonLoadingState(btn, true);
                     deleteTeam(btn);
                 });

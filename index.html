@@ -276,14 +276,14 @@
     </div>
 </div>
 <div id="language-modal" class="spotlight-overlay">
-    <div class="spotlight-modal max-w-sm mx-auto mt-20">
+    <div class="spotlight-modal max-w-sm mx-auto">
         <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 rounded-t-xl">
             <h3 class="text-lg font-bold" data-i18n="selectLanguage">Select Language</h3>
             <button id="close-lang-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 <i class="fas fa-times text-lg"></i>
             </button>
         </div>
-        <div id="language-list" class="max-h-[60vh] overflow-y-auto p-2 rounded-b-xl">
+        <div id="language-list" class="max-h-[60vh] overflow-y-auto p-2 rounded-b-xl" style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
             <!-- Language options will be injected here -->
         </div>
     </div>
@@ -311,7 +311,7 @@
         <div class="space-y-4">
             <div>
                 <label for="new-team-name-input" class="block text-sm font-medium mb-1" data-i18n="teamName">New Team Name</label>
-                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name">
+                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name" data-i18n-placeholder="enterTeamName">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
@@ -404,11 +404,11 @@
         <div class="space-y-4">
             <div>
                 <label for="team-name-input" class="block text-sm font-medium mb-1" data-i18n="teamName">Team Name</label>
-                <input type="text" id="team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter team name">
+                <input type="text" id="team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter team name" data-i18n-placeholder="enterTeamName">
             </div>
             <div>
                                 <label for="team-admin-display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">Your Display Name</label>
-                                <input type="text" id="team-admin-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                                <input type="text" id="team-admin-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
@@ -423,11 +423,11 @@
         <div class="space-y-4">
             <div>
                 <label for="room-code-input" class="block text-sm font-medium mb-1" data-i18n="roomCode">Room Code</label>
-                <input type="text" id="room-code-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono tracking-wider uppercase" placeholder="Enter 8-digit room code" maxlength="8">
+                <input type="text" id="room-code-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center font-mono tracking-wider uppercase" placeholder="Enter 8-digit room code" maxlength="8" data-i18n-placeholder="enterRoomCode">
             </div>
             <div>
                 <label for="display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">Your Display Name</label>
-                <input type="text" id="display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                <input type="text" id="display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
@@ -457,7 +457,7 @@
         <div class="space-y-4">
             <div>
                 <label for="new-display-name-input" class="block text-sm font-medium mb-1" data-i18n="yourDisplayName">New Display Name</label>
-                <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you">
+                <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
         <div class="flex justify-end mt-6 space-x-3">
