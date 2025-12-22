@@ -86,6 +86,10 @@
     "activityDeleted": "Activity deleted.",
     "failedToSaveDeletion": "Failed to save deletion.",
     "selectLanguage": "Select Language",
+    "time": "Time",
+    "activity": "Activity",
+    "actions": "Actions",
+    "noActivitiesRecorded": "No activities recorded for this day.",
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 }

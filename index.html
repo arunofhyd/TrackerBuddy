@@ -200,8 +200,8 @@
             <div id="main-content-area" class="w-full">
                 <div id="calendar-view" class="grid grid-cols-7 gap-3"></div>
                 <div id="daily-view" class="hidden">
-                    <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
-                    <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden">No activities recorded for this day.</p>
+                    <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6" data-i18n="time">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6" data-i18n="activity">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6" data-i18n="actions">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
+                    <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden" data-i18n="noActivitiesRecorded">No activities recorded for this day.</p>
                     <div id="day-view-bottom-controls">
                         <div class="my-6 text-center">
                             <button id="add-new-slot-btn" class="px-6 py-3 btn-primary-outline rounded-lg flex items-center justify-center mx-auto font-semibold">
@@ -283,7 +283,7 @@
                 <i class="fas fa-times text-lg"></i>
             </button>
         </div>
-        <div id="language-list" class="max-h-[60vh] overflow-y-auto p-2 rounded-b-xl" style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
+        <div id="language-list" class="overflow-y-auto p-2 rounded-b-xl" style="max-height: 60vh; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
             <!-- Language options will be injected here -->
         </div>
     </div>
