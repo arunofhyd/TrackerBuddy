@@ -590,7 +590,7 @@ body.dark #spotlight-scope-btn {
     position: absolute;
     bottom: 0;
     left: 50%;
-    margin-left: -20px; /* Half of width (w-10 = 2.5rem = 40px) */
+    margin-left: -24px; /* Half of width (48px / 2) */
     z-index: 10; /* Behind main button (relative z-20) */
     opacity: 0;
     transform: translateY(0) scale(0.5);
@@ -607,6 +607,11 @@ body.dark #spotlight-scope-btn {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+
+    /* Size adjustments - Prominent */
+    width: 3rem; /* 48px */
+    height: 3rem; /* 48px */
+    font-size: 1.25rem;
 }
 
 #exit-search-btn:hover {

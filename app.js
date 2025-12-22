@@ -3119,6 +3119,7 @@ function openSpotlight() {
 
 function closeSpotlight() {
     DOM.spotlightModal.classList.remove('visible');
+    updateView();
 }
 
 function performSearch(query) {
