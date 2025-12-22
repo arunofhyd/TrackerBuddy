@@ -574,3 +574,29 @@ body.dark #spotlight-scope-btn {
     transform: translateY(0);
     max-height: 500px;
 }
+
+/* --- Exit Search Button Animation --- */
+#exit-search-btn {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-left: -20px; /* Half of width (w-10 = 2.5rem = 40px) */
+    z-index: 10; /* Behind main button (relative z-20) */
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Mobile size adjustment */
+@media (max-width: 640px) {
+    #exit-search-btn {
+        margin-left: -16px; /* Half of width (w-8 = 2rem = 32px) */
+    }
+}
+
+#exit-search-btn.visible {
+    opacity: 1;
+    transform: translateY(-70px) scale(1);
+    pointer-events: auto;
+}

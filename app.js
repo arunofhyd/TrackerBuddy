@@ -215,7 +215,8 @@ function initUI() {
         editTeamNameModal: document.getElementById('edit-team-name-modal'),
         newTeamNameInput: document.getElementById('new-team-name-input'),
         confirmKickModal: document.getElementById('confirm-kick-modal'),
-        kickModalText: document.getElementById('kick-modal-text')
+        kickModalText: document.getElementById('kick-modal-text'),
+        exitSearchBtn: document.getElementById('exit-search-btn')
     };
 }
 
@@ -464,7 +465,7 @@ function renderDailyActivities() {
         row.innerHTML = `
             <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${sanitizeHTML(activity.time)}</td>
             <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
-                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
+                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text, state.searchQuery)}</div>
             </td>
             <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex space-x-1 justify-center items-center">
                 <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
@@ -533,10 +534,17 @@ function formatDateForDisplay(dateString) {
     return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function formatTextForDisplay(text) {
+function formatTextForDisplay(text, highlightQuery = '') {
     const tempDiv = document.createElement('div');
     tempDiv.textContent = text || '';
-    return tempDiv.innerHTML.replace(/\n/g, '<br>');
+    let html = tempDiv.innerHTML.replace(/\n/g, '<br>');
+
+    if (highlightQuery) {
+        const escapedQuery = highlightQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        html = html.replace(regex, '<span class="bg-yellow-200 text-gray-900">$1</span>');
+    }
+    return html;
 }
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
@@ -3111,8 +3119,11 @@ function performSearch(query) {
         DOM.spotlightCount.textContent = '';
         // Clear navigation context so standard navigation resumes
         setState({ searchResultDates: [] });
+        if (DOM.exitSearchBtn) DOM.exitSearchBtn.classList.remove('visible');
         return;
     }
+
+    if (DOM.exitSearchBtn) DOM.exitSearchBtn.classList.add('visible');
 
     const lowerQuery = query.toLowerCase();
     const results = [];
@@ -3507,6 +3518,10 @@ function setupEventListeners() {
         DOM.spotlightScopeBtn.addEventListener('click', toggleSearchScope);
     }
 
+    if (DOM.exitSearchBtn) {
+        DOM.exitSearchBtn.addEventListener('click', exitSearchMode);
+    }
+
     // Global shortcut for spotlight (e.g. Ctrl+K or /) could be added here if desired
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -3806,6 +3821,12 @@ function setupEventListeners() {
     DOM.roomCodeInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
     });
+}
+
+function exitSearchMode() {
+    setState({ searchQuery: '', searchResultDates: [] });
+    if (DOM.exitSearchBtn) DOM.exitSearchBtn.classList.remove('visible');
+    updateView();
 }
 
 // --- App Initialization ---
