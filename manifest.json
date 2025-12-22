@@ -1,20 +1,20 @@
 {
   "name": "TrackerBuddy - Leave & Activity Tracker",
   "short_name": "TrackerBuddy",
-  "description": "An all-in-one app to track activities, log work hours, and manage leave.",
+  "description": "An all-in-one app to track activities, log work hours, and manage leaves.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#3b82f6",
   "icons": [
     {
-      "src": "assets/logo.png",
+      "src": "/assets/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/logo.png",
+      "src": "/assets/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
