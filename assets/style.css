@@ -634,3 +634,41 @@ body.dark #spotlight-scope-btn {
 #exit-search-btn.visible:hover {
     transform: translateY(-70px) scale(1.1); /* Slight grow on hover */
 }
+
+#lang-fab button {
+    transition: transform 0.2s, background-color 0.2s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+#lang-fab button:active {
+    transform: scale(0.95);
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.language-option:hover {
+    background-color: #f3f4f6;
+}
+
+.dark .language-option:hover {
+    background-color: #374151;
+}
+
+.language-option.active {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+.dark .language-option.active {
+    background-color: #1e3a8a;
+    color: #93c5fd;
+}
