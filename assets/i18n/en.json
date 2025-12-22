@@ -90,6 +90,14 @@
     "activity": "Activity",
     "actions": "Actions",
     "noActivitiesRecorded": "No activities recorded for this day.",
+    "used": "Used",
+    "balance": "Balance",
+    "total": "Total",
+    "noLeaveTypesDefined": "No leave types defined for this year.",
+    "viewLeaveDetails": "View leave details",
+    "moveUp": "Move Up",
+    "moveDown": "Move Down",
+    "edit": "Edit",
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 }

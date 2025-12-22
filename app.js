@@ -2268,7 +2268,7 @@ function renderLeaveStats() {
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
     if (visibleLeaveTypes.length === 0) {
-        render(html`<p class="text-center text-gray-500">No leave types defined for this year.</p>`, DOM.leaveStatsSection);
+        render(html`<p class="text-center text-gray-500">${i18n.t('noLeaveTypesDefined')}</p>`, DOM.leaveStatsSection);
         return;
     }
 
@@ -2283,6 +2283,7 @@ function renderLeaveStats() {
 
         const used = parseFloat(calculatedUsed.toFixed(2));
         const balance = parseFloat(calculatedBalance.toFixed(2));
+        const percentage = totalDays > 0 ? Math.min(100, Math.max(0, (used / totalDays) * 100)) : 0;
         const isFirst = index === 0;
         const isLast = index === visibleLeaveTypes.length - 1;
 
@@ -2295,35 +2296,38 @@ function renderLeaveStats() {
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="View leave details" aria-label="View details for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
+                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('viewLeaveDetails')}" aria-label="${i18n.t('viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="Move Up" aria-label="Move ${lt.name} up" ?disabled=${isFirst} @click=${() => moveLeaveType(lt.id, -1)}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="${i18n.t('moveUp')}" aria-label="${i18n.t('moveUp')} ${lt.name}" ?disabled=${isFirst} @click=${() => moveLeaveType(lt.id, -1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="Move Down" aria-label="Move ${lt.name} down" ?disabled=${isLast} @click=${() => moveLeaveType(lt.id, 1)}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="${i18n.t('moveDown')}" aria-label="${i18n.t('moveDown')} ${lt.name}" ?disabled=${isLast} @click=${() => moveLeaveType(lt.id, 1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="Edit" aria-label="Edit ${lt.name}" @click=${() => openLeaveTypeModal(lt)}>
+                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="${i18n.t('edit')}" aria-label="${i18n.t('edit')} ${lt.name}" @click=${() => openLeaveTypeModal(lt)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-2 text-center">
                     <div class="bg-gray-100 p-2 rounded">
-                        <p class="text-xs text-gray-500">Used</p>
+                        <p class="text-xs text-gray-500">${i18n.t('used')}</p>
                         <p class="font-bold text-lg sm:text-xl text-gray-800">${used}</p>
                     </div>
                     <div class="p-2 rounded balance-box">
-                        <p class="text-xs stats-label">Balance</p>
+                        <p class="text-xs stats-label">${i18n.t('balance')}</p>
                         <p class="font-bold text-lg sm:text-xl stats-value">${balance}</p>
                     </div>
                 </div>
                 <div class="bg-gray-100 p-2 rounded mt-2 text-center">
-                    <p class="text-xs text-gray-500">Total</p>
+                    <p class="text-xs text-gray-500">${i18n.t('total')}</p>
                     <p class="font-bold text-lg sm:text-xl text-gray-800">${totalDays}</p>
+                    <div class="progress-bg h-2 mt-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="progress-bar h-2 rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${lt.color};"></div>
+                    </div>
                 </div>
             </div>
         `;
