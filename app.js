@@ -38,7 +38,7 @@ const LEAVE_DAY_TYPES = {
 };
 
 const TEAM_ROLES = {
-    OWNER: 'owner',
+    ADMIN: 'admin',
     MEMBER: 'member'
 };
 
@@ -204,7 +204,7 @@ function initUI() {
         teamArrowUp: document.getElementById('team-arrow-up'),
         createTeamModal: document.getElementById('create-team-modal'),
         teamNameInput: document.getElementById('team-name-input'),
-        teamOwnerDisplayNameInput: document.getElementById('team-owner-display-name-input'),
+        teamAdminDisplayNameInput: document.getElementById('team-admin-display-name-input'),
         joinTeamModal: document.getElementById('join-team-modal'),
         roomCodeInput: document.getElementById('room-code-input'),
         displayNameInput: document.getElementById('display-name-input'),
@@ -644,8 +644,8 @@ async function subscribeToTeamData(callback) {
                 teamMembers: membersArray
             });
 
-            // If user is owner, load all member data for the dashboard
-            if (state.teamRole === TEAM_ROLES.OWNER) {
+            // If user is admin, load all member data for the dashboard
+            if (state.teamRole === TEAM_ROLES.ADMIN) {
                 loadTeamMembersData();
             }
             updateView();
@@ -1113,7 +1113,7 @@ async function deleteActivity(dateKey, timeKey) {
     }
 }
 
-// --- CSV Import/Export ---
+// --- CSV Restore/Backup ---
 function escapeCsvField(field) {
     const fieldStr = String(field || '');
     if (/[",\n]/.test(fieldStr)) {
@@ -1127,7 +1127,7 @@ function downloadCSV() {
         ["Type", "Detail1", "Detail2", "Detail3", "Detail4"] // Headers
     ];
 
-    // Export Leave Types and Leave Overrides
+    // Backup Leave Types and Leave Overrides
     state.leaveTypes.forEach(lt => {
         csvRows.push(["LEAVE_TYPE", lt.id, lt.name, lt.totalDays, lt.color]);
     });
@@ -1161,7 +1161,7 @@ function downloadCSV() {
         const dayData = state.yearlyData[year]?.activities[dateKey];
         if (!dayData) return;
 
-        // Export Note, Leave, User Cleared Flag, and Activities for the day
+        // Backup Note, Leave, User Cleared Flag, and Activities for the day
         if (dayData.note) {
             csvRows.push(["NOTE", dateKey, dayData.note, "", ""]);
         }
@@ -1183,14 +1183,14 @@ function downloadCSV() {
     });
 
     if (csvRows.length <= 1) {
-        return showMessage("No data found to export.", 'info');
+        return showMessage("No data found to backup.", 'info');
     }
 
     const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
 
     const link = document.createElement("a");
     link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
-    link.download = `TrackerBuddy_Export_${getYYYYMMDD(new Date())}.csv`;
+    link.download = `TrackerBuddy_Backup_${getYYYYMMDD(new Date())}.csv`;
 
     document.body.appendChild(link);
     link.click();
@@ -1324,14 +1324,14 @@ function handleFileUpload(event) {
                 yearlyData: yearlyDataCopy,
                 leaveTypes: finalLeaveTypes
             });
-        triggerTeamSync();
+            triggerTeamSync();
 
-            showMessage(`${processedRows} records imported/updated successfully!`, 'success');
+            showMessage(`${processedRows} records restored/updated successfully!`, 'success');
             event.target.value = '';
             updateView();
         } catch (err) {
-            console.error("Error during CSV import:", err);
-            showMessage("An error occurred while importing the file.", 'error');
+            console.error("Error during CSV restore:", err);
+            showMessage("An error occurred while restoring the file.", 'error');
         }
     };
     reader.onerror = () => showMessage("Error reading file.", 'error');
@@ -2632,7 +2632,7 @@ function renderTeamSection() {
 
     } else {
         // Has team - show team info and actions
-        const isOwner = state.teamRole === TEAM_ROLES.OWNER;
+        const isAdmin = state.teamRole === TEAM_ROLES.ADMIN;
         const memberCount = state.teamMembers.length || 0;
 
         const teamInfo = `
@@ -2641,13 +2641,13 @@ function renderTeamSection() {
                     <h3 class="text-lg font-semibold mb-2 flex items-center justify-center">
                         <i class="fa-solid fa-user-group w-5 h-5 mr-2 text-blue-600"></i>
                         <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
-                        ${isOwner ? `
+                        ${isAdmin ? `
                         <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                         ` : ''}
                     </h3>
-                    <p class="text-gray-600 dark:text-gray-400">You are ${isOwner ? 'the owner' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
+                    <p class="text-gray-600 dark:text-gray-400">You are ${isAdmin ? 'the admin' : 'a member'} • ${memberCount} member${memberCount !== 1 ? 's' : ''}</p>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-100 p-4 rounded-lg border">
@@ -2655,7 +2655,7 @@ function renderTeamSection() {
                     <div class="text-center">
                         <div class="room-code">
                             <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:bg-white/20 ml-2" title="Copy Code">
+                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="Copy Code">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
@@ -2663,8 +2663,8 @@ function renderTeamSection() {
                     <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-3">Share this code with others to invite them to your team.</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-${isOwner ? '3' : '2'} gap-4">
-                    ${isOwner ? `
+                <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-4">
+                    ${isAdmin ? `
                         <button id="team-dashboard-btn" class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -2678,7 +2678,7 @@ function renderTeamSection() {
                         </svg>
                         Change Name
                     </button>
-                    ${isOwner ? `
+                    ${isAdmin ? `
                         <button id="delete-team-btn" class="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -2703,8 +2703,8 @@ function renderTeamSection() {
 
 function openCreateTeamModal() {
     DOM.teamNameInput.value = '';
-    if (DOM.teamOwnerDisplayNameInput) {
-        DOM.teamOwnerDisplayNameInput.value = '';
+    if (DOM.teamAdminDisplayNameInput) {
+        DOM.teamAdminDisplayNameInput.value = '';
     }
     DOM.createTeamModal.classList.add('visible');
 }
@@ -2746,7 +2746,7 @@ function closeEditTeamNameModal() {
 async function createTeam() {
     const button = DOM.createTeamModal.querySelector('#save-create-team-btn');
     const teamName = DOM.teamNameInput.value.trim();
-    const displayName = DOM.teamOwnerDisplayNameInput.value.trim();
+    const displayName = DOM.teamAdminDisplayNameInput.value.trim();
 
     if (!teamName || !displayName) {
         showMessage('Please enter both a team name and your display name.', 'error');
@@ -2911,10 +2911,10 @@ function renderTeamDashboard() {
         summary: state.teamMembersData[member.userId] || {}
     }));
 
-    const owner = combinedMembers.find(m => m.role === TEAM_ROLES.OWNER);
-    const members = combinedMembers.filter(m => m.role !== TEAM_ROLES.OWNER);
+    const admin = combinedMembers.find(m => m.role === TEAM_ROLES.ADMIN);
+    const members = combinedMembers.filter(m => m.role !== TEAM_ROLES.ADMIN);
     const sortedMembers = [
-        ...(owner ? [owner] : []),
+        ...(admin ? [admin] : []),
         ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
     ];
 
@@ -2925,7 +2925,7 @@ function renderTeamDashboard() {
     const membersHTML = sortedMembers.map(member => {
         // FIX: Look up balances using the correctly nested structure (yearlyLeaveBalances[year])
         const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
-        const isOwner = member.role === TEAM_ROLES.OWNER;
+        const isAdmin = member.role === TEAM_ROLES.ADMIN;
 
         const leaveTypesHTML = Object.values(balances).length > 0
             ? '<div class="leave-stat-grid">' + Object.values(balances).map(balance => {
@@ -2962,7 +2962,7 @@ function renderTeamDashboard() {
             : '';
 
         return `
-           <details class="team-member-card ${isOwner ? 'team-owner-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
+           <details class="team-member-card ${isAdmin ? 'team-admin-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
                 <summary class="flex items-center justify-between p-6 cursor-pointer">
                     <div class="flex items-center">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
@@ -2970,18 +2970,18 @@ function renderTeamDashboard() {
                         </div>
                         <div class="ml-3">
                             <h4 class="font-bold text-lg">${sanitizeHTML(member.displayName)}</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">${isOwner ? 'Team Owner' : 'Member'}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${isAdmin ? 'Team Admin' : 'Member'}</p>
                         </div>
                     </div>
                     <div class="flex items-center">
-                        ${isOwner ? `
+                        ${isAdmin ? `
                         <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-4">
                             <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                         </div>
                         ` : ''}
-                        ${(state.teamRole === TEAM_ROLES.OWNER && !isOwner) ? `
+                        ${(state.teamRole === TEAM_ROLES.ADMIN && !isAdmin) ? `
                         <button class="kick-member-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700 mr-2" title="Kick Member" data-kick-member-id="${member.userId}" data-kick-member-name="${member.displayName}">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>
