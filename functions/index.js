@@ -152,7 +152,7 @@ async function deleteMemberSummary(userId, teamId) {
 
 
 /**
- * Creates a new team with the authenticated user as the owner.
+ * Creates a new team with the authenticated user as the admin.
  */
 exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
@@ -197,14 +197,14 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
       const memberInfo = {
         userId: userId,
         displayName: displayName,
-        role: "owner",
+        role: "admin",
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
       transaction.set(teamRef, {
         name: teamName,
         roomCode: roomCode,
-        ownerId: userId,
+        adminId: userId,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         members: {
           [userId]: memberInfo,
@@ -213,11 +213,11 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
 
       transaction.update(userRef, {
         teamId: roomCode,
-        teamRole: "owner",
+        teamRole: "admin",
       });
     });
 
-    // Post-transaction: Create initial summary for the owner
+    // Post-transaction: Create initial summary for the admin
     // We fetch fresh data or use existing if acceptable. Using existing userData for speed.
     // Note: Transaction ensures team existence, but we do summary update outside transaction
     // to avoid complexity, or we could assume eventual consistency.
@@ -225,7 +225,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     const memberInfo = {
         userId: userId,
         displayName: displayName,
-        role: "owner"
+        role: "admin"
     };
     await calculateAndSaveMemberSummary(userId, roomCode, userData, memberInfo);
 
@@ -335,7 +335,7 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 /**
- * Allows a team owner to edit the team name.
+ * Allows a team admin to edit the team name.
  */
 exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
@@ -356,8 +356,8 @@ exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
         throw new HttpsError("not-found", "Team not found.");
     }
 
-    if (teamDoc.data().ownerId !== userId) {
-        throw new HttpsError("permission-denied", "Only the team owner can change the team name.");
+    if (teamDoc.data().adminId !== userId) {
+        throw new HttpsError("permission-denied", "Only the team admin can change the team name.");
     }
 
     await teamRef.update({
@@ -368,7 +368,7 @@ exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 /**
- * Allows a member to leave a team. The owner cannot leave.
+ * Allows a member to leave a team. The admin cannot leave.
  */
 exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
@@ -390,8 +390,8 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
       throw new HttpsError("not-found", "Team not found.");
   }
 
-  if (teamDoc.data().ownerId === userId) {
-      throw new HttpsError("permission-denied", "Owner cannot leave the team, must delete it instead.");
+  if (teamDoc.data().adminId === userId) {
+      throw new HttpsError("permission-denied", "Admin cannot leave the team, must delete it instead.");
   }
 
   const batch = db.batch();
@@ -412,7 +412,7 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 /**
- * Allows a team owner to delete the entire team.
+ * Allows a team admin to delete the entire team.
  */
 exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
@@ -433,8 +433,8 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
         throw new HttpsError("not-found", "Team not found.");
     }
 
-    if (teamDoc.data().ownerId !== userId) {
-        throw new HttpsError("permission-denied", "Only the team owner can delete the team.");
+    if (teamDoc.data().adminId !== userId) {
+        throw new HttpsError("permission-denied", "Only the team admin can delete the team.");
     }
 
     // Recursively delete the member_summaries subcollection.
@@ -459,7 +459,7 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 /**
- * Allows a team owner to kick a member from the team.
+ * Allows a team admin to kick a member from the team.
  */
 exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
     const { teamId, memberId } = request.data;
@@ -482,13 +482,13 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
         }
 
         const teamData = teamDoc.data();
-        const ownerId = teamData.ownerId;
+        const adminId = teamData.adminId;
 
-        if (callerId !== ownerId) {
-            throw new HttpsError("permission-denied", "Only the team owner can kick members.");
+        if (callerId !== adminId) {
+            throw new HttpsError("permission-denied", "Only the team admin can kick members.");
         }
-        if (memberId === ownerId) {
-            throw new HttpsError("invalid-argument", "The team owner cannot kick themselves.");
+        if (memberId === adminId) {
+            throw new HttpsError("invalid-argument", "The team admin cannot kick themselves.");
         }
 
         const batch = db.batch();
