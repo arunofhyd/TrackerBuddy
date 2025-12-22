@@ -77,11 +77,11 @@
             </div>
         </div>
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
-            <div class="login-container rounded-xl shadow-2xl p-8 text-center transform transition-all duration-300">
-                <img src="/assets/logo.webp" class="w-24 h-24 mb-4 mx-auto rounded-full logo-glow transition-all duration-300" alt="TrackerBuddy Logo">
-                <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-4 break-words transition-colors duration-300">TrackerBuddy</h1>
-                <div class="flex items-center justify-center gap-2 mb-4">
-                    <p class="subtitle-text transition-colors duration-300">Your all-in-one tracker.</p>
+            <div class="login-container rounded-xl shadow-2xl p-6 sm:p-8 text-center transform transition-all duration-300">
+                <img src="/assets/logo.webp" class="w-20 h-20 sm:w-24 sm:h-24 mb-2 sm:mb-4 mx-auto rounded-full logo-glow transition-all duration-300" alt="TrackerBuddy Logo">
+                <h1 class="text-3xl sm:text-5xl font-extrabold title-text tracking-tight mb-2 sm:mb-4 break-words transition-colors duration-300">TrackerBuddy</h1>
+                <div class="flex items-center justify-center gap-2 mb-2 sm:mb-4">
+                    <p class="subtitle-text text-sm sm:text-base transition-colors duration-300">Your all-in-one tracker.</p>
                     <button id="info-toggle-btn" class="subtitle-text hover:text-blue-500 focus:outline-none transition-colors duration-200" title="Show description">
                         <i class="fas fa-info-circle"></i>
                     </button>
@@ -108,11 +108,11 @@
                         </ul>
                     </div>
                 </div>
-                <div class="space-y-4 text-left mb-2">
-                    <input type="email" id="email-input" placeholder="Email" class="w-full px-4 py-2.5 text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
+                <div class="space-y-3 sm:space-y-4 text-left mb-2">
+                    <input type="email" id="email-input" placeholder="Email" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
                     <div class="relative">
-                        <input type="password" id="password-input" placeholder="Password" class="w-full px-4 py-2.5 text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
-                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-4 subtitle-text hover:text-blue-500 transition-colors duration-200">
+                        <input type="password" id="password-input" placeholder="Password" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
+                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-3 sm:px-4 subtitle-text hover:text-blue-500 transition-colors duration-200">
                             <i id="password-toggle-icon" class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -120,21 +120,21 @@
                 <div class="text-right mb-4">
                     <button id="forgot-password-btn" class="text-sm forgot-password-btn hover:underline focus:outline-none transition-colors duration-200">Forgot Password?</button>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <button id="email-signin-btn" class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign In</button>
-                    <button id="email-signup-btn" class="w-full signup-btn py-3 rounded-lg font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign Up</button>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+                    <button id="email-signin-btn" class="w-full btn-primary py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign In</button>
+                    <button id="email-signup-btn" class="w-full signup-btn py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105">Sign Up</button>
                 </div>
-                <div class="relative flex py-4 items-center">
+                <div class="relative flex py-3 sm:py-4 items-center">
                     <div class="flex-grow border-t divider-line transition-colors duration-300"></div>
-                    <span class="flex-shrink mx-4 divider-text text-sm font-medium px-2 transition-colors duration-300">OR</span>
+                    <span class="flex-shrink mx-2 sm:mx-4 divider-text text-xs sm:text-sm font-medium px-2 transition-colors duration-300">OR</span>
                     <div class="flex-grow border-t divider-line transition-colors duration-300"></div>
                 </div>
-                <div class="space-y-4">
-                    <button id="google-signin-btn" class="w-full google-btn py-3 px-4 rounded-lg flex items-center justify-center text-lg font-semibold transition-all duration-200">
-                        <img src="/assets/google.webp" class="w-6 h-6 mr-3" alt="Google icon">
+                <div class="space-y-3 sm:space-y-4">
+                    <button id="google-signin-btn" class="w-full google-btn py-2 sm:py-3 px-3 sm:px-4 rounded-lg flex items-center justify-center text-base sm:text-lg font-semibold transition-all duration-200">
+                        <img src="/assets/google.webp" class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" alt="Google icon">
                         Continue with Google
                     </button>
-                    <button id="anon-continue-btn" class="w-full guest-btn py-2 px-4 rounded-lg text-lg font-semibold transition-all duration-200">
+                    <button id="anon-continue-btn" class="w-full guest-btn py-2 px-3 sm:px-4 rounded-lg text-base sm:text-lg font-semibold transition-all duration-200">
                         <div class="flex flex-col items-center">
                             <span>Continue as Guest</span>
                             <span class="text-xs font-normal opacity-70 mt-1">(Saves data only on this device)</span>
@@ -145,34 +145,34 @@
             </div>
         </div>
 <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
-    <div id="search-fab" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 40;">
-        <button id="open-spotlight-btn" class="bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300" style="width: 3.5rem; height: 3.5rem;">
-            <i class="fas fa-search text-xl"></i>
+    <div id="search-fab" class="fixed z-40" style="bottom: 1.5rem; right: 1.5rem;">
+        <button id="open-spotlight-btn" class="bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14">
+            <i class="fas fa-search text-lg sm:text-xl"></i>
         </button>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-6 md:p-8">
-        <header class="flex justify-between items-center mb-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-4 sm:p-6 md:p-8">
+        <header class="flex justify-between items-center mb-4 sm:mb-6">
             <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
-                <svg id="theme-icon-light" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <svg id="theme-icon-dark" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="theme-icon-light" class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="theme-icon-dark" class="w-6 h-6 sm:w-7 sm:h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
             </button>
             <div id="logo-container" class="relative cursor-pointer">
-                <img src="/assets/logo.webp" id="app-logo" class="w-12 h-12 rounded-full" alt="TrackerBuddy Logo">
+                <img src="/assets/logo.webp" id="app-logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full" alt="TrackerBuddy Logo">
             </div>
             <button id="sign-out-btn" class="icon-btn" title="Sign Out">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
         </header>
         <main id="main-content">
-            <div class="flex flex-col space-y-4 mb-8 w-full">
-                <div class="flex space-x-4 w-full">
-                    <button id="month-view-btn" class="w-1/2 px-5 py-3 text-base font-bold btn-primary rounded-lg">Month View</button>
-                    <button id="day-view-btn" class="w-1/2 px-5 py-3 text-base font-semibold btn-secondary rounded-lg">Day View</button>
+            <div class="flex flex-col space-y-3 sm:space-y-4 mb-6 sm:mb-8 w-full">
+                <div class="flex space-x-3 sm:space-x-4 w-full">
+                    <button id="month-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold btn-primary rounded-lg">Month View</button>
+                    <button id="day-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-semibold btn-secondary rounded-lg">Day View</button>
                 </div>
                 <div class="flex items-center justify-between w-full">
-                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <h2 id="current-period-display" class="text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
-                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-12 h-12"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
+                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
                 <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
                 <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
@@ -182,9 +182,9 @@
                 </button>
             </div>
                 <div id="day-view-top-controls" class="hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-4 py-2.5 text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
-                        <div class="sm:w-1/2"><button id="today-btn-day" class="w-full px-5 py-3 text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" maxlength="5" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-base sm:text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note (max 5 chars.)"></div>
+                        <div class="sm:w-1/2"><button id="today-btn-day" class="w-full px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-lg">Today</button></div>
                     </div>
                 </div>
                 <input type="file" id="upload-csv-input" accept=".csv" class="hidden">
@@ -209,22 +209,22 @@
                     </div>
                 </div>
                 <div id="month-view-bottom-controls">
-                    <div class="mt-8 pt-6 border-t border-gray-300 flex flex-col md:flex-row gap-4">
-                        <button id="log-new-leave-btn" class="w-full md:w-1/3 px-5 py-3 btn-primary rounded-lg flex items-center justify-center">
+                    <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-300 flex flex-col md:flex-row gap-3 sm:gap-4">
+                        <button id="log-new-leave-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-primary rounded-lg flex items-center justify-center">
                             <i class="fas fa-calendar-plus mr-2"></i>
                             Log Leave
                         </button>
-                        <button id="stats-toggle-btn" class="w-full md:w-1/3 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">
+                        <button id="stats-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-lg flex items-center justify-center">
                             <i class="fas fa-chart-bar mr-2"></i>
                             Stats
-                            <svg id="stats-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            <svg id="stats-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            <svg id="stats-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg id="stats-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
-                        <button id="team-toggle-btn" class="w-full md:w-1/3 px-5 py-3 btn-secondary rounded-lg flex items-center justify-center">
-                            <i id="team-icon" class="fa-solid fa-user w-5 h-5 mr-2"></i>
+                        <button id="team-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-lg flex items-center justify-center">
+                            <i id="team-icon" class="fa-solid fa-user w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             Teams
-                            <svg id="team-arrow-down" class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            <svg id="team-arrow-up" class="w-5 h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                            <svg id="team-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg id="team-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
                     </div>
                     <div id="leave-stats-section" class="bg-gray-50 rounded-lg">

@@ -462,11 +462,11 @@ function renderDailyActivities() {
         const isLast = index === dailyActivitiesArray.length - 1;
 
         row.innerHTML = `
-            <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${sanitizeHTML(activity.time)}</td>
-            <td class="py-3 px-4 text-sm text-gray-900">
+            <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${sanitizeHTML(activity.time)}</td>
+            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
                 <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true">${formatTextForDisplay(activity.text)}</div>
             </td>
-            <td class="py-3 px-4 text-sm flex space-x-1 justify-center items-center">
+            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex space-x-1 justify-center items-center">
                 <button class="icon-btn move-up-btn" aria-label="Move Up" ${isFirst ? 'disabled' : ''}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                 </button>
@@ -2177,7 +2177,7 @@ function renderLeaveStats() {
             <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center min-w-0 pr-2">
-                        <h4 class="font-bold text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
+                        <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</h4>
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
@@ -2200,16 +2200,16 @@ function renderLeaveStats() {
                 <div class="grid grid-cols-2 gap-2 mt-2 text-center">
                     <div class="bg-gray-100 p-2 rounded">
                         <p class="text-xs text-gray-500">Used</p>
-                        <p class="font-bold text-xl text-gray-800">${used}</p>
+                        <p class="font-bold text-lg sm:text-xl text-gray-800">${used}</p>
                     </div>
                     <div class="p-2 rounded balance-box">
                         <p class="text-xs stats-label">Balance</p>
-                        <p class="font-bold text-xl stats-value">${balance}</p>
+                        <p class="font-bold text-lg sm:text-xl stats-value">${balance}</p>
                     </div>
                 </div>
                 <div class="bg-gray-100 p-2 rounded mt-2 text-center">
                     <p class="text-xs text-gray-500">Total</p>
-                    <p class="font-bold text-xl text-gray-800">${totalDays}</p>
+                    <p class="font-bold text-lg sm:text-xl text-gray-800">${totalDays}</p>
                 </div>
             </div>
         `;
@@ -2963,14 +2963,14 @@ function renderTeamDashboard() {
 
         return `
            <details class="team-member-card ${isAdmin ? 'team-admin-card' : ''} bg-white dark:bg-gray-50 rounded-lg shadow-sm border-l-4 overflow-hidden" data-user-id="${member.userId}">
-                <summary class="flex items-center justify-between p-6 cursor-pointer">
+                <summary class="flex items-center justify-between p-4 sm:p-6 cursor-pointer">
                     <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
                             ${member.displayName.charAt(0).toUpperCase()}
                         </div>
                         <div class="ml-3">
-                            <h4 class="font-bold text-lg">${sanitizeHTML(member.displayName)}</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">${isAdmin ? 'Team Admin' : 'Member'}</p>
+                            <h4 class="font-bold text-base sm:text-lg">${sanitizeHTML(member.displayName)}</h4>
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">${isAdmin ? 'Team Admin' : 'Member'}</p>
                         </div>
                     </div>
                     <div class="flex items-center">
