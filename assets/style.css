@@ -303,7 +303,16 @@ body.dark .stat-card-info p {
         .progress-bar { background: linear-gradient(135deg, #10b981, #059669); border-radius: 9999px; transition: width 0.3s ease-in-out; }
         .progress-bg { border-radius: 9999px; overflow: hidden; }
         /* --- Mobile Responsive --- */
-        @media (max-width: 767px) { .main-container { padding: 1rem; } #calendar-view { gap: 0.25rem; } .day-number { font-size: 0.875em; margin-bottom: 2px; } .activity-indicator { width: 6px; height: 6px; margin-top: 2px; } .day-note-container { height: 12px; } .day-note { font-size: 0.6rem; } .daily-activity-table-body td { padding-left: 10px; padding-right: 10px; } }
+        @media (max-width: 767px) {
+            .main-container { padding: 0.75rem; }
+            #calendar-view { gap: 0.15rem; }
+            .day-number { font-size: 0.75em; margin-bottom: 1px; }
+            .activity-indicator { width: 5px; height: 5px; margin-top: 1px; }
+            .day-note-container { height: 10px; }
+            .day-note { font-size: 0.55rem; letter-spacing: 0; }
+            .daily-activity-table-body td { padding-left: 8px; padding-right: 8px; font-size: 0.875rem; }
+            .calendar-day-content { padding: 4px; }
+        }
         /* --- DARK MODE STYLES --- */
         body.dark {
             --team-card-bg-color: #1a202c;
