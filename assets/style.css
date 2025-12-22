@@ -560,3 +560,17 @@ body.dark #spotlight-scope-btn {
     background-color: #374151; /* gray-700 */
     color: #9ca3af; /* gray-400 */
 }
+
+/* --- Info Description Reveal (Optimized) --- */
+#info-description {
+    overflow: hidden;
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease;
+}
+#info-description.visible {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500px;
+}
