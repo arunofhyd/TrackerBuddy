@@ -62,7 +62,11 @@ class TranslationService {
             this.currentLang = supportedCodes.includes(userLang) ? userLang : 'en';
         }
 
+    try {
         await this.loadTranslations(this.currentLang);
+    } catch (e) {
+        console.error("Init translation failed", e);
+    }
         this.translatePage();
     }
 
@@ -4021,32 +4025,40 @@ function exitSearchMode() {
 // --- App Initialization ---
 function handleSplashScreen() {
     setTimeout(() => {
-        DOM.splashLoading.style.display = 'none';
-        DOM.tapToBegin.style.display = 'block';
-        DOM.splashScreen.addEventListener('click', () => {
-            DOM.tapToBegin.style.display = 'none';
-            DOM.splashLoading.style.display = 'none';
-            DOM.splashText.classList.add('animating-out');
+        if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+        if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'block';
+        if (DOM.splashScreen) {
+            DOM.splashScreen.addEventListener('click', () => {
+                if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'none';
+                if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+                if (DOM.splashText) DOM.splashText.classList.add('animating-out');
 
-            initAuth();
+                initAuth();
 
-            setTimeout(() => {
-                DOM.splashScreen.style.zIndex = '-10';
-                DOM.splashScreen.style.cursor = 'default';
-                DOM.splashScreen.style.backgroundColor = 'transparent';
-            }, 400);
+                setTimeout(() => {
+                    if (DOM.splashScreen) {
+                        DOM.splashScreen.style.zIndex = '-10';
+                        DOM.splashScreen.style.cursor = 'default';
+                        DOM.splashScreen.style.backgroundColor = 'transparent';
+                    }
+                }, 400);
 
-            setTimeout(() => {
-                DOM.splashText.style.display = 'none';
-            }, 1000);
+                setTimeout(() => {
+                    if (DOM.splashText) DOM.splashText.style.display = 'none';
+                }, 1000);
 
-        }, { once: true });
+            }, { once: true });
+        }
     }, 50);
 }
 
-function init() {
+async function init() {
     initUI();
-    await i18n.init(); // Initialize i18n and wait for it
+    try {
+        await i18n.init(); // Initialize i18n and wait for it
+    } catch (e) {
+        console.error("i18n init error:", e);
+    }
     setupEventListeners();
     setupDailyViewEventListeners();
     setupColorPicker();
