@@ -398,6 +398,46 @@ async function handleUserLogin(user) {
 
     switchView(DOM.loadingView, DOM.loginView);
 
+    // Check for offline data to migrate ONCE, before subscription callback
+    const guestDataString = localStorage.getItem('guestUserData');
+    if (guestDataString) {
+        try {
+            const guestData = JSON.parse(guestDataString);
+            const hasData = Object.keys(guestData.yearlyData || {}).length > 0 || (guestData.leaveTypes && guestData.leaveTypes.length > 0);
+            
+            if (hasData) {
+                // Use a simple confirm for now as per requirements
+                if (confirm(i18n.t('migrateDataPrompt') || "We found data from your guest session. Would you like to merge it into your account?")) {
+                try {
+                    await persistData({
+                        yearlyData: guestData.yearlyData,
+                        leaveTypes: guestData.leaveTypes
+                    });
+                    localStorage.removeItem('guestUserData');
+                    showMessage("Data migrated successfully!", "success");
+                    // Refresh state immediately
+                    setState({
+                        yearlyData: guestData.yearlyData,
+                        leaveTypes: guestData.leaveTypes
+                    });
+                } catch (e) {
+                    console.error("Migration failed", e);
+                    showMessage("Failed to migrate data.", "error");
+                }
+            } else {
+                // User declined, clear local data to stop asking
+                if (confirm("Delete guest data?")) {
+                    localStorage.removeItem('guestUserData');
+                }
+            }
+            }
+        } catch (e) {
+            console.error("Error parsing guest data for migration:", e);
+            // If data is corrupt, clear it to prevent future errors
+            localStorage.removeItem('guestUserData');
+        }
+    }
+
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, () => {
         // Team data will now be loaded on-demand when the user expands the team section.
