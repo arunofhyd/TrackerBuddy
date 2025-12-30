@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "Échec de l'enregistrement de la mise à jour.",
     "noneWillBeRemoved": "Aucun (sera supprimé)",
     "selectType": "Sélectionner un type",
-    "shareCodeMessage": "Partagez ce code avec d'autres pour les inviter dans votre équipe."
+    "teamAdmin": "Admin Équipe",
+    "member": "Membre",
+    "results": "résultats"
 }

@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "अपडेट सहेजने में विफल।",
     "noneWillBeRemoved": "कोई नहीं (हटा दिया जाएगा)",
     "selectType": "प्रकार चुनें",
-    "shareCodeMessage": "अपनी टीम में आमंत्रित करने के लिए इस कोड को दूसरों के साथ साझा करें।"
+    "teamAdmin": "टीम एडमिन",
+    "member": "सदस्य",
+    "results": "परिणाम"
 }

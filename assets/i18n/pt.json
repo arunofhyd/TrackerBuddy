@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "Falha ao salvar atualização.",
     "noneWillBeRemoved": "Nenhum (será removido)",
     "selectType": "Selecionar tipo",
-    "shareCodeMessage": "Compartilhe este código com outras pessoas para convidá-las para sua equipe."
+    "teamAdmin": "Admin da Equipe",
+    "member": "Membro",
+    "results": "resultados"
 }

@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "فشل حفظ التحديث.",
     "noneWillBeRemoved": "لا شيء (سيتم إزالته)",
     "selectType": "اختر النوع",
-    "shareCodeMessage": "شارك هذا الرمز مع الآخرين لدعوتهم إلى فريقك."
+    "teamAdmin": "مسؤول الفريق",
+    "member": "عضو",
+    "results": "نتائج"
 }
