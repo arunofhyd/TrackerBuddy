@@ -333,6 +333,17 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   }
 
   const teamRef = db.collection("teams").doc(teamId);
+  const teamDoc = await teamRef.get();
+
+  if (!teamDoc.exists) {
+    throw new HttpsError("not-found", "Team not found.");
+  }
+
+  const members = teamDoc.data().members || {};
+  if (!members[userId]) {
+    throw new HttpsError("permission-denied", "You are not a member of this team.");
+  }
+
   await teamRef.update({
     [`members.${userId}.displayName`]: newDisplayName
   });
