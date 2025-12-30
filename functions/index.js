@@ -182,15 +182,15 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   try {
     const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-        throw new HttpsError("not-found", "User not found.");
-    }
-    const userData = userDoc.data();
+    // Allow missing user doc, treat as new/empty user
+    const userData = userDoc.exists ? userDoc.data() : {};
 
     await db.runTransaction(async (transaction) => {
       // Re-fetch user in transaction for consistency check
       const tUserDoc = await transaction.get(userRef);
-      if (tUserDoc.data().teamId) {
+
+      // Check if already in team (only if doc exists)
+      if (tUserDoc.exists && tUserDoc.data().teamId) {
         throw new HttpsError("already-exists", "You are already in a team.");
       }
 
@@ -211,10 +211,10 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
         },
       });
 
-      transaction.update(userRef, {
+      transaction.set(userRef, {
         teamId: roomCode,
         teamRole: "admin",
-      });
+      }, { merge: true });
     });
 
     // Post-transaction: Create initial summary for the admin
@@ -259,12 +259,18 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   try {
     const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-        throw new HttpsError("not-found", "User not found.");
-    }
-    const userData = userDoc.data();
+    // Allow missing user doc, treat as new/empty user
+    const userData = userDoc.exists ? userDoc.data() : {};
 
     await db.runTransaction(async (transaction) => {
+      // Re-fetch user in transaction for consistency check
+      const tUserDoc = await transaction.get(userRef);
+
+      // Check if already in team (only if doc exists)
+      if (tUserDoc.exists && tUserDoc.data().teamId) {
+         throw new HttpsError("already-exists", "You are already in a team.");
+      }
+
       const teamDoc = await transaction.get(teamRef);
       if (!teamDoc.exists) {
         throw new HttpsError("not-found", "Team not found.");
@@ -327,6 +333,17 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   }
 
   const teamRef = db.collection("teams").doc(teamId);
+  const teamDoc = await teamRef.get();
+
+  if (!teamDoc.exists) {
+    throw new HttpsError("not-found", "Team not found.");
+  }
+
+  const members = teamDoc.data().members || {};
+  if (!members[userId]) {
+    throw new HttpsError("permission-denied", "You are not a member of this team.");
+  }
+
   await teamRef.update({
     [`members.${userId}.displayName`]: newDisplayName
   });
