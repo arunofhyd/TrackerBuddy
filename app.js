@@ -398,48 +398,54 @@ async function handleUserLogin(user) {
 
     switchView(DOM.loadingView, DOM.loginView);
 
-    // Check for offline data to migrate ONCE, before subscription callback
-    const guestDataString = localStorage.getItem('guestUserData');
-    if (guestDataString) {
-        try {
-            const guestData = JSON.parse(guestDataString);
-            const hasData = Object.keys(guestData.yearlyData || {}).length > 0 || (guestData.leaveTypes && guestData.leaveTypes.length > 0);
-            
-            if (hasData) {
-                // Use a simple confirm for now as per requirements
-                if (confirm(i18n.t('migrateDataPrompt') || "We found data from your guest session. Would you like to merge it into your account?")) {
-                try {
-                    await persistData({
-                        yearlyData: guestData.yearlyData,
-                        leaveTypes: guestData.leaveTypes
-                    });
-                    localStorage.removeItem('guestUserData');
-                    showMessage("Data migrated successfully!", "success");
-                    // Refresh state immediately
-                    setState({
-                        yearlyData: guestData.yearlyData,
-                        leaveTypes: guestData.leaveTypes
-                    });
-                } catch (e) {
-                    console.error("Migration failed", e);
-                    showMessage("Failed to migrate data.", "error");
-                }
-            } else {
-                // User declined, clear local data to stop asking
-                if (confirm("Delete guest data?")) {
-                    localStorage.removeItem('guestUserData');
-                }
-            }
-            }
-        } catch (e) {
-            console.error("Error parsing guest data for migration:", e);
-            // If data is corrupt, clear it to prevent future errors
-            localStorage.removeItem('guestUserData');
-        }
-    }
-
     // Now, with the user document guaranteed to exist, subscribe to data.
-    subscribeToData(user.uid, () => {
+    subscribeToData(user.uid, async () => {
+        // Check for offline data to migrate ONCE, inside callback to ensure we have cloud data for merging
+        const guestDataString = localStorage.getItem('guestUserData');
+        if (guestDataString) {
+            try {
+                const guestData = JSON.parse(guestDataString);
+                const hasData = Object.keys(guestData.yearlyData || {}).length > 0 || (guestData.leaveTypes && guestData.leaveTypes.length > 0);
+                
+                if (hasData) {
+                    // Use a simple confirm for now as per requirements
+                    // Handle fallback if translation key returns itself (missing translation)
+                    let promptMsg = i18n.t('migrateDataPrompt');
+                    if (promptMsg === 'migrateDataPrompt') {
+                        promptMsg = "We found data from your guest session. Would you like to merge it into your account?";
+                    }
+
+                    if (confirm(promptMsg)) {
+                        try {
+                            // Merge with existing cloud data (state)
+                            const mergedData = mergeUserData(state, guestData);
+                            await persistData(mergedData);
+                            localStorage.removeItem('guestUserData');
+                            showMessage("Data migrated successfully!", "success");
+                            // Refresh state immediately
+                            setState(mergedData);
+                        } catch (e) {
+                            console.error("Migration failed", e);
+                            showMessage("Failed to migrate data.", "error");
+                        }
+                    } else {
+                        // User declined, clear local data to stop asking
+                        let deleteMsg = i18n.t('deleteGuestDataPrompt');
+                        if (deleteMsg === 'deleteGuestDataPrompt') {
+                            deleteMsg = "Delete guest data? (This action cannot be undone)";
+                        }
+                        if (confirm(deleteMsg)) {
+                            localStorage.removeItem('guestUserData');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing guest data for migration:", e);
+                // If data is corrupt, clear it to prevent future errors
+                localStorage.removeItem('guestUserData');
+            }
+        }
+
         // Team data will now be loaded on-demand when the user expands the team section.
         switchView(DOM.appView, DOM.loadingView, updateView);
     });
@@ -4112,3 +4118,67 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+function mergeUserData(cloudState, guestData) {
+    const mergedYearlyData = JSON.parse(JSON.stringify(cloudState.yearlyData || {}));
+    const mergedLeaveTypes = [...(cloudState.leaveTypes || [])];
+    const cloudLeaveTypeIds = new Set(mergedLeaveTypes.map(lt => lt.id));
+
+    if (guestData.leaveTypes) {
+        guestData.leaveTypes.forEach(lt => {
+            if (!cloudLeaveTypeIds.has(lt.id)) {
+                mergedLeaveTypes.push(lt);
+                cloudLeaveTypeIds.add(lt.id);
+            }
+        });
+    }
+
+    if (guestData.yearlyData) {
+        Object.keys(guestData.yearlyData).forEach(year => {
+            if (!mergedYearlyData[year]) {
+                mergedYearlyData[year] = guestData.yearlyData[year];
+            } else {
+                const cloudYear = mergedYearlyData[year];
+                const guestYear = guestData.yearlyData[year];
+
+                if (guestYear.leaveOverrides) {
+                    if (!cloudYear.leaveOverrides) cloudYear.leaveOverrides = {};
+                    Object.keys(guestYear.leaveOverrides).forEach(ltId => {
+                        if (!cloudYear.leaveOverrides[ltId]) {
+                            cloudYear.leaveOverrides[ltId] = guestYear.leaveOverrides[ltId];
+                        }
+                    });
+                }
+
+                if (guestYear.activities) {
+                    if (!cloudYear.activities) cloudYear.activities = {};
+                    Object.keys(guestYear.activities).forEach(dateKey => {
+                        const guestDay = guestYear.activities[dateKey];
+                        const cloudDay = cloudYear.activities[dateKey];
+
+                        if (!cloudDay || Object.keys(cloudDay).length === 0) {
+                            cloudYear.activities[dateKey] = guestDay;
+                        } else {
+                            if (!cloudDay.note && guestDay.note) cloudDay.note = guestDay.note;
+                            if (!cloudDay.leave && guestDay.leave) cloudDay.leave = guestDay.leave;
+                            if (cloudDay._userCleared === undefined && guestDay._userCleared !== undefined) {
+                                cloudDay._userCleared = guestDay._userCleared;
+                            }
+                            Object.keys(guestDay).forEach(key => {
+                                if (key !== 'note' && key !== 'leave' && key !== '_userCleared') {
+                                    if (!cloudDay[key]) {
+                                        cloudDay[key] = guestDay[key];
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    return {
+        yearlyData: mergedYearlyData,
+        leaveTypes: mergedLeaveTypes
+    };
+}
