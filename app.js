@@ -103,7 +103,7 @@ class TranslationService {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
             if (this.translations[key]) {
-                el.textContent = this.translations[key];
+                el.innerHTML = this.translations[key];
             }
         });
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
@@ -1850,14 +1850,16 @@ function openLeaveTypeModal(leaveType = null) {
         const overrides = yearData.leaveOverrides || {};
         const totalDays = overrides[leaveType.id]?.totalDays ?? leaveType.totalDays;
 
-        DOM.leaveTypeModalTitle.textContent = 'Edit Leave Type';
+        DOM.leaveTypeModalTitle.dataset.i18n = 'editLeaveType';
+        DOM.leaveTypeModalTitle.innerHTML = i18n.t('editLeaveType');
         DOM.editingLeaveTypeId.value = leaveType.id;
         DOM.leaveNameInput.value = leaveType.name; // FIX: Use name here, not totalDays
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
     } else {
-        DOM.leaveTypeModalTitle.textContent = 'Add New Leave Type';
+        DOM.leaveTypeModalTitle.dataset.i18n = 'addNewLeaveType';
+        DOM.leaveTypeModalTitle.innerHTML = i18n.t('addNewLeaveType');
         DOM.editingLeaveTypeId.value = '';
         DOM.leaveNameInput.value = '';
         DOM.leaveDaysInput.value = '';
