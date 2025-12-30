@@ -671,3 +671,7 @@ body.dark #spotlight-scope-btn {
     background-color: #1e3a8a;
     color: #93c5fd;
 }
+
+.gap-10 {
+    gap: 2.5rem;
+}
