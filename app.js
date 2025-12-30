@@ -421,12 +421,12 @@ async function handleUserLogin(user) {
                             const mergedData = mergeUserData(state, guestData);
                             await persistData(mergedData);
                             localStorage.removeItem('guestUserData');
-                            showMessage("Data migrated successfully!", "success");
+                            showMessage(i18n.t("msgDataMigratedSuccess"), "success");
                             // Refresh state immediately
                             setState(mergedData);
                         } catch (e) {
                             console.error("Migration failed", e);
-                            showMessage("Failed to migrate data.", "error");
+                            showMessage(i18n.t("msgFailedToMigrate"), "error");
                         }
                     } else {
                         // User declined, clear local data to stop asking
@@ -784,7 +784,7 @@ async function loadTeamMembersData() {
         }
     }, (error) => {
         console.error("Error listening to team member summaries:", error);
-        showMessage("Could not load real-time team member data.", "error");
+        showMessage(i18n.t("msgRealTimeTeamError"), "error");
     });
 
     setState({ unsubscribeFromTeamMembers: [unsubscribe] });
@@ -823,7 +823,7 @@ async function persistData(data, partialUpdate = null) {
             await saveDataToFirestore(data, partialUpdate);
         } catch (error) {
             console.error("Error saving to Firestore:", error);
-            showMessage("Error: Could not save changes. Please try again.", 'error');
+            showMessage(i18n.t("msgSaveError"), 'error');
         }
     } else {
         saveDataToLocalStorage(data);
@@ -864,11 +864,11 @@ function handleUpdateActivityText(dayDataCopy, payload) {
 function handleUpdateTime(dayDataCopy, payload) {
     const { oldTimeKey, newTimeKey } = payload;
     if (!newTimeKey) {
-        showMessage("Time cannot be empty.", 'error');
+        showMessage(i18n.t("msgTimeEmpty"), 'error');
         return null;
     }
     if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
-        showMessage(`Time "${newTimeKey}" already exists.`, 'error');
+        showMessage(i18n.t("msgTimeExists").replace('{time}', newTimeKey), 'error');
         return null;
     }
 
@@ -994,7 +994,7 @@ async function saveData(action) {
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
         console.error("Error persisting data:", error);
-        showMessage("Error: Could not save changes. Reverting.", 'error');
+        showMessage(i18n.t("msgSaveRevertError"), 'error');
         const revertedCurrentYearData = originalYearlyData[year] || { activities: {}, leaveOverrides: {} };
         setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
         updateView();
@@ -1014,7 +1014,7 @@ function loadDataFromLocalStorage() {
 
     } catch (error) {
         console.error("Error loading local data:", error);
-        showMessage("Could not load local data.", 'error');
+        showMessage(i18n.t("msgLoadLocalError"), 'error');
         return { yearlyData: {}, leaveTypes: [] };
     }
 }
@@ -1025,7 +1025,7 @@ function saveDataToLocalStorage(data) {
         localStorage.setItem('guestUserData', JSON.stringify(data));
     } catch (error) {
         console.error("Error saving local data:", error);
-        showMessage("Could not save data locally.", 'error');
+        showMessage(i18n.t("msgSaveLocalError"), 'error');
     }
 }
 
@@ -1088,18 +1088,18 @@ async function resetAllData() {
 
             // This will trigger onSnapshot, which will update the local state.
             triggerTeamSync();
-            showMessage("All cloud data has been reset.", 'success');
+            showMessage(i18n.t("msgCloudResetSuccess"), 'success');
 
         } catch (error) {
             console.error("Error resetting cloud data:", error);
-            showMessage("Failed to reset cloud data.", 'error');
+            showMessage(i18n.t("msgCloudResetError"), 'error');
         }
     } else {
         // FIX: Clear the new local storage key
         localStorage.removeItem('guestUserData'); 
         setState(resetState);
         updateView();
-        showMessage("All local data has been reset.", 'success');
+        showMessage(i18n.t("msgLocalResetSuccess"), 'success');
     }
 
     DOM.confirmResetModal.classList.remove('visible');
@@ -1135,10 +1135,10 @@ async function updateActivityOrder() {
 
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
-        showMessage("Activities reordered!", 'success');
+        showMessage(i18n.t("msgActivitiesReordered"), 'success');
     } catch (error) {
         console.error("Failed to reorder activities:", error);
-        showMessage("Failed to save new order.", "error");
+        showMessage(i18n.t("msgOrderSaveError"), "error");
         // NOTE: Consider rolling back state on error
     }
 }
@@ -1185,11 +1185,11 @@ async function deleteActivity(dateKey, timeKey) {
         } else {
             saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         }
-        showMessage("Activity deleted.", 'success');
+        showMessage(i18n.t("msgActivityDeleted"), 'success');
 
     } catch (error) {
         console.error("Failed to delete activity:", error);
-        showMessage("Failed to save deletion.", "error");
+        showMessage(i18n.t("msgDeleteSaveError"), "error");
         // Rollback on error
         const currentYear = state.currentMonth.getFullYear();
         const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
@@ -1270,7 +1270,7 @@ function downloadCSV() {
     });
 
     if (csvRows.length <= 1) {
-        return showMessage("No data found to backup.", 'info');
+        return showMessage(i18n.t("msgNoBackupData"), 'info');
     }
 
     const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
@@ -1324,7 +1324,7 @@ function handleFileUpload(event) {
             const lines = csvContent.split('\n').filter(line => line.trim());
 
             if (lines.length <= 1) {
-                return showMessage("CSV file is empty or has no data.", 'error');
+                return showMessage(i18n.t("msgEmptyCSV"), 'error');
             }
 
             let processedRows = 0;
@@ -1413,15 +1413,15 @@ function handleFileUpload(event) {
             });
             triggerTeamSync();
 
-            showMessage(`${processedRows} records restored/updated successfully!`, 'success');
+            showMessage(i18n.t("msgRestoreSuccess").replace('{count}', processedRows), 'success');
             event.target.value = '';
             updateView();
         } catch (err) {
             console.error("Error during CSV restore:", err);
-            showMessage("An error occurred while restoring the file.", 'error');
+            showMessage(i18n.t("msgRestoreError"), 'error');
         }
     };
-    reader.onerror = () => showMessage("Error reading file.", 'error');
+    reader.onerror = () => showMessage(i18n.t("msgReadError"), 'error');
     reader.readAsText(file);
 }
 
@@ -1497,7 +1497,7 @@ async function signUpWithEmail(email, password) {
         hasError = true;
     }
     if (hasError) {
-        return showMessage("Email and a password of at least 6 characters are required.", 'error');
+        return showMessage(i18n.t("msgAuthRequired"), 'error');
     }
 
     setButtonLoadingState(button, true);
@@ -1506,9 +1506,9 @@ async function signUpWithEmail(email, password) {
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
-            showMessage("An account already exists with this email. Please sign in instead.", 'error');
+            showMessage(i18n.t("msgAccountExists"), 'error');
         } else {
-            showMessage(`Sign-up failed: ${error.message}`, 'error');
+            showMessage(i18n.t("msgSignUpFailed").replace('{error}', error.message), 'error');
         }
     } finally {
         setButtonLoadingState(button, false);
@@ -1520,7 +1520,7 @@ async function editTeamName() {
     const newTeamName = DOM.newTeamNameInput.value.trim();
 
     if (!newTeamName) {
-        showMessage('Please enter a team name.', 'error');
+        showMessage(i18n.t("msgTeamNameRequired"), 'error');
         return;
     }
 
@@ -1528,11 +1528,11 @@ async function editTeamName() {
     try {
         const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
         await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
-        showMessage('Team name updated successfully!', 'success');
+        showMessage(i18n.t("msgTeamNameUpdated"), 'success');
         closeEditTeamNameModal();
     } catch (error) {
         console.error('Error updating team name:', error);
-        showMessage(`Failed to update team name: ${error.message}`, 'error');
+        showMessage(i18n.t("msgTeamNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -1550,7 +1550,7 @@ async function signInWithEmail(email, password) {
         hasError = true;
     }
     if (hasError) {
-        return showMessage("Email and password are required.", 'error');
+        return showMessage(i18n.t("msgEmailPasswordRequired"), 'error');
     }
 
     setButtonLoadingState(button, true);
@@ -1559,9 +1559,9 @@ async function signInWithEmail(email, password) {
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-            showMessage("Incorrect email or password. Please try again.", 'error');
+            showMessage(i18n.t("msgAuthFailed"), 'error');
         } else {
-            showMessage(`Sign-in failed: ${error.message}`, 'error');
+            showMessage(i18n.t("msgSignInFailed").replace('{error}', error.message), 'error');
         }
     } finally {
         setButtonLoadingState(button, false);
@@ -1572,15 +1572,15 @@ async function resetPassword(email) {
     const button = DOM.forgotPasswordBtn;
     if (!email) {
         setInputErrorState(document.getElementById('email-input'), true);
-        return showMessage("Please enter your email address.", 'info');
+        return showMessage(i18n.t("msgEmailRequired"), 'info');
     }
     setButtonLoadingState(button, true);
     button.classList.add('loading');
     try {
         await sendPasswordResetEmail(auth, email);
-        showMessage("Please check your SPAM folder for the password reset link.", 'success');
+        showMessage(i18n.t("msgResetEmailSent"), 'success');
     } catch (error) {
-        showMessage(`Error sending reset email: ${error.message}`, 'error');
+        showMessage(i18n.t("msgResetEmailFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
         button.classList.remove('loading');
@@ -1595,7 +1595,7 @@ async function signInWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         handleUserLogin(result.user);
     } catch (error) {
-        showMessage(`Google sign-in failed: ${error.message}`, 'error');
+        showMessage(i18n.t("msgGoogleSignInFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -1607,7 +1607,7 @@ async function appSignOut() {
             await signOut(auth);
             handleUserLogout();
         } catch (error) {
-            showMessage(`Sign-out failed: ${error.message}`, 'error');
+            showMessage(i18n.t("msgSignOutFailed").replace('{error}', error.message), 'error');
         }
     } else {
         handleUserLogout();
@@ -1652,7 +1652,7 @@ function loadTheme() {
     }
 }
 
-function setupDoubleClickConfirm(element, actionKey, message, callback) {
+function setupDoubleClickConfirm(element, actionKey, messageKey, callback) {
     element.addEventListener('click', (e) => {
         if (state.confirmAction[actionKey]) {
             callback(e);
@@ -1673,7 +1673,10 @@ function setupDoubleClickConfirm(element, actionKey, message, callback) {
                 }, 3000)
             };
             element.classList.add('confirm-action');
-            showMessage(message, 'info');
+            // If messageKey looks like a translation key (no spaces), translate it.
+            // Otherwise use it as is (backward compatibility or literal string).
+            const msg = (messageKey && !messageKey.includes(' ')) ? i18n.t(messageKey) : messageKey;
+            showMessage(msg, 'info');
         }
     });
 }
@@ -1901,7 +1904,7 @@ async function saveLeaveType() {
     const color = selectedColorEl ? selectedColorEl.dataset.color : null;
 
     if (!name || isNaN(totalDays) || !color) {
-        showMessage('Please fill all fields and select a color.', 'error');
+        showMessage(i18n.t("msgLeaveTypeFieldsRequired"), 'error');
         setButtonLoadingState(button, false);
         return;
     }
@@ -1910,7 +1913,7 @@ async function saveLeaveType() {
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(currentYear);
     const isColorTaken = visibleLeaveTypes.some(lt => lt.color === color && lt.id !== id);
     if (isColorTaken) {
-        showMessage('This color is already used by another visible leave type for this year.', 'error');
+        showMessage(i18n.t("msgLeaveTypeColorConflict"), 'error');
         setButtonLoadingState(button, false);
         return;
     }
@@ -2008,10 +2011,10 @@ async function saveLeaveType() {
         }
 
         triggerTeamSync();
-        showMessage('Leave type saved!', 'success');
+        showMessage(i18n.t("msgLeaveTypeSaved"), 'success');
     } catch (error) {
         console.error("Failed to save leave type:", error);
-        showMessage('Failed to save leave type.', 'error');
+        showMessage(i18n.t("msgLeaveTypeSaveFailed"), 'error');
         // NOTE: Consider rolling back state
     } finally {
         closeLeaveTypeModal();
@@ -2092,10 +2095,10 @@ async function deleteLeaveType() {
         }
 
         triggerTeamSync();
-        showMessage(`Leave type hidden for ${currentYear} and entries removed.`, 'success');
+        showMessage(i18n.t("msgLeaveTypeHidden").replace('{year}', currentYear), 'success');
     } catch (error) {
         console.error("Failed to hide leave type:", error);
-        showMessage('Failed to hide leave type.', 'error');
+        showMessage(i18n.t("msgLeaveTypeHideFailed"), 'error');
         // NOTE: A more robust implementation might roll back the state change here
     } finally {
         closeLeaveTypeModal();
@@ -2110,7 +2113,7 @@ async function saveLeaveTypes() {
     if (!state.isOnlineMode) {
         updateView();
     }
-    showMessage('Leave types reordered!', 'success');
+    showMessage(i18n.t("msgLeaveTypesReordered"), 'success');
 }
 
 async function moveLeaveType(typeId, direction) {
@@ -2294,10 +2297,10 @@ async function deleteLeaveDay(dateKey) {
     try {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
         triggerTeamSync();
-        showMessage('Leave entry deleted successfully!', 'success');
+        showMessage(i18n.t("msgLeaveEntryDeleted"), 'success');
     } catch (error) {
         console.error("Failed to delete leave day:", error);
-        showMessage("Failed to save deletion.", "error");
+        showMessage(i18n.t("msgDeleteSaveError"), "error");
         // NOTE: A robust implementation might roll back the state change here.
     }
 
@@ -2384,7 +2387,7 @@ function renderLeaveStats() {
 
 function openLeaveCustomizationModal() {
     if (state.leaveSelection.size === 0) {
-        showMessage('Please select at least one day on the calendar.', 'info');
+        showMessage(i18n.t("msgSelectDayRequired"), 'info');
         return;
     }
     state.previousActiveElement = document.activeElement;
@@ -2403,7 +2406,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
     let triggerHTML;
     if (currentTypeId === 'remove') {
-        triggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+        triggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
     } else if (selectedType) {
         triggerHTML = `
             <span class="flex items-center w-full min-w-0">
@@ -2412,7 +2415,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
             </span>
             <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
     } else {
-        triggerHTML = `<span class="font-medium text-sm text-gray-500">Select Type</span>`;
+        triggerHTML = `<span class="font-medium text-sm text-gray-500">${i18n.t('selectType')}</span>`;
     }
 
     container.innerHTML = `
@@ -2423,7 +2426,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
             <div class="flex flex-col space-y-1">
                 <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
                     <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
-                    <span>None</span>
+                    <span>${i18n.t('none')}</span>
                 </button>
                 ${visibleLeaveTypes.map(lt => `
                     <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
@@ -2456,7 +2459,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
             let newTriggerHTML;
             if (newTypeId === 'remove') {
-                newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+                newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
             } else {
                 const newType = visibleLeaveTypes.find(lt => lt.id === newTypeId);
 
@@ -2528,7 +2531,7 @@ function renderLeaveCustomizationModal() {
 
         let newTriggerHTML;
         if (newTypeId === 'remove') {
-            newTriggerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+            newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
         } else {
             const newType = visibleLeaveTypes.find(lt => lt.id === newTypeId);
             if (newType) {
@@ -2651,7 +2654,7 @@ async function saveLoggedLeaves() {
         if (changes[typeId] > (balances[typeId] || 0)) {
             const leaveType = visibleLeaveTypes.find(lt => lt.id === typeId);
             if (leaveType) {
-                showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
+                showMessage(i18n.t("msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
                 balanceError = true;
                 break;
             }
@@ -2735,10 +2738,10 @@ async function saveLoggedLeaves() {
         }
 
         triggerTeamSync();
-        showMessage('Leaves saved successfully!', 'success');
+        showMessage(i18n.t("msgLeavesSaved"), 'success');
     } catch (error) {
         console.error("Failed to save logged leaves:", error);
-        showMessage("Failed to save leaves.", "error");
+        showMessage(i18n.t("msgLeavesSaveFailed"), "error");
     } finally {
         DOM.customizeLeaveModal.classList.remove('visible');
         if (state.previousActiveElement) {
@@ -2746,7 +2749,7 @@ async function saveLoggedLeaves() {
             state.previousActiveElement = null;
         }
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-        DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> Log Leave';
+        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
         updateView();
         setButtonLoadingState(button, false);
@@ -2759,9 +2762,9 @@ function handleBulkRemoveClick() {
         const selectorContainer = item.querySelector('.leave-type-selector');
         const trigger = selectorContainer.querySelector('.leave-type-selector-trigger');
         trigger.dataset.typeId = 'remove';
-        trigger.innerHTML = `<span class="font-medium text-sm text-red-500">None (will be removed)</span>`;
+        trigger.innerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
     });
-    showMessage("All selected leaves marked for removal. Click Save to confirm.", 'info');
+    showMessage(i18n.t("msgLeavesRemovalConfirmation"), 'info');
 }
 
 // --- Team Management Functions ---
@@ -2939,7 +2942,7 @@ async function createTeam() {
     const displayName = DOM.teamAdminDisplayNameInput.value.trim();
 
     if (!teamName || !displayName) {
-        showMessage('Please enter both a team name and your display name.', 'error');
+        showMessage(i18n.t("msgTeamCreateFieldsRequired"), 'error');
         return;
     }
 
@@ -2954,7 +2957,7 @@ async function createTeam() {
 
     } catch (error) {
         console.error('Error creating team:', error);
-        showMessage(`Failed to create team: ${error.message}`, 'error');
+        showMessage(i18n.t("msgTeamCreateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -2966,7 +2969,7 @@ async function joinTeam() {
     const displayName = DOM.displayNameInput.value.trim();
 
     if (!roomCode || !displayName) {
-        showMessage('Please enter both room code and display name.', 'error');
+        showMessage(i18n.t("msgTeamJoinFieldsRequired"), 'error');
         return;
     }
 
@@ -2980,7 +2983,7 @@ async function joinTeam() {
         closeJoinTeamModal();
     } catch (error) {
         console.error('Error calling joinTeam function:', error);
-        showMessage(`Failed to join team: ${error.message}`, 'error');
+        showMessage(i18n.t("msgTeamJoinFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -2991,7 +2994,7 @@ async function editDisplayName() {
     const newDisplayName = DOM.newDisplayNameInput.value.trim();
 
     if (!newDisplayName) {
-        showMessage('Please enter a display name.', 'error');
+        showMessage(i18n.t("msgDisplayNameRequired"), 'error');
         return;
     }
 
@@ -2999,11 +3002,11 @@ async function editDisplayName() {
     try {
         const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
         await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
-        showMessage('Display name updated successfully!', 'success');
+        showMessage(i18n.t("msgDisplayNameUpdated"), 'success');
         closeEditDisplayNameModal();
     } catch (error) {
         console.error('Error updating display name:', error);
-        showMessage(`Failed to update display name: ${error.message}`, 'error');
+        showMessage(i18n.t("msgDisplayNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3013,10 +3016,10 @@ async function leaveTeam(button) {
     try {
         const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
-        showMessage('Successfully left the team.', 'success');
+        showMessage(i18n.t("msgTeamLeftSuccess"), 'success');
     } catch (error) {
         console.error('Error leaving team:', error);
-        showMessage(`Failed to leave team: ${error.message}`, 'error');
+        showMessage(i18n.t("msgTeamLeftFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
     }
@@ -3026,10 +3029,10 @@ async function deleteTeam(button) {
     try {
         const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
-        showMessage('Team deleted successfully.', 'success');
+        showMessage(i18n.t("msgTeamDeletedSuccess"), 'success');
     } catch (error) {
         console.error('Error deleting team:', error);
-        showMessage(`Failed to delete team: ${error.message}`, 'error');
+        showMessage(i18n.t("msgTeamDeleteFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
     }
@@ -3037,9 +3040,9 @@ async function deleteTeam(button) {
 
 function copyRoomCode() {
     navigator.clipboard.writeText(state.currentTeam).then(() => {
-        showMessage('Room code copied to clipboard!', 'success');
+        showMessage(i18n.t("msgRoomCodeCopied"), 'success');
     }).catch(() => {
-        showMessage('Failed to copy room code.', 'error');
+        showMessage(i18n.t("msgRoomCodeCopyFailed"), 'error');
     });
 }
 
@@ -3063,11 +3066,11 @@ async function kickMember() {
     try {
         const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
         await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
-        showMessage('Team member kicked successfully!', 'success');
+        showMessage(i18n.t("msgKickMemberSuccess"), 'success');
         closeKickMemberModal();
     } catch (error) {
         console.error('Error kicking member:', error);
-        showMessage(`Failed to kick member: ${error.message}`, 'error');
+        showMessage(i18n.t("msgKickMemberFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3249,7 +3252,7 @@ function setupDailyViewEventListeners() {
                 tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
 
                 button.classList.add('confirm-action');
-                showMessage('Click again to confirm deletion.', 'info');
+                showMessage(i18n.t("msgClickToConfirm"), 'info');
                 const timeoutId = setTimeout(() => {
                     button.classList.remove('confirm-action');
                 }, 3000);
@@ -3485,7 +3488,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
-        i18n.t('confirmSignOut'),
+        'confirmSignOut',
         appSignOut
     );
 
@@ -3547,7 +3550,7 @@ function setupEventListeners() {
 
                 if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
                     newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                    showMessage(`Viewing search result ${newIndex + 1} of ${state.searchResultDates.length}`, 'info');
+                    showMessage(i18n.t("msgSearchResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
                 } else {
                     // Fallback to standard nav if empty (shouldn't happen due to check)
                      newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
@@ -3609,7 +3612,7 @@ function setupEventListeners() {
 
                  if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
                      newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                     showMessage(`Viewing search result ${newIndex + 1} of ${state.searchResultDates.length}`, 'info');
+                     showMessage(i18n.t("msgSearchResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
                  } else {
                       newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
                  }
@@ -3801,7 +3804,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         DOM.deleteLeaveTypeBtn,
         'deleteLeaveType',
-        i18n.t('confirmDeleteLeaveType'),
+        'confirmDeleteLeaveType',
         deleteLeaveType
     );
     DOM.leaveColorPicker.addEventListener('click', (e) => {
@@ -3833,21 +3836,21 @@ function setupEventListeners() {
     DOM.logNewLeaveBtn.addEventListener('click', () => {
         if (state.isLoggingLeave) {
             setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> Log Leave';
+            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
-            showMessage('Leave logging cancelled.', 'info');
+            showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
             updateView();
         } else {
             const year = state.currentMonth.getFullYear();
             const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
             if (visibleLeaveTypes.length === 0) {
-                showMessage("Please first add leave by clicking on + above the calendar.", 'info');
+                showMessage(i18n.t("msgAddLeaveTypeFirst"), 'info');
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.innerHTML = '<i class="fas fa-times mr-2"></i> Cancel Logging';
+            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
-            showMessage('Select days on the calendar and then a leave type pill.', 'info');
+            showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
     });
 
@@ -3933,7 +3936,7 @@ function setupEventListeners() {
                 });
 
                 deleteBtn.classList.add('confirm-action');
-                showMessage('Click again to confirm deletion.', 'info');
+                showMessage(i18n.t("msgClickToConfirm"), 'info');
                 const timeoutId = setTimeout(() => {
                     deleteBtn.classList.remove('confirm-action');
                 }, 3000);
@@ -3959,7 +3962,7 @@ function setupEventListeners() {
                 const balances = calculateLeaveBalances();
                 const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
                 if (leaveType && balances[leaveData.typeId] < costChange) {
-                    showMessage(`Not enough balance for ${leaveType.name}.`, 'error');
+                    showMessage(i18n.t("msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
                     return;
                 }
             }
@@ -3978,10 +3981,10 @@ function setupEventListeners() {
             try {
                 await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
                 triggerTeamSync();
-                showMessage('Leave day updated!', 'success');
+                showMessage(i18n.t("msgLeaveDayUpdated"), 'success');
             } catch (error) {
                 console.error("Failed to update leave day:", error);
-                showMessage("Failed to save update.", "error");
+                showMessage(i18n.t("msgUpdateSaveFailed"), "error");
             }
 
             updateView();
@@ -4018,7 +4021,7 @@ function setupEventListeners() {
 
         const action = button.id;
 
-        const handleDoubleClick = (actionKey, message, callback) => {
+        const handleDoubleClick = (actionKey, messageKey, callback) => {
             if (button.classList.contains('confirm-action')) {
                 callback(button);
                 button.classList.remove('confirm-action');
@@ -4030,7 +4033,9 @@ function setupEventListeners() {
                 });
 
                 button.classList.add('confirm-action');
-                showMessage(message, 'info');
+                // Check if messageKey looks like a translation key (no spaces)
+                const msg = (messageKey && !messageKey.includes(' ')) ? i18n.t(messageKey) : messageKey;
+                showMessage(msg, 'info');
                 const timeoutId = setTimeout(() => {
                     button.classList.remove('confirm-action');
                 }, 3000);
@@ -4046,13 +4051,13 @@ function setupEventListeners() {
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
             case 'leave-team-btn':
-                handleDoubleClick('leaveTeam', i18n.t('confirmLeaveTeam'), (btn) => {
+                handleDoubleClick('leaveTeam', 'confirmLeaveTeam', (btn) => {
                     setButtonLoadingState(btn, true);
                     leaveTeam(btn);
                 });
                 break;
             case 'delete-team-btn':
-                handleDoubleClick('deleteTeam', i18n.t('confirmDeleteTeam'), (btn) => {
+                handleDoubleClick('deleteTeam', 'confirmDeleteTeam', (btn) => {
                     setButtonLoadingState(btn, true);
                     deleteTeam(btn);
                 });
