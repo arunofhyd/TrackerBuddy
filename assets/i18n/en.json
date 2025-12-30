@@ -98,6 +98,8 @@
     "moveUp": "Move Up",
     "moveDown": "Move Down",
     "edit": "Edit",
+    "migrateDataPrompt": "We found data from your guest session. Would you like to merge it into your account?",
+    "deleteGuestDataPrompt": "Delete guest data? (This action cannot be undone)",
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 }
