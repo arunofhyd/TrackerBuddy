@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "更新の保存に失敗しました。",
     "noneWillBeRemoved": "なし（削除されます）",
     "selectType": "タイプを選択",
-    "shareCodeMessage": "このコードを共有して、チームに招待しましょう。"
+    "teamAdmin": "チーム管理者",
+    "member": "メンバー",
+    "results": "結果"
 }

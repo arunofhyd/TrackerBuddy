@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "บันทึกการอัปเดตไม่สำเร็จ",
     "noneWillBeRemoved": "ไม่มี (จะถูกลบออก)",
     "selectType": "เลือกประเภท",
-    "shareCodeMessage": "แชร์รหัสนี้กับผู้อื่นเพื่อเชิญเข้าร่วมทีมของคุณ"
+    "teamAdmin": "ผู้ดูแลทีม",
+    "member": "สมาชิก",
+    "results": "ผลลัพธ์"
 }

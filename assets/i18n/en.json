@@ -177,5 +177,8 @@
     "msgLeaveDayUpdated": "Leave day updated!",
     "msgUpdateSaveFailed": "Failed to save update.",
     "noneWillBeRemoved": "None (will be removed)",
-    "selectType": "Select Type"
+    "selectType": "Select Type",
+    "teamAdmin": "Team Admin",
+    "member": "Member",
+    "results": "results"
 }

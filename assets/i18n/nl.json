@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "Kon update niet opslaan.",
     "noneWillBeRemoved": "Geen (wordt verwijderd)",
     "selectType": "Selecteer type",
-    "shareCodeMessage": "Deel deze code met anderen om ze uit te nodigen voor je team."
+    "teamAdmin": "Team Beheerder",
+    "member": "Lid",
+    "results": "resultaten"
 }

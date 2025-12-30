@@ -178,5 +178,7 @@
     "msgUpdateSaveFailed": "Error al guardar la actualización.",
     "noneWillBeRemoved": "Ninguno (se eliminará)",
     "selectType": "Seleccionar tipo",
-    "shareCodeMessage": "Comparte este código con otros para invitarlos a tu equipo."
+    "teamAdmin": "Administrador del Equipo",
+    "member": "Miembro",
+    "results": "resultados"
 }
