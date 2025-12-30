@@ -2242,8 +2242,8 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
             <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
                 <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full">Full</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half">Half</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full" data-i18n="full">${i18n.t('full')}</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half" data-i18n="half">${i18n.t('half')}</button>
                 </div>
                 <div class="flex items-center space-x-1 flex-shrink-0">
                     <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
@@ -2594,8 +2594,8 @@ function renderLeaveCustomizationModal() {
                 </div>
                 <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full">Full</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half">Half</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="full">${i18n.t('full')}</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">${i18n.t('half')}</button>
                 </div>
                 <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
                     <i class="fas fa-trash-alt"></i>
@@ -3165,7 +3165,7 @@ function renderTeamDashboard() {
                         </div>
                         <div class="ml-3">
                             <h4 class="font-bold text-base sm:text-lg">${sanitizeHTML(member.displayName)}</h4>
-                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">${isAdmin ? 'Team Admin' : 'Member'}</p>
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-i18n="${isAdmin ? 'teamAdmin' : 'member'}">${isAdmin ? i18n.t('teamAdmin') : i18n.t('member')}</p>
                         </div>
                     </div>
                     <div class="flex items-center">
@@ -3356,7 +3356,7 @@ function performSearch(query) {
                     results.push({
                         type: 'leave',
                         date: dateKey,
-                        content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? 'Full Day' : 'Half Day'})`,
+                        content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? i18n.t('full') : i18n.t('half')})`,
                         formattedDate: formatDateForDisplay(dateKey),
                         color: leaveType.color
                     });
@@ -3405,7 +3405,9 @@ function toggleSearchScope() {
 
     // Update button text
     if (DOM.spotlightScopeLabel) {
-        DOM.spotlightScopeLabel.textContent = newScope === 'year' ? 'Current Year' : 'All Years';
+        const scopeKey = newScope === 'year' ? 'currentYear' : 'allYears';
+        DOM.spotlightScopeLabel.textContent = i18n.t(scopeKey);
+        DOM.spotlightScopeLabel.setAttribute('data-i18n', scopeKey);
     }
 
     performSearch(state.searchQuery);
@@ -3417,15 +3419,17 @@ function renderSearchResults(results) {
     // Sort results for display
     if (state.searchSortOrder === 'newest') {
         results.sort((a, b) => new Date(b.date) - new Date(a.date));
-        DOM.spotlightSortLabel.textContent = "Newest First";
+        DOM.spotlightSortLabel.textContent = i18n.t('newestFirst');
+        DOM.spotlightSortLabel.setAttribute('data-i18n', 'newestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ml-2";
     } else {
         results.sort((a, b) => new Date(a.date) - new Date(b.date));
-        DOM.spotlightSortLabel.textContent = "Oldest First";
+        DOM.spotlightSortLabel.textContent = i18n.t('oldestFirst');
+        DOM.spotlightSortLabel.setAttribute('data-i18n', 'oldestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ml-2";
     }
 
-    DOM.spotlightCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
+    DOM.spotlightCount.textContent = `${results.length} ${i18n.t('results')}`;
 
     if (results.length === 0) {
         DOM.spotlightEmptyState.classList.remove('hidden');
