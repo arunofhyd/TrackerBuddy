@@ -177,6 +177,6 @@
     "msgLeaveDayUpdated": "อัปเดตวันลาแล้ว!",
     "msgUpdateSaveFailed": "บันทึกการอัปเดตไม่สำเร็จ",
     "noneWillBeRemoved": "ไม่มี (จะถูกลบออก)",
-    "selectType": "เลือกประเภท"
+    "selectType": "เลือกประเภท",
     "shareCodeMessage": "แชร์รหัสนี้กับผู้อื่นเพื่อเชิญเข้าร่วมทีมของคุณ"
 }
