@@ -177,6 +177,6 @@
     "msgLeaveDayUpdated": "День отпуска обновлен!",
     "msgUpdateSaveFailed": "Не удалось сохранить обновление.",
     "noneWillBeRemoved": "Нет (будет удалено)",
-    "selectType": "Выберите тип"
+    "selectType": "Выберите тип",
     "shareCodeMessage": "Поделитесь этим кодом с другими, чтобы пригласить их в свою команду."
 }
