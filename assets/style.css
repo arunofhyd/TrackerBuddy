@@ -762,3 +762,15 @@ body.dark .locked-feature-overlay {
 .max-w-xs {
     max-width: 20rem !important;
 }
+
+/* Pending Badge Style */
+.role-badge.pending {
+    background-color: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+}
+body.dark .role-badge.pending {
+    background-color: #7c2d12;
+    color: #fed7aa;
+    border-color: #ea580c;
+}

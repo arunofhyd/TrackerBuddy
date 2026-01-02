@@ -4316,7 +4316,7 @@ function renderAdminUserList(users, searchQuery = '') {
         searchContainer.innerHTML = `
             <div class="relative">
                 <input type="text" id="admin-user-search" placeholder="Search by name or email..."
-                    class="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-none rounded-full text-sm sm:text-base text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all shadow-sm">
+                    class="w-full pl-10 pr-4 py-2 bg-transparent border border-gray-300 dark:border-gray-600 rounded-full text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
@@ -4445,7 +4445,7 @@ function renderAdminUserList(users, searchQuery = '') {
         let roleBadgeHTML;
 
         if (isPending) {
-            roleBadgeHTML = `<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800">Pending Signup</span>`;
+            roleBadgeHTML = `<span class="role-badge pending">Pending Signup</span>`;
         } else if (isSuperAdmin) {
             roleBadgeHTML = '<span class="role-badge owner">OWNER</span>';
         } else {
