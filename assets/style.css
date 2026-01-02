@@ -714,6 +714,10 @@ body.dark .admin-user-item:hover {
     background-color: #fce7f3;
     color: #9d174d;
 }
+.role-badge.owner {
+    background-color: #fef3c7;
+    color: #92400e;
+}
 body.dark .role-badge.standard {
     background-color: #374151;
     color: #e5e7eb;
@@ -725,6 +729,10 @@ body.dark .role-badge.pro {
 body.dark .role-badge.co-admin {
     background-color: #831843;
     color: #fbcfe8;
+}
+body.dark .role-badge.owner {
+    background-color: #78350f;
+    color: #fde68a;
 }
 
 .locked-feature-overlay {
@@ -748,4 +756,9 @@ body.dark .locked-feature-overlay {
     .sm\:inline {
         display: inline !important;
     }
+}
+
+/* Ensure max-w-xs is available */
+.max-w-xs {
+    max-width: 20rem !important;
 }
