@@ -4315,11 +4315,11 @@ function renderAdminUserList(users, searchQuery = '') {
         searchContainer.className = 'mb-4 sticky top-0 bg-gray-100 dark:bg-gray-900 z-10 pt-2 pb-2 px-1 -mx-1'; // Sticky header
         searchContainer.innerHTML = `
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none" style="padding-left: 1rem;">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" id="admin-user-search" placeholder="Search by name or email..."
-                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
+                <input type="text" id="admin-user-search" placeholder="Search by name or email..." style="padding-left: 3.5rem; padding-right: 1rem;"
+                    class="block w-full py-2 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
             </div>
         `;
         // Insert it into the modal body, before the list wrapper.
