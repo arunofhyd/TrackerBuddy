@@ -191,8 +191,13 @@ let state = {
     searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
-    pendingSaveCount: 0
+    pendingSaveCount: 0,
+    // Admin & Role State
+    userRole: 'standard', // 'standard', 'pro', 'co-admin'
+    isAdminDashboardOpen: false
 };
+
+const ADMIN_EMAILS = ['arunthomas04042001@gmail.com'];
 
 // --- State Management ---
 function setState(newState) {
@@ -315,7 +320,11 @@ function initUI() {
         newTeamNameInput: document.getElementById('new-team-name-input'),
         confirmKickModal: document.getElementById('confirm-kick-modal'),
         kickModalText: document.getElementById('kick-modal-text'),
-        exitSearchBtn: document.getElementById('exit-search-btn')
+        exitSearchBtn: document.getElementById('exit-search-btn'),
+        // Admin DOM
+        adminDashboardModal: document.getElementById('admin-dashboard-modal'),
+        adminUserList: document.getElementById('admin-user-list'),
+        closeAdminDashboardBtn: document.getElementById('close-admin-dashboard-btn')
     };
 }
 
@@ -702,13 +711,23 @@ async function subscribeToData(userId, callback) {
         const yearlyData = data.yearlyData || {};
         const currentYearData = yearlyData[year] || { activities: {}, leaveOverrides: {} };
 
+        // Check for legacy isPro or new role field
+        let userRole = data.role || 'standard';
+        if (userRole === 'standard' && data.isPro) {
+            userRole = 'pro';
+        }
+
         setState({
             yearlyData: yearlyData,
             currentYearData: currentYearData,
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
-            teamRole: data.teamRole || null
+            teamRole: data.teamRole || null,
+            userRole: userRole
         });
+
+        // Render admin button if applicable
+        renderAdminButton();
 
         updateView();
 
@@ -2785,6 +2804,39 @@ function renderTeamSection() {
         return;
     }
 
+    // Check for Pro Access
+    // Super Admin (ADMIN_EMAILS) always has access
+    const isSuperAdmin = ADMIN_EMAILS.includes(auth.currentUser?.email);
+    const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
+
+    if (!isPro) {
+        // Locked State
+        const isExpired = !!state.currentTeam;
+        const title = isExpired ? "Pro Subscription Required" : "Pro Feature Locked";
+        const message = isExpired
+            ? "Your access to Team features requires an active Pro subscription. Please upgrade to continue managing your team and shared leave calendars."
+            : "Team management is a premium feature. Upgrade to Pro to create or join teams, manage members, and track shared leave calendars.";
+
+        DOM.teamSection.innerHTML = `
+            <div class="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="p-6 text-center">
+                     <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-2xl text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">${title}</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                        ${message}
+                    </p>
+                    <button class="px-6 py-3 btn-primary rounded-lg font-semibold opacity-50 cursor-not-allowed" disabled>
+                        Upgrade to Pro
+                    </button>
+                </div>
+                <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500"></div>
+            </div>
+        `;
+        return;
+    }
+
     if (!state.currentTeam) {
         // No team - show create/join options
         DOM.teamSection.innerHTML = `
@@ -4008,6 +4060,12 @@ function setupEventListeners() {
     document.getElementById('cancel-edit-team-name-btn').addEventListener('click', closeEditTeamNameModal);
     document.getElementById('save-edit-team-name-btn').addEventListener('click', editTeamName);
 
+    if (DOM.closeAdminDashboardBtn) {
+        DOM.closeAdminDashboardBtn.addEventListener('click', () => {
+            DOM.adminDashboardModal.classList.remove('visible');
+        });
+    }
+
     DOM.teamDashboardContent.addEventListener('click', (e) => {
         const kickBtn = e.target.closest('.kick-member-btn');
         if (kickBtn) {
@@ -4081,6 +4139,128 @@ function exitSearchMode() {
     setState({ searchQuery: '', searchResultDates: [] });
     if (DOM.exitSearchBtn) DOM.exitSearchBtn.classList.remove('visible');
     updateView();
+}
+
+function renderAdminButton() {
+    // Only render if user matches ADMIN_EMAILS
+    if (!auth.currentUser || !ADMIN_EMAILS.includes(auth.currentUser.email)) {
+        const existingBtn = document.getElementById('admin-dashboard-btn');
+        if (existingBtn) existingBtn.remove();
+        return;
+    }
+
+    if (document.getElementById('admin-dashboard-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'admin-dashboard-btn';
+    btn.className = 'inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer';
+    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span>Admin Dashboard</span>`;
+
+    // Insert before the language button or at the start
+    const footer = document.getElementById('main-footer');
+    if (footer) {
+        footer.insertBefore(btn, footer.firstChild);
+        btn.addEventListener('click', openAdminDashboard);
+    }
+}
+
+async function openAdminDashboard() {
+    DOM.adminDashboardModal.classList.add('visible');
+    DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+
+    try {
+        const getAllUsers = httpsCallable(functions, 'getAllUsers');
+        const result = await getAllUsers();
+        renderAdminUserList(result.data.users);
+    } catch (error) {
+        console.error("Failed to load users:", error);
+        DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">Failed to load users: ${error.message}</p>`;
+    }
+}
+
+function renderAdminUserList(users) {
+    DOM.adminUserList.innerHTML = '';
+
+    // Sort: admins first, then pros, then others
+    users.sort((a, b) => {
+        const getScore = (user) => {
+            if (ADMIN_EMAILS.includes(user.email) || user.role === 'co-admin') return 3;
+            if (user.role === 'pro') return 2;
+            return 1;
+        };
+        return getScore(b) - getScore(a);
+    });
+
+    users.forEach(user => {
+        const isSuperAdmin = ADMIN_EMAILS.includes(user.email);
+        const item = document.createElement('div');
+        item.className = 'admin-user-item flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
+
+        const roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
+
+        item.innerHTML = `
+            <div class="flex items-center w-full sm:w-auto">
+                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold mr-3 flex-shrink-0">
+                    ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                </div>
+                <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 dark:text-gray-100 truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
+                    <p class="text-xs text-gray-500 truncate">${sanitizeHTML(user.email)}</p>
+                    <div class="mt-1">
+                        <span class="role-badge ${roleBadgeClass}">${user.role}</span>
+                        ${isSuperAdmin ? '<span class="ml-2 text-xs font-bold text-red-500">MASTER</span>' : ''}
+                    </div>
+                </div>
+            </div>
+            ${!isSuperAdmin ? `
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <div class="flex flex-col gap-2 w-full sm:w-auto">
+                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}">
+                        ${user.role === 'pro' ? 'Revoke Pro' : 'Make Pro'}
+                    </button>
+                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+                            data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}">
+                        ${user.role === 'co-admin' ? 'Revoke Co-Admin' : 'Make Co-Admin'}
+                    </button>
+                </div>
+            </div>
+            ` : ''}
+        `;
+
+        DOM.adminUserList.appendChild(item);
+    });
+
+    // Add event listeners
+    DOM.adminUserList.querySelectorAll('.toggle-role-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const uid = btn.dataset.uid;
+            const targetRole = btn.dataset.role; // 'pro' or 'co-admin'
+            const isCurrent = btn.dataset.current === 'true';
+
+            // If already has this role, we revoke it -> set to 'standard'
+            // If doesn't have it, we set to targetRole
+            const newRole = isCurrent ? 'standard' : targetRole;
+
+            setButtonLoadingState(btn, true);
+
+            try {
+                const updateUserRole = httpsCallable(functions, 'updateUserRole');
+                await updateUserRole({ targetUserId: uid, newRole: newRole });
+
+                // Refresh list
+                const getAllUsers = httpsCallable(functions, 'getAllUsers');
+                const result = await getAllUsers();
+                renderAdminUserList(result.data.users);
+
+                showMessage(`User role updated to ${newRole}`, 'success');
+            } catch (error) {
+                console.error("Failed to update role:", error);
+                showMessage("Failed to update role", 'error');
+                setButtonLoadingState(btn, false);
+            }
+        });
+    });
 }
 
 // --- App Initialization ---

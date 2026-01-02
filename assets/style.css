@@ -675,3 +675,55 @@ body.dark #spotlight-scope-btn {
 .gap-10 {
     gap: 2.5rem;
 }
+
+/* --- Admin Dashboard Styles --- */
+.admin-user-item {
+    transition: background-color 0.2s;
+}
+.admin-user-item:hover {
+    background-color: #f9fafb;
+}
+body.dark .admin-user-item:hover {
+    background-color: #1f2937;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.role-badge.standard {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+.role-badge.pro {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+.role-badge.co-admin {
+    background-color: #fce7f3;
+    color: #9d174d;
+}
+body.dark .role-badge.standard {
+    background-color: #374151;
+    color: #e5e7eb;
+}
+body.dark .role-badge.pro {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+}
+body.dark .role-badge.co-admin {
+    background-color: #831843;
+    color: #fbcfe8;
+}
+
+.locked-feature-overlay {
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 40%, #ffffff 100%);
+}
+body.dark .locked-feature-overlay {
+    background: linear-gradient(180deg, rgba(31,41,55,0) 0%, rgba(31,41,55,0.95) 40%, #1f2937 100%);
+}
