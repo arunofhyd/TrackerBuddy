@@ -195,10 +195,9 @@ let state = {
     // Admin & Role State
     userRole: 'standard', // 'standard', 'pro', 'co-admin'
     isAdminDashboardOpen: false,
-    adminTargetUserId: null
+    adminTargetUserId: null,
+    superAdmins: []
 };
-
-const ADMIN_EMAILS = ['arunthomas04042001@gmail.com'];
 
 // --- State Management ---
 function setState(newState) {
@@ -2815,8 +2814,8 @@ function renderTeamSection() {
     }
 
     // Check for Pro Access
-    // Super Admin (ADMIN_EMAILS) always has access
-    const isSuperAdmin = ADMIN_EMAILS.includes(auth.currentUser?.email);
+    // Super Admin (state.superAdmins) always has access
+    const isSuperAdmin = state.superAdmins.includes(auth.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
     if (!state.currentTeam) {
@@ -2931,7 +2930,7 @@ function renderTeamSection() {
 }
 
 function openCreateTeamModal() {
-    const isSuperAdmin = ADMIN_EMAILS.includes(auth.currentUser?.email);
+    const isSuperAdmin = state.superAdmins.includes(auth.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
     // Reset visibility of content parts
@@ -4204,8 +4203,8 @@ function exitSearchMode() {
 }
 
 function renderAdminButton() {
-    // Only render if user matches ADMIN_EMAILS or is a co-admin
-    const isSuperAdmin = auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email);
+    // Only render if user matches state.superAdmins or is a co-admin
+    const isSuperAdmin = auth.currentUser && state.superAdmins.includes(auth.currentUser.email);
     const isCoAdmin = state.userRole === 'co-admin';
 
     if (!isSuperAdmin && !isCoAdmin) {
@@ -4385,7 +4384,7 @@ function renderAdminUserList(users, searchQuery = '') {
     // Sort: admins first, then pros, then others
     filteredUsers.sort((a, b) => {
         const getScore = (user) => {
-            if (ADMIN_EMAILS.includes(user.email) || user.role === 'co-admin') return 3;
+            if (state.superAdmins.includes(user.email) || user.role === 'co-admin') return 3;
             if (user.role === 'pro') return 2;
             return 1;
         };
@@ -4393,7 +4392,7 @@ function renderAdminUserList(users, searchQuery = '') {
     });
 
     filteredUsers.forEach(user => {
-        const isSuperAdmin = ADMIN_EMAILS.includes(user.email);
+        const isSuperAdmin = state.superAdmins.includes(user.email);
         const item = document.createElement('div');
         item.className = 'admin-user-item flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
 
@@ -4582,6 +4581,7 @@ async function init() {
     } catch (e) {
         console.error("i18n init error:", e);
     }
+    subscribeToAppConfig(); // Start listening for config changes
     setupEventListeners();
     setupDailyViewEventListeners();
     setupColorPicker();
@@ -4670,4 +4670,20 @@ async function revokeProWhitelist(email) {
         console.error("Failed to revoke pro whitelist:", error);
         showMessage("Failed to revoke Pro whitelist.", 'error');
     }
+}
+
+function subscribeToAppConfig() {
+    const configRef = doc(db, "config", "app_config");
+    onSnapshot(configRef, (doc) => {
+        if (doc.exists()) {
+             const data = doc.data();
+             setState({ superAdmins: data.superAdmins || [] });
+        } else {
+             setState({ superAdmins: [] });
+        }
+        renderAdminButton();
+        renderTeamSection(); // Re-render team section as pro status depends on super admin check
+    }, (error) => {
+        console.warn("Could not fetch app config (likely permission issue or missing doc):", error);
+    });
 }
