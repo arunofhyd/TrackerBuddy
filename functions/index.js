@@ -7,7 +7,19 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
-const SUPER_ADMIN_EMAILS = ["arunthomas04042001@gmail.com"];
+// Helper function to get super admins from Firestore config
+async function getSuperAdmins() {
+  try {
+    const doc = await db.collection("config").doc("app_config").get();
+    if (doc.exists && doc.data().superAdmins) {
+      return doc.data().superAdmins;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching super admins:", error);
+    return [];
+  }
+}
 
 // Helper function to delete all documents in a collection or subcollection
 async function deleteCollection(collectionPath, batchSize = 500) {
@@ -158,7 +170,8 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userData = userDoc.exists ? userDoc.data() : {};
 
     let userRole = userData.role || 'standard';
-    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+    const superAdmins = await getSuperAdmins();
+    const isSuperAdmin = superAdmins.includes(userEmail);
 
     if (userRole === 'pro' && userData.proExpiry) {
         const expiryDate = userData.proExpiry.toDate();
@@ -240,7 +253,8 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userData = userDoc.exists ? userDoc.data() : {};
 
     let userRole = userData.role || 'standard';
-    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+    const superAdmins = await getSuperAdmins();
+    const isSuperAdmin = superAdmins.includes(userEmail);
 
     if (userRole === 'pro' && userData.proExpiry) {
         const expiryDate = userData.proExpiry.toDate();
@@ -588,7 +602,8 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
 
     const callerEmail = request.auth.token.email;
     const callerUid = request.auth.uid;
-    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+    const superAdmins = await getSuperAdmins();
+    let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
         const callerDoc = await db.collection("users").doc(callerUid).get();
@@ -669,7 +684,8 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
 
     const callerEmail = request.auth.token.email;
     const callerUid = request.auth.uid;
-    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(callerEmail);
+    const superAdmins = await getSuperAdmins();
+    const isSuperAdmin = superAdmins.includes(callerEmail);
     let isAuthorized = isSuperAdmin;
 
     if (!isAuthorized) {
@@ -692,7 +708,7 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
     if (!isSuperAdmin) {
         try {
             const targetUserRecord = await admin.auth().getUser(targetUserId);
-            if (SUPER_ADMIN_EMAILS.includes(targetUserRecord.email)) {
+            if (superAdmins.includes(targetUserRecord.email)) {
                 throw new HttpsError("permission-denied", "Co-Admins cannot modify Super Admins.");
             }
         } catch (error) {
@@ -732,7 +748,8 @@ exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
 
     const callerEmail = request.auth.token.email;
     const callerUid = request.auth.uid;
-    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+    const superAdmins = await getSuperAdmins();
+    let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
         const callerDoc = await db.collection("users").doc(callerUid).get();
@@ -817,7 +834,8 @@ exports.revokeProWhitelist = onCall({ region: "asia-south1" }, async (request) =
 
     const callerEmail = request.auth.token.email;
     const callerUid = request.auth.uid;
-    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+    const superAdmins = await getSuperAdmins();
+    let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
         const callerDoc = await db.collection("users").doc(callerUid).get();
