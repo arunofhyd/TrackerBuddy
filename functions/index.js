@@ -1,7 +1,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 // Use functions v1 for auth trigger as v2 auth triggers are not fully supported in all environments/emulator consistently or syntax differs
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
