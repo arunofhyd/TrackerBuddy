@@ -4312,11 +4312,15 @@ function renderAdminUserList(users, searchQuery = '') {
     if (!searchContainer) {
         searchContainer = document.createElement('div');
         searchContainer.id = 'admin-search-container';
-        searchContainer.className = 'mb-4 spotlight-input-wrapper';
+        searchContainer.className = 'mb-4 sticky top-0 bg-white dark:bg-gray-900 z-10 pt-2'; // Sticky header
         searchContainer.innerHTML = `
-            <i class="fas fa-search spotlight-icon text-gray-400 text-lg"></i>
-            <input type="text" id="admin-user-search" placeholder="Search by name or email..."
-                class="spotlight-input w-full bg-transparent border-none text-lg text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-0">
+            <div class="relative">
+                <input type="text" id="admin-user-search" placeholder="Search by name or email..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-none rounded-full text-sm sm:text-base text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+            </div>
         `;
         // Insert it into the modal body, before the list wrapper.
         const modalBody = DOM.adminDashboardModal.querySelector('.modal-container > div:last-child');
@@ -4429,6 +4433,9 @@ function renderAdminUserList(users, searchQuery = '') {
 
         // Logic for button text
         let proButtonText = user.role === 'pro' ? 'Revoke Pro' : 'Make Pro';
+        if (isPending && user.role === 'pro') {
+            proButtonText = 'Revoke Invite';
+        }
         if (isExpired && user.role === 'pro') {
             proButtonText = 'Renew Pro';
             roleBadgeClass = 'standard';
@@ -4438,7 +4445,7 @@ function renderAdminUserList(users, searchQuery = '') {
         let roleBadgeHTML;
 
         if (isPending) {
-            roleBadgeHTML = `<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Pending Signup</span>`;
+            roleBadgeHTML = `<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900 dark:text-orange-200 dark:border-orange-800">Pending Signup</span>`;
         } else if (isSuperAdmin) {
             roleBadgeHTML = '<span class="role-badge owner">OWNER</span>';
         } else {
@@ -4475,7 +4482,7 @@ function renderAdminUserList(users, searchQuery = '') {
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
-                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            data-uid="${user.uid}" data-email="${user.email}" data-pending="${isPending}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
                         ${proButtonText}
                     </button>
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
@@ -4494,33 +4501,45 @@ function renderAdminUserList(users, searchQuery = '') {
     DOM.adminUserList.querySelectorAll('.toggle-role-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const uid = btn.dataset.uid;
+            const email = btn.dataset.email;
+            const isPending = btn.dataset.pending === 'true';
             const targetRole = btn.dataset.role; // 'pro' or 'co-admin'
             const isCurrent = btn.dataset.current === 'true';
             const isExpired = btn.dataset.expired === 'true';
 
-            if (targetRole === 'pro' && (!isCurrent || isExpired)) {
-                openProDurationModal(uid);
-                return;
-            }
-
-            // If already has this role, we revoke it -> set to 'standard'
-            // If doesn't have it, we set to targetRole
-            const newRole = isCurrent ? 'standard' : targetRole;
-
             setButtonLoadingState(btn, true);
 
             try {
-                const updateUserRole = httpsCallable(functions, 'updateUserRole');
-                await updateUserRole({ targetUserId: uid, newRole: newRole });
+                if (isPending && targetRole === 'pro') {
+                    // Handle Revoke Invite for pending users
+                    if (isCurrent) { // Only action for pending pro is revoke
+                        await revokeProWhitelist(email);
+                    }
+                } else {
+                    if (targetRole === 'pro' && (!isCurrent || isExpired)) {
+                        openProDurationModal(uid);
+                        setButtonLoadingState(btn, false);
+                        return;
+                    }
 
-                // Refresh list via helper to maintain search logic capability if we expanded it later
-                await refreshAdminUserList();
+                    // If already has this role, we revoke it -> set to 'standard'
+                    // If doesn't have it, we set to targetRole
+                    const newRole = isCurrent ? 'standard' : targetRole;
 
-                showMessage(`User role updated to ${newRole}`, 'success');
+                    const updateUserRole = httpsCallable(functions, 'updateUserRole');
+                    await updateUserRole({ targetUserId: uid, newRole: newRole });
+
+                    // Refresh list via helper to maintain search logic capability if we expanded it later
+                    await refreshAdminUserList();
+
+                    showMessage(`User role updated to ${newRole}`, 'success');
+                }
             } catch (error) {
                 console.error("Failed to update role:", error);
                 showMessage("Failed to update role", 'error');
-                setButtonLoadingState(btn, false);
+            } finally {
+                // Ensure loading state is cleared if not re-rendered
+                // If re-rendered, this element is gone anyway.
             }
         });
     });
@@ -4637,3 +4656,18 @@ function mergeUserData(cloudState, guestData) {
     };
 }
 window.renderAdminUserList = renderAdminUserList; window.openAdminDashboard = openAdminDashboard;
+
+// Helper to call backend for revoking pro whitelist
+async function revokeProWhitelist(email) {
+    if (!email) return;
+    try {
+        const revokePro = httpsCallable(functions, 'revokeProWhitelist');
+        const result = await revokePro({ email });
+        showMessage(result.data.message, 'success');
+        // Refresh list
+        await refreshAdminUserList();
+    } catch (error) {
+        console.error("Failed to revoke pro whitelist:", error);
+        showMessage("Failed to revoke Pro whitelist.", 'error');
+    }
+}

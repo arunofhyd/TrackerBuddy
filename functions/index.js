@@ -786,7 +786,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.auth.user().onCreate(async (user) => {
+exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().onCreate(async (user) => {
     const email = user.email;
     if (!email) return;
 
@@ -807,5 +807,39 @@ exports.checkProWhitelistOnSignup = functions.auth.user().onCreate(async (user) 
         }
     } catch (error) {
         console.error(`Error processing whitelist for new user ${email}:`, error);
+    }
+});
+
+exports.revokeProWhitelist = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const callerEmail = request.auth.token.email;
+    const callerUid = request.auth.uid;
+    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+
+    if (!isAuthorized) {
+        const callerDoc = await db.collection("users").doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+            isAuthorized = true;
+        }
+    }
+
+    if (!isAuthorized) {
+        throw new HttpsError("permission-denied", "Not authorized.");
+    }
+
+    const email = request.data.email;
+    if (!email) {
+        throw new HttpsError("invalid-argument", "Email is required.");
+    }
+
+    try {
+        await db.collection("pro_whitelist").doc(email).delete();
+        return { message: "User removed from Pro whitelist." };
+    } catch (error) {
+        console.error("Error revoking pro whitelist:", error);
+        throw new HttpsError("internal", "Failed to revoke pro whitelist.");
     }
 });
