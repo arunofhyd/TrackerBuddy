@@ -6,6 +6,8 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
+const SUPER_ADMIN_EMAILS = ["arunthomas04042001@gmail.com"];
+
 // Helper function to delete all documents in a collection or subcollection
 async function deleteCollection(collectionPath, batchSize = 500) {
     const collectionRef = db.collection(collectionPath);
@@ -161,6 +163,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   const { teamName, displayName } = request.data;
   const userId = request.auth.uid;
+  const userEmail = request.auth.token.email;
 
   if (!teamName || !displayName) {
     throw new HttpsError("invalid-argument", "Please provide a valid team name and display name.");
@@ -184,6 +187,15 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userDoc = await userRef.get();
     // Allow missing user doc, treat as new/empty user
     const userData = userDoc.exists ? userDoc.data() : {};
+
+    // Check for Pro/Co-Admin Status
+    const userRole = userData.role || 'standard';
+    const isPro = userRole === 'pro' || userRole === 'co-admin' || userData.isPro === true;
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+
+    if (!isPro && !isSuperAdmin) {
+        throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
+    }
 
     await db.runTransaction(async (transaction) => {
       // Re-fetch user in transaction for consistency check
@@ -249,6 +261,7 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   const { roomCode, displayName } = request.data;
   const userId = request.auth.uid;
+  const userEmail = request.auth.token.email;
 
   if (!roomCode || roomCode.length !== 8 || !displayName) {
     throw new HttpsError("invalid-argument", "Please provide a valid room code and display name.");
@@ -261,6 +274,15 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userDoc = await userRef.get();
     // Allow missing user doc, treat as new/empty user
     const userData = userDoc.exists ? userDoc.data() : {};
+
+    // Check for Pro/Co-Admin Status
+    const userRole = userData.role || 'standard';
+    const isPro = userRole === 'pro' || userRole === 'co-admin' || userData.isPro === true;
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+
+    if (!isPro && !isSuperAdmin) {
+        throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
+    }
 
     await db.runTransaction(async (transaction) => {
       // Re-fetch user in transaction for consistency check
@@ -631,4 +653,84 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
     });
 
     await Promise.all(promises);
+});
+
+// --- ADMIN FUNCTIONS ---
+
+/**
+ * Fetches all users for the Admin Dashboard.
+ * Restricted to the Super Admin.
+ */
+exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth || !SUPER_ADMIN_EMAILS.includes(request.auth.token.email)) {
+        throw new HttpsError("permission-denied", "Not authorized.");
+    }
+
+    try {
+        // Fetch all users from Auth (limit 1000 for simplicity)
+        const listUsersResult = await admin.auth().listUsers(1000);
+        const users = listUsersResult.users.map(u => ({
+            uid: u.uid,
+            email: u.email,
+            displayName: u.displayName,
+            photoURL: u.photoURL,
+            creationTime: u.metadata.creationTime,
+            lastSignInTime: u.metadata.lastSignInTime
+        }));
+
+        // Fetch all user docs from Firestore to get roles
+        // We use a batched approach or just fetch all 'users' collection for now (assuming manageable size)
+        const usersSnapshot = await db.collection("users").get();
+        const firestoreData = {};
+        usersSnapshot.forEach(doc => {
+            firestoreData[doc.id] = doc.data();
+        });
+
+        // Merge Auth and Firestore data
+        const combined = users.map(u => {
+            const data = firestoreData[u.uid] || {};
+            return {
+                ...u,
+                role: data.role || 'standard',
+                isPro: data.isPro || false, // Legacy or redundant if role is used
+                teamId: data.teamId
+            };
+        });
+
+        return { users: combined };
+
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        throw new HttpsError("internal", "Failed to fetch users.");
+    }
+});
+
+/**
+ * Updates a user's role.
+ * Restricted to the Super Admin.
+ */
+exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth || !SUPER_ADMIN_EMAILS.includes(request.auth.token.email)) {
+        throw new HttpsError("permission-denied", "Not authorized.");
+    }
+
+    const { targetUserId, newRole } = request.data;
+
+    // Validate role
+    if (!['standard', 'pro', 'co-admin'].includes(newRole)) {
+        throw new HttpsError("invalid-argument", "Invalid role.");
+    }
+
+    try {
+        await db.collection("users").doc(targetUserId).set({
+            role: newRole,
+            // Automatically sync legacy isPro field if desired
+            isPro: (newRole === 'pro' || newRole === 'co-admin')
+        }, { merge: true });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating user role:", error);
+        throw new HttpsError("internal", "Failed to update role.");
+    }
 });
