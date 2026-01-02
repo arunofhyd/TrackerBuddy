@@ -62,11 +62,11 @@ class TranslationService {
             this.currentLang = supportedCodes.includes(userLang) ? userLang : 'en';
         }
 
-    try {
-        await this.loadTranslations(this.currentLang);
-    } catch (e) {
-        console.error("Init translation failed", e);
-    }
+        try {
+            await this.loadTranslations(this.currentLang);
+        } catch (e) {
+            console.error("Init translation failed", e);
+        }
         this.translatePage();
     }
 
@@ -88,17 +88,17 @@ class TranslationService {
         }
     }
 
-    t(key) {
-        return this.translations[key] || key;
+    t(key, params = {}) {
+        let text = this.translations[key] || key;
+        Object.keys(params).forEach(param => {
+            text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
+        });
+        return text;
     }
 
     translatePage() {
         document.documentElement.lang = this.currentLang;
-        if (this.currentLang === 'ar') {
-            document.documentElement.dir = 'rtl';
-        } else {
-            document.documentElement.dir = 'ltr';
-        }
+        document.documentElement.dir = this.currentLang === 'ar' ? 'rtl' : 'ltr';
 
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
@@ -110,6 +110,24 @@ class TranslationService {
             const key = el.dataset.i18nPlaceholder;
             if (this.translations[key]) {
                 el.placeholder = this.translations[key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+            const key = el.dataset.i18nAriaLabel;
+            if (this.translations[key]) {
+                el.setAttribute('aria-label', this.translations[key]);
+            }
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.dataset.i18nTitle;
+            if (this.translations[key]) {
+                el.title = this.translations[key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+            const key = el.dataset.i18nAlt;
+            if (this.translations[key]) {
+                el.alt = this.translations[key];
             }
         });
         updateView();
@@ -418,11 +436,7 @@ async function handleUserLogin(user) {
                 
                 if (hasData) {
                     // Use a simple confirm for now as per requirements
-                    // Handle fallback if translation key returns itself (missing translation)
-                    let promptMsg = i18n.t('migrateDataPrompt');
-                    if (promptMsg === 'migrateDataPrompt') {
-                        promptMsg = "We found data from your guest session. Would you like to merge it into your account?";
-                    }
+                    const promptMsg = i18n.t('migrateDataPrompt');
 
                     if (confirm(promptMsg)) {
                         try {
@@ -439,10 +453,7 @@ async function handleUserLogin(user) {
                         }
                     } else {
                         // User declined, clear local data to stop asking
-                        let deleteMsg = i18n.t('deleteGuestDataPrompt');
-                        if (deleteMsg === 'deleteGuestDataPrompt') {
-                            deleteMsg = "Delete guest data? (This action cannot be undone)";
-                        }
+                        const deleteMsg = i18n.t('deleteGuestDataPrompt');
                         if (confirm(deleteMsg)) {
                             localStorage.removeItem('guestUserData');
                         }
@@ -875,7 +886,7 @@ function handleAddSlot(dayDataCopy) {
     const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
     dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
     delete dayDataCopy._userCleared;
-    return { message: "New slot added!", newTimeKey };
+    return { message: i18n.t("newSlotAdded"), newTimeKey };
 }
 
 function handleUpdateActivityText(dayDataCopy, payload) {
@@ -886,7 +897,7 @@ function handleUpdateActivityText(dayDataCopy, payload) {
         dayDataCopy[payload.timeKey] = { text: payload.newText, order };
     }
     delete dayDataCopy._userCleared;
-    return "Activity updated!";
+    return i18n.t("activityUpdated");
 }
 
 function handleUpdateTime(dayDataCopy, payload) {
@@ -904,7 +915,7 @@ function handleUpdateTime(dayDataCopy, payload) {
         dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
         delete dayDataCopy[oldTimeKey];
     }
-    return "Time updated!";
+    return i18n.t("timeUpdated");
 }
 
 // FIX: Update saveData to work with multi-year structure and granular updates
@@ -3174,7 +3185,7 @@ function renderTeamDashboard() {
         }
     });
     if (!state.teamMembers || state.teamMembers.length === 0) {
-        DOM.teamDashboardContent.innerHTML = '<p class="text-center text-gray-500">Loading team data...</p>';
+        DOM.teamDashboardContent.innerHTML = `<p class="text-center text-gray-500">${i18n.t('loadingTeamData')}</p>`;
         return;
     }
 
@@ -4188,7 +4199,7 @@ function setupEventListeners() {
         document.getElementById('pro-save-date-btn').addEventListener('click', async () => {
             const dateVal = document.getElementById('pro-expiry-date').value;
             if (!dateVal) {
-                showMessage("Please select a date", "error");
+                showMessage(i18n.t("pleaseSelectDate"), "error");
                 return;
             }
             await setProStatus(state.adminTargetUserId, dateVal);
@@ -4218,7 +4229,7 @@ function renderAdminButton() {
     const btn = document.createElement('button');
     btn.id = 'admin-dashboard-btn';
     btn.className = 'inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer';
-    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline">Admin Dashboard</span>`;
+    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline">${i18n.t("adminDashboard")}</span>`;
 
     // Insert before the language button or at the start
     const footer = document.getElementById('main-footer');
@@ -4262,7 +4273,7 @@ async function setProStatus(targetUserId, expiryDate) {
         if (modal) modal.classList.remove('visible');
     } catch (error) {
         console.error("Failed to set pro status:", error);
-        showMessage("Failed to update role", 'error');
+        showMessage(i18n.t("failedToUpdateRole"), 'error');
     } finally {
         if (modal) {
             const btnId = expiryDate ? 'pro-save-date-btn' : 'pro-till-revoked-btn';
@@ -4284,7 +4295,7 @@ async function grantProByEmail(email) {
         await refreshAdminUserList();
     } catch (error) {
         console.error("Failed to grant pro by email:", error);
-        showMessage("Failed to grant Pro access.", 'error');
+        showMessage(i18n.t("failedToGrantPro"), 'error');
     }
 }
 
@@ -4296,7 +4307,7 @@ async function refreshAdminUserList() {
         renderAdminUserList(result.data.users);
     } catch (error) {
         console.error("Failed to load users:", error);
-        DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">Failed to load users: ${error.message}</p>`;
+        DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('failedToLoadUsers', {error: error.message})}</p>`;
     }
 }
 
@@ -4317,7 +4328,7 @@ function renderAdminUserList(users, searchQuery = '') {
                 <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none" style="padding-left: 1rem;">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" id="admin-user-search" placeholder="Search by name or email..." style="padding-left: 3.5rem; padding-right: 1rem;"
+                <input type="text" id="admin-user-search" placeholder="${i18n.t('searchUserPlaceholder')}" style="padding-left: 3.5rem; padding-right: 1rem;"
                     class="block w-full py-2 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
             </div>
         `;
@@ -4359,12 +4370,10 @@ function renderAdminUserList(users, searchQuery = '') {
         grantCard.className = 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 flex justify-between items-center';
         grantCard.innerHTML = `
             <div>
-                <p class="font-medium text-blue-800 dark:text-blue-300">User not found</p>
-                <p class="text-sm text-blue-600 dark:text-blue-400">Grant Pro access to <strong>${sanitizeHTML(searchQuery)}</strong>?</p>
+                <p class="font-medium text-blue-800 dark:text-blue-300">${i18n.t('userNotFound')}</p>
+                <p class="text-sm text-blue-600 dark:text-blue-400">${i18n.t('grantProAccessTo', {email: sanitizeHTML(searchQuery)})}</p>
             </div>
-            <button id="grant-pro-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                Grant Pro Access
-            </button>
+            <button id="grant-pro-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">${i18n.t('grantProAccess')}</button>
         `;
         DOM.adminUserList.appendChild(grantCard);
 
@@ -4377,7 +4386,7 @@ function renderAdminUserList(users, searchQuery = '') {
     }
 
     if (filteredUsers.length === 0 && !isEmail) {
-        DOM.adminUserList.innerHTML += `<p class="text-center text-gray-500 py-4">No users found.</p>`;
+        DOM.adminUserList.innerHTML += `<p class="text-center text-gray-500 py-4">${i18n.t('noUsersFound')}</p>`;
         return;
     }
 
@@ -4419,24 +4428,24 @@ function renderAdminUserList(users, searchQuery = '') {
                     const expiryDate = new Date(user.proExpiry);
                     if (expiryDate < new Date()) {
                         isExpired = true;
-                        proExpiryText = `<span class="text-red-500 font-bold">Expired</span>`;
+                        proExpiryText = `<span class="text-red-500 font-bold">${i18n.t('expired')}</span>`;
                     } else {
                         const expiry = expiryDate.toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
-                        proExpiryText = `Exp: ${expiry}`;
+                        proExpiryText = `${i18n.t('expLabel')} ${expiry}`;
                     }
                 } else if (user.role === 'pro') {
-                     proExpiryText = 'Till Revoked';
+                     proExpiryText = i18n.t('tillRevoked');
                 }
              } catch(e) {}
         }
 
         // Logic for button text
-        let proButtonText = user.role === 'pro' ? 'Revoke Pro' : 'Make Pro';
+        let proButtonText = user.role === 'pro' ? i18n.t('revokePro') : i18n.t('makePro');
         if (isPending && user.role === 'pro') {
-            proButtonText = 'Revoke Invite';
+            proButtonText = i18n.t('revokeInvite');
         }
         if (isExpired && user.role === 'pro') {
-            proButtonText = 'Renew Pro';
+            proButtonText = i18n.t('renewPro');
             roleBadgeClass = 'standard';
         }
 
@@ -4444,9 +4453,9 @@ function renderAdminUserList(users, searchQuery = '') {
         let roleBadgeHTML;
 
         if (isPending) {
-            roleBadgeHTML = `<span class="role-badge pending">Pending Signup</span>`;
+            roleBadgeHTML = `<span class="role-badge pending">${i18n.t('pendingSignup')}</span>`;
         } else if (isSuperAdmin) {
-            roleBadgeHTML = '<span class="role-badge owner">OWNER</span>';
+            roleBadgeHTML = `<span class="role-badge owner">${i18n.t('owner')}</span>`;
         } else {
             roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}">${displayRole}</span>`;
         }
@@ -4468,11 +4477,11 @@ function renderAdminUserList(users, searchQuery = '') {
             <!-- Date Stack (Tiny) -->
             <div class="flex flex-col items-end mr-2 sm:mr-4 min-w-[80px]" style="font-size: 10px;">
                 <div class="text-gray-400 text-right">
-                    <span class="font-medium text-gray-500">Joined:</span> ${memberSince}
+                    <span class="font-medium text-gray-500">${i18n.t('joined')}</span> ${memberSince}
                 </div>
                 ${proSinceDate ? `
                 <div class="text-gray-400 mt-1 text-right">
-                    <span class="font-medium text-blue-500">Pro:</span> ${proSinceDate}
+                    <span class="font-medium text-blue-500">${i18n.t('proLabel')}</span> ${proSinceDate}
                     ${proExpiryText ? `<div class="text-gray-300" style="font-size: 9px;">${proExpiryText}</div>` : ''}
                 </div>` : ''}
             </div>
@@ -4486,7 +4495,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     </button>
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
-                        ${user.role === 'co-admin' ? 'Revoke Co-Admin' : 'Make Co-Admin'}
+                        ${user.role === 'co-admin' ? i18n.t('revokeCoAdmin') : i18n.t('makeCoAdmin')}
                     </button>
                 </div>
             </div>
@@ -4531,11 +4540,11 @@ function renderAdminUserList(users, searchQuery = '') {
                     // Refresh list via helper to maintain search logic capability if we expanded it later
                     await refreshAdminUserList();
 
-                    showMessage(`User role updated to ${newRole}`, 'success');
+                    showMessage(i18n.t('userRoleUpdated', {role: newRole}), 'success');
                 }
             } catch (error) {
                 console.error("Failed to update role:", error);
-                showMessage("Failed to update role", 'error');
+                showMessage(i18n.t("failedToUpdateRole"), 'error');
             } finally {
                 // Ensure loading state is cleared if not re-rendered
                 // If re-rendered, this element is gone anyway.
@@ -4668,7 +4677,7 @@ async function revokeProWhitelist(email) {
         await refreshAdminUserList();
     } catch (error) {
         console.error("Failed to revoke pro whitelist:", error);
-        showMessage("Failed to revoke Pro whitelist.", 'error');
+        showMessage(i18n.t("failedToRevokeProWhitelist"), 'error');
     }
 }
 
