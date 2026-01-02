@@ -4312,12 +4312,12 @@ function renderAdminUserList(users, searchQuery = '') {
     if (!searchContainer) {
         searchContainer = document.createElement('div');
         searchContainer.id = 'admin-search-container';
-        searchContainer.className = 'mb-4 sticky top-0 bg-white dark:bg-gray-900 z-10 pt-2'; // Sticky header
+        searchContainer.className = 'mb-4 sticky top-0 bg-white dark:bg-gray-800 z-10 pt-2'; // Sticky header
         searchContainer.innerHTML = `
             <div class="relative">
                 <input type="text" id="admin-user-search" placeholder="Search by name or email..."
-                    class="w-full pl-10 pr-4 py-2 bg-transparent border border-gray-300 dark:border-gray-600 rounded-full text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    class="w-full pl-14 pr-4 py-2 bg-transparent border border-gray-300 dark:border-gray-600 rounded-full text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 transition-all">
+                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
             </div>
