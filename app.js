@@ -4306,7 +4306,7 @@ function renderAdminUserList(users) {
         const item = document.createElement('div');
         item.className = 'admin-user-item flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
 
-        const roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
+        let roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
 
         // Format Member Since date
         let memberSince = '-';
@@ -4343,7 +4343,10 @@ function renderAdminUserList(users) {
         let proButtonText = user.role === 'pro' ? 'Revoke Pro' : 'Make Pro';
         if (isExpired && user.role === 'pro') {
             proButtonText = 'Renew Pro';
+            roleBadgeClass = 'standard';
         }
+
+        const displayRole = (isExpired && user.role === 'pro') ? 'standard' : user.role;
 
         item.innerHTML = `
             <div class="flex items-center flex-grow min-w-0 mr-2">
@@ -4354,7 +4357,7 @@ function renderAdminUserList(users) {
                     <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
                     <p class="text-gray-500 truncate" style="font-size: 10px;">${sanitizeHTML(user.email)}</p>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="role-badge ${roleBadgeClass}">${user.role}</span>
+                        <span class="role-badge ${roleBadgeClass}">${displayRole}</span>
                         ${isSuperAdmin ? '<span class="font-bold text-red-500" style="font-size: 10px;">MASTER</span>' : ''}
                     </div>
                 </div>
