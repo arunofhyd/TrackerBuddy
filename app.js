@@ -2818,16 +2818,16 @@ function renderTeamSection() {
             : "Team management is a premium feature. Upgrade to Pro to create or join teams, manage members, and track shared leave calendars.";
 
         DOM.teamSection.innerHTML = `
-            <div class="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <div class="p-6 text-center">
                      <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-crown text-2xl text-blue-600 dark:text-blue-400"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-2">${title}</h3>
+                    <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">${title}</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                         ${message}
                     </p>
-                    <button class="px-6 py-3 btn-primary rounded-lg font-semibold opacity-50 cursor-not-allowed" disabled>
+                    <button class="px-6 py-3 btn-primary rounded-lg font-semibold transform hover:scale-105 transition-transform" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
                         Upgrade to Pro
                     </button>
                 </div>

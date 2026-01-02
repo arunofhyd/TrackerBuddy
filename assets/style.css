@@ -679,12 +679,18 @@ body.dark #spotlight-scope-btn {
 /* --- Admin Dashboard Styles --- */
 .admin-user-item {
     transition: background-color 0.2s;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
 }
 .admin-user-item:hover {
     background-color: #f9fafb;
 }
-body.dark .admin-user-item:hover {
+body.dark .admin-user-item {
     background-color: #1f2937;
+    border-color: #374151;
+}
+body.dark .admin-user-item:hover {
+    background-color: #374151;
 }
 
 .role-badge {
