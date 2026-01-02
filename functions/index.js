@@ -1,6 +1,7 @@
-// Use the explicit v2 import for https functions
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+// Use functions v1 for auth trigger as v2 auth triggers are not fully supported in all environments/emulator consistently or syntax differs
+const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -28,31 +29,23 @@ async function deleteCollection(collectionPath, batchSize = 500) {
 }
 
 // Helper function to calculate and save member summary
-// This is used by syncTeamMemberSummary, joinTeam, and createTeam
 async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInfo) {
     if (!userData || !teamId || !memberInfo) {
         console.log(`Missing data for summary calculation for user ${userId}`);
         return;
     }
 
-    // --- DATA STRUCTURE MIGRATION (Server-Side) ---
-    // 1. Get a mutable copy of the latest yearlyData.
     let yearlyData = userData.yearlyData ? JSON.parse(JSON.stringify(userData.yearlyData)) : {};
 
-    // 2. Check for and migrate old flat 'activities' data.
     if (userData.activities && Object.keys(userData.activities).length > 0) {
         const currentYear = new Date().getFullYear().toString();
-
-        // If there's no data for the current year in the new structure, assume the old 'activities' belongs there.
         if (!yearlyData.hasOwnProperty(currentYear)) {
-                // Deep clone and insert the old flat structure under the current year
             yearlyData[currentYear] = {
                 activities: userData.activities ? JSON.parse(JSON.stringify(userData.activities)) : {},
                 leaveOverrides: {}
             };
         }
     }
-    // --- END MIGRATION ---
 
     const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
     const leaveTypes = userData.leaveTypes || [];
@@ -61,28 +54,21 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
     const yearlyLeaveBalances = {};
     const systemYear = new Date().getFullYear().toString();
 
-    // Determine all relevant years: all years with data, plus the current system year (if leave types exist)
     const relevantYears = new Set(Object.keys(yearlyData));
     if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
-        // Add current system year to ensure we calculate 0 balance for future use
         relevantYears.add(systemYear);
     }
 
-    // Loop through all relevant years
     for (const year of relevantYears) {
-
         const yearData = yearlyData[year] || {};
         const activities = yearData.activities || {};
         const overrides = yearData.leaveOverrides || {};
 
         const leaveCounts = {};
-
-        // Initialize counts for all global leave types
         leaveTypes.forEach(lt => {
             leaveCounts[lt.id] = 0;
         });
 
-        // Calculate used leave days from activities
         Object.values(activities).forEach(dayData => {
             if (dayData && dayData.leave && typeof dayData.leave === 'object' && dayData.leave.typeId) {
                 const leaveInfo = dayData.leave;
@@ -94,18 +80,11 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
         });
 
         const leaveBalancesForYear = {};
-
-        // Finalize balances for this year
         leaveTypes.forEach(lt => {
-            // Skip leave types that are marked as hidden for this specific year.
             if (overrides[lt.id]?.hidden) return;
-
-            // Use the year-specific totalDays if it exists, otherwise fall back to the global totalDays.
             const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
             const used = leaveCounts[lt.id] || 0;
 
-            // Only include this leave type in the summary if it's configured for the year (totalDays > 0)
-            // OR if there is an override defined.
             if (totalDays > 0 || overrides[lt.id]) {
                 leaveBalancesForYear[lt.id] = {
                     name: lt.name,
@@ -117,11 +96,10 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
             }
         });
 
-        // Only save the year's balance if leave types exist for it
         if (Object.keys(leaveBalancesForYear).length > 0) {
             yearlyLeaveBalances[year] = leaveBalancesForYear;
         }
-    } // end for loop
+    }
 
     const summaryData = {
         userId: userId,
@@ -133,29 +111,22 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
 
     try {
         await summaryRef.set(summaryData, { merge: true });
-        console.log(`Updated summary for user ${userId} in team ${teamId}`);
     } catch (error) {
         console.error("Error setting summary for user:", error);
         throw error;
     }
 }
 
-// Helper function to delete member summary
 async function deleteMemberSummary(userId, teamId) {
     if (!userId || !teamId) return;
     const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
     try {
         await summaryRef.delete();
-        console.log(`Deleted summary for user ${userId} from team ${teamId}`);
     } catch (error) {
         console.error("Error deleting summary:", error);
     }
 }
 
-
-/**
- * Creates a new team with the authenticated user as the admin.
- */
 exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
@@ -169,7 +140,6 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     throw new HttpsError("invalid-argument", "Please provide a valid team name and display name.");
   }
 
-  // Generate a unique 8-character room code
   const generateRoomCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -185,14 +155,11 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   try {
     const userDoc = await userRef.get();
-    // Allow missing user doc, treat as new/empty user
     const userData = userDoc.exists ? userDoc.data() : {};
 
-    // Check for Pro/Co-Admin Status
     let userRole = userData.role || 'standard';
     const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
 
-    // Check expiry
     if (userRole === 'pro' && userData.proExpiry) {
         const expiryDate = userData.proExpiry.toDate();
         if (expiryDate < new Date()) {
@@ -207,10 +174,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     }
 
     await db.runTransaction(async (transaction) => {
-      // Re-fetch user in transaction for consistency check
       const tUserDoc = await transaction.get(userRef);
-      
-      // Check if already in team (only if doc exists)
       if (tUserDoc.exists && tUserDoc.data().teamId) {
         throw new HttpsError("already-exists", "You are already in a team.");
       }
@@ -238,11 +202,6 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
       }, { merge: true });
     });
 
-    // Post-transaction: Create initial summary for the admin
-    // We fetch fresh data or use existing if acceptable. Using existing userData for speed.
-    // Note: Transaction ensures team existence, but we do summary update outside transaction
-    // to avoid complexity, or we could assume eventual consistency.
-    // However, for immediate dashboard access, we should do it here.
     const memberInfo = {
         userId: userId,
         displayName: displayName,
@@ -260,9 +219,6 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-/**
- * Allows an authenticated user to join an existing team.
- */
 exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to join a team.");
@@ -281,14 +237,11 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
 
   try {
     const userDoc = await userRef.get();
-    // Allow missing user doc, treat as new/empty user
     const userData = userDoc.exists ? userDoc.data() : {};
 
-    // Check for Pro/Co-Admin Status
     let userRole = userData.role || 'standard';
     const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
 
-    // Check expiry
     if (userRole === 'pro' && userData.proExpiry) {
         const expiryDate = userData.proExpiry.toDate();
         if (expiryDate < new Date()) {
@@ -303,10 +256,7 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
     }
 
     await db.runTransaction(async (transaction) => {
-      // Re-fetch user in transaction for consistency check
       const tUserDoc = await transaction.get(userRef);
-
-      // Check if already in team (only if doc exists)
       if (tUserDoc.exists && tUserDoc.data().teamId) {
          throw new HttpsError("already-exists", "You are already in a team.");
       }
@@ -339,7 +289,6 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
       }, { merge: true });
     });
 
-    // Create summary for the new member
     const memberInfo = {
         userId: userId,
         displayName: displayName,
@@ -357,9 +306,6 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-/**
- * Allows a team member to edit their own display name.
- */
 exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -391,9 +337,6 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   return { status: "success", message: "Display name updated!" };
 });
 
-/**
- * Allows a team admin to edit the team name.
- */
 exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -424,9 +367,6 @@ exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
     return { status: "success", message: "Team name updated!" };
 });
 
-/**
- * Allows a member to leave a team. The admin cannot leave.
- */
 exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -461,16 +401,11 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   }, { merge: true });
 
   await batch.commit();
-
-  // Delete the summary
   await deleteMemberSummary(userId, teamId);
 
   return { status: "success", message: "You have left the team." };
 });
 
-/**
- * Allows a team admin to delete the entire team.
- */
 exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -494,30 +429,23 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
         throw new HttpsError("permission-denied", "Only the team admin can delete the team.");
     }
 
-    // Recursively delete the member_summaries subcollection.
     const summaryCollectionPath = `teams/${teamId}/member_summaries`;
     await deleteCollection(summaryCollectionPath);
-
 
     const members = teamDoc.data().members || {};
     const finalBatch = db.batch();
 
-    // Remove team info from all member documents
     Object.keys(members).forEach(memberId => {
         const userRef = db.collection("users").doc(memberId);
         finalBatch.set(userRef, { teamId: null, teamRole: null }, { merge: true });
     });
 
-    // Delete the team document itself
     finalBatch.delete(teamRef);
 
     await finalBatch.commit();
     return { status: "success", message: "Team deleted successfully." };
 });
 
-/**
- * Allows a team admin to kick a member from the team.
- */
 exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
     const { teamId, memberId } = request.data;
     const callerId = request.auth?.uid;
@@ -549,21 +477,15 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
         }
 
         const batch = db.batch();
-
-        // a. Remove the member from the team's 'members' map.
         batch.update(teamRef, {
             [`members.${memberId}`]: admin.firestore.FieldValue.delete()
         });
-
-        // b. Reset the team information on the kicked member's user document.
         batch.set(memberRef, {
             teamId: null,
             teamRole: null
         }, { merge: true });
 
         await batch.commit();
-
-        // Delete the summary
         await deleteMemberSummary(memberId, teamId);
 
         return { success: true, message: "Team member successfully kicked." };
@@ -578,11 +500,6 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-/**
- * Manually synchronizes the team member summary.
- * Call this function from the client when leave data changes.
- * Replacing the expensive background trigger.
- */
 exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -600,19 +517,16 @@ exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request
     const teamId = userData.teamId;
 
     if (!teamId) {
-        // User is not in a team, nothing to update.
         return { status: "no-team", message: "User is not in a team." };
     }
 
     const teamDoc = await db.collection("teams").doc(teamId).get();
     if (!teamDoc.exists) {
-        // Team ID exists in user doc but team is gone. Should self-repair ideally.
         return { status: "team-missing", message: "Team not found." };
     }
 
     const memberInfo = teamDoc.data()?.members?.[userId];
     if (!memberInfo) {
-        // User thinks they are in team, but team doesn't list them.
         return { status: "not-member", message: "User not in team members list." };
     }
 
@@ -620,18 +534,12 @@ exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request
     return { status: "success", message: "Summary synced." };
 });
 
-/**
- * Updates a team member's summary document when their team document changes.
- * This is used to keep displayName and role consistent in the team dashboard.
- * We keep this trigger as it is low volume (only runs on team metadata updates).
- */
 exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1" }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
 
     if (!afterData) {
-        // Team was deleted. The subcollection of summaries is handled by the deleteTeam function.
         console.log(`Team ${teamId} deleted.`);
         return;
     }
@@ -640,7 +548,6 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
     const afterMembers = afterData.members || {};
 
     const updatedMembers = [];
-    // Check for changed or new members
     for (const memberId in afterMembers) {
         const beforeMember = beforeMembers[memberId];
         const afterMember = afterMembers[memberId];
@@ -658,7 +565,6 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
         const memberData = afterMembers[memberId];
         const summaryRef = summaryCollection.doc(memberId);
         try {
-            // Use update with merge to avoid overwriting the whole document if it exists.
             await summaryRef.set({
                 displayName: memberData.displayName,
                 role: memberData.role,
@@ -675,10 +581,6 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
 
 // --- ADMIN FUNCTIONS ---
 
-/**
- * Fetches all users for the Admin Dashboard.
- * Restricted to the Super Admin and Co-Admins.
- */
 exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -700,7 +602,6 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
     }
 
     try {
-        // Fetch all users from Auth (limit 1000 for simplicity)
         const listUsersResult = await admin.auth().listUsers(1000);
         const users = listUsersResult.users.map(u => ({
             uid: u.uid,
@@ -711,25 +612,46 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
             lastSignInTime: u.metadata.lastSignInTime
         }));
 
-        // Fetch all user docs from Firestore to get roles
-        // We use a batched approach or just fetch all 'users' collection for now (assuming manageable size)
         const usersSnapshot = await db.collection("users").get();
         const firestoreData = {};
         usersSnapshot.forEach(doc => {
             firestoreData[doc.id] = doc.data();
         });
 
-        // Merge Auth and Firestore data
+        // 1. Fetch Whitelisted Users
+        const whitelistSnapshot = await db.collection("pro_whitelist").get();
+        const whitelistData = [];
+        whitelistSnapshot.forEach(doc => {
+            whitelistData.push(doc.data());
+        });
+
+        // 2. Map Existing Users
         const combined = users.map(u => {
             const data = firestoreData[u.uid] || {};
             return {
                 ...u,
                 role: data.role || 'standard',
-                isPro: data.isPro || false, // Legacy or redundant if role is used
+                isPro: data.isPro || false,
                 teamId: data.teamId,
                 proSince: data.proSince ? data.proSince.toDate().toISOString() : null,
-                proExpiry: data.proExpiry ? data.proExpiry.toDate().toISOString() : null
+                proExpiry: data.proExpiry ? data.proExpiry.toDate().toISOString() : null,
+                status: 'active'
             };
+        });
+
+        // 3. Merge Whitelisted (Pending) Users
+        const existingEmails = new Set(combined.map(u => u.email));
+        whitelistData.forEach(w => {
+            if (!existingEmails.has(w.email)) {
+                combined.push({
+                    uid: `pending_${w.email}`, // Dummy UID for frontend keys
+                    email: w.email,
+                    displayName: 'Pending Signup',
+                    role: w.role,
+                    proSince: w.addedAt ? w.addedAt.toDate().toISOString() : null,
+                    status: 'pending'
+                });
+            }
         });
 
         return { users: combined };
@@ -740,10 +662,6 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-/**
- * Updates a user's role.
- * Restricted to the Super Admin and Co-Admins.
- */
 exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
@@ -767,12 +685,10 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
 
     const { targetUserId, newRole, proExpiry } = request.data;
 
-    // Validate role
     if (!['standard', 'pro', 'co-admin'].includes(newRole)) {
         throw new HttpsError("invalid-argument", "Invalid role.");
     }
 
-    // Protection: Co-Admin cannot modify Super Admin
     if (!isSuperAdmin) {
         try {
             const targetUserRecord = await admin.auth().getUser(targetUserId);
@@ -780,9 +696,6 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
                 throw new HttpsError("permission-denied", "Co-Admins cannot modify Super Admins.");
             }
         } catch (error) {
-            console.error("Error verifying target user for protection check:", error);
-            // If the user is not found in Auth, they cannot be a super admin (based on email check)
-            // so we proceed. If it's another error, we fail safe.
             if (error.code !== 'auth/user-not-found') {
                  throw new HttpsError("internal", "Error verifying target user permissions.");
             }
@@ -796,9 +709,6 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
         };
 
         if (newRole === 'pro') {
-            // Only set proSince if it's not already set?
-            // The requirement says "When a user is made 'Pro', save a proSince timestamp".
-            // We'll update it to now to reflect the latest promotion.
             updateData.proSince = admin.firestore.FieldValue.serverTimestamp();
             updateData.proExpiry = proExpiry ? admin.firestore.Timestamp.fromDate(new Date(proExpiry)) : null;
         } else if (newRole === 'standard') {
@@ -812,5 +722,90 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
     } catch (error) {
         console.error("Error updating user role:", error);
         throw new HttpsError("internal", "Failed to update role.");
+    }
+});
+
+exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const callerEmail = request.auth.token.email;
+    const callerUid = request.auth.uid;
+    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+
+    if (!isAuthorized) {
+        const callerDoc = await db.collection("users").doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+            isAuthorized = true;
+        }
+    }
+
+    if (!isAuthorized) {
+        throw new HttpsError("permission-denied", "Not authorized.");
+    }
+
+    const email = request.data.email;
+    if (!email) {
+        throw new HttpsError("invalid-argument", "Email is required.");
+    }
+
+    try {
+        // Try to find the user in Auth
+        let userRecord;
+        try {
+            userRecord = await admin.auth().getUserByEmail(email);
+        } catch (e) {
+            if (e.code !== 'auth/user-not-found') {
+                throw e;
+            }
+        }
+
+        if (userRecord) {
+            // User exists, update their doc
+            await db.collection("users").doc(userRecord.uid).set({
+                role: 'pro',
+                isPro: true,
+                proSince: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            return { message: "Existing user upgraded to Pro." };
+        } else {
+            // User does not exist, add to whitelist
+            await db.collection("pro_whitelist").doc(email).set({
+                email: email,
+                role: 'pro',
+                addedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            return { message: "User not found. Added to Pro whitelist for when they sign up." };
+        }
+
+    } catch (error) {
+        console.error("Error granting pro by email:", error);
+        throw new HttpsError("internal", "Failed to grant pro access.");
+    }
+});
+
+// Trigger: When a new user is created in Auth
+exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().onCreate(async (user) => {
+    const email = user.email;
+    if (!email) return;
+
+    try {
+        const whitelistDoc = await db.collection("pro_whitelist").doc(email).get();
+        if (whitelistDoc.exists) {
+            console.log(`New user ${email} found in Pro whitelist. Granting access.`);
+
+            // Grant Pro Access
+            await db.collection("users").doc(user.uid).set({
+                role: 'pro',
+                isPro: true,
+                proSince: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            // Remove from whitelist
+            await db.collection("pro_whitelist").doc(email).delete();
+        }
+    } catch (error) {
+        console.error(`Error processing whitelist for new user ${email}:`, error);
     }
 });

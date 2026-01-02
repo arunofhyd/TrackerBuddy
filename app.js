@@ -4274,10 +4274,23 @@ async function setProStatus(targetUserId, expiryDate) {
     }
 }
 
-async function openAdminDashboard() {
-    DOM.adminDashboardModal.classList.add('visible');
-    DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+// Helper to call backend for granting pro to email
+async function grantProByEmail(email) {
+    if (!email) return;
+    try {
+        const grantPro = httpsCallable(functions, 'grantProByEmail');
+        const result = await grantPro({ email });
+        showMessage(result.data.message, 'success');
+        // Refresh list
+        await refreshAdminUserList();
+    } catch (error) {
+        console.error("Failed to grant pro by email:", error);
+        showMessage("Failed to grant Pro access.", 'error');
+    }
+}
 
+async function refreshAdminUserList() {
+    DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
     try {
         const getAllUsers = httpsCallable(functions, 'getAllUsers');
         const result = await getAllUsers();
@@ -4288,11 +4301,85 @@ async function openAdminDashboard() {
     }
 }
 
-function renderAdminUserList(users) {
+async function openAdminDashboard() {
+    DOM.adminDashboardModal.classList.add('visible');
+    await refreshAdminUserList();
+}
+
+function renderAdminUserList(users, searchQuery = '') {
+    // Add search bar if not present
+    let searchContainer = DOM.adminDashboardModal.querySelector('#admin-search-container');
+    if (!searchContainer) {
+        searchContainer = document.createElement('div');
+        searchContainer.id = 'admin-search-container';
+        searchContainer.className = 'mb-4 spotlight-input-wrapper';
+        searchContainer.innerHTML = `
+            <i class="fas fa-search spotlight-icon text-gray-400 text-lg"></i>
+            <input type="text" id="admin-user-search" placeholder="Search by name or email..."
+                class="spotlight-input w-full bg-transparent border-none text-lg text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:ring-0">
+        `;
+        // Insert it into the modal body, before the list wrapper.
+        const modalBody = DOM.adminDashboardModal.querySelector('.modal-container > div:last-child');
+        modalBody.insertBefore(searchContainer, modalBody.firstChild);
+
+        // Add event listener for search
+        const searchInput = searchContainer.querySelector('#admin-user-search');
+        searchInput.addEventListener('input', debounce((e) => {
+            renderAdminUserList(users, e.target.value.trim());
+        }, 300));
+    } else {
+        // Ensure input value matches query if re-rendering completely (though usually we just re-render list content)
+        const searchInput = searchContainer.querySelector('#admin-user-search');
+        if (searchInput && searchInput.value !== searchQuery) {
+            // If we are re-rendering from scratch, keep the input value?
+            // Usually we don't want to overwrite user input.
+            // But if searchQuery is passed, it implies filter state.
+        }
+    }
+
     DOM.adminUserList.innerHTML = '';
 
+    // Filter users
+    const lowerQuery = searchQuery.toLowerCase();
+    const filteredUsers = users.filter(user => {
+        const name = (user.displayName || '').toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        return name.includes(lowerQuery) || email.includes(lowerQuery);
+    });
+
+    // Check for "Grant to New" condition
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(searchQuery);
+    const exactMatch = filteredUsers.find(u => u.email.toLowerCase() === lowerQuery);
+
+    if (isEmail && !exactMatch) {
+        const grantCard = document.createElement('div');
+        grantCard.className = 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 flex justify-between items-center';
+        grantCard.innerHTML = `
+            <div>
+                <p class="font-medium text-blue-800 dark:text-blue-300">User not found</p>
+                <p class="text-sm text-blue-600 dark:text-blue-400">Grant Pro access to <strong>${sanitizeHTML(searchQuery)}</strong>?</p>
+            </div>
+            <button id="grant-pro-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                Grant Pro Access
+            </button>
+        `;
+        DOM.adminUserList.appendChild(grantCard);
+
+        grantCard.querySelector('#grant-pro-btn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            setButtonLoadingState(btn, true);
+            await grantProByEmail(searchQuery);
+            // setButtonLoadingState handled by refresh, but just in case
+        });
+    }
+
+    if (filteredUsers.length === 0 && !isEmail) {
+        DOM.adminUserList.innerHTML += `<p class="text-center text-gray-500 py-4">No users found.</p>`;
+        return;
+    }
+
     // Sort: admins first, then pros, then others
-    users.sort((a, b) => {
+    filteredUsers.sort((a, b) => {
         const getScore = (user) => {
             if (ADMIN_EMAILS.includes(user.email) || user.role === 'co-admin') return 3;
             if (user.role === 'pro') return 2;
@@ -4301,12 +4388,13 @@ function renderAdminUserList(users) {
         return getScore(b) - getScore(a);
     });
 
-    users.forEach(user => {
+    filteredUsers.forEach(user => {
         const isSuperAdmin = ADMIN_EMAILS.includes(user.email);
         const item = document.createElement('div');
         item.className = 'admin-user-item flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
 
         let roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
+        const isPending = user.status === 'pending';
 
         // Format Member Since date
         let memberSince = '-';
@@ -4346,10 +4434,19 @@ function renderAdminUserList(users) {
             roleBadgeClass = 'standard';
         }
 
-        const displayRole = (isExpired && user.role === 'pro') ? 'standard' : user.role;
+        let displayRole = (isExpired && user.role === 'pro') ? 'standard' : user.role;
+        let roleBadgeHTML;
+
+        if (isPending) {
+            roleBadgeHTML = `<span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">Pending Signup</span>`;
+        } else if (isSuperAdmin) {
+            roleBadgeHTML = '<span class="role-badge owner">OWNER</span>';
+        } else {
+            roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}">${displayRole}</span>`;
+        }
 
         item.innerHTML = `
-            <div class="flex items-center flex-grow min-w-0 mr-2">
+            <div class="flex items-center flex-grow min-w-0 mr-2 ${isPending ? 'opacity-70' : ''}">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
                     ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
@@ -4357,10 +4454,7 @@ function renderAdminUserList(users) {
                     <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
                     <p class="text-gray-500 truncate" style="font-size: 10px;">${sanitizeHTML(user.email)}</p>
                     <div class="mt-1 flex items-center gap-2">
-                        ${isSuperAdmin
-                            ? '<span class="role-badge owner">OWNER</span>'
-                            : `<span class="role-badge ${roleBadgeClass}">${displayRole}</span>`
-                        }
+                        ${roleBadgeHTML}
                     </div>
                 </div>
             </div>
@@ -4381,11 +4475,11 @@ function renderAdminUserList(users) {
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
-                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
+                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
                         ${proButtonText}
                     </button>
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
-                            data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}">
+                            data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
                         ${user.role === 'co-admin' ? 'Revoke Co-Admin' : 'Make Co-Admin'}
                     </button>
                 </div>
@@ -4419,10 +4513,8 @@ function renderAdminUserList(users) {
                 const updateUserRole = httpsCallable(functions, 'updateUserRole');
                 await updateUserRole({ targetUserId: uid, newRole: newRole });
 
-                // Refresh list
-                const getAllUsers = httpsCallable(functions, 'getAllUsers');
-                const result = await getAllUsers();
-                renderAdminUserList(result.data.users);
+                // Refresh list via helper to maintain search logic capability if we expanded it later
+                await refreshAdminUserList();
 
                 showMessage(`User role updated to ${newRole}`, 'success');
             } catch (error) {
