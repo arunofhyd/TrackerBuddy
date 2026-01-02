@@ -189,9 +189,18 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userData = userDoc.exists ? userDoc.data() : {};
 
     // Check for Pro/Co-Admin Status
-    const userRole = userData.role || 'standard';
-    const isPro = userRole === 'pro' || userRole === 'co-admin' || userData.isPro === true;
+    let userRole = userData.role || 'standard';
     const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+
+    // Check expiry
+    if (userRole === 'pro' && userData.proExpiry) {
+        const expiryDate = userData.proExpiry.toDate();
+        if (expiryDate < new Date()) {
+            userRole = 'standard';
+        }
+    }
+
+    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
 
     if (!isPro && !isSuperAdmin) {
         throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
@@ -276,9 +285,18 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
     const userData = userDoc.exists ? userDoc.data() : {};
 
     // Check for Pro/Co-Admin Status
-    const userRole = userData.role || 'standard';
-    const isPro = userRole === 'pro' || userRole === 'co-admin' || userData.isPro === true;
+    let userRole = userData.role || 'standard';
     const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(userEmail);
+
+    // Check expiry
+    if (userRole === 'pro' && userData.proExpiry) {
+        const expiryDate = userData.proExpiry.toDate();
+        if (expiryDate < new Date()) {
+            userRole = 'standard';
+        }
+    }
+
+    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
 
     if (!isPro && !isSuperAdmin) {
         throw new HttpsError("permission-denied", "This feature is locked for Pro users.");

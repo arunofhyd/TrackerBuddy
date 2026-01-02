@@ -714,6 +714,15 @@ async function subscribeToData(userId, callback) {
 
         // Check for legacy isPro or new role field
         let userRole = data.role || 'standard';
+
+        // Enforce Expiry
+        if (userRole === 'pro' && data.proExpiry) {
+            const expiry = data.proExpiry.toDate ? data.proExpiry.toDate() : new Date(data.proExpiry.seconds * 1000);
+            if (expiry < new Date()) {
+                userRole = 'standard';
+            }
+        }
+
         if (userRole === 'standard' && data.isPro) {
             userRole = 'pro';
         }
@@ -4310,16 +4319,30 @@ function renderAdminUserList(users) {
         // Format Pro Since
         let proSinceDate = '';
         let proExpiryText = '';
+        let isExpired = false;
+
         if (user.proSince && !isSuperAdmin) { // Hide for Super Admin
              try {
                 proSinceDate = new Date(user.proSince).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
                 if (user.proExpiry) {
-                    const expiry = new Date(user.proExpiry).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
-                    proExpiryText = `Exp: ${expiry}`;
+                    const expiryDate = new Date(user.proExpiry);
+                    if (expiryDate < new Date()) {
+                        isExpired = true;
+                        proExpiryText = `<span class="text-red-500 font-bold">Expired</span>`;
+                    } else {
+                        const expiry = expiryDate.toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+                        proExpiryText = `Exp: ${expiry}`;
+                    }
                 } else if (user.role === 'pro') {
                      proExpiryText = 'Till Revoked';
                 }
              } catch(e) {}
+        }
+
+        // Logic for button text
+        let proButtonText = user.role === 'pro' ? 'Revoke Pro' : 'Make Pro';
+        if (isExpired && user.role === 'pro') {
+            proButtonText = 'Renew Pro';
         }
 
         item.innerHTML = `
@@ -4353,8 +4376,8 @@ function renderAdminUserList(users) {
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
-                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}">
-                        ${user.role === 'pro' ? 'Revoke Pro' : 'Make Pro'}
+                            data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
+                        ${proButtonText}
                     </button>
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}">
@@ -4374,8 +4397,9 @@ function renderAdminUserList(users) {
             const uid = btn.dataset.uid;
             const targetRole = btn.dataset.role; // 'pro' or 'co-admin'
             const isCurrent = btn.dataset.current === 'true';
+            const isExpired = btn.dataset.expired === 'true';
 
-            if (targetRole === 'pro' && !isCurrent) {
+            if (targetRole === 'pro' && (!isCurrent || isExpired)) {
                 openProDurationModal(uid);
                 return;
             }
