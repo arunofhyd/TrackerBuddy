@@ -693,6 +693,13 @@ body.dark .admin-user-item {
 body.dark .admin-user-item:hover {
     background-color: #374151;
 }
+/* Admin Dashboard Dark Mode Tweaks */
+body.dark .admin-user-item .text-gray-500 {
+    color: #d1d5db; /* Gray 300 - Brighter than current #9ca3af */
+}
+body.dark .admin-user-item .text-gray-400 {
+    color: #9ca3af; /* Gray 400 - Brighter than current #6b7280 */
+}
 
 .role-badge {
     display: inline-block;
