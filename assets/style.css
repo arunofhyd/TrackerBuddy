@@ -715,8 +715,8 @@ body.dark .admin-user-item:hover {
     color: #9d174d;
 }
 .role-badge.owner {
-    background-color: #1f2937; /* Gray 800 (Charcoal) */
-    color: #fcd34d;        /* Amber 300 (Gold) */
+    background-color: #000000; 
+    color: #fcd34d;       
 }
 body.dark .role-badge.standard {
     background-color: #374151;
@@ -731,8 +731,8 @@ body.dark .role-badge.co-admin {
     color: #fbcfe8;
 }
 body.dark .role-badge.owner {
-    background-color: #1f2937; /* Gray 800 (Charcoal) */
-    color: #fcd34d;        /* Amber 300 (Gold) */
+    background-color: #000000; 
+    color: #fcd34d;     
 }
 
 .locked-feature-overlay {
