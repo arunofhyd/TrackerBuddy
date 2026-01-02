@@ -4357,8 +4357,10 @@ function renderAdminUserList(users) {
                     <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
                     <p class="text-gray-500 truncate" style="font-size: 10px;">${sanitizeHTML(user.email)}</p>
                     <div class="mt-1 flex items-center gap-2">
-                        <span class="role-badge ${roleBadgeClass}">${displayRole}</span>
-                        ${isSuperAdmin ? '<span class="font-bold text-red-500" style="font-size: 10px;">MASTER</span>' : ''}
+                        ${isSuperAdmin
+                            ? '<span class="font-bold text-yellow-500" style="font-size: 10px;">OWNER</span>'
+                            : `<span class="role-badge ${roleBadgeClass}">${displayRole}</span>`
+                        }
                     </div>
                 </div>
             </div>
