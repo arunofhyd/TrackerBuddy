@@ -2939,8 +2939,8 @@ function openCreateTeamModal() {
             upgradeMsg.id = 'create-team-upgrade-msg';
             upgradeMsg.className = 'text-center py-4';
             upgradeMsg.innerHTML = `
-                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-crown text-2xl text-blue-600 dark:text-blue-400"></i>
+                <div class="mx-auto mb-4 text-center">
+                    <i class="fas fa-crown text-5xl text-yellow-500"></i>
                 </div>
                 <h3 class="text-xl font-bold mb-2">Pro Feature</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
@@ -4308,42 +4308,45 @@ function renderAdminUserList(users) {
         }
 
         // Format Pro Since
-        let proSince = '-';
-        if (user.proSince) {
+        let proSinceDate = '';
+        let proExpiryText = '';
+        if (user.proSince && !isSuperAdmin) { // Hide for Super Admin
              try {
-                proSince = new Date(user.proSince).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+                proSinceDate = new Date(user.proSince).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
                 if (user.proExpiry) {
                     const expiry = new Date(user.proExpiry).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
-                    proSince += `<br><span class="text-xs text-gray-400">Exp: ${expiry}</span>`;
+                    proExpiryText = `Exp: ${expiry}`;
                 } else if (user.role === 'pro') {
-                     proSince += `<br><span class="text-xs text-gray-400">Till Revoked</span>`;
+                     proExpiryText = 'Till Revoked';
                 }
              } catch(e) {}
         }
 
         item.innerHTML = `
-            <div class="flex items-center w-full sm:w-auto">
+            <div class="flex items-center flex-grow min-w-0 mr-2">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
                     ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
-                <div class="min-w-0 w-48">
-                    <p class="font-semibold text-gray-800 dark:text-gray-100 truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
-                    <p class="text-xs text-gray-500 truncate">${sanitizeHTML(user.email)}</p>
-                    <div class="mt-1">
+                <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
+                    <p class="text-gray-500 truncate" style="font-size: 10px;">${sanitizeHTML(user.email)}</p>
+                    <div class="mt-1 flex items-center gap-2">
                         <span class="role-badge ${roleBadgeClass}">${user.role}</span>
-                        ${isSuperAdmin ? '<span class="ml-2 text-xs font-bold text-red-500">MASTER</span>' : ''}
+                        ${isSuperAdmin ? '<span class="font-bold text-red-500" style="font-size: 10px;">MASTER</span>' : ''}
                     </div>
                 </div>
             </div>
 
-            <!-- New Columns -->
-            <div class="text-sm text-gray-600 dark:text-gray-400 w-32 hidden md-block">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
-                <p class="font-medium">${memberSince}</p>
-            </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400 w-32 hidden md-block">
-                <p class="text-xs text-gray-500 uppercase tracking-wide">Pro Since</p>
-                <p class="font-medium">${proSince}</p>
+            <!-- Date Stack (Tiny) -->
+            <div class="flex flex-col items-end mr-2 sm:mr-4 min-w-[80px]" style="font-size: 10px;">
+                <div class="text-gray-400 text-right">
+                    <span class="font-medium text-gray-500">Joined:</span> ${memberSince}
+                </div>
+                ${proSinceDate ? `
+                <div class="text-gray-400 mt-1 text-right">
+                    <span class="font-medium text-blue-500">Pro:</span> ${proSinceDate}
+                    ${proExpiryText ? `<div class="text-gray-300" style="font-size: 9px;">${proExpiryText}</div>` : ''}
+                </div>` : ''}
             </div>
 
             ${!isSuperAdmin ? `
