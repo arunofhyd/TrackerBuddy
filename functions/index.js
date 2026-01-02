@@ -786,7 +786,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().onCreate(async (user) => {
+exports.checkProWhitelistOnSignup = functions.auth.user().onCreate(async (user) => {
     const email = user.email;
     if (!email) return;
 
