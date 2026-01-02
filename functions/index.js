@@ -659,10 +659,25 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
 
 /**
  * Fetches all users for the Admin Dashboard.
- * Restricted to the Super Admin.
+ * Restricted to the Super Admin and Co-Admins.
  */
 exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth || !SUPER_ADMIN_EMAILS.includes(request.auth.token.email)) {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const callerEmail = request.auth.token.email;
+    const callerUid = request.auth.uid;
+    let isAuthorized = SUPER_ADMIN_EMAILS.includes(callerEmail);
+
+    if (!isAuthorized) {
+        const callerDoc = await db.collection("users").doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+            isAuthorized = true;
+        }
+    }
+
+    if (!isAuthorized) {
         throw new HttpsError("permission-denied", "Not authorized.");
     }
 
@@ -693,7 +708,9 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
                 ...u,
                 role: data.role || 'standard',
                 isPro: data.isPro || false, // Legacy or redundant if role is used
-                teamId: data.teamId
+                teamId: data.teamId,
+                proSince: data.proSince ? data.proSince.toDate().toISOString() : null,
+                proExpiry: data.proExpiry ? data.proExpiry.toDate().toISOString() : null
             };
         });
 
@@ -707,26 +724,71 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
 
 /**
  * Updates a user's role.
- * Restricted to the Super Admin.
+ * Restricted to the Super Admin and Co-Admins.
  */
 exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth || !SUPER_ADMIN_EMAILS.includes(request.auth.token.email)) {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+
+    const callerEmail = request.auth.token.email;
+    const callerUid = request.auth.uid;
+    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(callerEmail);
+    let isAuthorized = isSuperAdmin;
+
+    if (!isAuthorized) {
+        const callerDoc = await db.collection("users").doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+            isAuthorized = true;
+        }
+    }
+
+    if (!isAuthorized) {
         throw new HttpsError("permission-denied", "Not authorized.");
     }
 
-    const { targetUserId, newRole } = request.data;
+    const { targetUserId, newRole, proExpiry } = request.data;
 
     // Validate role
     if (!['standard', 'pro', 'co-admin'].includes(newRole)) {
         throw new HttpsError("invalid-argument", "Invalid role.");
     }
 
+    // Protection: Co-Admin cannot modify Super Admin
+    if (!isSuperAdmin) {
+        try {
+            const targetUserRecord = await admin.auth().getUser(targetUserId);
+            if (SUPER_ADMIN_EMAILS.includes(targetUserRecord.email)) {
+                throw new HttpsError("permission-denied", "Co-Admins cannot modify Super Admins.");
+            }
+        } catch (error) {
+            console.error("Error verifying target user for protection check:", error);
+            // If the user is not found in Auth, they cannot be a super admin (based on email check)
+            // so we proceed. If it's another error, we fail safe.
+            if (error.code !== 'auth/user-not-found') {
+                 throw new HttpsError("internal", "Error verifying target user permissions.");
+            }
+        }
+    }
+
     try {
-        await db.collection("users").doc(targetUserId).set({
+        const updateData = {
             role: newRole,
-            // Automatically sync legacy isPro field if desired
             isPro: (newRole === 'pro' || newRole === 'co-admin')
-        }, { merge: true });
+        };
+
+        if (newRole === 'pro') {
+            // Only set proSince if it's not already set?
+            // The requirement says "When a user is made 'Pro', save a proSince timestamp".
+            // We'll update it to now to reflect the latest promotion.
+            updateData.proSince = admin.firestore.FieldValue.serverTimestamp();
+            updateData.proExpiry = proExpiry ? admin.firestore.Timestamp.fromDate(new Date(proExpiry)) : null;
+        } else if (newRole === 'standard') {
+            updateData.proSince = admin.firestore.FieldValue.delete();
+            updateData.proExpiry = admin.firestore.FieldValue.delete();
+        }
+
+        await db.collection("users").doc(targetUserId).set(updateData, { merge: true });
 
         return { success: true };
     } catch (error) {

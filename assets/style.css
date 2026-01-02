@@ -733,3 +733,19 @@ body.dark .role-badge.co-admin {
 body.dark .locked-feature-overlay {
     background: linear-gradient(180deg, rgba(31,41,55,0) 0%, rgba(31,41,55,0.95) 40%, #1f2937 100%);
 }
+
+/* Custom utility for responsive display (missing from Tailwind build) */
+@media (min-width: 768px) {
+    .md-block {
+        display: block !important;
+    }
+}
+
+@media (min-width: 640px) {
+    .sm\:gap-10 {
+        gap: 2.5rem !important;
+    }
+    .sm\:inline {
+        display: inline !important;
+    }
+}
