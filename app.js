@@ -4312,7 +4312,7 @@ function renderAdminUserList(users, searchQuery = '') {
     if (!searchContainer) {
         searchContainer = document.createElement('div');
         searchContainer.id = 'admin-search-container';
-        searchContainer.className = 'mb-4 sticky top-0 bg-gray-100 dark:bg-gray-900 z-10 pt-2 pb-2 px-1 -mx-1'; // Sticky header
+        searchContainer.className = 'mb-4 sticky top-0 bg-white dark:bg-gray-900 z-10 pt-2 pb-2 px-1 -mx-1'; // Sticky header
         searchContainer.innerHTML = `
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none" style="padding-left: 1rem;">
