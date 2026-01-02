@@ -49,7 +49,7 @@
     <link href="/assets/style.css" rel="stylesheet">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
+<a href="#main-content" class="skip-link" data-i18n="skipToMainContent">Skip to main content</a>
 <div id="splash-screen" class="splash-screen">
     <img id="splash-image" 
          src="/assets/splashbg.webp" 
@@ -59,7 +59,7 @@
     <img src="/assets/splashtext.webp" alt="TrackerBuddy" class="splash-text">
     <div id="splash-loading" class="splash-loading">
         <div class="spinner"></div>
-        <div class="loading-text">...</div>
+        <div class="loading-text" data-i18n="loading">...</div>
     </div>
     <div id="tap-to-begin" class="tap-to-begin" style="display: none;">
         <i class="fas fa-hand-pointer tap-icon"></i>
@@ -109,9 +109,9 @@
                     </div>
                 </div>
                 <div class="space-y-3 sm:space-y-4 text-left mb-2">
-                    <input type="email" id="email-input" placeholder="Email" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
+                    <input type="email" id="email-input" placeholder="Email" data-i18n-placeholder="emailPlaceholder" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
                     <div class="relative">
-                        <input type="password" id="password-input" placeholder="Password" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
+                        <input type="password" id="password-input" placeholder="Password" data-i18n-placeholder="passwordPlaceholder" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
                         <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-3 sm:px-4 subtitle-text hover:text-blue-500 transition-colors duration-200" aria-label="Toggle password visibility">
                             <i id="password-toggle-icon" class="fas fa-eye"></i>
                         </button>
@@ -146,23 +146,23 @@
         </div>
 <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
     <div id="search-fab" class="fixed z-40" style="bottom: 1.5rem; right: 1.5rem;">
-        <button id="exit-search-btn" title="Exit Search View" aria-label="Exit search view">
+        <button id="exit-search-btn" title="Exit Search View" aria-label="Exit search view" data-i18n-aria-label="ariaExitSearch">
             <i class="fas fa-times text-sm sm:text-base"></i>
         </button>
-        <button id="open-spotlight-btn" class="relative z-20 bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14" aria-label="Open search">
+        <button id="open-spotlight-btn" class="relative z-20 bg-blue-500 hover:bg-blue-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14" aria-label="Open search" data-i18n-aria-label="ariaOpenSearch">
             <i class="fas fa-search text-lg sm:text-xl"></i>
         </button>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-4 sm:p-6 md:p-8">
         <header class="flex justify-between items-center mb-4 sm:mb-6">
-            <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme" aria-label="Toggle dark mode">
+            <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme" aria-label="Toggle dark mode" data-i18n-title="ariaToggleTheme" data-i18n-aria-label="ariaToggleTheme" data-i18n-aria-label="ariaToggleTheme">
                 <svg id="theme-icon-light" class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <svg id="theme-icon-dark" class="w-6 h-6 sm:w-7 sm:h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
             </button>
             <div id="logo-container" class="relative cursor-pointer">
                 <img src="/assets/logo_rounded.webp" id="app-logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full" alt="TrackerBuddy Logo">
             </div>
-            <button id="sign-out-btn" class="icon-btn" title="Sign Out" aria-label="Sign out">
+            <button id="sign-out-btn" class="icon-btn" title="Sign Out" aria-label="Sign out" data-i18n-title="ariaSignOut" data-i18n-aria-label="ariaSignOut">
                 <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
         </header>
@@ -173,9 +173,9 @@
                     <button id="day-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-semibold btn-secondary rounded-lg" data-i18n="dayView">Day View</button>
                 </div>
                 <div class="flex items-center justify-between w-full">
-                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12" aria-label="Previous period"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12" aria-label="Previous period" data-i18n-aria-label="ariaPreviousPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
                     <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer"></h2>
-                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12" aria-label="Next period"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12" aria-label="Next period" data-i18n-aria-label="ariaNextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
                 <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-lg flex items-center space-x-2">
                 <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
@@ -257,7 +257,7 @@
             <i class="fas fa-search spotlight-icon"></i>
             <input id="spotlight-input" type="text" class="spotlight-input" placeholder="Search activities, notes, or leave..." data-i18n-placeholder="searchPlaceholder" autocomplete="off">
             <button id="spotlight-close-btn" class="spotlight-esc-btn" aria-label="Close search">
-                Esc
+                <span data-i18n="esc">Esc</span>
             </button>
         </div>
         <div id="spotlight-content" class="flex flex-col">
@@ -296,7 +296,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] grid grid-rows-[auto_auto_1fr] mt-8">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold truncate" data-i18n="leaveOverview">Leave Overview</h2>
-            <button id="close-leave-overview-btn" class="icon-btn" aria-label="Close leave overview">
+            <button id="close-leave-overview-btn" class="icon-btn" aria-label="Close leave overview" data-i18n-aria-label="ariaCloseLeaveOverview">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -444,7 +444,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-6xl max-h-[90vh] grid grid-rows-[auto_1fr] mt-8">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold truncate" data-i18n="teamDashboard">Team Dashboard</h2>
-            <button id="close-team-dashboard-btn" class="icon-btn" aria-label="Close team dashboard">
+            <button id="close-team-dashboard-btn" class="icon-btn" aria-label="Close team dashboard" data-i18n-aria-label="ariaCloseTeamDashboard">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -482,25 +482,25 @@
 </div>
 <div id="pro-duration-modal" class="smooth-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop" style="z-index: 60;">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-xs">
-        <h2 class="text-xl font-bold mb-4 text-center">Set Pro Duration</h2>
+        <h2 class="text-xl font-bold mb-4 text-center" data-i18n="setProDuration">Set Pro Duration</h2>
         <div class="space-y-3">
-            <button id="pro-till-revoked-btn" class="w-full px-4 py-3 btn-primary rounded-lg font-semibold">Till Revoked</button>
+            <button id="pro-till-revoked-btn" class="w-full px-4 py-3 btn-primary rounded-lg font-semibold" data-i18n="tillRevoked">Till Revoked</button>
             <div class="relative">
                 <div class="absolute inset-0 flex items-center" aria-hidden="true">
                     <div class="w-full border-t border-gray-300"></div>
                 </div>
                 <div class="relative flex justify-center">
-                    <span class="px-2 bg-white text-sm text-gray-500">or</span>
+                    <span class="px-2 bg-white text-sm text-gray-500" data-i18n="orText">or</span>
                 </div>
             </div>
             <div>
-                 <label class="block text-sm font-medium mb-1">Custom Expiry Date</label>
+                 <label class="block text-sm font-medium mb-1" data-i18n="customExpiryDate">Custom Expiry Date</label>
                  <input type="date" id="pro-expiry-date" class="w-full px-4 py-2 border rounded-lg">
             </div>
-            <button id="pro-save-date-btn" class="w-full px-4 py-3 btn-secondary rounded-lg font-semibold">Set Custom Date</button>
+            <button id="pro-save-date-btn" class="w-full px-4 py-3 btn-secondary rounded-lg font-semibold" data-i18n="setCustomDate">Set Custom Date</button>
         </div>
         <div class="mt-4 text-center">
-             <button id="cancel-pro-duration-btn" class="text-gray-500 hover:text-gray-700 text-sm">Cancel</button>
+             <button id="cancel-pro-duration-btn" class="text-gray-500 hover:text-gray-700 text-sm" data-i18n="cancel">Cancel</button>
         </div>
     </div>
 </div>
@@ -508,7 +508,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] grid grid-rows-[auto_1fr] mt-8 bg-white dark:bg-gray-900">
         <div class="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
             <h2 class="text-2xl font-bold truncate text-gray-800 dark:text-gray-100">Admin Dashboard</h2>
-            <button id="close-admin-dashboard-btn" class="icon-btn" aria-label="Close admin dashboard">
+            <button id="close-admin-dashboard-btn" class="icon-btn" aria-label="Close admin dashboard" data-i18n-aria-label="ariaCloseAdminDashboard">
                 <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
