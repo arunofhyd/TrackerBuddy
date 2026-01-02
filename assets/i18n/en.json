@@ -21,7 +21,7 @@
     "restoreData": "Restore Data",
     "backupData": "Backup Data",
     "resetAllData": "Reset All Data",
-    "reachOut": "Reach out to the dev",
+    "reachOut": "Contact Developer",
     "searchPlaceholder": "Search activities, notes, or leave...",
     "currentYear": "Current Year",
     "allYears": "All Years",
@@ -230,5 +230,6 @@
     "failedToRevokeProWhitelist": "Failed to revoke Pro whitelist.",
     "ariaCloseMonthPicker": "Close month picker",
     "ariaCloseTeamDashboard": "Close team dashboard",
-    "ariaCloseLeaveOverview": "Close leave overview"
+    "ariaCloseLeaveOverview": "Close leave overview",
+    "adminDashboard": "Admin Dashboard"
 }
