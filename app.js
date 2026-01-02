@@ -194,7 +194,8 @@ let state = {
     pendingSaveCount: 0,
     // Admin & Role State
     userRole: 'standard', // 'standard', 'pro', 'co-admin'
-    isAdminDashboardOpen: false
+    isAdminDashboardOpen: false,
+    adminTargetUserId: null
 };
 
 const ADMIN_EMAILS = ['arunthomas04042001@gmail.com'];
@@ -2809,34 +2810,6 @@ function renderTeamSection() {
     const isSuperAdmin = ADMIN_EMAILS.includes(auth.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
-    if (!isPro) {
-        // Locked State
-        const isExpired = !!state.currentTeam;
-        const title = isExpired ? "Pro Subscription Required" : "Pro Feature Locked";
-        const message = isExpired
-            ? "Your access to Team features requires an active Pro subscription. Please upgrade to continue managing your team and shared leave calendars."
-            : "Team management is a premium feature. Upgrade to Pro to create or join teams, manage members, and track shared leave calendars.";
-
-        DOM.teamSection.innerHTML = `
-            <div class="relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div class="p-6 text-center">
-                     <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-crown text-2xl text-blue-600 dark:text-blue-400"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">${title}</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                        ${message}
-                    </p>
-                    <button class="px-6 py-3 btn-primary rounded-lg font-semibold transform hover:scale-105 transition-transform" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
-                        Upgrade to Pro
-                    </button>
-                </div>
-                <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500"></div>
-            </div>
-        `;
-        return;
-    }
-
     if (!state.currentTeam) {
         // No team - show create/join options
         DOM.teamSection.innerHTML = `
@@ -2949,10 +2922,55 @@ function renderTeamSection() {
 }
 
 function openCreateTeamModal() {
-    DOM.teamNameInput.value = '';
-    if (DOM.teamAdminDisplayNameInput) {
-        DOM.teamAdminDisplayNameInput.value = '';
+    const isSuperAdmin = ADMIN_EMAILS.includes(auth.currentUser?.email);
+    const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
+
+    // Reset visibility of content parts
+    let upgradeMsg = DOM.createTeamModal.querySelector('#create-team-upgrade-msg');
+    let formContent = DOM.createTeamModal.querySelector('.space-y-4');
+    let buttons = DOM.createTeamModal.querySelector('.flex.justify-end');
+
+    if (!isPro) {
+        if (formContent) formContent.style.display = 'none';
+        if (buttons) buttons.style.display = 'none';
+
+        if (!upgradeMsg) {
+            upgradeMsg = document.createElement('div');
+            upgradeMsg.id = 'create-team-upgrade-msg';
+            upgradeMsg.className = 'text-center py-4';
+            upgradeMsg.innerHTML = `
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-crown text-2xl text-blue-600 dark:text-blue-400"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Pro Feature</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
+                    Creating a team is available for Pro users. Upgrade to manage your own team!
+                </p>
+                <button class="w-full px-6 py-3 btn-primary rounded-lg font-semibold" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
+                    Upgrade to Pro
+                </button>
+                <div class="mt-4">
+                    <button class="text-gray-500 hover:text-gray-700 text-sm" onclick="document.getElementById('create-team-modal').classList.remove('visible')">Close</button>
+                </div>
+            `;
+            // Insert after title
+            const title = DOM.createTeamModal.querySelector('h2');
+            if (title) title.insertAdjacentElement('afterend', upgradeMsg);
+        } else {
+            upgradeMsg.style.display = 'block';
+        }
+    } else {
+        // Is Pro
+        if (formContent) formContent.style.display = 'block';
+        if (buttons) buttons.style.display = 'flex';
+        if (upgradeMsg) upgradeMsg.style.display = 'none';
+
+        DOM.teamNameInput.value = '';
+        if (DOM.teamAdminDisplayNameInput) {
+            DOM.teamAdminDisplayNameInput.value = '';
+        }
     }
+
     DOM.createTeamModal.classList.add('visible');
 }
 
@@ -4129,10 +4147,45 @@ function setupEventListeners() {
         }
     });
 
-    // Format room code input
+    // Format room code input & Validate
     DOM.roomCodeInput.addEventListener('input', (e) => {
-        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+        const input = e.target;
+        input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+
+        // Validation for Join button
+        const joinBtn = document.getElementById('save-join-team-btn');
+        if (joinBtn) {
+            if (input.value.length === 8) {
+                joinBtn.disabled = false;
+                joinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                joinBtn.disabled = true;
+                joinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
     });
+
+    // Pro Duration Modal Listeners
+    const proDurationModal = document.getElementById('pro-duration-modal');
+    if (proDurationModal) {
+        document.getElementById('cancel-pro-duration-btn').addEventListener('click', () => {
+            proDurationModal.classList.remove('visible');
+            state.adminTargetUserId = null;
+        });
+
+        document.getElementById('pro-till-revoked-btn').addEventListener('click', async () => {
+            await setProStatus(state.adminTargetUserId, null);
+        });
+
+        document.getElementById('pro-save-date-btn').addEventListener('click', async () => {
+            const dateVal = document.getElementById('pro-expiry-date').value;
+            if (!dateVal) {
+                showMessage("Please select a date", "error");
+                return;
+            }
+            await setProStatus(state.adminTargetUserId, dateVal);
+        });
+    }
 }
 
 function exitSearchMode() {
@@ -4142,8 +4195,11 @@ function exitSearchMode() {
 }
 
 function renderAdminButton() {
-    // Only render if user matches ADMIN_EMAILS
-    if (!auth.currentUser || !ADMIN_EMAILS.includes(auth.currentUser.email)) {
+    // Only render if user matches ADMIN_EMAILS or is a co-admin
+    const isSuperAdmin = auth.currentUser && ADMIN_EMAILS.includes(auth.currentUser.email);
+    const isCoAdmin = state.userRole === 'co-admin';
+
+    if (!isSuperAdmin && !isCoAdmin) {
         const existingBtn = document.getElementById('admin-dashboard-btn');
         if (existingBtn) existingBtn.remove();
         return;
@@ -4154,13 +4210,58 @@ function renderAdminButton() {
     const btn = document.createElement('button');
     btn.id = 'admin-dashboard-btn';
     btn.className = 'inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer';
-    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span>Admin Dashboard</span>`;
+    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline">Admin Dashboard</span>`;
 
     // Insert before the language button or at the start
     const footer = document.getElementById('main-footer');
     if (footer) {
         footer.insertBefore(btn, footer.firstChild);
         btn.addEventListener('click', openAdminDashboard);
+    }
+}
+
+function openProDurationModal(userId) {
+    state.adminTargetUserId = userId;
+    const modal = document.getElementById('pro-duration-modal');
+    if (modal) {
+        modal.classList.add('visible');
+        document.getElementById('pro-expiry-date').value = '';
+    }
+}
+
+async function setProStatus(targetUserId, expiryDate) {
+    const modal = document.getElementById('pro-duration-modal');
+    if (modal) {
+        const btnId = expiryDate ? 'pro-save-date-btn' : 'pro-till-revoked-btn';
+        const btn = document.getElementById(btnId);
+        setButtonLoadingState(btn, true);
+    }
+
+    try {
+        const updateUserRole = httpsCallable(functions, 'updateUserRole');
+        await updateUserRole({
+            targetUserId: targetUserId,
+            newRole: 'pro',
+            proExpiry: expiryDate
+        });
+
+        // Refresh list
+        const getAllUsers = httpsCallable(functions, 'getAllUsers');
+        const result = await getAllUsers();
+        renderAdminUserList(result.data.users);
+
+        showMessage('User promoted to Pro', 'success');
+        if (modal) modal.classList.remove('visible');
+    } catch (error) {
+        console.error("Failed to set pro status:", error);
+        showMessage("Failed to update role", 'error');
+    } finally {
+        if (modal) {
+            const btnId = expiryDate ? 'pro-save-date-btn' : 'pro-till-revoked-btn';
+            const btn = document.getElementById(btnId);
+            setButtonLoadingState(btn, false);
+        }
+        state.adminTargetUserId = null;
     }
 }
 
@@ -4198,12 +4299,34 @@ function renderAdminUserList(users) {
 
         const roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
 
+        // Format Member Since date
+        let memberSince = '-';
+        if (user.creationTime) {
+            try {
+                memberSince = new Date(user.creationTime).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (e) { console.error("Date parse error", e); }
+        }
+
+        // Format Pro Since
+        let proSince = '-';
+        if (user.proSince) {
+             try {
+                proSince = new Date(user.proSince).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+                if (user.proExpiry) {
+                    const expiry = new Date(user.proExpiry).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+                    proSince += `<br><span class="text-xs text-gray-400">Exp: ${expiry}</span>`;
+                } else if (user.role === 'pro') {
+                     proSince += `<br><span class="text-xs text-gray-400">Till Revoked</span>`;
+                }
+             } catch(e) {}
+        }
+
         item.innerHTML = `
             <div class="flex items-center w-full sm:w-auto">
-                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold mr-3 flex-shrink-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
                     ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 w-48">
                     <p class="font-semibold text-gray-800 dark:text-gray-100 truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
                     <p class="text-xs text-gray-500 truncate">${sanitizeHTML(user.email)}</p>
                     <div class="mt-1">
@@ -4212,8 +4335,19 @@ function renderAdminUserList(users) {
                     </div>
                 </div>
             </div>
+
+            <!-- New Columns -->
+            <div class="text-sm text-gray-600 dark:text-gray-400 w-32 hidden md-block">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Member Since</p>
+                <p class="font-medium">${memberSince}</p>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 w-32 hidden md-block">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Pro Since</p>
+                <p class="font-medium">${proSince}</p>
+            </div>
+
             ${!isSuperAdmin ? `
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="pro" data-current="${user.role === 'pro'}">
@@ -4237,6 +4371,11 @@ function renderAdminUserList(users) {
             const uid = btn.dataset.uid;
             const targetRole = btn.dataset.role; // 'pro' or 'co-admin'
             const isCurrent = btn.dataset.current === 'true';
+
+            if (targetRole === 'pro' && !isCurrent) {
+                openProDurationModal(uid);
+                return;
+            }
 
             // If already has this role, we revoke it -> set to 'standard'
             // If doesn't have it, we set to targetRole
@@ -4373,3 +4512,4 @@ function mergeUserData(cloudState, guestData) {
         leaveTypes: mergedLeaveTypes
     };
 }
+window.renderAdminUserList = renderAdminUserList; window.openAdminDashboard = openAdminDashboard;
