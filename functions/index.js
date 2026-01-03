@@ -139,7 +139,54 @@ async function deleteMemberSummary(userId, teamId) {
     }
 }
 
-exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
+// Helper function to handle authentication and role checking
+async function assertAuthorized(request, allowedRoles = []) {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "You must be logged in.");
+    }
+    const callerEmail = request.auth.token.email;
+    const callerUid = request.auth.uid;
+    const superAdmins = await getSuperAdmins();
+    const isSuperAdmin = superAdmins.includes(callerEmail);
+
+    if (isSuperAdmin) return { isSuperAdmin: true, superAdmins };
+
+    if (allowedRoles && allowedRoles.length > 0) {
+        const callerDoc = await db.collection("users").doc(callerUid).get();
+        if (callerDoc.exists && allowedRoles.includes(callerDoc.data().role)) {
+             return { isSuperAdmin: false, superAdmins };
+        }
+    }
+
+    throw new HttpsError("permission-denied", "Not authorized.");
+}
+
+// Helper function to check Pro status
+async function assertProStatus(userId, userEmail) {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    let userRole = userData.role || 'standard';
+    const superAdmins = await getSuperAdmins();
+    const isSuperAdmin = superAdmins.includes(userEmail);
+
+    if (userRole === 'pro' && userData.proExpiry) {
+        const expiryDate = userData.proExpiry.toDate();
+        if (expiryDate < new Date()) {
+            userRole = 'standard';
+        }
+    }
+
+    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
+
+    if (!isPro && !isSuperAdmin) {
+        throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
+    }
+    return userData;
+}
+
+exports.createTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
   }
@@ -166,25 +213,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   const userRef = db.collection("users").doc(userId);
 
   try {
-    const userDoc = await userRef.get();
-    const userData = userDoc.exists ? userDoc.data() : {};
-
-    let userRole = userData.role || 'standard';
-    const superAdmins = await getSuperAdmins();
-    const isSuperAdmin = superAdmins.includes(userEmail);
-
-    if (userRole === 'pro' && userData.proExpiry) {
-        const expiryDate = userData.proExpiry.toDate();
-        if (expiryDate < new Date()) {
-            userRole = 'standard';
-        }
-    }
-
-    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
-
-    if (!isPro && !isSuperAdmin) {
-        throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
-    }
+    const userData = await assertProStatus(userId, userEmail);
 
     await db.runTransaction(async (transaction) => {
       const tUserDoc = await transaction.get(userRef);
@@ -232,7 +261,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.joinTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to join a team.");
   }
@@ -249,25 +278,7 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   const userRef = db.collection("users").doc(userId);
 
   try {
-    const userDoc = await userRef.get();
-    const userData = userDoc.exists ? userDoc.data() : {};
-
-    let userRole = userData.role || 'standard';
-    const superAdmins = await getSuperAdmins();
-    const isSuperAdmin = superAdmins.includes(userEmail);
-
-    if (userRole === 'pro' && userData.proExpiry) {
-        const expiryDate = userData.proExpiry.toDate();
-        if (expiryDate < new Date()) {
-            userRole = 'standard';
-        }
-    }
-
-    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
-
-    if (!isPro && !isSuperAdmin) {
-        throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
-    }
+    const userData = await assertProStatus(userId, userEmail);
 
     await db.runTransaction(async (transaction) => {
       const tUserDoc = await transaction.get(userRef);
@@ -320,7 +331,7 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
+exports.editDisplayName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -351,7 +362,7 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   return { status: "success", message: "Display name updated!" };
 });
 
-exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
+exports.editTeamName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -381,7 +392,7 @@ exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
     return { status: "success", message: "Team name updated!" };
 });
 
-exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.leaveTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -420,7 +431,7 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   return { status: "success", message: "You have left the team." };
 });
 
-exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.deleteTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -460,7 +471,7 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
     return { status: "success", message: "Team deleted successfully." };
 });
 
-exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
+exports.kickTeamMember = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     const { teamId, memberId } = request.data;
     const callerId = request.auth?.uid;
 
@@ -514,7 +525,7 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request) => {
+exports.syncTeamMemberSummary = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -548,7 +559,7 @@ exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1" }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1", maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
@@ -595,26 +606,8 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
 
 // --- ADMIN FUNCTIONS ---
 
-exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
-
-    const callerEmail = request.auth.token.email;
-    const callerUid = request.auth.uid;
-    const superAdmins = await getSuperAdmins();
-    let isAuthorized = superAdmins.includes(callerEmail);
-
-    if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
-            isAuthorized = true;
-        }
-    }
-
-    if (!isAuthorized) {
-        throw new HttpsError("permission-denied", "Not authorized.");
-    }
+exports.getAllUsers = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+    await assertAuthorized(request, ['co-admin']);
 
     try {
         const listUsersResult = await admin.auth().listUsers(1000);
@@ -677,27 +670,8 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
-
-    const callerEmail = request.auth.token.email;
-    const callerUid = request.auth.uid;
-    const superAdmins = await getSuperAdmins();
-    const isSuperAdmin = superAdmins.includes(callerEmail);
-    let isAuthorized = isSuperAdmin;
-
-    if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
-            isAuthorized = true;
-        }
-    }
-
-    if (!isAuthorized) {
-        throw new HttpsError("permission-denied", "Not authorized.");
-    }
+exports.updateUserRole = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+    const { isSuperAdmin, superAdmins } = await assertAuthorized(request, ['co-admin']);
 
     const { targetUserId, newRole, proExpiry } = request.data;
 
@@ -741,26 +715,8 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
-
-    const callerEmail = request.auth.token.email;
-    const callerUid = request.auth.uid;
-    const superAdmins = await getSuperAdmins();
-    let isAuthorized = superAdmins.includes(callerEmail);
-
-    if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
-            isAuthorized = true;
-        }
-    }
-
-    if (!isAuthorized) {
-        throw new HttpsError("permission-denied", "Not authorized.");
-    }
+exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+    await assertAuthorized(request, ['co-admin']);
 
     const email = request.data.email;
     if (!email) {
@@ -803,7 +759,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().onCreate(async (user) => {
+exports.checkProWhitelistOnSignup = functions.runWith({ maxInstances: 10 }).region("asia-south1").auth.user().onCreate(async (user) => {
     const email = user.email;
     if (!email) return;
 
@@ -827,26 +783,8 @@ exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().
     }
 });
 
-exports.revokeProWhitelist = onCall({ region: "asia-south1" }, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "You must be logged in.");
-    }
-
-    const callerEmail = request.auth.token.email;
-    const callerUid = request.auth.uid;
-    const superAdmins = await getSuperAdmins();
-    let isAuthorized = superAdmins.includes(callerEmail);
-
-    if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
-            isAuthorized = true;
-        }
-    }
-
-    if (!isAuthorized) {
-        throw new HttpsError("permission-denied", "Not authorized.");
-    }
+exports.revokeProWhitelist = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+    await assertAuthorized(request, ['co-admin']);
 
     const email = request.data.email;
     if (!email) {
