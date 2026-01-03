@@ -4390,10 +4390,11 @@ function renderAdminUserList(users, searchQuery = '') {
         return;
     }
 
-    // Sort: admins first, then pros, then others
+    // Sort: Owners (4), Co-Admins (3), Pros (2), Standard (1)
     filteredUsers.sort((a, b) => {
         const getScore = (user) => {
-            if (state.superAdmins.includes(user.email) || user.role === 'co-admin') return 3;
+            if (state.superAdmins.includes(user.email)) return 4; // Owner is #1
+            if (user.role === 'co-admin') return 3;               // Co-Admin is #2
             if (user.role === 'pro') return 2;
             return 1;
         };
