@@ -1,7 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-// Use functions v1 for auth trigger as v2 auth triggers are not fully supported in all environments/emulator consistently or syntax differs
-const functions = require("firebase-functions/v1");
+const { beforeUserCreated } = require("firebase-functions/v2/identity");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -139,7 +138,7 @@ async function deleteMemberSummary(userId, teamId) {
     }
 }
 
-exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.createTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
   }
@@ -232,7 +231,7 @@ exports.createTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.joinTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to join a team.");
   }
@@ -320,7 +319,7 @@ exports.joinTeam = onCall({ region: "asia-south1" }, async (request) => {
   }
 });
 
-exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
+exports.editDisplayName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -351,7 +350,7 @@ exports.editDisplayName = onCall({ region: "asia-south1" }, async (request) => {
   return { status: "success", message: "Display name updated!" };
 });
 
-exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
+exports.editTeamName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -381,7 +380,7 @@ exports.editTeamName = onCall({ region: "asia-south1" }, async (request) => {
     return { status: "success", message: "Team name updated!" };
 });
 
-exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.leaveTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -420,7 +419,7 @@ exports.leaveTeam = onCall({ region: "asia-south1" }, async (request) => {
   return { status: "success", message: "You have left the team." };
 });
 
-exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
+exports.deleteTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -460,7 +459,7 @@ exports.deleteTeam = onCall({ region: "asia-south1" }, async (request) => {
     return { status: "success", message: "Team deleted successfully." };
 });
 
-exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
+exports.kickTeamMember = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     const { teamId, memberId } = request.data;
     const callerId = request.auth?.uid;
 
@@ -514,7 +513,7 @@ exports.kickTeamMember = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request) => {
+exports.syncTeamMemberSummary = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -548,7 +547,7 @@ exports.syncTeamMemberSummary = onCall({ region: "asia-south1" }, async (request
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1" }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1", maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
@@ -595,7 +594,7 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
 
 // --- ADMIN FUNCTIONS ---
 
-exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
+exports.getAllUsers = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -677,7 +676,7 @@ exports.getAllUsers = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
+exports.updateUserRole = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -741,7 +740,7 @@ exports.updateUserRole = onCall({ region: "asia-south1" }, async (request) => {
     }
 });
 
-exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
+exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -803,7 +802,8 @@ exports.grantProByEmail = onCall({ region: "asia-south1" }, async (request) => {
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().onCreate(async (user) => {
+exports.checkProWhitelistOnSignup = beforeUserCreated({ region: "asia-south1", maxInstances: 10 }, async (event) => {
+    const user = event.data;
     const email = user.email;
     if (!email) return;
 
@@ -827,7 +827,7 @@ exports.checkProWhitelistOnSignup = functions.region("asia-south1").auth.user().
     }
 });
 
-exports.revokeProWhitelist = onCall({ region: "asia-south1" }, async (request) => {
+exports.revokeProWhitelist = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
