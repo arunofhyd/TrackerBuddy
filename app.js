@@ -4541,7 +4541,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     // Refresh list via helper to maintain search logic capability if we expanded it later
                     await refreshAdminUserList();
 
-                    showMessage(i18n.t('userRoleUpdated', {role: newRole}), 'success');
+                    showMessage(i18n.t('userRoleUpdated', {role: i18n.t(newRole)}), 'success');
                 }
             } catch (error) {
                 console.error("Failed to update role:", error);
