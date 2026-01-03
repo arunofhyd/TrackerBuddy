@@ -66,8 +66,29 @@
     "resetCloudWarning": "Ini akan menghapus data cloud Anda secara permanen.",
     "resetLocalWarning": "Ini akan menghapus data lokal Anda secara permanen.",
     "teamFeaturesOffline": "Fitur tim memerlukan masuk.",
-    "days": ["Ming", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"],
-    "months": ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+    "days": [
+        "Ming",
+        "Sen",
+        "Sel",
+        "Rab",
+        "Kam",
+        "Jum",
+        "Sab"
+    ],
+    "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Agu",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Des"
+    ],
     "noActivitiesRecorded": "Tidak ada aktivitas tercatat untuk hari ini.",
     "enterTeamName": "Masukkan nama tim baru",
     "noLeaveTypesOrSummary": "Tidak ada jenis cuti atau ringkasan tersedia untuk anggota ini di tahun {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Tutup pemilih bulan",
     "ariaCloseTeamDashboard": "Tutup dasbor tim",
     "ariaCloseLeaveOverview": "Tutup ringkasan cuti",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Dasbor Admin",
+    "standard": "Standar",
+    "pro": "Pro",
+    "co-admin": "Rekan Admin"
 }

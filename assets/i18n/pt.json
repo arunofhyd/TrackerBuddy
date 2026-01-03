@@ -66,8 +66,29 @@
     "resetCloudWarning": "Isso excluirá permanentemente seus dados da nuvem.",
     "resetLocalWarning": "Isso excluirá permanentemente seus dados locais.",
     "teamFeaturesOffline": "Recursos de equipe requerem login.",
-    "days": ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
-    "months": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+    "days": [
+        "Dom",
+        "Seg",
+        "Ter",
+        "Qua",
+        "Qui",
+        "Sex",
+        "Sáb"
+    ],
+    "months": [
+        "Jan",
+        "Fev",
+        "Mar",
+        "Abr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Set",
+        "Out",
+        "Nov",
+        "Dez"
+    ],
     "noActivitiesRecorded": "Nenhuma atividade registrada para este dia.",
     "enterTeamName": "Digite o novo nome da equipe",
     "noLeaveTypesOrSummary": "Nenhum tipo de licença configurado ou resumo disponível para este membro em {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Fechar seletor de mês",
     "ariaCloseTeamDashboard": "Fechar painel da equipe",
     "ariaCloseLeaveOverview": "Fechar visão geral de licenças",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Painel de administração",
+    "standard": "Padrão",
+    "pro": "Pró",
+    "co-admin": "Coadministrador"
 }

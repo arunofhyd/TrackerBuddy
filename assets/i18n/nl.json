@@ -66,8 +66,29 @@
     "resetCloudWarning": "Dit verwijdert permanent al je cloudgegevens.",
     "resetLocalWarning": "Dit verwijdert permanent al je lokale gegevens.",
     "teamFeaturesOffline": "Teamfuncties vereisen inloggen.",
-    "days": ["Zo", "Ma", "Di", "Wo", "Do", "Vr", "Za"],
-    "months": ["Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"],
+    "days": [
+        "Zo",
+        "Ma",
+        "Di",
+        "Wo",
+        "Do",
+        "Vr",
+        "Za"
+    ],
+    "months": [
+        "Jan",
+        "Feb",
+        "Mrt",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dec"
+    ],
     "noActivitiesRecorded": "Geen activiteiten geregistreerd voor deze dag.",
     "enterTeamName": "Voer nieuwe teamnaam in",
     "noLeaveTypesOrSummary": "Geen verloftypes geconfigureerd of overzicht beschikbaar voor dit lid in {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Maandkiezer sluiten",
     "ariaCloseTeamDashboard": "Team dashboard sluiten",
     "ariaCloseLeaveOverview": "Verlofoverzicht sluiten",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Beheerdashboard",
+    "standard": "Standaard",
+    "pro": "Pro",
+    "co-admin": "Mede-beheerder"
 }

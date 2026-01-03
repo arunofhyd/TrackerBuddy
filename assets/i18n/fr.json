@@ -66,8 +66,29 @@
     "resetCloudWarning": "Cela supprimera définitivement toutes vos données du cloud. Cette action est irréversible.",
     "resetLocalWarning": "Cela supprimera définitivement toutes vos données locales. Cette action est irréversible.",
     "teamFeaturesOffline": "Les fonctionnalités d'équipe nécessitent une connexion.",
-    "days": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-    "months": ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"],
+    "days": [
+        "Dim",
+        "Lun",
+        "Mar",
+        "Mer",
+        "Jeu",
+        "Ven",
+        "Sam"
+    ],
+    "months": [
+        "Jan",
+        "Fév",
+        "Mar",
+        "Avr",
+        "Mai",
+        "Juin",
+        "Juil",
+        "Août",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Déc"
+    ],
     "noActivitiesRecorded": "Aucune activité enregistrée pour ce jour.",
     "enterTeamName": "Entrez le nouveau nom de l'équipe",
     "noLeaveTypesOrSummary": "Aucun type de congé configuré ou résumé disponible pour ce membre en {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Fermer le sélecteur de mois",
     "ariaCloseTeamDashboard": "Fermer le tableau de bord d'équipe",
     "ariaCloseLeaveOverview": "Fermer l'aperçu des congés",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Tableau de bord d'administration",
+    "standard": "Standard",
+    "pro": "Pro",
+    "co-admin": "Co-administrateur"
 }

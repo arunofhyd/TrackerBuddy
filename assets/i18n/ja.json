@@ -66,8 +66,29 @@
     "resetCloudWarning": "クラウド上の全データが完全に削除されます。",
     "resetLocalWarning": "ローカルの全データが完全に削除されます。",
     "teamFeaturesOffline": "チーム機能はサインインが必要です。",
-    "days": ["日", "月", "火", "水", "木", "金", "土"],
-    "months": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "days": [
+        "日",
+        "月",
+        "火",
+        "水",
+        "木",
+        "金",
+        "土"
+    ],
+    "months": [
+        "1月",
+        "2月",
+        "3月",
+        "4月",
+        "5月",
+        "6月",
+        "7月",
+        "8月",
+        "9月",
+        "10月",
+        "11月",
+        "12月"
+    ],
     "noActivitiesRecorded": "この日の記録されたアクティビティはありません。",
     "enterTeamName": "新しいチーム名を入力",
     "noLeaveTypesOrSummary": "{year}年のこのメンバーの休暇タイプが設定されていないか、サマリーが利用できません。",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "月選択を閉じる",
     "ariaCloseTeamDashboard": "チームダッシュボードを閉じる",
     "ariaCloseLeaveOverview": "休暇概要を閉じる",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "管理者ダッシュボード",
+    "standard": "標準",
+    "pro": "プロ",
+    "co-admin": "共同管理者"
 }

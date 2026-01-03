@@ -66,8 +66,29 @@
     "resetCloudWarning": "Löscht alle Cloud-Daten permanent.",
     "resetLocalWarning": "Löscht alle lokalen Daten permanent.",
     "teamFeaturesOffline": "Nur online verfügbar.",
-    "days": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
-    "months": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
+    "days": [
+        "So",
+        "Mo",
+        "Di",
+        "Mi",
+        "Do",
+        "Fr",
+        "Sa"
+    ],
+    "months": [
+        "Jan",
+        "Feb",
+        "Mär",
+        "Apr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dez"
+    ],
     "noActivitiesRecorded": "Keine Aktivitäten für diesen Tag.",
     "enterTeamName": "Gib einen neuen Teamnamen ein",
     "noLeaveTypesOrSummary": "Keine Urlaubstypen oder Zusammenfassung für dieses Mitglied in {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Monatsauswahl schließen",
     "ariaCloseTeamDashboard": "Team-Dashboard schließen",
     "ariaCloseLeaveOverview": "Urlaubsübersicht schließen",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Admin-Dashboard",
+    "standard": "Standard",
+    "pro": "Profi",
+    "co-admin": "Co-Admin"
 }

@@ -66,8 +66,29 @@
     "resetCloudWarning": "To trwale usunie Twoje dane z chmury.",
     "resetLocalWarning": "To trwale usunie Twoje dane lokalne.",
     "teamFeaturesOffline": "Funkcje zespołu wymagają logowania.",
-    "days": ["Ndz", "Pon", "Wt", "Śr", "Czw", "Pt", "Sob"],
-    "months": ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"],
+    "days": [
+        "Ndz",
+        "Pon",
+        "Wt",
+        "Śr",
+        "Czw",
+        "Pt",
+        "Sob"
+    ],
+    "months": [
+        "Sty",
+        "Lut",
+        "Mar",
+        "Kwi",
+        "Maj",
+        "Cze",
+        "Lip",
+        "Sie",
+        "Wrz",
+        "Paź",
+        "Lis",
+        "Gru"
+    ],
     "noActivitiesRecorded": "Brak zarejestrowanych aktywności w tym dniu.",
     "enterTeamName": "Wprowadź nową nazwę zespołu",
     "noLeaveTypesOrSummary": "Brak skonfigurowanych typów urlopów lub podsumowania dla tego członka w roku {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Zamknij wybór miesiąca",
     "ariaCloseTeamDashboard": "Zamknij panel zespołu",
     "ariaCloseLeaveOverview": "Zamknij przegląd urlopów",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Panel administracyjny",
+    "standard": "Standard",
+    "pro": "Pro",
+    "co-admin": "Co-Admin"
 }

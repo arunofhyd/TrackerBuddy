@@ -66,8 +66,29 @@
     "resetCloudWarning": "Ini akan memadamkan data awan anda secara kekal.",
     "resetLocalWarning": "Ini akan memadamkan data tempatan anda secara kekal.",
     "teamFeaturesOffline": "Ciri pasukan memerlukan log masuk.",
-    "days": ["Ahd", "Isn", "Sel", "Rab", "Kha", "Jum", "Sab"],
-    "months": ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"],
+    "days": [
+        "Ahd",
+        "Isn",
+        "Sel",
+        "Rab",
+        "Kha",
+        "Jum",
+        "Sab"
+    ],
+    "months": [
+        "Jan",
+        "Feb",
+        "Mac",
+        "Apr",
+        "Mei",
+        "Jun",
+        "Jul",
+        "Ogo",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dis"
+    ],
     "noActivitiesRecorded": "Tiada aktiviti direkodkan untuk hari ini.",
     "enterTeamName": "Masukkan nama pasukan baru",
     "noLeaveTypesOrSummary": "Tiada jenis cuti dikonfigurasi atau ringkasan tersedia untuk ahli ini pada tahun {year}.",
@@ -231,5 +252,8 @@
     "ariaCloseMonthPicker": "Tutup pemilih bulan",
     "ariaCloseTeamDashboard": "Tutup papan pemuka pasukan",
     "ariaCloseLeaveOverview": "Tutup gambaran keseluruhan cuti",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Papan Pemuka Pentadbir",
+    "standard": "Standard",
+    "pro": "Pro",
+    "co-admin": "Pentadbir Bersama"
 }
