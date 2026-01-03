@@ -152,7 +152,11 @@
         .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
         #message-display { position: fixed; bottom: 20px; right: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
         #message-display.show { opacity: 1; visibility: visible; }
-        .modal-backdrop { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.5);
+        }
         .activity-text-editable, .time-editable { min-height: 24px; outline: none; padding-bottom: 2px; cursor: text; border-bottom: 1px dashed #d1d5db; }
         .activity-text-editable:focus, .time-editable:focus { border-bottom: 1px solid #3b82f6; background-color: #f0f8ff; }
         .confirm-action { background-color: #fef2f2 !important; border-color: #ef4444 !important; color: #ef4444 !important; }
@@ -781,4 +785,33 @@ body.dark .role-badge.pending {
     background-color: #7c2d12;
     color: #fed7aa;
     border-color: #ea580c;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    /* Disable backdrop-filter on mobile to prevent rendering artifacts */
+    .modal-backdrop, .spotlight-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background-color: rgba(0, 0, 0, 0.85) !important;
+    }
+
+    /* Simplify Login Container */
+    .login-container {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        border: 1px solid #e5e7eb !important;
+    }
+
+    body.dark .login-container {
+        background: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+
+    /* Reduce transition complexity */
+    .smooth-modal, .view-container, .login-container {
+        transition-duration: 0.15s !important;
+    }
 }
