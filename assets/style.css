@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
             --team-card-bg-color: #f7fafc;
             --team-dashboard-title-color: #2d3748;
