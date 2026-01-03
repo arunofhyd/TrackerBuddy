@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "关闭月份选择器",
     "ariaCloseTeamDashboard": "关闭团队仪表板",
     "ariaCloseLeaveOverview": "关闭休假概览",
-    "adminDashboard": "管理仪表板"
+    "adminDashboard": "管理仪表板",
+    "standard": "Standard",
+    "pro": "Pro"
 }

@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "إغلاق منتقي الشهر",
     "ariaCloseTeamDashboard": "إغلاق لوحة تحكم الفريق",
     "ariaCloseLeaveOverview": "إغلاق نظرة عامة على الإجازة",
-    "adminDashboard": "لوحة تحكم المشرف"
+    "adminDashboard": "لوحة تحكم المشرف",
+    "standard": "معيار",
+    "pro": "برو"
 }

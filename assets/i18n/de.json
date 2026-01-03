@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Monatsauswahl schließen",
     "ariaCloseTeamDashboard": "Team-Dashboard schließen",
     "ariaCloseLeaveOverview": "Urlaubsübersicht schließen",
-    "adminDashboard": "Admin-Dashboard"
+    "adminDashboard": "Admin-Dashboard",
+    "standard": "Standard",
+    "pro": "Profi"
 }

@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Tutup pemilih bulan",
     "ariaCloseTeamDashboard": "Tutup dasbor tim",
     "ariaCloseLeaveOverview": "Tutup ringkasan cuti",
-    "adminDashboard": "Dasbor Admin"
+    "adminDashboard": "Dasbor Admin",
+    "standard": "Standar",
+    "pro": "Pro"
 }

@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Закрыть выбор месяца",
     "ariaCloseTeamDashboard": "Закрыть панель команды",
     "ariaCloseLeaveOverview": "Закрыть обзор отпусков",
-    "adminDashboard": "Панель администратора"
+    "adminDashboard": "Панель администратора",
+    "standard": "Стандартный",
+    "pro": "Про"
 }

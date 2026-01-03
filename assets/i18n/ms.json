@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Tutup pemilih bulan",
     "ariaCloseTeamDashboard": "Tutup papan pemuka pasukan",
     "ariaCloseLeaveOverview": "Tutup gambaran keseluruhan cuti",
-    "adminDashboard": "Papan Pemuka Pentadbir"
+    "adminDashboard": "Papan Pemuka Pentadbir",
+    "standard": "Standard",
+    "pro": "Pro"
 }

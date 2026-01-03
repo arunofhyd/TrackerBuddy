@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "മാസ സെലക്ടർ അടയ്ക്കുക",
     "ariaCloseTeamDashboard": "ടീം ഡാഷ്ബോർഡ് അടയ്ക്കുക",
     "ariaCloseLeaveOverview": "ലീവ് അവലോകനം അടയ്ക്കുക",
-    "adminDashboard": "അഡ്മിൻ ഡാഷ്ബോർഡ്"
+    "adminDashboard": "അഡ്മിൻ ഡാഷ്ബോർഡ്",
+    "standard": "സ്റ്റാൻഡേർഡ്",
+    "pro": "പ്രൊഫ"
 }

@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "月選択を閉じる",
     "ariaCloseTeamDashboard": "チームダッシュボードを閉じる",
     "ariaCloseLeaveOverview": "休暇概要を閉じる",
-    "adminDashboard": "管理者ダッシュボード"
+    "adminDashboard": "管理者ダッシュボード",
+    "standard": "標準",
+    "pro": "プロ"
 }

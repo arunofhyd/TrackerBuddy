@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "महीना चयनकर्ता बंद करें",
     "ariaCloseTeamDashboard": "टीम डैशबोर्ड बंद करें",
     "ariaCloseLeaveOverview": "अवकाश अवलोकन बंद करें",
-    "adminDashboard": "व्यवस्थापक डैशबोर्ड"
+    "adminDashboard": "व्यवस्थापक डैशबोर्ड",
+    "standard": "मानक",
+    "pro": "प्रो"
 }

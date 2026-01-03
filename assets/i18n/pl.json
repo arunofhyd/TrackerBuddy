@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Zamknij wybór miesiąca",
     "ariaCloseTeamDashboard": "Zamknij panel zespołu",
     "ariaCloseLeaveOverview": "Zamknij przegląd urlopów",
-    "adminDashboard": "Panel administracyjny"
+    "adminDashboard": "Panel administracyjny",
+    "standard": "Standard",
+    "pro": "Pro"
 }

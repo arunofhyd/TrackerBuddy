@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "ปิดตัวเลือกเดือน",
     "ariaCloseTeamDashboard": "ปิดแดชบอร์ดทีม",
     "ariaCloseLeaveOverview": "ปิดภาพรวมการลา",
-    "adminDashboard": "แดชบอร์ดผู้ดูแลระบบ"
+    "adminDashboard": "แดชบอร์ดผู้ดูแลระบบ",
+    "standard": "มาตรฐาน",
+    "pro": "โปร"
 }

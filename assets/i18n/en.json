@@ -231,5 +231,8 @@
     "ariaCloseMonthPicker": "Close month picker",
     "ariaCloseTeamDashboard": "Close team dashboard",
     "ariaCloseLeaveOverview": "Close leave overview",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Admin Dashboard",
+    "standard":"Standard",
+    "pro":"Pro"
+
 }

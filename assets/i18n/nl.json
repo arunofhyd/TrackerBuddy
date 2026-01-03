@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Maandkiezer sluiten",
     "ariaCloseTeamDashboard": "Team dashboard sluiten",
     "ariaCloseLeaveOverview": "Verlofoverzicht sluiten",
-    "adminDashboard": "Beheerdashboard"
+    "adminDashboard": "Beheerdashboard",
+    "standard": "Standaard",
+    "pro": "Pro"
 }

@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Chiudi selettore mese",
     "ariaCloseTeamDashboard": "Chiudi dashboard team",
     "ariaCloseLeaveOverview": "Chiudi panoramica ferie",
-    "adminDashboard": "Pannello di amministrazione"
+    "adminDashboard": "Pannello di amministrazione",
+    "standard": "Standard",
+    "pro": "Pro"
 }

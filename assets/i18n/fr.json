@@ -252,5 +252,7 @@
     "ariaCloseMonthPicker": "Fermer le sélecteur de mois",
     "ariaCloseTeamDashboard": "Fermer le tableau de bord d'équipe",
     "ariaCloseLeaveOverview": "Fermer l'aperçu des congés",
-    "adminDashboard": "Tableau de bord d'administration"
+    "adminDashboard": "Tableau de bord d'administration",
+    "standard": "Standard",
+    "pro": "Pro"
 }
