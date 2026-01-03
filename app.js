@@ -2809,6 +2809,402 @@ function mergeUserData(cloudState, guestData) {
     };
 }
 
+// --- EVENT LISTENERS & RENDER FUNCTIONS ---
+
+function setupEventListeners() {
+    // Auth & Navigation
+    DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(DOM.emailSigninBtn.previousElementSibling.previousElementSibling.querySelector('input').value, DOM.emailSigninBtn.previousElementSibling.querySelector('input').value));
+    DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(DOM.emailSigninBtn.previousElementSibling.previousElementSibling.querySelector('input').value, DOM.emailSigninBtn.previousElementSibling.querySelector('input').value));
+    DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
+    DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(DOM.emailSigninBtn.previousElementSibling.previousElementSibling.querySelector('input').value));
+    DOM.anonContinueBtn.addEventListener('click', () => { 
+        localStorage.setItem('sessionMode', 'offline');
+        loadOfflineData(); 
+    });
+    DOM.appSignOutBtn = document.getElementById('sign-out-btn'); // Ensure this is grabbed if not in initUI
+    if(DOM.appSignOutBtn) DOM.appSignOutBtn.addEventListener('click', appSignOut);
+    
+    // View Switching
+    DOM.monthViewBtn.addEventListener('click', () => { state.currentView = VIEW_MODES.MONTH; updateView(); });
+    DOM.dayViewBtn.addEventListener('click', () => { state.currentView = VIEW_MODES.DAY; updateView(); });
+    
+    // Period Navigation
+    DOM.prevBtn.addEventListener('click', () => {
+        if (state.currentView === VIEW_MODES.MONTH) {
+            const newDate = new Date(state.currentMonth);
+            newDate.setMonth(newDate.getMonth() - 1);
+            state.currentMonth = newDate;
+        } else {
+            const newDate = new Date(state.selectedDate);
+            newDate.setDate(newDate.getDate() - 1);
+            state.selectedDate = newDate;
+        }
+        updateView();
+    });
+    DOM.nextBtn.addEventListener('click', () => {
+        if (state.currentView === VIEW_MODES.MONTH) {
+            const newDate = new Date(state.currentMonth);
+            newDate.setMonth(newDate.getMonth() + 1);
+            state.currentMonth = newDate;
+        } else {
+            const newDate = new Date(state.selectedDate);
+            newDate.setDate(newDate.getDate() + 1);
+            state.selectedDate = newDate;
+        }
+        updateView();
+    });
+
+    // Theme & Info
+    DOM.themeToggleBtn.addEventListener('click', toggleTheme);
+    DOM.infoToggleBtn.addEventListener('click', () => {
+        DOM.infoDescription.style.maxHeight = DOM.infoDescription.style.maxHeight ? null : `${DOM.infoDescription.scrollHeight}px`;
+    });
+    DOM.appLogo.addEventListener('click', handleLogoTap);
+
+    // Month View Controls
+    DOM.currentPeriodDisplay.addEventListener('click', () => {
+        if(state.currentView === VIEW_MODES.MONTH) DOM.monthPickerModal.classList.add('visible');
+    });
+    DOM.monthPickerModal.querySelector('#close-month-picker-btn').addEventListener('click', () => DOM.monthPickerModal.classList.remove('visible'));
+    DOM.monthPickerModal.querySelector('#prev-year-btn').addEventListener('click', () => { state.pickerYear--; renderMonthPicker(); });
+    DOM.monthPickerModal.querySelector('#next-year-btn').addEventListener('click', () => { state.pickerYear++; renderMonthPicker(); });
+
+    // Leave & Stats
+    DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
+    DOM.logNewLeaveBtn.addEventListener('click', () => {
+        if (state.isLoggingLeave) {
+            state.isLoggingLeave = false;
+            state.leaveSelection.clear();
+            state.selectedLeaveTypeId = null;
+            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
+            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+        } else {
+            state.isLoggingLeave = true;
+            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancel')}`;
+            DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
+            showMessage(i18n.t("msgSelectDays"), 'info');
+        }
+        updateView();
+    });
+    DOM.statsToggleBtn.addEventListener('click', () => {
+        DOM.leaveStatsSection.classList.toggle('hidden');
+        DOM.statsArrowDown.classList.toggle('hidden');
+        DOM.statsArrowUp.classList.toggle('hidden');
+    });
+
+    // Team Controls
+    DOM.teamToggleBtn.addEventListener('click', () => {
+        DOM.teamSection.classList.toggle('hidden');
+        DOM.teamArrowDown.classList.toggle('hidden');
+        DOM.teamArrowUp.classList.toggle('hidden');
+        // Lazy load team data when expanded
+        if (!DOM.teamSection.classList.contains('hidden') && state.currentTeam) {
+            subscribeToTeamData();
+        }
+    });
+
+    // Data Management
+    DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
+    DOM.uploadCsvBtn.addEventListener('click', () => DOM.uploadCsvInput.click());
+    DOM.uploadCsvInput.addEventListener('change', handleFileUpload);
+    DOM.resetDataBtn.addEventListener('click', () => DOM.confirmResetModal.classList.add('visible'));
+    DOM.confirmResetModal.querySelector('#cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
+    DOM.confirmResetModal.querySelector('#confirm-reset-btn').addEventListener('click', resetAllData);
+
+    // Modals
+    DOM.leaveTypeModal.querySelector('#cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
+    DOM.leaveTypeModal.querySelector('#save-leave-type-btn').addEventListener('click', saveLeaveType);
+    setupDoubleClickConfirm(DOM.deleteLeaveTypeBtn, 'deleteLeaveType', 'msgConfirmDelete', deleteLeaveType);
+    
+    DOM.customizeLeaveModal.querySelector('#cancel-log-leave-btn').addEventListener('click', () => DOM.customizeLeaveModal.classList.remove('visible'));
+    DOM.customizeLeaveModal.querySelector('#save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
+    DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
+
+    // Team Modals
+    DOM.createTeamModal.querySelector('#cancel-create-team-btn').addEventListener('click', () => DOM.createTeamModal.classList.remove('visible'));
+    DOM.createTeamModal.querySelector('#save-create-team-btn').addEventListener('click', createTeam);
+    
+    DOM.joinTeamModal.querySelector('#cancel-join-team-btn').addEventListener('click', () => DOM.joinTeamModal.classList.remove('visible'));
+    DOM.joinTeamModal.querySelector('#save-join-team-btn').addEventListener('click', joinTeam);
+
+    DOM.editTeamNameModal.querySelector('#cancel-edit-team-name-btn').addEventListener('click', () => DOM.editTeamNameModal.classList.remove('visible'));
+    DOM.editTeamNameModal.querySelector('#save-edit-team-name-btn').addEventListener('click', editTeamName);
+
+    DOM.editDisplayNameModal.querySelector('#cancel-edit-name-btn').addEventListener('click', () => DOM.editDisplayNameModal.classList.remove('visible'));
+    DOM.editDisplayNameModal.querySelector('#save-edit-name-btn').addEventListener('click', editDisplayName);
+
+    DOM.confirmKickModal.querySelector('#cancel-kick-btn').addEventListener('click', () => DOM.confirmKickModal.classList.remove('visible'));
+    
+    DOM.teamDashboardModal.querySelector('#close-team-dashboard-btn').addEventListener('click', () => DOM.teamDashboardModal.classList.remove('visible'));
+
+    // Admin & Search
+    DOM.openSpotlightBtn.addEventListener('click', () => { DOM.spotlightModal.classList.add('visible'); DOM.spotlightInput.focus(); });
+    DOM.spotlightCloseBtn.addEventListener('click', () => DOM.spotlightModal.classList.remove('visible'));
+    DOM.spotlightInput.addEventListener('input', debounce((e) => handleSearch(e.target.value), 300));
+    DOM.exitSearchBtn.addEventListener('click', () => { state.isSearching = false; updateView(); DOM.exitSearchBtn.parentElement.classList.add('hidden'); });
+    
+    DOM.adminDashboardModal.querySelector('#close-admin-dashboard-btn').addEventListener('click', () => DOM.adminDashboardModal.classList.remove('visible'));
+}
+
+function setupDailyViewEventListeners() {
+    DOM.todayBtnDay.addEventListener('click', () => {
+        state.selectedDate = new Date();
+        updateView();
+    });
+    DOM.dailyNoteInput.addEventListener('change', (e) => {
+        saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
+    });
+    DOM.addNewSlotBtn.addEventListener('click', () => {
+        saveData({ type: ACTION_TYPES.ADD_SLOT });
+    });
+}
+
+function renderTeamSection() {
+    // Basic implementation - ensure DOM element exists
+    if (!DOM.teamSection) return;
+    
+    if (!state.currentTeam) {
+        render(html`
+            <div class="flex flex-col sm:flex-row gap-4 p-4 items-center justify-center">
+                <button class="btn-primary px-6 py-3 rounded-lg w-full sm:w-auto" @click=${() => DOM.createTeamModal.classList.add('visible')}>
+                    <i class="fas fa-plus-circle mr-2"></i> ${i18n.t('createTeam')}
+                </button>
+                <button class="btn-secondary px-6 py-3 rounded-lg w-full sm:w-auto" @click=${() => DOM.joinTeamModal.classList.add('visible')}>
+                    <i class="fas fa-sign-in-alt mr-2"></i> ${i18n.t('joinTeam')}
+                </button>
+            </div>
+        `, DOM.teamSection);
+    } else {
+        const isAdmin = state.teamRole === TEAM_ROLES.ADMIN;
+        render(html`
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="font-bold text-lg">${sanitizeHTML(state.teamName || 'Team')}</h3>
+                        ${isAdmin ? html`<p class="text-xs text-gray-500 font-mono tracking-wider">Code: ${state.currentTeam}</p>` : ''}
+                    </div>
+                    <button class="btn-secondary px-4 py-2 rounded-lg text-sm" @click=${() => DOM.teamDashboardModal.classList.add('visible')}>
+                        <i class="fas fa-users mr-2"></i> ${i18n.t('teamDashboard')}
+                    </button>
+                </div>
+            </div>
+        `, DOM.teamSection);
+        
+        // Setup listeners for the rendered buttons immediately
+        const createBtn = DOM.teamSection.querySelector('button .fa-plus-circle')?.parentElement;
+        if(createBtn) createBtn.addEventListener('click', () => DOM.createTeamModal.classList.add('visible'));
+        
+        const joinBtn = DOM.teamSection.querySelector('button .fa-sign-in-alt')?.parentElement;
+        if(joinBtn) joinBtn.addEventListener('click', () => DOM.joinTeamModal.classList.add('visible'));
+        
+        const dashboardBtn = DOM.teamSection.querySelector('button .fa-users')?.parentElement;
+        if(dashboardBtn) dashboardBtn.addEventListener('click', () => {
+            DOM.teamDashboardModal.classList.add('visible');
+            renderTeamDashboard();
+        });
+    }
+}
+
+function renderTeamDashboard() {
+    if (!state.currentTeam) return;
+    
+    const members = state.teamMembers || [];
+    const isAdmin = state.teamRole === TEAM_ROLES.ADMIN;
+    const currentUserId = state.userId;
+
+    const memberList = members.map(member => {
+        const isSelf = member.userId === currentUserId;
+        const memberData = state.teamMembersData[member.userId]; // Data from subcollection
+        
+        return html`
+            <div class="flex items-center justify-between p-3 border-b hover:bg-gray-50">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">
+                        ${member.displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <p class="font-medium ${isSelf ? 'text-blue-600' : ''}">
+                            ${sanitizeHTML(member.displayName)} ${isSelf ? '(You)' : ''}
+                        </p>
+                        <p class="text-xs text-gray-500 capitalize">${member.role}</p>
+                    </div>
+                </div>
+                ${isAdmin && !isSelf ? html`
+                    <button class="text-red-500 hover:text-red-700 p-2" title="${i18n.t('kickMember')}" 
+                        @click=${() => confirmKickMember(member.userId, member.displayName)}>
+                        <i class="fas fa-user-times"></i>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    });
+
+    const content = html`
+        <div class="space-y-4">
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button class="btn-secondary text-sm px-3 py-1 rounded" @click=${() => DOM.editDisplayNameModal.classList.add('visible')}>
+                    <i class="fas fa-user-edit mr-1"></i> ${i18n.t('changeMyName')}
+                </button>
+                ${isAdmin ? html`
+                    <button class="btn-secondary text-sm px-3 py-1 rounded" @click=${() => DOM.editTeamNameModal.classList.add('visible')}>
+                        <i class="fas fa-edit mr-1"></i> ${i18n.t('editTeamName')}
+                    </button>
+                    <button class="btn-danger text-sm px-3 py-1 rounded ml-auto" @click=${deleteTeam}>
+                        <i class="fas fa-trash-alt mr-1"></i> ${i18n.t('deleteTeam')}
+                    </button>
+                ` : html`
+                    <button class="btn-danger text-sm px-3 py-1 rounded ml-auto" @click=${leaveTeam}>
+                        <i class="fas fa-sign-out-alt mr-1"></i> ${i18n.t('leaveTeam')}
+                    </button>
+                `}
+            </div>
+            <div class="border rounded-lg overflow-hidden">
+                ${memberList}
+            </div>
+        </div>
+    `;
+    
+    render(content, DOM.teamDashboardContent);
+}
+
+function renderAdminButton() {
+    // Only show for Super Admin or Co-Admin
+    const isSuperAdmin = (state.superAdmins || []).includes(auth.currentUser?.email);
+    const isCoAdmin = state.userRole === 'co-admin';
+    
+    if (!isSuperAdmin && !isCoAdmin) return;
+
+    // Check if button already exists
+    if (document.getElementById('admin-dashboard-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'admin-dashboard-btn';
+    btn.className = 'fixed bottom-20 right-5 z-40 bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-gray-700 transition-colors';
+    btn.innerHTML = '<i class="fas fa-shield-alt"></i>';
+    btn.title = "Admin Dashboard";
+    btn.onclick = openAdminDashboard;
+    
+    document.body.appendChild(btn);
+}
+
+// Stub functions for missing cloud calls - ensure these are defined in your original file or imported
+// Since I cannot see them, I will define simple wrappers assuming you have the cloud functions set up
+async function createTeam() {
+    const name = DOM.teamNameInput.value.trim();
+    const displayName = DOM.teamAdminDisplayNameInput.value.trim();
+    if(!name || !displayName) return showMessage(i18n.t("msgTeamNameRequired"), 'error');
+    
+    try {
+        const fn = httpsCallable(functions, 'createTeam');
+        await fn({ teamName: name, displayName });
+        DOM.createTeamModal.classList.remove('visible');
+        showMessage(i18n.t("msgTeamCreated"), 'success');
+    } catch(e) {
+        showMessage(e.message, 'error');
+    }
+}
+
+async function joinTeam() {
+    const code = DOM.roomCodeInput.value.trim();
+    const displayName = DOM.displayNameInput.value.trim();
+    if(!code || !displayName) return showMessage(i18n.t("msgRoomCodeRequired"), 'error');
+
+    try {
+        const fn = httpsCallable(functions, 'joinTeam');
+        await fn({ roomCode: code, displayName });
+        DOM.joinTeamModal.classList.remove('visible');
+        showMessage(i18n.t("msgJoinedTeam"), 'success');
+    } catch(e) {
+        showMessage(e.message, 'error');
+    }
+}
+
+async function leaveTeam() {
+    if(!confirm(i18n.t("confirmLeaveTeam"))) return;
+    try {
+        const fn = httpsCallable(functions, 'leaveTeam');
+        await fn({ teamId: state.currentTeam });
+        DOM.teamDashboardModal.classList.remove('visible');
+        showMessage(i18n.t("msgLeftTeam"), 'success');
+    } catch(e) { showMessage(e.message, 'error'); }
+}
+
+async function deleteTeam() {
+    if(!confirm(i18n.t("confirmDeleteTeam"))) return;
+    try {
+        const fn = httpsCallable(functions, 'deleteTeam');
+        await fn({ teamId: state.currentTeam });
+        DOM.teamDashboardModal.classList.remove('visible');
+        showMessage(i18n.t("msgTeamDeleted"), 'success');
+    } catch(e) { showMessage(e.message, 'error'); }
+}
+
+async function confirmKickMember(userId, name) {
+    // Store for confirmation modal logic
+    state.kickTargetId = userId;
+    DOM.kickModalText.textContent = `Kick ${name}?`;
+    DOM.confirmKickModal.classList.add('visible');
+    
+    // One-time listener for the confirm button
+    const confirmBtn = DOM.confirmKickModal.querySelector('#confirm-kick-btn');
+    const newBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+    
+    newBtn.addEventListener('click', async () => {
+        try {
+            const fn = httpsCallable(functions, 'kickTeamMember');
+            await fn({ teamId: state.currentTeam, memberId: userId });
+            DOM.confirmKickModal.classList.remove('visible');
+            showMessage("Member kicked", 'success');
+        } catch(e) { showMessage(e.message, 'error'); }
+    });
+}
+
+async function editDisplayName() {
+    const name = DOM.newDisplayNameInput.value.trim();
+    if(!name) return;
+    try {
+        const fn = httpsCallable(functions, 'editDisplayName');
+        await fn({ teamId: state.currentTeam, newDisplayName: name });
+        DOM.editDisplayNameModal.classList.remove('visible');
+        showMessage("Name updated", 'success');
+    } catch(e) { showMessage(e.message, 'error'); }
+}
+
+async function openAdminDashboard() {
+    DOM.adminDashboardModal.classList.add('visible');
+    await renderAdminUserList();
+}
+
+async function renderAdminUserList() {
+    // Placeholder for admin logic
+    DOM.adminUserList.innerHTML = '<p class="p-4 text-center text-gray-500">Loading users...</p>';
+    try {
+        const fn = httpsCallable(functions, 'getAllUsers');
+        const result = await fn();
+        const users = result.data.users || [];
+        
+        DOM.adminUserList.innerHTML = users.map(user => `
+            <div class="flex items-center justify-between p-3 border-b">
+                <div>
+                    <p class="font-bold">${sanitizeHTML(user.displayName || user.email)}</p>
+                    <p class="text-xs text-gray-500">${user.email}</p>
+                    <span class="text-xs px-2 py-0.5 rounded ${user.role === 'pro' ? 'bg-green-100 text-green-800' : 'bg-gray-100'}">${user.role}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        DOM.adminUserList.innerHTML = `<p class="text-red-500 p-4">Error: ${e.message}</p>`;
+    }
+}
+
+function handleSearch(query) {
+    state.searchQuery = query;
+    // Simple toggle logic for search view vs app view can be added here
+    // For now just console log to verify event listener works
+    console.log("Searching:", query);
+}
+
 async function init() {
     initUI();
     try {
