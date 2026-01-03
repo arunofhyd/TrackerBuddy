@@ -2868,18 +2868,16 @@ function renderTeamSection() {
     }
 
     if (!state.isOnlineMode) {
-        DOM.teamSection.innerHTML = `<p class="text-center text-gray-500">${i18n.t('teamFeaturesOffline')}</p>`;
+        render(html`<p class="text-center text-gray-500">${i18n.t('teamFeaturesOffline')}</p>`, DOM.teamSection);
         return;
     }
 
     // Check for Pro Access
-    // Super Admin (state.superAdmins) always has access
     const isSuperAdmin = state.superAdmins.includes(auth.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
     if (!state.currentTeam) {
-        // No team - show create/join options
-        DOM.teamSection.innerHTML = `
+        const createTeamTemplate = html`
             <div class="text-center">
                 <h3 class="text-lg font-semibold mb-4">${i18n.t('teamManagement')}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2912,23 +2910,19 @@ function renderTeamSection() {
                 </div>
             </div>
         `;
-
-        // Add event listeners for create/join buttons
-        document.getElementById('create-team-btn').addEventListener('click', openCreateTeamModal);
-        document.getElementById('join-team-btn').addEventListener('click', openJoinTeamModal);
-
+        render(createTeamTemplate, DOM.teamSection);
     } else {
         // Has team - show team info and actions
         const isAdmin = state.teamRole === TEAM_ROLES.ADMIN;
         const memberCount = state.teamMembers.length || 0;
 
-        const teamInfo = `
+        const teamInfoTemplate = html`
             <div class="space-y-4 sm:space-y-6">
                 <div class="text-center">
                     <h3 class="text-base sm:text-lg font-semibold mb-2 flex items-center justify-center">
                         <i class="fa-solid fa-user-group w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600"></i>
                         <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
-                        ${isAdmin ? `
+                        ${isAdmin ? html`
                         <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
                             <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
@@ -2951,7 +2945,7 @@ function renderTeamSection() {
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
-                    ${isAdmin ? `
+                    ${isAdmin ? html`
                         <button id="team-dashboard-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -2965,14 +2959,14 @@ function renderTeamSection() {
                         </svg>
                         ${i18n.t('changeName')}
                     </button>
-                    ${isAdmin ? `
+                    ${isAdmin ? html`
                         <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             ${i18n.t('deleteTeam')}
                         </button>
-                    ` : `
+                    ` : html`
                         <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             ${i18n.t('leaveTeam')}
@@ -2982,9 +2976,7 @@ function renderTeamSection() {
             </div>
         `;
 
-        DOM.teamSection.innerHTML = teamInfo;
-
-        // Event listeners are now handled by delegation in setupEventListeners
+        render(teamInfoTemplate, DOM.teamSection);
     }
 }
 
@@ -4678,6 +4670,17 @@ async function init() {
     loadTheme();
     handleSplashScreen();
     loadSplashScreenVideo();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);
