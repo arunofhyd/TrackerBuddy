@@ -1,0 +1,35 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "<h2 align=\"center\">TrackerBuddy</h2> <p align=\"center\">A free, all-in-one app to track your daily activities, log work hours, and manage leave balances!</p>",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arunofhyd/TrackerBuddy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/arunofhyd/TrackerBuddy/issues"
+  },
+  "homepage": "https://github.com/arunofhyd/TrackerBuddy#readme",
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "firebase": "^12.7.0",
+    "font-awesome": "^4.7.0",
+    "lit-html": "^3.3.2",
+    "papaparse": "^5.5.3",
+    "vite": "^7.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
+}
