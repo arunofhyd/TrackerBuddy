@@ -348,6 +348,7 @@ function initUI() {
         adminUserList: document.getElementById('admin-user-list'),
         closeAdminDashboardBtn: document.getElementById('close-admin-dashboard-btn')
     };
+
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -387,47 +388,60 @@ function setButtonLoadingState(button, isLoading) {
 function switchView(viewToShow, viewToHide, callback) {
     const mainContainer = document.querySelector('.main-container');
 
-    if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-        if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
-    } else if (viewToShow === DOM.appView) {
-        loadTheme();
-        if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
-    }
-
-    if (viewToHide) {
-        viewToHide.style.opacity = '0';
-        
-        // Wait for hide transition if applicable, then hide element
-        const handleTransitionEnd = () => {
-            viewToHide.classList.add('hidden');
-            viewToHide.removeEventListener('transitionend', handleTransitionEnd);
-        };
-        
-        // Fallback if no transition occurs
-        const safetyTimeout = setTimeout(() => {
-            viewToHide.removeEventListener('transitionend', handleTransitionEnd);
-            viewToHide.classList.add('hidden');
-        }, 500); 
-
-        viewToHide.addEventListener('transitionend', () => {
-             clearTimeout(safetyTimeout);
-             handleTransitionEnd();
-        }, { once: true });
-    }
-
-    requestAnimationFrame(() => {
-        if (viewToShow === DOM.appView) {
-            mainContainer.classList.add('is-app-view');
-        } else {
-            mainContainer.classList.remove('is-app-view');
+    const showNewView = () => {
+        if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
+        } else if (viewToShow === DOM.appView) {
+            loadTheme();
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
         }
-        viewToShow.classList.remove('hidden');
 
         requestAnimationFrame(() => {
-            viewToShow.style.opacity = '1';
-            if (callback) callback();
+            // Ensure the view starts invisible for the fade-in
+            viewToShow.style.opacity = '0';
+            
+            if (viewToShow === DOM.appView) {
+                mainContainer.classList.add('is-app-view');
+            } else {
+                mainContainer.classList.remove('is-app-view');
+            }
+            viewToShow.classList.remove('hidden');
+
+            requestAnimationFrame(() => {
+                viewToShow.style.opacity = '1';
+                if (callback) callback();
+            });
         });
-    });
+    };
+
+    if (viewToHide && !viewToHide.classList.contains('hidden')) {
+        // Apply optimization only during transition
+        viewToHide.style.willChange = 'opacity';
+        viewToHide.style.opacity = '0';
+        
+        let transitionHandler;
+        const safetyTimeout = setTimeout(() => {
+            viewToHide.removeEventListener('transitionend', transitionHandler);
+            finishHide();
+        }, 350); 
+
+        const finishHide = () => {
+             viewToHide.style.willChange = 'auto'; // Cleanup
+             viewToHide.classList.add('hidden');
+             // Only show the new view AFTER the old one is gone to prevent layout jumps
+             showNewView();
+        };
+
+        transitionHandler = () => {
+             clearTimeout(safetyTimeout);
+             viewToHide.removeEventListener('transitionend', transitionHandler);
+             finishHide();
+        };
+
+        viewToHide.addEventListener('transitionend', transitionHandler, { once: true });
+    } else {
+        showNewView();
+    }
 }
 
 async function handleUserLogin(user) {
