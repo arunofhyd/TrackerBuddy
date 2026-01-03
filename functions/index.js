@@ -802,7 +802,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, as
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = beforeUserCreated({ region: "asia-south1", maxInstances: 10 }, async (event) => {
+exports.checkProWhitelistOnSignupV2 = beforeUserCreated({ region: "asia-south1", maxInstances: 10 }, async (event) => {
     const user = event.data;
     const email = user.email;
     if (!email) return;
