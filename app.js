@@ -5,6 +5,7 @@ import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, wh
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 import { html, render } from 'https://cdn.jsdelivr.net/npm/lit-html@3.1.2/lit-html.js';
 import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@3.3.1/+esm';
+import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -1363,30 +1364,6 @@ function downloadCSV() {
     document.body.removeChild(link);
 }
 
-function parseCsvLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-                current += '"';
-                i++; // Skip the next quote
-            } else {
-                inQuotes = !inQuotes;
-            }
-        } else if (char === ',' && !inQuotes) {
-            result.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    result.push(current);
-    return result;
-}
-
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1400,21 +1377,27 @@ function handleFileUpload(event) {
             const yearlyDataCopy = JSON.parse(JSON.stringify(state.yearlyData));
             const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
-            const lines = csvContent.split('\n').filter(line => line.trim());
+            const parsed = Papa.parse(csvContent, {
+                skipEmptyLines: true
+            });
 
-            if (lines.length <= 1) {
+            const rows = parsed.data;
+
+            if (rows.length <= 1) {
                 return showMessage(i18n.t("msgEmptyCSV"), 'error');
             }
 
             let processedRows = 0;
-            lines.slice(1).forEach(line => {
-                const row = parseCsvLine(line.trim());
+            // Skip the header row
+            rows.slice(1).forEach(row => {
                 if (row.length < 2) return;
 
                 const [type, detail1, detail2, detail3, detail4] = row;
                 let rowProcessed = false;
+                // Trim potential whitespace from the type
+                const recordType = (type || '').trim().toUpperCase();
 
-                switch (type.toUpperCase()) {
+                switch (recordType) {
                     case 'LEAVE_TYPE':
                         if (detail1 && detail2 && detail3 !== undefined && detail4) {
                             leaveTypesMap.set(detail1, {
@@ -1445,7 +1428,7 @@ function handleFileUpload(event) {
                     case 'USER_CLEARED':
                         const dateKey = detail1;
                         if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-                            console.warn(`Skipping row with invalid date format: ${line}`);
+                            console.warn(`Skipping row with invalid date format: ${dateKey}`);
                             return;
                         }
                         const activityYear = dateKey.substring(0, 4);
@@ -1455,19 +1438,19 @@ function handleFileUpload(event) {
 
                         const dayData = yearlyDataCopy[activityYear].activities[dateKey];
 
-                        if (type.toUpperCase() === 'NOTE') {
+                        if (recordType === 'NOTE') {
                             dayData.note = detail2;
                             rowProcessed = true;
-                        } else if (type.toUpperCase() === 'LEAVE') {
+                        } else if (recordType === 'LEAVE') {
                             dayData.leave = { typeId: detail2, dayType: detail3 || 'full' };
                             rowProcessed = true;
-                        } else if (type.toUpperCase() === 'ACTIVITY') {
+                        } else if (recordType === 'ACTIVITY') {
                             const time = detail2;
                             if (time) {
                                 dayData[time] = { text: detail3 || "", order: isNaN(parseInt(detail4, 10)) ? 0 : parseInt(detail4, 10) };
                                 rowProcessed = true;
                             }
-                        } else if (type.toUpperCase() === 'USER_CLEARED') {
+                        } else if (recordType === 'USER_CLEARED') {
                             dayData._userCleared = true;
                             rowProcessed = true;
                         }
