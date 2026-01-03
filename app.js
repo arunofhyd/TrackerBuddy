@@ -8,7 +8,7 @@ import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@3.3.1/+esm';
 
 // Import Constants and Effects
 import { ACTION_TYPES, VIEW_MODES, LEAVE_DAY_TYPES, TEAM_ROLES, STORAGE_KEYS, COLOR_MAP, STATUS } from './assets/js/constants.js';
-import { createMagicParticles, handleLogoTap } from './assets/js/ui-effects.js';
+import { createMagicParticles, handleLogoTap as triggerLogoTap } from './assets/js/ui-effects.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -55,6 +55,7 @@ class TranslationService {
     }
 
     async init() {
+        // Check localStorage first, then browser preference
         const savedLang = localStorage.getItem(STORAGE_KEYS.APP_LANGUAGE);
         const userLang = navigator.language.split('-')[0];
         const supportedCodes = this.supportedLangs.map(l => l.code);
