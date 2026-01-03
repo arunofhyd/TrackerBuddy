@@ -4229,7 +4229,7 @@ function renderAdminButton() {
     const btn = document.createElement('button');
     btn.id = 'admin-dashboard-btn';
     btn.className = 'inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer';
-    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline">${i18n.t("Admin Dashboard")}</span>`;
+    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline" data-i18n="adminDashboard">${i18n.t("adminDashboard")}</span>`;
 
     // Insert before the language button or at the start
     const footer = document.getElementById('main-footer');
