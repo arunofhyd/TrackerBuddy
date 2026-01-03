@@ -1,11 +1,12 @@
 // Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";// --- Firebase Configuration ---
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
-import { html, render } from 'https://cdn.jsdelivr.net/npm/lit-html@3.1.2/lit-html.js';
-import { format } from 'https://cdn.jsdelivr.net/npm/date-fns@3.3.1/+esm';
-import Papa from 'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/+esm';
+import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
+import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField } from "firebase/firestore";
+// --- Firebase Configuration ---
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { html, render } from 'lit-html';
+import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
