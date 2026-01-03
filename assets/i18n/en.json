@@ -100,8 +100,29 @@
     "edit": "Edit",
     "migrateDataPrompt": "We found data from your guest session. Would you like to merge it into your account?",
     "deleteGuestDataPrompt": "Delete guest data? (This action cannot be undone)",
-    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "days": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+    ],
+    "months": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+    ],
     "infoLogActivities": "<strong>Effortlessly log daily activities</strong>, track work hours, and manage custom leave balances.",
     "infoRestoreBackup": "<strong>Seamlessly restore and backup</strong> your data to CSV for reports and backups.",
     "infoGuestOrSync": "<strong>Get started instantly</strong> as a Guest, or sign in to sync your data across devices.",
@@ -232,7 +253,7 @@
     "ariaCloseTeamDashboard": "Close team dashboard",
     "ariaCloseLeaveOverview": "Close leave overview",
     "adminDashboard": "Admin Dashboard",
-    "standard":"Standard",
-    "pro":"Pro"
-
+    "standard": "Standard",
+    "pro": "Pro",
+    "co-admin": "Co-Admin"
 }
