@@ -227,6 +227,10 @@ function setState(newState) {
 let DOM = {};
 
 // --- Utilities ---
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
+
 function sanitizeHTML(text) {
     const temp = document.createElement('div');
     temp.textContent = text;
@@ -249,6 +253,10 @@ function waitForDOMUpdate() {
 
 // --- UI Functions ---
 function initUI() {
+    if (isMobileDevice()) {
+        document.body.classList.add('is-mobile');
+    }
+
     DOM = {
         splashScreen: document.getElementById('splash-screen'),
         splashText: document.querySelector('.splash-text'),
@@ -1794,6 +1802,8 @@ function handleInlineEditKeydown(event) {
 
 // --- Easter Egg Functions ---
 function createMagicParticles() {
+    if (isMobileDevice()) return; // Disable particles on mobile for performance
+
     const particleCount = 12;
     const container = DOM.logoContainer;
     if (!container) return;
