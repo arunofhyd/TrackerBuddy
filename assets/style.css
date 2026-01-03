@@ -96,14 +96,17 @@
         .magic-particle { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background-color: #ffd700; border-radius: 50%; pointer-events: none; opacity: 0; animation: particle-burst 0.8s ease-out forwards; }
         @keyframes particle-burst { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
         /* --- Calendar Styles --- */
-        .calendar-day-cell { position: relative; height: 0; padding-top: 100%; cursor: pointer; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
-        .calendar-day-content { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 8px; z-index: 10; }
-        .leave-indicator { position: absolute; left: 0; bottom: 0; width: 100%; z-index: 5; transition: height 0.2s ease-in-out; }
+        /* Fixed: Removed aspect-ratio hack, used min-height */
+        .calendar-day-cell { position: relative; min-height: 80px; display: flex; flex-direction: column; cursor: pointer; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        /* Fixed: Simplified content positioning */
+        .calendar-day-content { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 8px; z-index: 10; width: 100%; height: 100%; flex-grow: 1; }
+        /* Fixed: Simplified leave indicator to avoid conflicts */
+        .leave-indicator { position: absolute; left: 0; bottom: 0; width: 100%; z-index: 0; transition: height 0.2s ease-in-out; }
         .leave-indicator.full-day { height: 100%; }
         .leave-indicator.half-day { height: 50%; }
         .calendar-day-cell.leave-selecting { outline: 2px dashed #3b82f6; outline-offset: -2px; background-color: #eff6ff; }
         .calendar-day-cell.is-today.leave-selecting { border-color: transparent !important; }
-        @media (min-width: 768px) { .calendar-day-cell { min-height: 100px; height: auto; padding-top: 0; padding: 12px; display: flex; flex-direction: column; } .calendar-day-content { position: static; width: 100%; height: 100%; padding: 0; } }
+        @media (min-width: 768px) { .calendar-day-cell { min-height: 100px; padding: 12px; } .calendar-day-content { padding: 0; } }
         .calendar-day-cell.current-month { background-color: #ffffff; border: 1px solid #e2e8f0; }
         .calendar-day-cell.other-month { background-color: #f8fafc; color: #a0aec0; border: 1px solid #edf2f7; }
         .calendar-day-cell.has-activity { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -152,11 +155,7 @@
         .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
         #message-display { position: fixed; bottom: 20px; right: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
         #message-display.show { opacity: 1; visibility: visible; }
-        .modal-backdrop {
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            background-color: rgba(0, 0, 0, 0.5);
-        }
+        .modal-backdrop { backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
         .activity-text-editable, .time-editable { min-height: 24px; outline: none; padding-bottom: 2px; cursor: text; border-bottom: 1px dashed #d1d5db; }
         .activity-text-editable:focus, .time-editable:focus { border-bottom: 1px solid #3b82f6; background-color: #f0f8ff; }
         .confirm-action { background-color: #fef2f2 !important; border-color: #ef4444 !important; color: #ef4444 !important; }
@@ -310,19 +309,25 @@ body.dark .stat-card-info p {
         /* --- Mobile Responsive --- */
         @media (max-width: 767px) {
             .main-container { padding: 0.75rem; }
-            #calendar-view { gap: 0.15rem; }
-            .day-number { font-size: 0.75em; margin-bottom: 1px; }
-            .activity-indicator { width: 5px; height: 5px; margin-top: 1px; }
-            .day-note-container { height: 10px; }
-            .day-note { font-size: 0.55rem; letter-spacing: 0; }
+            #calendar-view { gap: 0.5rem; } /* Increased gap from 0.15rem */
+            .day-number { font-size: 0.9em; margin-bottom: 2px; } /* Increased font size */
+            .activity-indicator { width: 8px; height: 8px; margin-top: 2px; } /* Increased size from 5px */
+            .day-note-container { height: 14px; } /* Increased container height */
+            .day-note { font-size: 0.75rem; letter-spacing: 0; } /* Increased font size from 0.55rem */
             .daily-activity-table-body td { padding-left: 8px; padding-right: 8px; font-size: 0.875rem; }
-            .calendar-day-content { padding: 4px; }
+            .calendar-day-content { padding: 8px; } /* Increased padding from 4px */
             .leave-stat-card { padding: 0.75rem; gap: 0.75rem; }
             .leave-stat-grid { grid-template-columns: 1fr; gap: 1rem; }
             .radial-progress-container { width: 48px; height: 48px; }
             .radial-progress-center-text { font-size: 0.7rem; }
             .stat-card-info h5 { font-size: 0.85rem; }
             .stat-card-info p { font-size: 0.75rem; }
+            
+            /* Ensure proper sizing for modal content on mobile */
+            .modal-container { max-height: 90vh; overflow-y: auto; }
+            
+            /* Minimum touch target sizes */
+            .icon-btn, button { min-width: 44px; min-height: 44px; }
         }
         /* --- DARK MODE STYLES --- */
         body.dark {
@@ -785,33 +790,4 @@ body.dark .role-badge.pending {
     background-color: #7c2d12;
     color: #fed7aa;
     border-color: #ea580c;
-}
-
-/* Mobile Optimizations */
-@media (max-width: 768px) {
-    /* Disable backdrop-filter on mobile to prevent rendering artifacts */
-    .modal-backdrop, .spotlight-overlay {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background-color: rgba(0, 0, 0, 0.85) !important;
-    }
-
-    /* Simplify Login Container */
-    .login-container {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        background: #ffffff !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-        border: 1px solid #e5e7eb !important;
-    }
-
-    body.dark .login-container {
-        background: #1f2937 !important;
-        border-color: #374151 !important;
-    }
-
-    /* Reduce transition complexity */
-    .smooth-modal, .view-container, .login-container {
-        transition-duration: 0.15s !important;
-    }
 }
