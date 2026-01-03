@@ -209,7 +209,7 @@ let state = {
     searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
-    pendingSaveCount: 0,
+    lastUpdated: 0,
     // Admin & Role State
     userRole: 'standard', // 'standard', 'pro', 'co-admin'
     isAdminDashboardOpen: false,
@@ -742,12 +742,17 @@ function formatTextForDisplay(text, highlightQuery = '') {
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-        // Prevent external updates from overwriting local state while user is typing/saving
-        if (state.pendingSaveCount > 0 || state.editingInlineTimeKey) {
+        // Prevent external updates from overwriting local state while user is typing
+        if (state.editingInlineTimeKey) {
             return;
         }
 
         let data = docSnapshot.exists() ? docSnapshot.data() : {};
+
+        // Last Write Wins: Ignore if server data is older than our local optimistic state
+        if (data.lastUpdated && data.lastUpdated < state.lastUpdated) {
+            return;
+        }
         
         const year = state.currentMonth.getFullYear();
         const yearlyData = data.yearlyData || {};
@@ -951,8 +956,8 @@ function handleUpdateTime(dayDataCopy, payload) {
 
 // FIX: Update saveData to work with multi-year structure and granular updates
 async function saveData(action) {
-    // Non-blocking save - allow concurrent local updates but track pending saves
-    state.pendingSaveCount++;
+    const timestamp = Date.now();
+    state.lastUpdated = timestamp;
 
     const dateKey = getYYYYMMDD(state.selectedDate);
     const year = state.selectedDate.getFullYear();
@@ -997,7 +1002,6 @@ async function saveData(action) {
         case ACTION_TYPES.UPDATE_TIME:
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
             if (successMessage === null) {
-                state.pendingSaveCount--;
                 return;
             }
             break;
@@ -1050,13 +1054,18 @@ async function saveData(action) {
 
     const dataToSave = {
         yearlyData: updatedYearlyData,
-        leaveTypes: state.leaveTypes
+        leaveTypes: state.leaveTypes,
+        lastUpdated: timestamp
     };
 
     // If migrating away from old structure, implicitly remove old field
     if (state.isOnlineMode && state.yearlyData.activities) {
         dataToSave.activities = deleteField();
         if (partialUpdate) partialUpdate['activities'] = deleteField();
+    }
+
+    if (partialUpdate) {
+        partialUpdate.lastUpdated = timestamp;
     }
 
     try {
@@ -1068,8 +1077,6 @@ async function saveData(action) {
         const revertedCurrentYearData = originalYearlyData[year] || { activities: {}, leaveOverrides: {} };
         setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
         updateView();
-    } finally {
-        state.pendingSaveCount--;
     }
 }
 
@@ -1204,7 +1211,9 @@ async function updateActivityOrder() {
     setState({ yearlyData: updatedYearlyData, currentYearData: currentYearData });
 
     try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         showMessage(i18n.t("msgActivitiesReordered"), 'success');
     } catch (error) {
         console.error("Failed to reorder activities:", error);
@@ -1214,15 +1223,14 @@ async function updateActivityOrder() {
 }
 
 async function deleteActivity(dateKey, timeKey) {
-    // Non-blocking save
-    state.pendingSaveCount++;
+    const timestamp = Date.now();
+    state.lastUpdated = timestamp;
 
     const year = new Date(dateKey).getFullYear();
     const originalYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
 
     if (!updatedYearlyData[year] || !updatedYearlyData[year].activities[dateKey] || !updatedYearlyData[year].activities[dateKey][timeKey]) {
-        state.pendingSaveCount--;
         return;
     }
 
@@ -1245,7 +1253,10 @@ async function deleteActivity(dateKey, timeKey) {
         if (state.isOnlineMode && state.userId) {
             const userDocRef = doc(db, "users", state.userId);
             const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
-            const updates = { [fieldPathToDelete]: deleteField() };
+            const updates = { 
+                [fieldPathToDelete]: deleteField(),
+                lastUpdated: timestamp
+            };
 
             if (dayHasNoMoreActivities) {
                 updates[`yearlyData.${year}.activities.${dateKey}._userCleared`] = true;
@@ -1253,7 +1264,7 @@ async function deleteActivity(dateKey, timeKey) {
 
             await updateDoc(userDocRef, updates);
         } else {
-            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         }
         showMessage(i18n.t("msgActivityDeleted"), 'success');
 
@@ -1265,8 +1276,6 @@ async function deleteActivity(dateKey, timeKey) {
         const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
         setState({ yearlyData: originalYearlyData, currentYearData: rolledBackCurrentYearData });
         updateView();
-    } finally {
-        state.pendingSaveCount--;
     }
 }
 
@@ -1532,7 +1541,7 @@ function handleUserLogout() {
         unsubscribeFromTeam: null,
         unsubscribeFromTeamMembers: [],
         isUpdating: false,
-        pendingSaveCount: 0
+        lastUpdated: 0
     });
 
     switchView(DOM.loginView, DOM.appView);
@@ -2039,6 +2048,9 @@ async function saveLeaveType() {
 
     // Persist changes
     try {
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+
         // Use granular update if possible
         if (state.isOnlineMode && state.userId) {
             const updates = {};
@@ -2047,20 +2059,11 @@ async function saveLeaveType() {
             // Construct granular updates for leaveOverrides
             if (updatedYearlyData[currentYear]?.leaveOverrides) {
                updates[`yearlyData.${currentYear}.leaveOverrides`] = updatedYearlyData[currentYear].leaveOverrides;
-            } else {
-               // If no overrides for this year, we might need to delete the field or set empty
-               // But usually we just update what changed.
-               // For simplicity in this specific function, we can send the whole leaveOverrides map for the year
-               // which is safer than replacing the whole yearlyData map.
             }
 
-            // However, `persistData` calls `saveDataToFirestore` which calls `setDoc` with merge:true.
-            // If we pass { yearlyData: { [currentYear]: { leaveOverrides: ... } } }, it merges deeply.
-            // BUT, if we want to be safe against overwriting *activities*, we must ensure we don't send activities back if we didn't change them.
-            // In this function, we ONLY change leaveTypes and leaveOverrides.
-
             const dataToSave = {
-                leaveTypes: newLeaveTypes
+                leaveTypes: newLeaveTypes,
+                lastUpdated: timestamp
             };
 
             if (updatedYearlyData[currentYear]) {
@@ -2078,7 +2081,8 @@ async function saveLeaveType() {
         } else {
             saveDataToLocalStorage({
                 yearlyData: updatedYearlyData,
-                leaveTypes: newLeaveTypes
+                leaveTypes: newLeaveTypes,
+                lastUpdated: timestamp
             });
         }
 
@@ -2133,13 +2137,17 @@ async function deleteLeaveType() {
 
     // Persist the changes
     try {
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+
         if (state.isOnlineMode && state.userId) {
             const batch = writeBatch(db);
             const userDocRef = doc(db, "users", state.userId);
 
             // 1. Update the hidden flag in leaveOverrides
             batch.update(userDocRef, {
-                [`yearlyData.${currentYear}.leaveOverrides.${id}.hidden`]: true
+                [`yearlyData.${currentYear}.leaveOverrides.${id}.hidden`]: true,
+                lastUpdated: timestamp
             });
 
             // 2. Remove all activities with this leave type
@@ -2162,7 +2170,8 @@ async function deleteLeaveType() {
         } else {
             saveDataToLocalStorage({
                 yearlyData: updatedYearlyData,
-                leaveTypes: state.leaveTypes
+                leaveTypes: state.leaveTypes,
+                lastUpdated: timestamp
             });
         }
 
@@ -2179,8 +2188,10 @@ async function deleteLeaveType() {
 }
 
 async function saveLeaveTypes() {
+    const timestamp = Date.now();
+    state.lastUpdated = timestamp;
     // Pass the entire state's yearlyData and leaveTypes to be persisted
-    await persistData({ yearlyData: state.yearlyData, leaveTypes: state.leaveTypes });
+    await persistData({ yearlyData: state.yearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
     triggerTeamSync();
     if (!state.isOnlineMode) {
         updateView();
@@ -2367,7 +2378,9 @@ async function deleteLeaveDay(dateKey) {
     });
 
     try {
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         triggerTeamSync();
         showMessage(i18n.t("msgLeaveEntryDeleted"), 'success');
     } catch (error) {
@@ -2766,6 +2779,9 @@ async function saveLoggedLeaves() {
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+
         if (state.isOnlineMode && state.userId) {
             const batch = writeBatch(db);
             const userDocRef = doc(db, "users", state.userId);
@@ -2803,10 +2819,11 @@ async function saveLoggedLeaves() {
             });
 
             if (opCount > 0) {
+                batch.update(userDocRef, { lastUpdated: timestamp });
                 await batch.commit();
             }
         } else {
-            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+            saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         }
 
         triggerTeamSync();
@@ -4105,7 +4122,9 @@ function setupEventListeners() {
             setState({ yearlyData: updatedYearlyData, currentYearData });
 
             try {
-                await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes });
+        const timestamp = Date.now();
+        state.lastUpdated = timestamp;
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
                 triggerTeamSync();
                 showMessage(i18n.t("msgLeaveDayUpdated"), 'success');
             } catch (error) {
