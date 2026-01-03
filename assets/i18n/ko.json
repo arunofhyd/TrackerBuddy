@@ -66,8 +66,29 @@
     "resetCloudWarning": "클라우드 데이터가 영구적으로 삭제됩니다.",
     "resetLocalWarning": "로컬 데이터가 영구적으로 삭제됩니다.",
     "teamFeaturesOffline": "팀 기능은 로그인해야 합니다.",
-    "days": ["일", "월", "화", "수", "목", "금", "토"],
-    "months": ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"],
+    "days": [
+        "일",
+        "월",
+        "화",
+        "수",
+        "목",
+        "금",
+        "토"
+    ],
+    "months": [
+        "1월",
+        "2월",
+        "3월",
+        "4월",
+        "5월",
+        "6월",
+        "7월",
+        "8월",
+        "9월",
+        "10월",
+        "11월",
+        "12월"
+    ],
     "noActivitiesRecorded": "이 날짜에 기록된 활동이 없습니다.",
     "enterTeamName": "새 팀 이름 입력",
     "noLeaveTypesOrSummary": "{year}년에 이 구성원에 대해 구성된 휴가 유형이나 요약이 없습니다.",
@@ -231,5 +252,5 @@
     "ariaCloseMonthPicker": "월 선택기 닫기",
     "ariaCloseTeamDashboard": "팀 대시보드 닫기",
     "ariaCloseLeaveOverview": "휴가 개요 닫기",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "관리 대시보드"
 }

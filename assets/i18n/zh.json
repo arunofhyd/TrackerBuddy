@@ -66,8 +66,29 @@
     "resetCloudWarning": "这将永久删除云端数据。",
     "resetLocalWarning": "这将永久删除本地数据。",
     "teamFeaturesOffline": "团队功能仅在线可用。",
-    "days": ["日", "一", "二", "三", "四", "五", "六"],
-    "months": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "days": [
+        "日",
+        "一",
+        "二",
+        "三",
+        "四",
+        "五",
+        "六"
+    ],
+    "months": [
+        "1月",
+        "2月",
+        "3月",
+        "4月",
+        "5月",
+        "6月",
+        "7月",
+        "8月",
+        "9月",
+        "10月",
+        "11月",
+        "12月"
+    ],
     "noActivitiesRecorded": "该日没有记录活动。",
     "enterTeamName": "输入新团队名称",
     "noLeaveTypesOrSummary": "{year}年该成员未配置休假类型或无可用摘要。",
@@ -231,5 +252,5 @@
     "ariaCloseMonthPicker": "关闭月份选择器",
     "ariaCloseTeamDashboard": "关闭团队仪表板",
     "ariaCloseLeaveOverview": "关闭休假概览",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "管理仪表板"
 }

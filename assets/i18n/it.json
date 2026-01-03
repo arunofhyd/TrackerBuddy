@@ -66,8 +66,29 @@
     "resetCloudWarning": "Questo eliminerà permanentemente i tuoi dati dal cloud.",
     "resetLocalWarning": "Questo eliminerà permanentemente i tuoi dati locali.",
     "teamFeaturesOffline": "Funzionalità team solo online.",
-    "days": ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
-    "months": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
+    "days": [
+        "Dom",
+        "Lun",
+        "Mar",
+        "Mer",
+        "Gio",
+        "Ven",
+        "Sab"
+    ],
+    "months": [
+        "Gen",
+        "Feb",
+        "Mar",
+        "Apr",
+        "Mag",
+        "Giu",
+        "Lug",
+        "Ago",
+        "Set",
+        "Ott",
+        "Nov",
+        "Dic"
+    ],
     "noActivitiesRecorded": "Nessuna attività registrata per questo giorno.",
     "enterTeamName": "Inserisci il nuovo nome del team",
     "noLeaveTypesOrSummary": "Nessun tipo di congedo configurato o riepilogo disponibile per questo membro nel {year}.",
@@ -231,5 +252,5 @@
     "ariaCloseMonthPicker": "Chiudi selettore mese",
     "ariaCloseTeamDashboard": "Chiudi dashboard team",
     "ariaCloseLeaveOverview": "Chiudi panoramica ferie",
-    "adminDashboard": "Admin Dashboard"
+    "adminDashboard": "Pannello di amministrazione"
 }
