@@ -1,6 +1,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-const { beforeUserCreated } = require("firebase-functions/v2/identity");
+// Use functions v1 for auth trigger as v2 auth triggers (blocking) require Identity Platform and specific configuration, causing deployment issues in some environments.
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
@@ -802,8 +803,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, as
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignupV2 = beforeUserCreated({ region: "asia-south1", maxInstances: 10 }, async (event) => {
-    const user = event.data;
+exports.checkProWhitelistOnSignup = functions.region("asia-south1").runWith({ maxInstances: 10 }).auth.user().onCreate(async (user) => {
     const email = user.email;
     if (!email) return;
 
