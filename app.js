@@ -242,6 +242,10 @@ function debounce(func, delay) {
     };
 }
 
+function waitForDOMUpdate() {
+    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
 // --- UI Functions ---
 function initUI() {
     DOM = {
@@ -392,13 +396,26 @@ function switchView(viewToShow, viewToHide, callback) {
 
     if (viewToHide) {
         viewToHide.style.opacity = '0';
+        
+        // Wait for hide transition if applicable, then hide element
+        const handleTransitionEnd = () => {
+            viewToHide.classList.add('hidden');
+            viewToHide.removeEventListener('transitionend', handleTransitionEnd);
+        };
+        
+        // Fallback if no transition occurs
+        const safetyTimeout = setTimeout(() => {
+            viewToHide.removeEventListener('transitionend', handleTransitionEnd);
+            viewToHide.classList.add('hidden');
+        }, 500); 
+
+        viewToHide.addEventListener('transitionend', () => {
+             clearTimeout(safetyTimeout);
+             handleTransitionEnd();
+        }, { once: true });
     }
 
-    setTimeout(() => {
-        if (viewToHide) {
-            viewToHide.classList.add('hidden');
-        }
-
+    requestAnimationFrame(() => {
         if (viewToShow === DOM.appView) {
             mainContainer.classList.add('is-app-view');
         } else {
@@ -406,11 +423,11 @@ function switchView(viewToShow, viewToHide, callback) {
         }
         viewToShow.classList.remove('hidden');
 
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             viewToShow.style.opacity = '1';
             if (callback) callback();
-        }, 20);
-    }, 0);
+        });
+    });
 }
 
 async function handleUserLogin(user) {
@@ -1107,7 +1124,7 @@ function loadOfflineData() {
 async function resetAllData() {
     const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
     setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitForDOMUpdate();
 
     // Define the reset state
     const resetState = {
@@ -1936,7 +1953,7 @@ function selectColorInPicker(color) {
 async function saveLeaveType() {
     const button = DOM.leaveTypeModal.querySelector('#save-leave-type-btn');
     setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitForDOMUpdate();
 
     const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
     const name = DOM.leaveNameInput.value.trim();
@@ -2347,7 +2364,7 @@ async function deleteLeaveDay(dateKey) {
 
     // If the overview modal for the affected leave type is open, refresh it.
     if (DOM.leaveOverviewModal.classList.contains('visible')) {
-        setTimeout(() => openLeaveOverviewModal(originalLeaveTypeId), 100);
+        requestAnimationFrame(() => openLeaveOverviewModal(originalLeaveTypeId));
     }
 
     updateView();
@@ -2661,7 +2678,7 @@ function renderLeaveCustomizationModal() {
 async function saveLoggedLeaves() {
     const button = DOM.customizeLeaveModal.querySelector('#save-log-leave-btn');
     setButtonLoadingState(button, true);
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitForDOMUpdate();
 
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
@@ -3605,7 +3622,7 @@ function setupEventListeners() {
     document.getElementById('prev-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await waitForDOMUpdate();
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
@@ -3668,7 +3685,7 @@ function setupEventListeners() {
     document.getElementById('next-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await waitForDOMUpdate();
 
         const oldYear = state.currentMonth.getFullYear();
         let newDate;
@@ -3727,7 +3744,7 @@ function setupEventListeners() {
     });
     DOM.todayBtnDay.addEventListener('click', async () => {
         setButtonLoadingState(DOM.todayBtnDay, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await waitForDOMUpdate();
         const today = new Date();
         setState({
             selectedDate: today,
@@ -3756,7 +3773,7 @@ function setupEventListeners() {
     document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await waitForDOMUpdate();
         setState({ pickerYear: state.pickerYear - 1 });
         renderMonthPicker();
         setButtonLoadingState(button, false);
@@ -3765,7 +3782,7 @@ function setupEventListeners() {
     document.getElementById('next-year-btn').addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await waitForDOMUpdate();
         setState({ pickerYear: state.pickerYear + 1 });
         renderMonthPicker();
         setButtonLoadingState(button, false);
@@ -4557,7 +4574,7 @@ function renderAdminUserList(users, searchQuery = '') {
 
 // --- App Initialization ---
 function handleSplashScreen() {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
         if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
         if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'block';
         if (DOM.splashScreen) {
@@ -4568,21 +4585,50 @@ function handleSplashScreen() {
 
                 initAuth();
 
-                setTimeout(() => {
-                    if (DOM.splashScreen) {
-                        DOM.splashScreen.style.zIndex = '-10';
-                        DOM.splashScreen.style.cursor = 'default';
-                        DOM.splashScreen.style.backgroundColor = 'transparent';
+                // Wait for the splash screen to fade out
+                const handleSplashTransitionEnd = (e) => {
+                    if (e.target === DOM.splashScreen) {
+                         DOM.splashScreen.style.zIndex = '-10';
+                         DOM.splashScreen.style.cursor = 'default';
+                         DOM.splashScreen.style.backgroundColor = 'transparent';
+                         DOM.splashScreen.removeEventListener('transitionend', handleSplashTransitionEnd);
                     }
-                }, 400);
+                };
+                
+                // Wait for splash text to animate out
+                const handleTextAnimationEnd = (e) => {
+                    if (e.target === DOM.splashText) {
+                         DOM.splashText.style.display = 'none';
+                         DOM.splashText.removeEventListener('animationend', handleTextAnimationEnd);
+                    }
+                };
 
+                DOM.splashScreen.addEventListener('transitionend', handleSplashTransitionEnd);
+                if (DOM.splashText) {
+                     // Check if it's animation or transition based on class 'animating-out'
+                     // Assuming animation since it's 'animating-out'
+                     DOM.splashText.addEventListener('animationend', handleTextAnimationEnd);
+                     
+                     // Fallback safety
+                     setTimeout(() => {
+                         if (DOM.splashText && DOM.splashText.style.display !== 'none') {
+                             DOM.splashText.style.display = 'none';
+                         }
+                     }, 1100);
+                }
+
+                // Fallback safety for splash screen
                 setTimeout(() => {
-                    if (DOM.splashText) DOM.splashText.style.display = 'none';
-                }, 1000);
+                     if (DOM.splashScreen && DOM.splashScreen.style.zIndex !== '-10') {
+                         DOM.splashScreen.style.zIndex = '-10';
+                         DOM.splashScreen.style.cursor = 'default';
+                         DOM.splashScreen.style.backgroundColor = 'transparent';
+                     }
+                }, 500);
 
             }, { once: true });
         }
-    }, 50);
+    });
 }
 
 async function init() {
