@@ -4457,7 +4457,8 @@ function renderAdminUserList(users, searchQuery = '') {
         } else if (isSuperAdmin) {
             roleBadgeHTML = `<span class="role-badge owner">${i18n.t('owner')}</span>`;
         } else {
-            roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}">${displayRole}</span>`;
+    // Use the role string as the key (e.g., "pro", "standard")
+    roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}" data-i18n="${displayRole}">${i18n.t(displayRole)}</span>`;
         }
 
         item.innerHTML = `
