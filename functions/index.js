@@ -1,5 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { beforeUserCreated } = require("firebase-functions/v2/identity");
 // Use functions v1 for auth trigger as v2 auth triggers (blocking) require Identity Platform and specific configuration, causing deployment issues in some environments.
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -825,6 +826,11 @@ exports.checkProWhitelistOnSignup = functions.region("asia-south1").runWith({ ma
     } catch (error) {
         console.error(`Error processing whitelist for new user ${email}:`, error);
     }
+});
+
+// Function restored as no-op to allow safe updates/deletion in environments with permission issues
+exports.checkProWhitelistOnSignupV2 = beforeUserCreated({ region: "asia-south1", maxInstances: 10 }, async (event) => {
+    return;
 });
 
 exports.revokeProWhitelist = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
