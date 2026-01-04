@@ -121,7 +121,7 @@
                 <div class="text-right mb-4">
                     <button id="forgot-password-btn" class="text-sm forgot-password-btn hover:underline focus:outline-none transition-colors duration-200" data-i18n="forgotPassword">Forgot Password?</button>
                 </div>
-                <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+                <div class="flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                     <button id="email-signin-btn" class="w-full btn-primary py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105" data-i18n="signIn">Sign In</button>
                     <button id="email-signup-btn" class="w-full signup-btn py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center transition-all duration-200 transform hover:scale-105" data-i18n="signUp">Sign Up</button>
                 </div>
@@ -319,7 +319,7 @@
                 <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name" data-i18n-placeholder="enterTeamName">
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-edit-team-name-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-edit-team-name-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="saveChanges">Save Changes</button>
         </div>
@@ -344,7 +344,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="delete-leave-type-btn" class="hidden px-5 py-2 btn-danger rounded-lg" data-i18n="delete">Delete</button>
             <button id="cancel-leave-type-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-leave-type-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="save">Save</button>
@@ -370,7 +370,7 @@
         </div>
         <div id="leave-days-list" class="max-h-64 overflow-y-auto space-y-4 pr-2">
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-log-leave-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-log-leave-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="save">Save</button>
         </div>
@@ -397,7 +397,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 class="text-2xl font-bold mb-4 text-center" data-i18n="areYouSure">Are you sure?</h2>
         <p id="reset-modal-text" class="mb-6 text-center"></p>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-reset-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="confirm-reset-btn" class="px-5 py-2 btn-danger rounded-lg" data-i18n="confirmReset">Confirm Reset</button>
         </div>
@@ -416,7 +416,7 @@
                                 <input type="text" id="team-admin-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-create-team-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-create-team-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="createTeam">Create Team</button>
         </div>
@@ -435,7 +435,7 @@
                 <input type="text" id="display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-join-team-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-join-team-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="joinTeam">Join Team</button>
         </div>
@@ -465,7 +465,7 @@
                 <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="howOthersSeeYou">
             </div>
         </div>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-edit-name-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="save-edit-name-btn" class="px-5 py-2 btn-primary rounded-lg" data-i18n="saveChanges">Save Changes</button>
         </div>
@@ -475,7 +475,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <h2 class="text-2xl font-bold mb-4 text-center" data-i18n="areYouSure">Are you sure?</h2>
         <p id="kick-modal-text" class="mb-6 text-center"></p>
-        <div class="flex justify-end mt-6 space-x-3">
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
             <button id="cancel-kick-btn" class="px-5 py-2 btn-secondary rounded-lg" data-i18n="cancel">Cancel</button>
             <button id="confirm-kick-btn" class="px-5 py-2 btn-danger rounded-lg" data-i18n="confirmKick">Confirm Kick</button>
         </div>
