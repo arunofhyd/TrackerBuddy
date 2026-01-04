@@ -1446,8 +1446,8 @@ function handleUserLogout() {
 
     localStorage.removeItem('sessionMode');
 
-    // 1. Manually reset splash screen to be visible behind the app (z-index -10)
-    // This ensures that when the app view fades out, the user sees the splash background, not white.
+    // 1. Reset splash screen to be visible behind the app (z-index -10)
+    // IMPORTANT: Keep display: flex but z-index -10 so it acts as a wallpaper
     if (DOM.splashScreen) {
         DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '-10';
@@ -1456,17 +1456,24 @@ function handleUserLogout() {
         DOM.splashLoading.style.display = 'none';
         DOM.splashText.classList.remove('animating-out');
         DOM.splashScreen.style.cursor = 'default';
+        // Ensure opacity is 1 so it's visible behind the fading app
+        DOM.splashScreen.style.opacity = '1';
+        DOM.splashScreen.style.backgroundColor = ''; // Reset transparent bg if set
     }
 
-    // 2. Fade out App View manually to ensure smoothness
+    // 2. Fade out App View manually
     if (DOM.appView && !DOM.appView.classList.contains('hidden')) {
-        DOM.appView.style.transition = 'opacity 0.3s ease-out';
+        DOM.appView.style.transition = 'opacity 0.5s ease-out';
         DOM.appView.style.opacity = '0';
 
-        // Wait for fade out to complete before switching state and view
+        // Wait for fade out to complete (500ms)
         setTimeout(() => {
+            // 3. Hide App View completely after fade
+            DOM.appView.classList.add('hidden');
+
+            // 4. Perform state cleanup and switch to login
             performLogoutCleanup();
-        }, 300);
+        }, 500);
     } else {
         performLogoutCleanup();
     }
@@ -1494,10 +1501,9 @@ function performLogoutCleanup() {
         lastUpdated: 0
     });
 
-    // switchView will handle showing the login view (fade in)
-    // Since appView is already invisible/faded out, switchView will just hide it (add .hidden)
-    // and show loginView.
-    switchView(DOM.loginView, DOM.appView);
+    // 5. Show Login View
+    // Since appView is now strictly hidden (display: none), switchView will only handle showing loginView
+    switchView(DOM.loginView, null);
 }
 
 async function initAuth() {
