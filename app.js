@@ -1899,6 +1899,14 @@ function loadSplashScreenVideo() {
     source.type = 'video/mp4';
     video.appendChild(source);
 
+    const track = document.createElement('track');
+    track.kind = 'captions';
+    track.label = 'English';
+    track.srclang = 'en';
+    track.src = 'data:text/vtt;base64,V0VCVVRUClxu'; // Empty VTT file
+    track.default = true;
+    video.appendChild(track);
+
     video.oncanplay = () => {
         video.style.opacity = '1';
     };
