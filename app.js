@@ -127,7 +127,7 @@ let state = {
     searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
-    pendingSaveCount: 0,
+    isLoggingOut: false,
     lastUpdated: 0,
     // Admin & Role State
     userRole: 'standard', // 'standard', 'pro', 'co-admin'
@@ -312,8 +312,26 @@ function setButtonLoadingState(button, isLoading) {
     }
 }
 
+let transitionState = {
+    active: false,
+    timeoutId: null,
+    element: null,
+    handler: null
+};
+
 function switchView(viewToShow, viewToHide, callback) {
     const mainContainer = document.querySelector('.main-container');
+
+    // Cancel pending transition to prevent race conditions
+    if (transitionState.active) {
+        clearTimeout(transitionState.timeoutId);
+        transitionState.element.removeEventListener('transitionend', transitionState.handler);
+        // Force finish the previous hide
+        transitionState.element.style.willChange = 'auto';
+        transitionState.element.classList.add('hidden');
+        transitionState.element.style.opacity = '0';
+        transitionState.active = false;
+    }
 
     const showNewView = () => {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
@@ -342,30 +360,34 @@ function switchView(viewToShow, viewToHide, callback) {
     };
 
     if (viewToHide && !viewToHide.classList.contains('hidden')) {
+        transitionState.active = true;
+        transitionState.element = viewToHide;
+
         // Apply optimization only during transition
         viewToHide.style.willChange = 'opacity';
         viewToHide.style.opacity = '0';
         
-        let transitionHandler;
-        const safetyTimeout = setTimeout(() => {
-            viewToHide.removeEventListener('transitionend', transitionHandler);
-            finishHide();
-        }, 350); 
-
         const finishHide = () => {
+             transitionState.active = false;
              viewToHide.style.willChange = 'auto'; // Cleanup
              viewToHide.classList.add('hidden');
              // Only show the new view AFTER the old one is gone to prevent layout jumps
              showNewView();
         };
 
-        transitionHandler = () => {
-             clearTimeout(safetyTimeout);
-             viewToHide.removeEventListener('transitionend', transitionHandler);
+        transitionState.handler = () => {
+             if (!transitionState.active) return;
              finishHide();
         };
 
-        viewToHide.addEventListener('transitionend', transitionHandler, { once: true });
+        transitionState.timeoutId = setTimeout(() => {
+             if (transitionState.active) {
+                 viewToHide.removeEventListener('transitionend', transitionState.handler);
+                 finishHide();
+             }
+        }, 350);
+
+        viewToHide.addEventListener('transitionend', transitionState.handler, { once: true });
     } else {
         showNewView();
     }
@@ -1425,15 +1447,40 @@ function handleUserLogout() {
 
     localStorage.removeItem('sessionMode');
 
+    // 1. Reset splash screen to be visible behind the app (z-index -10)
+    // IMPORTANT: Keep display: flex but z-index -10 so it acts as a wallpaper
     if (DOM.splashScreen) {
+        DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '-10';
         DOM.splashText.style.display = 'none';
         DOM.tapToBegin.style.display = 'none';
         DOM.splashLoading.style.display = 'none';
         DOM.splashText.classList.remove('animating-out');
         DOM.splashScreen.style.cursor = 'default';
+        // Ensure opacity is 1 so it's visible behind the fading app
+        DOM.splashScreen.style.opacity = '1';
+        DOM.splashScreen.style.backgroundColor = ''; // Reset transparent bg if set
     }
 
+    // 2. Fade out App View manually
+    if (DOM.appView && !DOM.appView.classList.contains('hidden')) {
+        DOM.appView.style.transition = 'opacity 0.5s ease-out';
+        DOM.appView.style.opacity = '0';
+
+        // Wait for fade out to complete (500ms)
+        setTimeout(() => {
+            // 3. Hide App View completely after fade
+            DOM.appView.classList.add('hidden');
+
+            // 4. Perform state cleanup and switch to login
+            performLogoutCleanup();
+        }, 500);
+    } else {
+        performLogoutCleanup();
+    }
+}
+
+function performLogoutCleanup() {
     setState({
         currentMonth: new Date(),
         selectedDate: new Date(),
@@ -1452,10 +1499,12 @@ function handleUserLogout() {
         unsubscribeFromTeam: null,
         unsubscribeFromTeamMembers: [],
         isUpdating: false,
-        pendingSaveCount: 0
+        lastUpdated: 0
     });
 
-    switchView(DOM.loginView, DOM.appView);
+    // 5. Show Login View
+    // Since appView is now strictly hidden (display: none), switchView will only handle showing loginView
+    switchView(DOM.loginView, null);
 }
 
 async function initAuth() {
@@ -1464,6 +1513,10 @@ async function initAuth() {
         if (user) {
             handleUserLogin(user);
         } else {
+            if (state.isLoggingOut) {
+                // Let handleUserLogout manage the transition to avoid glitches
+                return;
+            }
             const sessionMode = localStorage.getItem('sessionMode');
             if (sessionMode === 'offline') {
                 loadOfflineData(); // Centralized offline data loading
@@ -1596,9 +1649,11 @@ async function signInWithGoogle() {
 async function appSignOut() {
     if (state.isOnlineMode) {
         try {
+            setState({ isLoggingOut: true });
             await signOut(auth);
             handleUserLogout();
         } catch (error) {
+            setState({ isLoggingOut: false });
             showMessage(i18n.t("msgSignOutFailed").replace('{error}', error.message), 'error');
         }
     } else {
