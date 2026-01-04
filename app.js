@@ -127,6 +127,7 @@ let state = {
     searchQuery: '',
     // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
+    isLoggingOut: false,
     lastUpdated: 0,
     // Admin & Role State
     userRole: 'standard', // 'standard', 'pro', 'co-admin'
@@ -1644,6 +1645,7 @@ async function signInWithGoogle() {
 async function appSignOut() {
     if (state.isOnlineMode) {
         try {
+            setState({ isLoggingOut: true });
             await signOut(auth);
             handleUserLogout();
         } catch (error) {
