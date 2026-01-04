@@ -17,7 +17,7 @@
     </script>
     <link rel="manifest" href="manifest.json">
     <link rel="preload" as="image" href="/assets/splashtext.webp" fetchpriority="high">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin>
     <noscript>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap">
     </noscript>
@@ -54,8 +54,10 @@
          src="/assets/splashbg.webp" 
          data-video-src="/assets/splashbg.mp4" 
          alt=""
+         width="1920"
+         height="1080"
          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
-    <img src="/assets/splashtext.webp" alt="TrackerBuddy" class="splash-text">
+    <img src="/assets/splashtext.webp" alt="TrackerBuddy" class="splash-text" width="500" height="500">
     <div id="splash-loading" class="splash-loading">
         <div class="spinner"></div>
         <div class="loading-text" data-i18n="loading">...</div>
