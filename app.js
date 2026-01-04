@@ -1446,7 +1446,10 @@ function handleUserLogout() {
 
     localStorage.removeItem('sessionMode');
 
+    // 1. Manually reset splash screen to be visible behind the app (z-index -10)
+    // This ensures that when the app view fades out, the user sees the splash background, not white.
     if (DOM.splashScreen) {
+        DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '-10';
         DOM.splashText.style.display = 'none';
         DOM.tapToBegin.style.display = 'none';
@@ -1455,6 +1458,21 @@ function handleUserLogout() {
         DOM.splashScreen.style.cursor = 'default';
     }
 
+    // 2. Fade out App View manually to ensure smoothness
+    if (DOM.appView && !DOM.appView.classList.contains('hidden')) {
+        DOM.appView.style.transition = 'opacity 0.3s ease-out';
+        DOM.appView.style.opacity = '0';
+
+        // Wait for fade out to complete before switching state and view
+        setTimeout(() => {
+            performLogoutCleanup();
+        }, 300);
+    } else {
+        performLogoutCleanup();
+    }
+}
+
+function performLogoutCleanup() {
     setState({
         currentMonth: new Date(),
         selectedDate: new Date(),
@@ -1476,6 +1494,9 @@ function handleUserLogout() {
         lastUpdated: 0
     });
 
+    // switchView will handle showing the login view (fade in)
+    // Since appView is already invisible/faded out, switchView will just hide it (add .hidden)
+    // and show loginView.
     switchView(DOM.loginView, DOM.appView);
 }
 
