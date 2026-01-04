@@ -342,6 +342,12 @@ function switchView(viewToShow, viewToHide, callback) {
         }
 
         requestAnimationFrame(() => {
+            // Fix for login modal repositioning: Disable transition temporarily
+            const loginContainer = viewToShow.querySelector('.login-container');
+            if (loginContainer) {
+                loginContainer.style.transition = 'none';
+            }
+
             // Ensure the view starts invisible for the fade-in
             viewToShow.style.opacity = '0';
             
@@ -354,6 +360,14 @@ function switchView(viewToShow, viewToHide, callback) {
 
             requestAnimationFrame(() => {
                 viewToShow.style.opacity = '1';
+
+                // Restore transition after the layout has settled and fade-in started
+                if (loginContainer) {
+                    setTimeout(() => {
+                        loginContainer.style.transition = '';
+                    }, 50);
+                }
+
                 if (callback) callback();
             });
         });
@@ -1450,6 +1464,10 @@ function handleUserLogout() {
     // 1. Reset splash screen to be visible behind the app (z-index -10)
     // IMPORTANT: Keep display: flex but z-index -10 so it acts as a wallpaper
     if (DOM.splashScreen) {
+        // Pause the video to prevent background movement
+        const video = document.getElementById('splash-video');
+        if (video) video.pause();
+
         DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '-10';
         DOM.splashText.style.display = 'none';
