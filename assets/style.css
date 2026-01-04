@@ -583,6 +583,13 @@ body.dark #spotlight-scope-btn {
     opacity: 1;
     transform: translateY(0);
     max-height: 500px;
+    overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+    #info-description.visible {
+        max-height: 200px;
+    }
 }
 
 /* --- Search Highlighting --- */
