@@ -1513,6 +1513,10 @@ async function initAuth() {
         if (user) {
             handleUserLogin(user);
         } else {
+            if (state.isLoggingOut) {
+                // Let handleUserLogout manage the transition to avoid glitches
+                return;
+            }
             const sessionMode = localStorage.getItem('sessionMode');
             if (sessionMode === 'offline') {
                 loadOfflineData(); // Centralized offline data loading
@@ -1649,6 +1653,7 @@ async function appSignOut() {
             await signOut(auth);
             handleUserLogout();
         } catch (error) {
+            setState({ isLoggingOut: false });
             showMessage(i18n.t("msgSignOutFailed").replace('{error}', error.message), 'error');
         }
     } else {
