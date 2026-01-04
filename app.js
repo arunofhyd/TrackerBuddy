@@ -3,10 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 // --- Firebase Configuration ---
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
-import Papa from 'papaparse';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -24,7 +22,17 @@ const auth = getAuth(app);
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
-const functions = getFunctions(app, 'asia-south1');
+
+let _functionsInstance = null;
+async function getFunctionsInstance() {
+    if (_functionsInstance) return _functionsInstance;
+    const { getFunctions, httpsCallable } = await import("firebase/functions");
+    _functionsInstance = {
+        functions: getFunctions(app, 'asia-south1'),
+        httpsCallable
+    };
+    return _functionsInstance;
+}
 
 // --- Translation Service ---
 class TranslationService {
@@ -883,6 +891,7 @@ async function triggerTeamSync() {
 
     try {
         console.log("Triggering team summary sync...");
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const syncCallable = httpsCallable(functions, 'syncTeamMemberSummary');
         // We don't await this to keep the UI responsive, but we catch errors.
         syncCallable().then(() => {
@@ -1389,6 +1398,7 @@ function handleFileUpload(event) {
             const yearlyDataCopy = JSON.parse(JSON.stringify(state.yearlyData));
             const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
+            const Papa = (await import('papaparse')).default;
             const parsed = Papa.parse(csvContent, {
                 skipEmptyLines: true
             });
@@ -1600,6 +1610,7 @@ async function editTeamName() {
 
     setButtonLoadingState(button, true);
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
         await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
         showMessage(i18n.t("msgTeamNameUpdated"), 'success');
@@ -3094,6 +3105,7 @@ async function createTeam() {
     setButtonLoadingState(button, true);
 
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const createTeamCallable = httpsCallable(functions, 'createTeam');
         const result = await createTeamCallable({ teamName, displayName });
 
@@ -3121,6 +3133,7 @@ async function joinTeam() {
     setButtonLoadingState(button, true);
 
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const joinTeamCallable = httpsCallable(functions, 'joinTeam');
         const result = await joinTeamCallable({ roomCode, displayName });
 
@@ -3145,6 +3158,7 @@ async function editDisplayName() {
 
     setButtonLoadingState(button, true);
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
         await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
         showMessage(i18n.t("msgDisplayNameUpdated"), 'success');
@@ -3159,6 +3173,7 @@ async function editDisplayName() {
 
 async function leaveTeam(button) {
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
         showMessage(i18n.t("msgTeamLeftSuccess"), 'success');
@@ -3172,6 +3187,7 @@ async function leaveTeam(button) {
 
 async function deleteTeam(button) {
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
         showMessage(i18n.t("msgTeamDeletedSuccess"), 'success');
@@ -3209,6 +3225,7 @@ async function kickMember() {
     setButtonLoadingState(button, true);
 
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
         await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
         showMessage(i18n.t("msgKickMemberSuccess"), 'success');
@@ -4313,6 +4330,7 @@ async function setProStatus(targetUserId, expiryDate) {
     }
 
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const updateUserRole = httpsCallable(functions, 'updateUserRole');
         await updateUserRole({
             targetUserId: targetUserId,
@@ -4344,6 +4362,7 @@ async function setProStatus(targetUserId, expiryDate) {
 async function grantProByEmail(email) {
     if (!email) return;
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const grantPro = httpsCallable(functions, 'grantProByEmail');
         const result = await grantPro({ email });
         showMessage(result.data.message, 'success');
@@ -4358,6 +4377,7 @@ async function grantProByEmail(email) {
 async function refreshAdminUserList() {
     DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const getAllUsers = httpsCallable(functions, 'getAllUsers');
         const result = await getAllUsers();
         renderAdminUserList(result.data.users);
@@ -4592,6 +4612,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     // If doesn't have it, we set to targetRole
                     const newRole = isCurrent ? 'standard' : targetRole;
 
+                    const { functions, httpsCallable } = await getFunctionsInstance();
                     const updateUserRole = httpsCallable(functions, 'updateUserRole');
                     await updateUserRole({ targetUserId: uid, newRole: newRole });
 
@@ -4768,6 +4789,7 @@ window.renderAdminUserList = renderAdminUserList; window.openAdminDashboard = op
 async function revokeProWhitelist(email) {
     if (!email) return;
     try {
+        const { functions, httpsCallable } = await getFunctionsInstance();
         const revokePro = httpsCallable(functions, 'revokeProWhitelist');
         const result = await revokePro({ email });
         showMessage(result.data.message, 'success');
