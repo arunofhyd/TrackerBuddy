@@ -1,8 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
-import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
-// --- Firebase Configuration ---
+// Dynamic imports for auth and firestore
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
 
@@ -17,11 +15,29 @@ const firebaseConfig = {
 
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-// Initialize Firestore with persistent cache
-const db = initializeFirestore(app, {
-    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+
+// Globals for Firebase modules
+let getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail;
+let getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager;
+let auth, db;
+let firebaseLoadedPromise = null;
+
+async function loadFirebaseModules() {
+    if (firebaseLoadedPromise) return firebaseLoadedPromise;
+    firebaseLoadedPromise = (async () => {
+        const authModule = await import("firebase/auth");
+        ({ getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } = authModule);
+
+        const firestoreModule = await import("firebase/firestore");
+        ({ getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } = firestoreModule);
+
+        auth = getAuth(app);
+        db = initializeFirestore(app, {
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        });
+    })();
+    return firebaseLoadedPromise;
+}
 
 let _functionsInstance = null;
 async function getFunctionsInstance() {
@@ -385,9 +401,9 @@ function setInputErrorState(inputElement, hasError) {
 const faSpinner = '<i class="fas fa-spinner fa-spin text-xl"></i>';
 function setButtonLoadingState(button, isLoading) {
     if (isLoading) {
+        const rect = button.getBoundingClientRect();
         button.disabled = true;
         button.dataset.originalContent = button.innerHTML;
-        const rect = button.getBoundingClientRect();
         button.style.width = `${rect.width}px`;
         button.style.height = `${rect.height}px`;
         if (button.id === 'google-signin-btn') {
@@ -1552,7 +1568,8 @@ function handleUserLogout() {
     switchView(DOM.loginView, DOM.appView);
 }
 
-function initAuth() {
+async function initAuth() {
+    await loadFirebaseModules();
     onAuthStateChanged(auth, (user) => {
         if (user) {
             handleUserLogin(user);
@@ -4693,6 +4710,10 @@ function handleSplashScreen() {
 
 async function init() {
     initUI();
+
+    // Start loading Firebase modules in parallel
+    const firebaseLoad = loadFirebaseModules();
+
     try {
         await i18n.init(); // Initialize i18n and wait for it
     } catch (e) {
@@ -4801,7 +4822,8 @@ async function revokeProWhitelist(email) {
     }
 }
 
-function subscribeToAppConfig() {
+async function subscribeToAppConfig() {
+    await loadFirebaseModules();
     const configRef = doc(db, "config", "app_config");
     onSnapshot(configRef, (doc) => {
         if (doc.exists()) {
