@@ -7,6 +7,24 @@
             --team-dashboard-title-color: #2d3748;
         }
         /* --- Base and Font Styles --- */
+        /* --- Fonts --- */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2) format("woff2"),
+                 url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.ttf) format("truetype");
+        }
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-regular-400.woff2) format("woff2"),
+                 url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-regular-400.ttf) format("truetype");
+        }
+
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #2d3748; transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; }
         .text-gray-800 { color: #1f2937; }
         .skip-link { position: absolute; top: -40px; left: 0; background: #0f172a; color: white; padding: 8px; z-index: 9999; transition: top 0.3s; }
