@@ -2417,7 +2417,7 @@ function renderLeaveStats() {
 
         // Use arrow functions in event listeners to capture 'lt'
         return html`
-            <div class="bg-white p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
+            <div class="bg-white p-3 sm:p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center min-w-0 pr-2">
                         <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
@@ -2440,21 +2440,21 @@ function renderLeaveStats() {
                         </button>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 mt-2 text-center">
-                    <div class="bg-gray-100 p-2 rounded">
+                <div class="grid grid-cols-2 gap-1 sm:gap-2 mt-1 sm:mt-2 text-center">
+                    <div class="bg-gray-100 p-1 sm:p-2 rounded">
                         <p class="text-xs text-gray-500">${i18n.t('used')}</p>
-                        <p class="font-bold text-lg sm:text-xl text-gray-800">${used}</p>
+                        <p class="font-bold text-base sm:text-xl text-gray-800">${used}</p>
                     </div>
-                    <div class="p-2 rounded balance-box">
+                    <div class="p-1 sm:p-2 rounded balance-box">
                         <p class="text-xs stats-label">${i18n.t('balance')}</p>
-                        <p class="font-bold text-lg sm:text-xl stats-value">${balance}</p>
+                        <p class="font-bold text-base sm:text-xl stats-value">${balance}</p>
                     </div>
                 </div>
-                <div class="bg-gray-100 p-2 rounded mt-2 text-center">
+                <div class="bg-gray-100 p-1 sm:p-2 rounded mt-1 sm:mt-2 text-center">
                     <p class="text-xs text-gray-500">${i18n.t('total')}</p>
-                    <p class="font-bold text-lg sm:text-xl text-gray-800">${totalDays}</p>
-                    <div class="progress-bg h-2 mt-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="progress-bar h-2 rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${lt.color};"></div>
+                    <p class="font-bold text-base sm:text-xl text-gray-800">${totalDays}</p>
+                    <div class="progress-bg h-1.5 sm:h-2 mt-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="progress-bar h-1.5 sm:h-2 rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${lt.color};"></div>
                     </div>
                 </div>
             </div>
