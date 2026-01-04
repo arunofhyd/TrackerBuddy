@@ -335,47 +335,25 @@ function switchView(viewToShow, viewToHide, callback) {
 
     const showNewView = () => {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
-            // Only manage splash screen if NOT coming from logout (which handles it separately)
-            if (!state.isLoggingOut && DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
+            if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
         } else if (viewToShow === DOM.appView) {
             loadTheme();
             if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
         }
 
-        // Layout shift prevention - Remove is-app-view immediately when switching away
-        if (viewToShow !== DOM.appView) {
-            mainContainer.classList.remove('is-app-view');
-        }
-
         requestAnimationFrame(() => {
-            // Fix for login modal repositioning: Disable ALL transitions temporarily
-            // and explicitly set transform to prevent repositioning
-            const loginContainer = viewToShow.querySelector('.login-container');
-            if (loginContainer) {
-                loginContainer.style.transition = 'none';
-                loginContainer.style.transform = 'none';
-            }
-
             // Ensure the view starts invisible for the fade-in
             viewToShow.style.opacity = '0';
             
             if (viewToShow === DOM.appView) {
                 mainContainer.classList.add('is-app-view');
+            } else {
+                mainContainer.classList.remove('is-app-view');
             }
             viewToShow.classList.remove('hidden');
 
             requestAnimationFrame(() => {
                 viewToShow.style.opacity = '1';
-
-                // Restore transition after the layout has settled and fade-in started
-                // Extended timeout to ensure stability
-                if (loginContainer) {
-                    setTimeout(() => {
-                        loginContainer.style.transition = '';
-                        loginContainer.style.transform = '';
-                    }, 100);
-                }
-
                 if (callback) callback();
             });
         });
@@ -422,7 +400,7 @@ async function handleUserLogin(user) {
     }
     cleanupTeamSubscriptions();
 
-    setState({ userId: user.uid, isOnlineMode: true, isLoggingOut: false });
+    setState({ userId: user.uid, isOnlineMode: true });
     DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
 
     switchView(DOM.loadingView, DOM.loginView);
@@ -1472,10 +1450,6 @@ function handleUserLogout() {
     // 1. Reset splash screen to be visible behind the app (z-index -10)
     // IMPORTANT: Keep display: flex but z-index -10 so it acts as a wallpaper
     if (DOM.splashScreen) {
-        // Pause the video to prevent background movement
-        const video = document.getElementById('splash-video');
-        if (video) video.pause();
-
         DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '-10';
         DOM.splashText.style.display = 'none';
