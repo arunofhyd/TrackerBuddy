@@ -1,34 +1,25 @@
 // Service Worker for TrackerBuddy
 // Cache version - increment to invalidate cache
-const CACHE_NAME = 'trackerbuddy-v1';
+const CACHE_NAME = 'trackerbuddy-v2-dynamic';
 
-// Assets to cache
-const ASSETS_TO_CACHE = [
+// Static core assets to cache immediately
+const CORE_ASSETS = [
     '/',
     '/index.html',
-    '/app.js',
     '/manifest.json',
-    '/assets/style.css',
-    '/assets/logo.webp',
     '/assets/logo_rounded.webp',
-    '/assets/google.webp',
     '/assets/splashbg.webp',
-    '/assets/splashtext.webp',
-    // Cache FontAwesome CSS (external, but good to have strategy for)
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-    // Fonts (Google Fonts are tricky due to variable URLs, we can cache the CSS)
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
-    'https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap'
+    '/assets/splashtext.webp'
 ];
 
-// Install Event - Cache Assets
+// Install Event - Cache Core Assets
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS_TO_CACHE);
+            return cache.addAll(CORE_ASSETS);
         })
     );
-    self.skipWaiting(); // Activate immediately
+    self.skipWaiting();
 });
 
 // Activate Event - Clean old caches
@@ -47,29 +38,54 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch Event - Stale-While-Revalidate Strategy
+// Fetch Event - Stale-While-Revalidate with Dynamic Caching
 self.addEventListener('fetch', (event) => {
-    // Skip cross-origin requests for Google Auth/Firebase unless specific logic needed
-    if (event.request.url.includes('firebase') || event.request.url.includes('googleapis.com') && !event.request.url.includes('fonts')) {
-        return; 
+    const url = new URL(event.request.url);
+
+    // 1. Ignore Non-GET requests
+    if (event.request.method !== 'GET') return;
+
+    // 2. Ignore Firebase/API/External requests (except fonts/CDNs we explicitly want)
+    // We want to cache our own assets, and maybe fonts.
+    const isSelf = url.origin === self.location.origin;
+    const isFont = url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com') || url.hostname.includes('cdnjs.cloudflare.com');
+
+    if (!isSelf && !isFont) return;
+
+    // 3. Network First for HTML (to ensure updates), Cache First for hashed assets
+    // Vite assets in /assets/ contain hashes, so they are immutable. We can return cache immediately.
+    const isImmutableAsset = isSelf && url.pathname.startsWith('/assets/');
+
+    if (isImmutableAsset) {
+        event.respondWith(
+            caches.match(event.request).then((cachedResponse) => {
+                if (cachedResponse) return cachedResponse;
+
+                return fetch(event.request).then((networkResponse) => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+                    }
+                    return networkResponse;
+                });
+            })
+        );
+        return;
     }
 
+    // Standard Stale-While-Revalidate for everything else (index.html, etc)
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             const fetchPromise = fetch(event.request).then((networkResponse) => {
-                // Update cache if valid response
-                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                if (networkResponse && networkResponse.status === 200) {
                     const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
                 }
                 return networkResponse;
             }).catch(() => {
-                // Network failed
+                // Network failed, return nothing (or offline page if we had one)
             });
 
-            // Return cached response immediately if available, otherwise wait for network
             return cachedResponse || fetchPromise;
         })
     );
