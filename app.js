@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 // Dynamic imports for auth and firestore
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
+import { TranslationService } from './services/i18n.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -50,119 +51,7 @@ async function getFunctionsInstance() {
     return _functionsInstance;
 }
 
-// --- Translation Service ---
-class TranslationService {
-    constructor() {
-        this.currentLang = 'en';
-        this.translations = {};
-        this.supportedLangs = [
-            { code: 'en', name: 'English' },
-            { code: 'es', name: 'Español' },
-            { code: 'fr', name: 'Français' },
-            { code: 'de', name: 'Deutsch' },
-            { code: 'zh', name: '中文' },
-            { code: 'ja', name: '日本語' },
-            { code: 'ko', name: '한국어' },
-            { code: 'pt', name: 'Português' },
-            { code: 'ru', name: 'Русский' },
-            { code: 'ar', name: 'العربية' },
-            { code: 'hi', name: 'हिन्दी' },
-            { code: 'it', name: 'Italiano' },
-            { code: 'nl', name: 'Nederlands' },
-            { code: 'pl', name: 'Polski' },
-            { code: 'vi', name: 'Tiếng Việt' },
-            { code: 'th', name: 'ไทย' },
-            { code: 'id', name: 'Bahasa Indonesia' },
-            { code: 'ms', name: 'Bahasa Melayu' },
-            { code: 'ta', name: 'தமிழ்' },
-            { code: 'ml', name: 'മലയാളം' }
-        ];
-    }
-
-    async init() {
-        // Check localStorage first, then browser preference
-        const savedLang = localStorage.getItem('appLanguage');
-        const userLang = navigator.language.split('-')[0];
-        const supportedCodes = this.supportedLangs.map(l => l.code);
-
-        if (savedLang && supportedCodes.includes(savedLang)) {
-            this.currentLang = savedLang;
-        } else {
-            this.currentLang = supportedCodes.includes(userLang) ? userLang : 'en';
-        }
-
-        try {
-            await this.loadTranslations(this.currentLang);
-        } catch (e) {
-            console.error("Init translation failed", e);
-        }
-        this.translatePage();
-    }
-
-    async setLanguage(langCode) {
-        if (this.currentLang === langCode) return;
-
-        this.currentLang = langCode;
-        localStorage.setItem('appLanguage', langCode);
-        await this.loadTranslations(langCode);
-        this.translatePage();
-    }
-
-    async loadTranslations(lang) {
-        try {
-            const response = await fetch(`assets/i18n/${lang}.json`);
-            this.translations = await response.json();
-        } catch (error) {
-            console.error('Failed to load translations:', error);
-        }
-    }
-
-    t(key, params = {}) {
-        let text = this.translations[key] || key;
-        Object.keys(params).forEach(param => {
-            text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
-        });
-        return text;
-    }
-
-    translatePage() {
-        document.documentElement.lang = this.currentLang;
-        document.documentElement.dir = this.currentLang === 'ar' ? 'rtl' : 'ltr';
-
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.dataset.i18n;
-            if (this.translations[key]) {
-                el.innerHTML = this.translations[key];
-            }
-        });
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.dataset.i18nPlaceholder;
-            if (this.translations[key]) {
-                el.placeholder = this.translations[key];
-            }
-        });
-        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
-            const key = el.dataset.i18nAriaLabel;
-            if (this.translations[key]) {
-                el.setAttribute('aria-label', this.translations[key]);
-            }
-        });
-        document.querySelectorAll('[data-i18n-title]').forEach(el => {
-            const key = el.dataset.i18nTitle;
-            if (this.translations[key]) {
-                el.title = this.translations[key];
-            }
-        });
-        document.querySelectorAll('[data-i18n-alt]').forEach(el => {
-            const key = el.dataset.i18nAlt;
-            if (this.translations[key]) {
-                el.alt = this.translations[key];
-            }
-        });
-        updateView();
-    }
-}
-const i18n = new TranslationService();
+const i18n = new TranslationService(updateView);
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
 const ACTION_TYPES = {
