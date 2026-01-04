@@ -9,7 +9,6 @@ const ASSETS_TO_CACHE = [
     '/app.js',
     '/manifest.json',
     '/assets/style.css',
-    '/assets/output.css',
     '/assets/logo.webp',
     '/assets/logo_rounded.webp',
     '/assets/google.webp',
