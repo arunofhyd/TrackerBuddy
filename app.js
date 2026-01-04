@@ -2937,7 +2937,7 @@ function renderTeamSection() {
     }
 
     // Check for Pro Access
-    const isSuperAdmin = state.superAdmins.includes(auth.currentUser?.email);
+    const isSuperAdmin = state.superAdmins.includes(auth?.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
     if (!state.currentTeam) {
@@ -3045,7 +3045,7 @@ function renderTeamSection() {
 }
 
 function openCreateTeamModal() {
-    const isSuperAdmin = state.superAdmins.includes(auth.currentUser?.email);
+    const isSuperAdmin = state.superAdmins.includes(auth?.currentUser?.email);
     const isPro = state.userRole === 'pro' || state.userRole === 'co-admin' || isSuperAdmin;
 
     // Reset visibility of content parts
@@ -4327,7 +4327,7 @@ function exitSearchMode() {
 
 function renderAdminButton() {
     // Only render if user matches state.superAdmins or is a co-admin
-    const isSuperAdmin = auth.currentUser && state.superAdmins.includes(auth.currentUser.email);
+    const isSuperAdmin = auth?.currentUser && state.superAdmins.includes(auth.currentUser.email);
     const isCoAdmin = state.userRole === 'co-admin';
 
     if (!isSuperAdmin && !isCoAdmin) {
