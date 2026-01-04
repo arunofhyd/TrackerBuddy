@@ -422,8 +422,26 @@ function setButtonLoadingState(button, isLoading) {
     }
 }
 
+let transitionState = {
+    active: false,
+    timeoutId: null,
+    element: null,
+    handler: null
+};
+
 function switchView(viewToShow, viewToHide, callback) {
     const mainContainer = document.querySelector('.main-container');
+
+    // Cancel pending transition to prevent race conditions
+    if (transitionState.active) {
+        clearTimeout(transitionState.timeoutId);
+        transitionState.element.removeEventListener('transitionend', transitionState.handler);
+        // Force finish the previous hide
+        transitionState.element.style.willChange = 'auto';
+        transitionState.element.classList.add('hidden');
+        transitionState.element.style.opacity = '0';
+        transitionState.active = false;
+    }
 
     const showNewView = () => {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
@@ -452,30 +470,34 @@ function switchView(viewToShow, viewToHide, callback) {
     };
 
     if (viewToHide && !viewToHide.classList.contains('hidden')) {
+        transitionState.active = true;
+        transitionState.element = viewToHide;
+
         // Apply optimization only during transition
         viewToHide.style.willChange = 'opacity';
         viewToHide.style.opacity = '0';
         
-        let transitionHandler;
-        const safetyTimeout = setTimeout(() => {
-            viewToHide.removeEventListener('transitionend', transitionHandler);
-            finishHide();
-        }, 350); 
-
         const finishHide = () => {
+             transitionState.active = false;
              viewToHide.style.willChange = 'auto'; // Cleanup
              viewToHide.classList.add('hidden');
              // Only show the new view AFTER the old one is gone to prevent layout jumps
              showNewView();
         };
 
-        transitionHandler = () => {
-             clearTimeout(safetyTimeout);
-             viewToHide.removeEventListener('transitionend', transitionHandler);
+        transitionState.handler = () => {
+             if (!transitionState.active) return;
              finishHide();
         };
 
-        viewToHide.addEventListener('transitionend', transitionHandler, { once: true });
+        transitionState.timeoutId = setTimeout(() => {
+             if (transitionState.active) {
+                 viewToHide.removeEventListener('transitionend', transitionState.handler);
+                 finishHide();
+             }
+        }, 350);
+
+        viewToHide.addEventListener('transitionend', transitionState.handler, { once: true });
     } else {
         showNewView();
     }
