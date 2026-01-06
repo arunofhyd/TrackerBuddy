@@ -1851,16 +1851,6 @@ function loadSplashScreenVideo() {
     const videoSrc = splashImage.dataset.videoSrc;
     if (!videoSrc) return;
 
-    // PERFORMANCE OPTIMIZATION: Do not load video on slow connections
-    // Check connection but allow if undefined (e.g. some browsers)
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection) {
-        if (connection.saveData === true || /2g|3g/.test(connection.effectiveType)) {
-            console.log("Skipping splash video due to slow connection.");
-            return;
-        }
-    }
-
     const video = document.createElement('video');
     video.id = 'splash-video';
     video.style.position = 'absolute';
