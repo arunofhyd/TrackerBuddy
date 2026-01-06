@@ -4263,6 +4263,7 @@ function setupEventListeners() {
 function exitSearchMode() {
     setState({ searchQuery: '', searchResultDates: [] });
     if (DOM.exitSearchBtn) DOM.exitSearchBtn.classList.remove('visible');
+    if (DOM.spotlightInput) DOM.spotlightInput.value = '';
     updateView();
 }
 
