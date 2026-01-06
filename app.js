@@ -3593,7 +3593,17 @@ function renderSearchResults(results) {
 
         item.addEventListener('click', () => {
             const date = new Date(result.date + 'T00:00:00');
-            setState({ selectedDate: date, currentView: VIEW_MODES.DAY });
+            const currentYear = state.currentMonth.getFullYear();
+            const newYear = date.getFullYear();
+
+            const newState = { selectedDate: date, currentView: VIEW_MODES.DAY };
+
+            if (newYear !== currentYear) {
+                newState.currentMonth = new Date(newYear, date.getMonth(), 1);
+                newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
+            }
+
+            setState(newState);
             closeSpotlight();
             updateView();
         });
@@ -3761,10 +3771,19 @@ function setupEventListeners() {
         setButtonLoadingState(DOM.todayBtnDay, true);
         await waitForDOMUpdate();
         const today = new Date();
-        setState({
+        const currentYear = state.currentMonth.getFullYear();
+        const newYear = today.getFullYear();
+
+        const newState = {
             selectedDate: today,
             currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
-        });
+        };
+
+        if (newYear !== currentYear) {
+            newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
+        }
+
+        setState(newState);
         updateView();
         setButtonLoadingState(DOM.todayBtnDay, false);
     });
