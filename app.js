@@ -1852,6 +1852,7 @@ function loadSplashScreenVideo() {
     if (!videoSrc) return;
 
     // PERFORMANCE OPTIMIZATION: Do not load video on slow connections
+    // Check connection but allow if undefined (e.g. some browsers)
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (connection) {
         if (connection.saveData === true || /2g|3g/.test(connection.effectiveType)) {
@@ -1878,11 +1879,10 @@ function loadSplashScreenVideo() {
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
+    video.preload = 'auto';
 
-    const source = document.createElement('source');
-    source.src = videoSrc;
-    source.type = 'video/mp4';
-    video.appendChild(source);
+    // Set src directly for better compatibility
+    video.src = videoSrc;
 
     const track = document.createElement('track');
     track.kind = 'captions';
@@ -1892,9 +1892,18 @@ function loadSplashScreenVideo() {
     track.default = true;
     video.appendChild(track);
 
-    video.oncanplay = () => {
+    const showVideo = () => {
         video.style.opacity = '1';
     };
+
+    // Use addEventListener for better reliability
+    video.addEventListener('canplay', showVideo, { once: true });
+    video.addEventListener('loadeddata', showVideo, { once: true });
+
+    // Explicitly try to play
+    video.play().catch(error => {
+        console.warn("Autoplay failed:", error);
+    });
 
     splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
 }
