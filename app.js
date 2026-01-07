@@ -2973,7 +2973,7 @@ function openCreateTeamModal() {
     // Reset visibility of content parts
     let upgradeMsg = DOM.createTeamModal.querySelector('#create-team-upgrade-msg');
     let formContent = DOM.createTeamModal.querySelector('.space-y-4');
-    let buttons = DOM.createTeamModal.querySelector('.flex.justify-end');
+    let buttons = DOM.createTeamModal.querySelector('#save-create-team-btn')?.parentElement;
 
     if (!isPro) {
         if (formContent) formContent.style.display = 'none';
@@ -2995,7 +2995,7 @@ function openCreateTeamModal() {
                     Upgrade to Pro
                 </button>
                 <div class="mt-4">
-                    <button class="text-gray-500 hover:text-gray-700 text-sm" onclick="document.getElementById('create-team-modal').classList.remove('visible')">Close</button>
+                    <button class="text-gray-500 hover:text-gray-700 text-sm" onclick="document.getElementById('create-team-modal').classList.remove('visible')">Cancel</button>
                 </div>
             `;
             // Insert after title
