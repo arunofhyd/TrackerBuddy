@@ -383,6 +383,7 @@ body.dark .stat-card-info p {
             color: #d1d5db;
         }
         body.dark .leave-type-selector-panel { background-color: #1f2937; border-color: #4b5563; }
+        body.dark .leave-overview-item { border-color: #374151; }
         body.dark .leave-overview-item:hover { background-color: #1f2937 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         #leave-overview-modal .delete-leave-day-btn { color: #ef4444; }
         #leave-overview-modal .delete-leave-day-btn:hover { color: #c53030; }
