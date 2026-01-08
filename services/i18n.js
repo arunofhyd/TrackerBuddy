@@ -5,27 +5,27 @@ export class TranslationService {
         this.translations = {};
         this.updateViewCallback = updateViewCallback;
         this.supportedLangs = [
+            { code: 'id', name: 'Bahasa Indonesia' },
+            { code: 'ms', name: 'Bahasa Melayu' },
+            { code: 'de', name: 'Deutsch' },
             { code: 'en', name: 'English' },
             { code: 'es', name: 'Español' },
             { code: 'fr', name: 'Français' },
-            { code: 'de', name: 'Deutsch' },
-            { code: 'zh', name: '中文' },
-            { code: 'ja', name: '日本語' },
-            { code: 'ko', name: '한국어' },
-            { code: 'pt', name: 'Português' },
-            { code: 'ru', name: 'Русский' },
-            { code: 'ar', name: 'العربية' },
-            { code: 'hi', name: 'हिन्दी' },
             { code: 'it', name: 'Italiano' },
             { code: 'nl', name: 'Nederlands' },
             { code: 'pl', name: 'Polski' },
+            { code: 'pt', name: 'Português' },
             { code: 'vi', name: 'Tiếng Việt' },
-            { code: 'th', name: 'ไทย' },
-            { code: 'id', name: 'Bahasa Indonesia' },
-            { code: 'ms', name: 'Bahasa Melayu' },
+            { code: 'ru', name: 'Русский' },
+            { code: 'ar', name: 'العربية' },
+            { code: 'hi', name: 'हिन्दी' },
             { code: 'ta', name: 'தமிழ்' },
+            { code: 'te', name: 'తెలుగు' },
             { code: 'ml', name: 'മലയാളം' },
-            { code: 'te', name: 'తెలుగు' }
+            { code: 'th', name: 'ไทย' },
+            { code: 'zh', name: '中文' },
+            { code: 'ja', name: '日本語' },
+            { code: 'ko', name: '한국어' }
         ];
     }
 
