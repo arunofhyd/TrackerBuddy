@@ -10,6 +10,7 @@ const {
     TEAM_ROLES,
     USER_ROLES
 } = require("./constants");
+const { Logger } = require("./logger");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -34,7 +35,7 @@ async function getSuperAdmins() {
     }
     return [];
   } catch (error) {
-    console.error("Error fetching super admins:", error);
+    Logger.error("Error fetching super admins:", error);
     return [];
   }
 }
@@ -61,7 +62,7 @@ async function deleteCollection(collectionPath, batchSize = 500) {
 // Helper function to calculate and save member summary
 async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInfo) {
     if (!userData || !teamId || !memberInfo) {
-        console.log(`Missing data for summary calculation for user ${userId}`);
+        Logger.info(`Missing data for summary calculation for user ${userId}`);
         return;
     }
 
@@ -141,7 +142,7 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
     try {
         await summaryRef.set(summaryData, { merge: true });
     } catch (error) {
-        console.error("Error setting summary for user:", error);
+        Logger.error("Error setting summary for user:", error);
         throw error;
     }
 }
@@ -152,7 +153,7 @@ async function deleteMemberSummary(userId, teamId) {
     try {
         await summaryRef.delete();
     } catch (error) {
-        console.error("Error deleting summary:", error);
+        Logger.error("Error deleting summary:", error);
     }
 }
 
@@ -255,7 +256,7 @@ exports.createTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
 
     return { status: "success", message: "Successfully created the team!", roomCode: roomCode };
   } catch (error) {
-    console.error("Error creating team:", error);
+    Logger.error("Error creating team:", error);
     if (error instanceof HttpsError) {
       throw error;
     }
@@ -318,7 +319,7 @@ exports.joinTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) 
 
     return { status: "success", message: "Successfully joined the team!" };
   } catch (error) {
-    console.error("Error joining team:", error);
+    Logger.error("Error joining team:", error);
     if (error instanceof HttpsError) {
       throw error;
     }
@@ -491,7 +492,7 @@ exports.kickTeamMember = onCall({ region: REGION, maxInstances: 10 }, async (req
         return { success: true, message: "Team member successfully kicked." };
 
     } catch (error) {
-        console.error(`Error kicking member ${memberId} from team ${teamId}:`, error);
+        Logger.error(`Error kicking member ${memberId} from team ${teamId}:`, error);
         if (error instanceof HttpsError) {
             throw error;
         } else {
@@ -536,7 +537,7 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLE
     const afterData = event.data?.after.data();
 
     if (!afterData) {
-        console.log(`Team ${teamId} deleted.`);
+        Logger.info(`Team ${teamId} deleted.`);
         return;
     }
 
@@ -566,9 +567,9 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLE
                 role: memberData.role,
                 lastUpdated: admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
-            console.log(`Updated summary for member ${memberId} in team ${teamId} due to team doc change.`);
+            Logger.info(`Updated summary for member ${memberId} in team ${teamId} due to team doc change.`);
         } catch (error) {
-            console.error(`Error updating summary for member ${memberId}:`, error);
+            Logger.error(`Error updating summary for member ${memberId}:`, error);
         }
     });
 
@@ -649,7 +650,7 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
         return { users: combined };
 
     } catch (error) {
-        console.error("Error fetching users:", error);
+        Logger.error("Error fetching users:", error);
         throw new HttpsError("internal", "Failed to fetch users.");
     }
 });
@@ -708,7 +709,7 @@ exports.updateUserRole = onCall({ region: REGION, maxInstances: 10 }, async (req
 
         return { success: true };
     } catch (error) {
-        console.error("Error updating user role:", error);
+        Logger.error("Error updating user role:", error);
         throw new HttpsError("internal", "Failed to update role.");
     }
 });
@@ -764,7 +765,7 @@ exports.grantProByEmail = onCall({ region: REGION, maxInstances: 10 }, async (re
         }
 
     } catch (error) {
-        console.error("Error granting pro by email:", error);
+        Logger.error("Error granting pro by email:", error);
         throw new HttpsError("internal", "Failed to grant pro access.");
     }
 });
@@ -777,7 +778,7 @@ exports.checkProWhitelistOnSignup = functions.region(REGION).runWith({ maxInstan
     try {
         const whitelistDoc = await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).get();
         if (whitelistDoc.exists) {
-            console.log(`New user ${email} found in Pro whitelist. Granting access.`);
+            Logger.info(`New user ${email} found in Pro whitelist. Granting access.`);
 
             // Grant Pro Access
             await db.collection(COLLECTIONS.USERS).doc(user.uid).set({
@@ -790,7 +791,7 @@ exports.checkProWhitelistOnSignup = functions.region(REGION).runWith({ maxInstan
             await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).delete();
         }
     } catch (error) {
-        console.error(`Error processing whitelist for new user ${email}:`, error);
+        Logger.error(`Error processing whitelist for new user ${email}:`, error);
     }
 });
 
@@ -819,7 +820,7 @@ exports.revokeProWhitelist = onCall({ region: REGION, maxInstances: 10 }, async 
         await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).delete();
         return { message: "User removed from Pro whitelist." };
     } catch (error) {
-        console.error("Error revoking pro whitelist:", error);
+        Logger.error("Error revoking pro whitelist:", error);
         throw new HttpsError("internal", "Failed to revoke pro whitelist.");
     }
 });
