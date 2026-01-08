@@ -1,5 +1,4 @@
 // Import Firebase modules
-import { initializeApp } from "firebase/app";
 // Dynamic imports for auth and firestore
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
@@ -16,52 +15,17 @@ import {
     COLOR_MAP,
     LOCAL_STORAGE_KEYS
 } from './constants.js';
-
-const firebaseConfig = {
-    apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
-    authDomain: "trackerbuddyaoh.firebaseapp.com",
-    projectId: "trackerbuddyaoh",
-    storageBucket: "trackerbuddyaoh.firebasestorage.app",
-    messagingSenderId: "612126230828",
-    appId: "1:612126230828:web:763ef43baec1046d3b0489"
-};
-
-// --- Initialize Firebase ---
-const app = initializeApp(firebaseConfig);
-
-// Globals for Firebase modules
-let getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail;
-let getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager;
-let auth, db;
-let firebaseLoadedPromise = null;
-
-async function loadFirebaseModules() {
-    if (firebaseLoadedPromise) return firebaseLoadedPromise;
-    firebaseLoadedPromise = (async () => {
-        const authModule = await import("firebase/auth");
-        ({ getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail } = authModule);
-
-        const firestoreModule = await import("firebase/firestore");
-        ({ getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } = firestoreModule);
-
-        auth = getAuth(app);
-        db = initializeFirestore(app, {
-            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-        });
-    })();
-    return firebaseLoadedPromise;
-}
-
-let _functionsInstance = null;
-async function getFunctionsInstance() {
-    if (_functionsInstance) return _functionsInstance;
-    const { getFunctions, httpsCallable } = await import("firebase/functions");
-    _functionsInstance = {
-        functions: getFunctions(app, REGION),
-        httpsCallable
-    };
-    return _functionsInstance;
-}
+import { createInitialState } from './services/state.js';
+import { Logger } from './services/logger.js';
+import {
+    app,
+    auth,
+    db,
+    loadFirebaseModules,
+    getFunctionsInstance,
+    getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
+    getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
+} from './services/firebase.js';
 
 const i18n = new TranslationService(updateView);
 
@@ -338,7 +302,7 @@ async function handleUserLogin(user) {
                             // Refresh state immediately
                             setState(mergedData);
                         } catch (e) {
-                            console.error("Migration failed", e);
+                            Logger.error("Migration failed", e);
                             showMessage(i18n.t("msgFailedToMigrate"), "error");
                         }
                     } else {
@@ -350,7 +314,7 @@ async function handleUserLogin(user) {
                     }
                 }
             } catch (e) {
-                console.error("Error parsing guest data for migration:", e);
+                Logger.error("Error parsing guest data for migration:", e);
                 // If data is corrupt, clear it to prevent future errors
                 localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
             }
@@ -684,7 +648,7 @@ async function loadTeamMembersData() {
             renderTeamDashboard();
         }
     }, (error) => {
-        console.error("Error listening to team member summaries:", error);
+        Logger.error("Error listening to team member summaries:", error);
         showMessage(i18n.t("msgRealTimeTeamError"), "error");
     });
 
@@ -695,17 +659,17 @@ async function triggerTeamSync() {
     if (!state.isOnlineMode || !state.userId || !state.currentTeam) return;
 
     try {
-        console.log("Triggering team summary sync...");
+        Logger.info("Triggering team summary sync...");
         const { functions, httpsCallable } = await getFunctionsInstance();
         const syncCallable = httpsCallable(functions, 'syncTeamMemberSummary');
         // We don't await this to keep the UI responsive, but we catch errors.
         syncCallable().then(() => {
-            console.log("Team summary synced successfully.");
+            Logger.info("Team summary synced successfully.");
         }).catch(error => {
-             console.error("Failed to sync team summary:", error);
+             Logger.error("Failed to sync team summary:", error);
         });
     } catch (error) {
-        console.error("Error triggering team sync:", error);
+        Logger.error("Error triggering team sync:", error);
     }
 }
 
@@ -724,7 +688,7 @@ async function persistData(data, partialUpdate = null) {
         try {
             await saveDataToFirestore(data, partialUpdate);
         } catch (error) {
-            console.error("Error saving to Firestore:", error);
+            Logger.error("Error saving to Firestore:", error);
             showMessage(i18n.t("msgSaveError"), 'error');
         }
     } else {
@@ -917,7 +881,7 @@ function loadDataFromLocalStorage() {
         return data;
 
     } catch (error) {
-        console.error("Error loading local data:", error);
+        Logger.error("Error loading local data:", error);
         showMessage(i18n.t("msgLoadLocalError"), 'error');
         return { yearlyData: {}, leaveTypes: [] };
     }
@@ -928,7 +892,7 @@ function saveDataToLocalStorage(data) {
         // FIX: Store under the new key/structure
         localStorage.setItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA, JSON.stringify(data));
     } catch (error) {
-        console.error("Error saving local data:", error);
+        Logger.error("Error saving local data:", error);
         showMessage(i18n.t("msgSaveLocalError"), 'error');
     }
 }
@@ -942,7 +906,7 @@ async function saveDataToFirestore(data, partialUpdate = null) {
             return;
         } catch (e) {
             // Fallback to full save if partial update fails (e.g. document doesn't exist)
-            console.warn("Partial update failed, falling back to full merge:", e);
+            Logger.warn("Partial update failed, falling back to full merge:", e);
         }
     }
     // FIX: Save with the new data structure
@@ -995,7 +959,7 @@ async function resetAllData() {
             showMessage(i18n.t("msgCloudResetSuccess"), 'success');
 
         } catch (error) {
-            console.error("Error resetting cloud data:", error);
+            Logger.error("Error resetting cloud data:", error);
             showMessage(i18n.t("msgCloudResetError"), 'error');
         }
     } else {
@@ -1043,7 +1007,7 @@ async function updateActivityOrder() {
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         showMessage(i18n.t("msgActivitiesReordered"), 'success');
     } catch (error) {
-        console.error("Failed to reorder activities:", error);
+        Logger.error("Failed to reorder activities:", error);
         showMessage(i18n.t("msgOrderSaveError"), "error");
         // NOTE: Consider rolling back state on error
     }
@@ -1096,7 +1060,7 @@ async function deleteActivity(dateKey, timeKey) {
         showMessage(i18n.t("msgActivityDeleted"), 'success');
 
     } catch (error) {
-        console.error("Failed to delete activity:", error);
+        Logger.error("Failed to delete activity:", error);
         showMessage(i18n.t("msgDeleteSaveError"), "error");
         // Rollback on error
         const currentYear = state.currentMonth.getFullYear();
@@ -1255,7 +1219,7 @@ function handleFileUpload(event) {
                     case 'USER_CLEARED':
                         const dateKey = detail1;
                         if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
-                            console.warn(`Skipping row with invalid date format: ${dateKey}`);
+                            Logger.warn(`Skipping row with invalid date format: ${dateKey}`);
                             return;
                         }
                         const activityYear = dateKey.substring(0, 4);
@@ -1306,7 +1270,7 @@ function handleFileUpload(event) {
             event.target.value = '';
             updateView();
         } catch (err) {
-            console.error("Error during CSV restore:", err);
+            Logger.error("Error during CSV restore:", err);
             showMessage(i18n.t("msgRestoreError"), 'error');
         }
     };
@@ -1453,7 +1417,7 @@ async function editTeamName() {
         showMessage(i18n.t("msgTeamNameUpdated"), 'success');
         closeEditTeamNameModal();
     } catch (error) {
-        console.error('Error updating team name:', error);
+        Logger.error('Error updating team name:', error);
         showMessage(i18n.t("msgTeamNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
@@ -1769,7 +1733,7 @@ function loadSplashScreenVideo() {
 
     // Explicitly try to play
     video.play().catch(error => {
-        console.warn("Autoplay failed:", error);
+        Logger.warn("Autoplay failed:", error);
     });
 
     splashImage.parentNode.insertBefore(video, splashImage.nextSibling);
@@ -1952,7 +1916,7 @@ async function saveLeaveType() {
         triggerTeamSync();
         showMessage(i18n.t("msgLeaveTypeSaved"), 'success');
     } catch (error) {
-        console.error("Failed to save leave type:", error);
+        Logger.error("Failed to save leave type:", error);
         showMessage(i18n.t("msgLeaveTypeSaveFailed"), 'error');
         // NOTE: Consider rolling back state
     } finally {
@@ -2041,7 +2005,7 @@ async function deleteLeaveType() {
         triggerTeamSync();
         showMessage(i18n.t("msgLeaveTypeHidden").replace('{year}', currentYear), 'success');
     } catch (error) {
-        console.error("Failed to hide leave type:", error);
+        Logger.error("Failed to hide leave type:", error);
         showMessage(i18n.t("msgLeaveTypeHideFailed"), 'error');
         // NOTE: A more robust implementation might roll back the state change here
     } finally {
@@ -2247,7 +2211,7 @@ async function deleteLeaveDay(dateKey) {
         triggerTeamSync();
         showMessage(i18n.t("msgLeaveEntryDeleted"), 'success');
     } catch (error) {
-        console.error("Failed to delete leave day:", error);
+        Logger.error("Failed to delete leave day:", error);
         showMessage(i18n.t("msgDeleteSaveError"), "error");
         // NOTE: A robust implementation might roll back the state change here.
     }
@@ -2692,7 +2656,7 @@ async function saveLoggedLeaves() {
         triggerTeamSync();
         showMessage(i18n.t("msgLeavesSaved"), 'success');
     } catch (error) {
-        console.error("Failed to save logged leaves:", error);
+        Logger.error("Failed to save logged leaves:", error);
         showMessage(i18n.t("msgLeavesSaveFailed"), "error");
     } finally {
         DOM.customizeLeaveModal.classList.remove('visible');
@@ -2951,7 +2915,7 @@ async function createTeam() {
         closeCreateTeamModal();
 
     } catch (error) {
-        console.error('Error creating team:', error);
+        Logger.error('Error creating team:', error);
         showMessage(i18n.t("msgTeamCreateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
@@ -2978,7 +2942,7 @@ async function joinTeam() {
         showMessage(result.data.message, 'success');
         closeJoinTeamModal();
     } catch (error) {
-        console.error('Error calling joinTeam function:', error);
+        Logger.error('Error calling joinTeam function:', error);
         showMessage(i18n.t("msgTeamJoinFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
@@ -3002,7 +2966,7 @@ async function editDisplayName() {
         showMessage(i18n.t("msgDisplayNameUpdated"), 'success');
         closeEditDisplayNameModal();
     } catch (error) {
-        console.error('Error updating display name:', error);
+        Logger.error('Error updating display name:', error);
         showMessage(i18n.t("msgDisplayNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
@@ -3016,7 +2980,7 @@ async function leaveTeam(button) {
         await leaveTeamCallable({ teamId: state.currentTeam });
         showMessage(i18n.t("msgTeamLeftSuccess"), 'success');
     } catch (error) {
-        console.error('Error leaving team:', error);
+        Logger.error('Error leaving team:', error);
         showMessage(i18n.t("msgTeamLeftFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
@@ -3030,7 +2994,7 @@ async function deleteTeam(button) {
         await deleteTeamCallable({ teamId: state.currentTeam });
         showMessage(i18n.t("msgTeamDeletedSuccess"), 'success');
     } catch (error) {
-        console.error('Error deleting team:', error);
+        Logger.error('Error deleting team:', error);
         showMessage(i18n.t("msgTeamDeleteFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
@@ -3069,7 +3033,7 @@ async function kickMember() {
         showMessage(i18n.t("msgKickMemberSuccess"), 'success');
         closeKickMemberModal();
     } catch (error) {
-        console.error('Error kicking member:', error);
+        Logger.error('Error kicking member:', error);
         showMessage(i18n.t("msgKickMemberFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
@@ -4008,7 +3972,7 @@ function setupEventListeners() {
                 triggerTeamSync();
                 showMessage(i18n.t("msgLeaveDayUpdated"), 'success');
             } catch (error) {
-                console.error("Failed to update leave day:", error);
+                Logger.error("Failed to update leave day:", error);
                 showMessage(i18n.t("msgUpdateSaveFailed"), "error");
             }
 
@@ -4204,7 +4168,7 @@ async function setProStatus(targetUserId, expiryDate) {
         showMessage('User promoted to Pro', 'success');
         if (modal) modal.classList.remove('visible');
     } catch (error) {
-        console.error("Failed to set pro status:", error);
+        Logger.error("Failed to set pro status:", error);
         showMessage(i18n.t("failedToUpdateRole"), 'error');
     } finally {
         if (modal) {
@@ -4227,7 +4191,7 @@ async function grantProByEmail(email) {
         // Refresh list
         await refreshAdminUserList();
     } catch (error) {
-        console.error("Failed to grant pro by email:", error);
+        Logger.error("Failed to grant pro by email:", error);
         showMessage(i18n.t("failedToGrantPro"), 'error');
     }
 }
@@ -4240,7 +4204,7 @@ async function refreshAdminUserList() {
         const result = await getAllUsers();
         renderAdminUserList(result.data.users);
     } catch (error) {
-        console.error("Failed to load users:", error);
+        Logger.error("Failed to load users:", error);
         DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('failedToLoadUsers', {error: error.message})}</p>`;
     }
 }
@@ -4348,7 +4312,7 @@ function renderAdminUserList(users, searchQuery = '') {
         if (user.creationTime) {
             try {
                 memberSince = new Date(user.creationTime).toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
-            } catch (e) { console.error("Date parse error", e); }
+            } catch (e) { Logger.error("Date parse error", e); }
         }
 
         // Format Pro Since
@@ -4480,7 +4444,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     showMessage(i18n.t('userRoleUpdated', {role: i18n.t(newRole)}), 'success');
                 }
             } catch (error) {
-                console.error("Failed to update role:", error);
+                Logger.error("Failed to update role:", error);
                 showMessage(i18n.t("failedToUpdateRole"), 'error');
             } finally {
                 // Ensure loading state is cleared if not re-rendered
@@ -4558,7 +4522,7 @@ async function init() {
     try {
         await i18n.init(); // Initialize i18n and wait for it
     } catch (e) {
-        console.error("i18n init error:", e);
+        Logger.error("i18n init error:", e);
     }
     subscribeToAppConfig(); // Start listening for config changes
     setupEventListeners();
@@ -4572,10 +4536,10 @@ async function init() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
-                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                Logger.info('ServiceWorker registration successful with scope: ', registration.scope);
             })
             .catch(err => {
-                console.log('ServiceWorker registration failed: ', err);
+                Logger.info('ServiceWorker registration failed: ', err);
             });
     }
 }
@@ -4658,7 +4622,7 @@ async function revokeProWhitelist(email) {
         // Refresh list
         await refreshAdminUserList();
     } catch (error) {
-        console.error("Failed to revoke pro whitelist:", error);
+        Logger.error("Failed to revoke pro whitelist:", error);
         showMessage(i18n.t("failedToRevokeProWhitelist"), 'error');
     }
 }
