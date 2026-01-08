@@ -1,6 +1,6 @@
 // Service Worker for TrackerBuddy
 // Cache version - increment to invalidate cache
-const CACHE_NAME = 'trackerbuddy-v3-dynamic';
+const CACHE_NAME = 'trackerbuddy-v3-dynamic-firebase';
 
 // Static core assets to cache immediately
 const CORE_ASSETS = [
@@ -12,6 +12,7 @@ const CORE_ASSETS = [
     '/services/utils.js',
     '/services/state.js',
     '/services/logger.js',
+    '/services/firebase.js',
     '/manifest.json',
     '/assets/logo_rounded.webp',
     '/assets/splashbg.webp',
