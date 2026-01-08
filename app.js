@@ -1000,7 +1000,7 @@ async function resetAllData() {
         }
     } else {
         // FIX: Clear the new local storage key
-        localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA); 
         setState(resetState);
         updateView();
         showMessage(i18n.t("msgLocalResetSuccess"), 'success');
