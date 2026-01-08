@@ -45,7 +45,7 @@ async function getFunctionsInstance() {
     if (_functionsInstance) return _functionsInstance;
     const { getFunctions, httpsCallable } = await import("firebase/functions");
     _functionsInstance = {
-        functions: getFunctions(app, 'asia-south1'),
+        functions: getFunctions(app, REGION),
         httpsCallable
     };
     return _functionsInstance;
@@ -54,6 +54,8 @@ async function getFunctionsInstance() {
 const i18n = new TranslationService(updateView);
 
 // --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
+const REGION = 'asia-south1';
+
 const ACTION_TYPES = {
     SAVE_NOTE: 'SAVE_NOTE',
     ADD_SLOT: 'ADD_SLOT',

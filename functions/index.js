@@ -7,12 +7,25 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
+const REGION = "asia-south1";
+
+// Simple in-memory cache for super admins
+let superAdminsCache = null;
+const CACHE_DURATION = 60 * 1000; // 1 minute
+
 // Helper function to get super admins from Firestore config
 async function getSuperAdmins() {
+  const now = Date.now();
+  if (superAdminsCache && (now - superAdminsCache.timestamp < CACHE_DURATION)) {
+    return superAdminsCache.data;
+  }
+
   try {
     const doc = await db.collection("config").doc("app_config").get();
     if (doc.exists && doc.data().superAdmins) {
-      return doc.data().superAdmins;
+      const admins = doc.data().superAdmins;
+      superAdminsCache = { data: admins, timestamp: now };
+      return admins;
     }
     return [];
   } catch (error) {
@@ -139,7 +152,7 @@ async function deleteMemberSummary(userId, teamId) {
     }
 }
 
-exports.createTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.createTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to create a team.");
   }
@@ -192,6 +205,12 @@ exports.createTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (
         throw new HttpsError("already-exists", "You are already in a team.");
       }
 
+      // Check for room code collision
+      const tTeamDoc = await transaction.get(teamRef);
+      if (tTeamDoc.exists) {
+        throw new HttpsError("aborted", "Failed to generate a unique team code. Please try again.");
+      }
+
       const memberInfo = {
         userId: userId,
         displayName: displayName,
@@ -232,7 +251,7 @@ exports.createTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (
   }
 });
 
-exports.joinTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.joinTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in to join a team.");
   }
@@ -320,7 +339,7 @@ exports.joinTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (re
   }
 });
 
-exports.editDisplayName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.editDisplayName = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -351,7 +370,7 @@ exports.editDisplayName = onCall({ region: "asia-south1", maxInstances: 10 }, as
   return { status: "success", message: "Display name updated!" };
 });
 
-exports.editTeamName = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.editTeamName = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -381,7 +400,7 @@ exports.editTeamName = onCall({ region: "asia-south1", maxInstances: 10 }, async
     return { status: "success", message: "Team name updated!" };
 });
 
-exports.leaveTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.leaveTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "You must be logged in.");
   }
@@ -420,7 +439,7 @@ exports.leaveTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (r
   return { status: "success", message: "You have left the team." };
 });
 
-exports.deleteTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.deleteTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -460,7 +479,7 @@ exports.deleteTeam = onCall({ region: "asia-south1", maxInstances: 10 }, async (
     return { status: "success", message: "Team deleted successfully." };
 });
 
-exports.kickTeamMember = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.kickTeamMember = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     const { teamId, memberId } = request.data;
     const callerId = request.auth?.uid;
 
@@ -514,7 +533,7 @@ exports.kickTeamMember = onCall({ region: "asia-south1", maxInstances: 10 }, asy
     }
 });
 
-exports.syncTeamMemberSummary = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -548,7 +567,7 @@ exports.syncTeamMemberSummary = onCall({ region: "asia-south1", maxInstances: 10
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: "asia-south1", maxInstances: 10 }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: REGION, maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
@@ -595,7 +614,7 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
 
 // --- ADMIN FUNCTIONS ---
 
-exports.getAllUsers = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -677,7 +696,7 @@ exports.getAllUsers = onCall({ region: "asia-south1", maxInstances: 10 }, async 
     }
 });
 
-exports.updateUserRole = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.updateUserRole = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -741,7 +760,7 @@ exports.updateUserRole = onCall({ region: "asia-south1", maxInstances: 10 }, asy
     }
 });
 
-exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.grantProByEmail = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
@@ -803,7 +822,7 @@ exports.grantProByEmail = onCall({ region: "asia-south1", maxInstances: 10 }, as
 });
 
 // Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.region("asia-south1").runWith({ maxInstances: 10 }).auth.user().onCreate(async (user) => {
+exports.checkProWhitelistOnSignup = functions.region(REGION).runWith({ maxInstances: 10 }).auth.user().onCreate(async (user) => {
     const email = user.email;
     if (!email) return;
 
@@ -827,7 +846,7 @@ exports.checkProWhitelistOnSignup = functions.region("asia-south1").runWith({ ma
     }
 });
 
-exports.revokeProWhitelist = onCall({ region: "asia-south1", maxInstances: 10 }, async (request) => {
+exports.revokeProWhitelist = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "You must be logged in.");
     }
