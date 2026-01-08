@@ -1,5 +1,12 @@
 // services/i18n.js
+
+/**
+ * Service to handle application localization.
+ */
 export class TranslationService {
+    /**
+     * @param {Function} updateViewCallback - Callback to trigger UI updates (re-renders).
+     */
     constructor(updateViewCallback) {
         this.currentLang = 'en';
         this.translations = {};
@@ -29,6 +36,10 @@ export class TranslationService {
         ];
     }
 
+    /**
+     * Initializes the translation service by detecting the preferred language.
+     * @returns {Promise<void>}
+     */
     async init() {
         // Check localStorage first, then browser preference
         const savedLang = localStorage.getItem('appLanguage');
@@ -49,6 +60,11 @@ export class TranslationService {
         this.translatePage();
     }
 
+    /**
+     * Switches the application language.
+     * @param {string} langCode - The ISO 639-1 language code (e.g., 'en', 'es').
+     * @returns {Promise<void>}
+     */
     async setLanguage(langCode) {
         if (this.currentLang === langCode) return;
 
@@ -58,6 +74,11 @@ export class TranslationService {
         this.translatePage();
     }
 
+    /**
+     * Loads the translation JSON file for a given language.
+     * @param {string} lang - The language code.
+     * @returns {Promise<void>}
+     */
     async loadTranslations(lang) {
         try {
             const response = await fetch(`assets/i18n/${lang}.json`);
@@ -67,6 +88,12 @@ export class TranslationService {
         }
     }
 
+    /**
+     * Translates a specific key.
+     * @param {string} key - The translation key.
+     * @param {Object} [params={}] - Parameters to replace in the translation string.
+     * @returns {string} The translated string or the key if not found.
+     */
     t(key, params = {}) {
         let text = this.translations[key] || key;
         Object.keys(params).forEach(param => {
@@ -75,6 +102,9 @@ export class TranslationService {
         return text;
     }
 
+    /**
+     * Applies translations to all elements in the DOM with data-i18n attributes.
+     */
     translatePage() {
         document.documentElement.lang = this.currentLang;
         document.documentElement.dir = this.currentLang === 'ar' ? 'rtl' : 'ltr';
