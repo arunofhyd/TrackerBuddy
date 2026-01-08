@@ -1,4 +1,5 @@
 // services/i18n.js
+import { LOCAL_STORAGE_KEYS } from '../constants.js';
 
 /**
  * Service to handle application localization.
@@ -42,7 +43,7 @@ export class TranslationService {
      */
     async init() {
         // Check localStorage first, then browser preference
-        const savedLang = localStorage.getItem('appLanguage');
+        const savedLang = localStorage.getItem(LOCAL_STORAGE_KEYS.APP_LANGUAGE);
         const userLang = navigator.language.split('-')[0];
         const supportedCodes = this.supportedLangs.map(l => l.code);
 
@@ -69,7 +70,7 @@ export class TranslationService {
         if (this.currentLang === langCode) return;
 
         this.currentLang = langCode;
-        localStorage.setItem('appLanguage', langCode);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.APP_LANGUAGE, langCode);
         await this.loadTranslations(langCode);
         this.translatePage();
     }

@@ -3,11 +3,16 @@ const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 // Use functions v1 for auth trigger as v2 auth triggers (blocking) require Identity Platform and specific configuration, causing deployment issues in some environments.
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
+const {
+    REGION,
+    COLLECTIONS,
+    LEAVE_DAY_TYPES,
+    TEAM_ROLES,
+    USER_ROLES
+} = require("./constants");
 
 admin.initializeApp();
 const db = admin.firestore();
-
-const REGION = "asia-south1";
 
 // Simple in-memory cache for super admins
 let superAdminsCache = null;
@@ -21,7 +26,7 @@ async function getSuperAdmins() {
   }
 
   try {
-    const doc = await db.collection("config").doc("app_config").get();
+    const doc = await db.collection(COLLECTIONS.CONFIG).doc(COLLECTIONS.APP_CONFIG).get();
     if (doc.exists && doc.data().superAdmins) {
       const admins = doc.data().superAdmins;
       superAdminsCache = { data: admins, timestamp: now };
@@ -72,9 +77,8 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
         }
     }
 
-    const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
+    const summaryRef = db.collection(COLLECTIONS.TEAMS).doc(teamId).collection(COLLECTIONS.MEMBER_SUMMARIES).doc(userId);
     const leaveTypes = userData.leaveTypes || [];
-    const LEAVE_DAY_TYPES = { FULL: "full", HALF: "half" };
 
     const yearlyLeaveBalances = {};
     const systemYear = new Date().getFullYear().toString();
@@ -144,7 +148,7 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
 
 async function deleteMemberSummary(userId, teamId) {
     if (!userId || !teamId) return;
-    const summaryRef = db.collection("teams").doc(teamId).collection("member_summaries").doc(userId);
+    const summaryRef = db.collection(COLLECTIONS.TEAMS).doc(teamId).collection(COLLECTIONS.MEMBER_SUMMARIES).doc(userId);
     try {
         await summaryRef.delete();
     } catch (error) {
@@ -160,22 +164,22 @@ function assertAuthenticated(request) {
 }
 
 async function assertProAccess(userId, userEmail) {
-    const userRef = db.collection("users").doc(userId);
+    const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
     const userDoc = await userRef.get();
     const userData = userDoc.exists ? userDoc.data() : {};
 
-    let userRole = userData.role || 'standard';
+    let userRole = userData.role || USER_ROLES.STANDARD;
     const superAdmins = await getSuperAdmins();
     const isSuperAdmin = superAdmins.includes(userEmail);
 
-    if (userRole === 'pro' && userData.proExpiry) {
+    if (userRole === USER_ROLES.PRO && userData.proExpiry) {
         const expiryDate = userData.proExpiry.toDate();
         if (expiryDate < new Date()) {
-            userRole = 'standard';
+            userRole = USER_ROLES.STANDARD;
         }
     }
 
-    const isPro = userRole === 'pro' || userRole === 'co-admin' || (userRole === 'standard' && userData.isPro === true);
+    const isPro = userRole === USER_ROLES.PRO || userRole === USER_ROLES.CO_ADMIN || (userRole === USER_ROLES.STANDARD && userData.isPro === true);
 
     if (!isPro && !isSuperAdmin) {
         throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
@@ -204,7 +208,7 @@ exports.createTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
   };
 
   const roomCode = generateRoomCode();
-  const teamRef = db.collection("teams").doc(roomCode);
+  const teamRef = db.collection(COLLECTIONS.TEAMS).doc(roomCode);
 
   try {
     await db.runTransaction(async (transaction) => {
@@ -222,7 +226,7 @@ exports.createTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
       const memberInfo = {
         userId: userId,
         displayName: displayName,
-        role: "admin",
+        role: TEAM_ROLES.ADMIN,
         joinedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
@@ -238,14 +242,14 @@ exports.createTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
 
       transaction.set(userRef, {
         teamId: roomCode,
-        teamRole: "admin",
+        teamRole: TEAM_ROLES.ADMIN,
       }, { merge: true });
     });
 
     const memberInfo = {
         userId: userId,
         displayName: displayName,
-        role: "admin"
+        role: TEAM_ROLES.ADMIN
     };
     await calculateAndSaveMemberSummary(userId, roomCode, userData, memberInfo);
 
@@ -268,7 +272,7 @@ exports.joinTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) 
   }
 
   const { userRef, userData } = await assertProAccess(userId, userEmail);
-  const teamRef = db.collection("teams").doc(roomCode);
+  const teamRef = db.collection(COLLECTIONS.TEAMS).doc(roomCode);
 
   try {
     await db.runTransaction(async (transaction) => {
@@ -291,7 +295,7 @@ exports.joinTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) 
       const memberInfo = {
           userId: userId,
           displayName: displayName,
-          role: "member",
+          role: TEAM_ROLES.MEMBER,
           joinedAt: new Date(),
       };
 
@@ -301,14 +305,14 @@ exports.joinTeam = onCall({ region: REGION, maxInstances: 10 }, async (request) 
 
       transaction.set(userRef, {
         teamId: roomCode,
-        teamRole: "member",
+        teamRole: TEAM_ROLES.MEMBER,
       }, { merge: true });
     });
 
     const memberInfo = {
         userId: userId,
         displayName: displayName,
-        role: "member"
+        role: TEAM_ROLES.MEMBER
     };
     await calculateAndSaveMemberSummary(userId, roomCode, userData, memberInfo);
 
@@ -330,7 +334,7 @@ exports.editDisplayName = onCall({ region: REGION, maxInstances: 10 }, async (re
     throw new HttpsError("invalid-argument", "Missing required data.");
   }
 
-  const teamRef = db.collection("teams").doc(teamId);
+  const teamRef = db.collection(COLLECTIONS.TEAMS).doc(teamId);
   const teamDoc = await teamRef.get();
 
   if (!teamDoc.exists) {
@@ -357,7 +361,7 @@ exports.editTeamName = onCall({ region: REGION, maxInstances: 10 }, async (reque
         throw new HttpsError("invalid-argument", "Missing required data.");
     }
 
-    const teamRef = db.collection("teams").doc(teamId);
+    const teamRef = db.collection(COLLECTIONS.TEAMS).doc(teamId);
     const teamDoc = await teamRef.get();
 
     if (!teamDoc.exists) {
@@ -383,8 +387,8 @@ exports.leaveTeam = onCall({ region: REGION, maxInstances: 10 }, async (request)
       throw new HttpsError("invalid-argument", "Team ID is required.");
   }
 
-  const teamRef = db.collection("teams").doc(teamId);
-  const userRef = db.collection("users").doc(userId);
+  const teamRef = db.collection(COLLECTIONS.TEAMS).doc(teamId);
+  const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
 
   const teamDoc = await teamRef.get();
   if (!teamDoc.exists) {
@@ -418,7 +422,7 @@ exports.deleteTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
         throw new HttpsError("invalid-argument", "Team ID is required.");
     }
 
-    const teamRef = db.collection("teams").doc(teamId);
+    const teamRef = db.collection(COLLECTIONS.TEAMS).doc(teamId);
     const teamDoc = await teamRef.get();
 
     if (!teamDoc.exists) {
@@ -429,14 +433,14 @@ exports.deleteTeam = onCall({ region: REGION, maxInstances: 10 }, async (request
         throw new HttpsError("permission-denied", "Only the team admin can delete the team.");
     }
 
-    const summaryCollectionPath = `teams/${teamId}/member_summaries`;
+    const summaryCollectionPath = `${COLLECTIONS.TEAMS}/${teamId}/${COLLECTIONS.MEMBER_SUMMARIES}`;
     await deleteCollection(summaryCollectionPath);
 
     const members = teamDoc.data().members || {};
     const finalBatch = db.batch();
 
     Object.keys(members).forEach(memberId => {
-        const userRef = db.collection("users").doc(memberId);
+        const userRef = db.collection(COLLECTIONS.USERS).doc(memberId);
         finalBatch.set(userRef, { teamId: null, teamRole: null }, { merge: true });
     });
 
@@ -453,8 +457,8 @@ exports.kickTeamMember = onCall({ region: REGION, maxInstances: 10 }, async (req
         throw new HttpsError("invalid-argument", "Missing required parameters: teamId or memberId.");
     }
 
-    const teamRef = db.collection("teams").doc(teamId);
-    const memberRef = db.collection("users").doc(memberId);
+    const teamRef = db.collection(COLLECTIONS.TEAMS).doc(teamId);
+    const memberRef = db.collection(COLLECTIONS.USERS).doc(memberId);
 
     try {
         const teamDoc = await teamRef.get();
@@ -498,7 +502,7 @@ exports.kickTeamMember = onCall({ region: REGION, maxInstances: 10 }, async (req
 
 exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     const { uid: userId } = assertAuthenticated(request);
-    const userRef = db.collection("users").doc(userId);
+    const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
@@ -512,7 +516,7 @@ exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, asy
         return { status: "no-team", message: "User is not in a team." };
     }
 
-    const teamDoc = await db.collection("teams").doc(teamId).get();
+    const teamDoc = await db.collection(COLLECTIONS.TEAMS).doc(teamId).get();
     if (!teamDoc.exists) {
         return { status: "team-missing", message: "Team not found." };
     }
@@ -526,7 +530,7 @@ exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, asy
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{teamId}", region: REGION, maxInstances: 10 }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLECTIONS.TEAMS}/{teamId}`, region: REGION, maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
@@ -552,7 +556,7 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: "teams/{
         return;
     }
 
-    const summaryCollection = db.collection("teams").doc(teamId).collection("member_summaries");
+    const summaryCollection = db.collection(COLLECTIONS.TEAMS).doc(teamId).collection(COLLECTIONS.MEMBER_SUMMARIES);
     const promises = updatedMembers.map(async (memberId) => {
         const memberData = afterMembers[memberId];
         const summaryRef = summaryCollection.doc(memberId);
@@ -579,8 +583,8 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
     let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+        const callerDoc = await db.collection(COLLECTIONS.USERS).doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === USER_ROLES.CO_ADMIN) {
             isAuthorized = true;
         }
     }
@@ -600,14 +604,14 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
             lastSignInTime: u.metadata.lastSignInTime
         }));
 
-        const usersSnapshot = await db.collection("users").get();
+        const usersSnapshot = await db.collection(COLLECTIONS.USERS).get();
         const firestoreData = {};
         usersSnapshot.forEach(doc => {
             firestoreData[doc.id] = doc.data();
         });
 
         // 1. Fetch Whitelisted Users
-        const whitelistSnapshot = await db.collection("pro_whitelist").get();
+        const whitelistSnapshot = await db.collection(COLLECTIONS.PRO_WHITELIST).get();
         const whitelistData = [];
         whitelistSnapshot.forEach(doc => {
             whitelistData.push(doc.data());
@@ -618,7 +622,7 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
             const data = firestoreData[u.uid] || {};
             return {
                 ...u,
-                role: data.role || 'standard',
+                role: data.role || USER_ROLES.STANDARD,
                 isPro: data.isPro || false,
                 teamId: data.teamId,
                 proSince: data.proSince ? data.proSince.toDate().toISOString() : null,
@@ -657,8 +661,8 @@ exports.updateUserRole = onCall({ region: REGION, maxInstances: 10 }, async (req
     let isAuthorized = isSuperAdmin;
 
     if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+        const callerDoc = await db.collection(COLLECTIONS.USERS).doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === USER_ROLES.CO_ADMIN) {
             isAuthorized = true;
         }
     }
@@ -669,7 +673,7 @@ exports.updateUserRole = onCall({ region: REGION, maxInstances: 10 }, async (req
 
     const { targetUserId, newRole, proExpiry } = request.data;
 
-    if (!['standard', 'pro', 'co-admin'].includes(newRole)) {
+    if (![USER_ROLES.STANDARD, USER_ROLES.PRO, USER_ROLES.CO_ADMIN].includes(newRole)) {
         throw new HttpsError("invalid-argument", "Invalid role.");
     }
 
@@ -689,18 +693,18 @@ exports.updateUserRole = onCall({ region: REGION, maxInstances: 10 }, async (req
     try {
         const updateData = {
             role: newRole,
-            isPro: (newRole === 'pro' || newRole === 'co-admin')
+            isPro: (newRole === USER_ROLES.PRO || newRole === USER_ROLES.CO_ADMIN)
         };
 
-        if (newRole === 'pro') {
+        if (newRole === USER_ROLES.PRO) {
             updateData.proSince = admin.firestore.FieldValue.serverTimestamp();
             updateData.proExpiry = proExpiry ? admin.firestore.Timestamp.fromDate(new Date(proExpiry)) : null;
-        } else if (newRole === 'standard') {
+        } else if (newRole === USER_ROLES.STANDARD) {
             updateData.proSince = admin.firestore.FieldValue.delete();
             updateData.proExpiry = admin.firestore.FieldValue.delete();
         }
 
-        await db.collection("users").doc(targetUserId).set(updateData, { merge: true });
+        await db.collection(COLLECTIONS.USERS).doc(targetUserId).set(updateData, { merge: true });
 
         return { success: true };
     } catch (error) {
@@ -715,8 +719,8 @@ exports.grantProByEmail = onCall({ region: REGION, maxInstances: 10 }, async (re
     let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+        const callerDoc = await db.collection(COLLECTIONS.USERS).doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === USER_ROLES.CO_ADMIN) {
             isAuthorized = true;
         }
     }
@@ -743,17 +747,17 @@ exports.grantProByEmail = onCall({ region: REGION, maxInstances: 10 }, async (re
 
         if (userRecord) {
             // User exists, update their doc
-            await db.collection("users").doc(userRecord.uid).set({
-                role: 'pro',
+            await db.collection(COLLECTIONS.USERS).doc(userRecord.uid).set({
+                role: USER_ROLES.PRO,
                 isPro: true,
                 proSince: admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
             return { message: "Existing user upgraded to Pro." };
         } else {
             // User does not exist, add to whitelist
-            await db.collection("pro_whitelist").doc(email).set({
+            await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).set({
                 email: email,
-                role: 'pro',
+                role: USER_ROLES.PRO,
                 addedAt: admin.firestore.FieldValue.serverTimestamp()
             });
             return { message: "User not found. Added to Pro whitelist for when they sign up." };
@@ -771,19 +775,19 @@ exports.checkProWhitelistOnSignup = functions.region(REGION).runWith({ maxInstan
     if (!email) return;
 
     try {
-        const whitelistDoc = await db.collection("pro_whitelist").doc(email).get();
+        const whitelistDoc = await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).get();
         if (whitelistDoc.exists) {
             console.log(`New user ${email} found in Pro whitelist. Granting access.`);
 
             // Grant Pro Access
-            await db.collection("users").doc(user.uid).set({
-                role: 'pro',
+            await db.collection(COLLECTIONS.USERS).doc(user.uid).set({
+                role: USER_ROLES.PRO,
                 isPro: true,
                 proSince: admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
             // Remove from whitelist
-            await db.collection("pro_whitelist").doc(email).delete();
+            await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).delete();
         }
     } catch (error) {
         console.error(`Error processing whitelist for new user ${email}:`, error);
@@ -796,8 +800,8 @@ exports.revokeProWhitelist = onCall({ region: REGION, maxInstances: 10 }, async 
     let isAuthorized = superAdmins.includes(callerEmail);
 
     if (!isAuthorized) {
-        const callerDoc = await db.collection("users").doc(callerUid).get();
-        if (callerDoc.exists && callerDoc.data().role === 'co-admin') {
+        const callerDoc = await db.collection(COLLECTIONS.USERS).doc(callerUid).get();
+        if (callerDoc.exists && callerDoc.data().role === USER_ROLES.CO_ADMIN) {
             isAuthorized = true;
         }
     }
@@ -812,7 +816,7 @@ exports.revokeProWhitelist = onCall({ region: REGION, maxInstances: 10 }, async 
     }
 
     try {
-        await db.collection("pro_whitelist").doc(email).delete();
+        await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).delete();
         return { message: "User removed from Pro whitelist." };
     } catch (error) {
         console.error("Error revoking pro whitelist:", error);
