@@ -5,6 +5,17 @@ import { html, render } from 'lit-html';
 import { format } from 'date-fns';
 import { TranslationService } from './services/i18n.js';
 import { isMobileDevice, sanitizeHTML, debounce, waitForDOMUpdate, getYYYYMMDD, formatDateForDisplay, formatTextForDisplay } from './services/utils.js';
+import {
+    REGION,
+    COLLECTIONS,
+    USER_ROLES,
+    TEAM_ROLES,
+    LEAVE_DAY_TYPES,
+    VIEW_MODES,
+    ACTION_TYPES,
+    COLOR_MAP,
+    LOCAL_STORAGE_KEYS
+} from './constants.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -54,90 +65,8 @@ async function getFunctionsInstance() {
 
 const i18n = new TranslationService(updateView);
 
-// --- MODIFICATION: Code Quality - Replaced magic strings with constants ---
-const REGION = 'asia-south1';
-
-const ACTION_TYPES = {
-    SAVE_NOTE: 'SAVE_NOTE',
-    ADD_SLOT: 'ADD_SLOT',
-    UPDATE_ACTIVITY_TEXT: 'UPDATE_ACTIVITY_TEXT',
-    UPDATE_TIME: 'UPDATE_TIME'
-};
-
-const VIEW_MODES = {
-    MONTH: 'month',
-    DAY: 'day'
-};
-
-const LEAVE_DAY_TYPES = {
-    FULL: 'full',
-    HALF: 'half'
-};
-
-const TEAM_ROLES = {
-    ADMIN: 'admin',
-    MEMBER: 'member'
-};
-
-const COLOR_MAP = {
-    '#ef4444': 'Red',
-    '#f97316': 'Orange',
-    '#eab308': 'Yellow',
-    '#84cc16': 'Lime',
-    '#22c55e': 'Green',
-    '#14b8a6': 'Teal',
-    '#06b6d4': 'Cyan',
-    '#3b82f6': 'Blue',
-    '#8b5cf6': 'Violet',
-    '#d946ef': 'Fuchsia',
-    '#ec4899': 'Pink',
-    '#78716c': 'Gray'
-};
-
 // --- Global App State ---
-let state = {
-    previousActiveElement: null, // For focus management
-    currentMonth: new Date(),
-    selectedDate: new Date(),
-    currentView: VIEW_MODES.MONTH,
-    // FIX: Revert to multi-year structure
-    yearlyData: {}, // Holds all data, keyed by year
-    currentYearData: { activities: {}, leaveOverrides: {} }, // Data for the currently selected year
-    userId: null,
-    isOnlineMode: false,
-    unsubscribeFromFirestore: null,
-    editingInlineTimeKey: null,
-    pickerYear: new Date().getFullYear(),
-    confirmAction: {}, // For double-click confirmation
-    leaveTypes: [],
-    isLoggingLeave: false,
-    selectedLeaveTypeId: null,
-    leaveSelection: new Set(),
-    initialLeaveSelection: new Set(),
-    logoTapCount: 0, // Easter Egg counter
-    // Team Management State
-    currentTeam: null,
-    teamName: null,
-    teamRole: null,
-    teamMembers: [],
-    teamMembersData: {},
-    unsubscribeFromTeam: null,
-    unsubscribeFromTeamMembers: [],
-    // Search State
-    searchResultDates: [], // Sorted list of date keys for navigation
-    searchSortOrder: 'newest', // 'newest' or 'oldest'
-    searchScope: 'year', // 'year' or 'global'
-    searchQuery: '',
-    // --- FIX: Add flag to prevent race conditions during updates ---
-    isUpdating: false,
-    isLoggingOut: false,
-    lastUpdated: 0,
-    // Admin & Role State
-    userRole: 'standard', // 'standard', 'pro', 'co-admin'
-    isAdminDashboardOpen: false,
-    adminTargetUserId: null,
-    superAdmins: []
-};
+let state = createInitialState();
 
 // --- State Management ---
 function setState(newState) {
@@ -375,7 +304,7 @@ function switchView(viewToShow, viewToHide, callback) {
 }
 
 async function handleUserLogin(user) {
-    localStorage.setItem('sessionMode', 'online');
+    localStorage.setItem(LOCAL_STORAGE_KEYS.SESSION_MODE, 'online');
     if (state.unsubscribeFromFirestore) {
         state.unsubscribeFromFirestore();
     }
@@ -389,7 +318,7 @@ async function handleUserLogin(user) {
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, async () => {
         // Check for offline data to migrate ONCE, inside callback to ensure we have cloud data for merging
-        const guestDataString = localStorage.getItem('guestUserData');
+        const guestDataString = localStorage.getItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
         if (guestDataString) {
             try {
                 const guestData = JSON.parse(guestDataString);
@@ -404,7 +333,7 @@ async function handleUserLogin(user) {
                             // Merge with existing cloud data (state)
                             const mergedData = mergeUserData(state, guestData);
                             await persistData(mergedData);
-                            localStorage.removeItem('guestUserData');
+                            localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
                             showMessage(i18n.t("msgDataMigratedSuccess"), "success");
                             // Refresh state immediately
                             setState(mergedData);
@@ -416,14 +345,14 @@ async function handleUserLogin(user) {
                         // User declined, clear local data to stop asking
                         const deleteMsg = i18n.t('deleteGuestDataPrompt');
                         if (confirm(deleteMsg)) {
-                            localStorage.removeItem('guestUserData');
+                            localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
                         }
                     }
                 }
             } catch (e) {
                 console.error("Error parsing guest data for migration:", e);
                 // If data is corrupt, clear it to prevent future errors
-                localStorage.removeItem('guestUserData');
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
             }
         }
 
@@ -637,7 +566,7 @@ function renderMonthPicker() {
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
 async function subscribeToData(userId, callback) {
-    const userDocRef = doc(db, "users", userId);
+    const userDocRef = doc(db, COLLECTIONS.USERS, userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
         // Prevent external updates from overwriting local state while user is typing
         if (state.editingInlineTimeKey) {
@@ -656,18 +585,18 @@ async function subscribeToData(userId, callback) {
         const currentYearData = yearlyData[year] || { activities: {}, leaveOverrides: {} };
 
         // Check for legacy isPro or new role field
-        let userRole = data.role || 'standard';
+        let userRole = data.role || USER_ROLES.STANDARD;
 
         // Enforce Expiry
-        if (userRole === 'pro' && data.proExpiry) {
+        if (userRole === USER_ROLES.PRO && data.proExpiry) {
             const expiry = data.proExpiry.toDate ? data.proExpiry.toDate() : new Date(data.proExpiry.seconds * 1000);
             if (expiry < new Date()) {
-                userRole = 'standard';
+                userRole = USER_ROLES.STANDARD;
             }
         }
 
-        if (userRole === 'standard' && data.isPro) {
-            userRole = 'pro';
+        if (userRole === USER_ROLES.STANDARD && data.isPro) {
+            userRole = USER_ROLES.PRO;
         }
 
         setState({
@@ -699,7 +628,7 @@ async function subscribeToTeamData(callback) {
     }
 
     // Subscribe to team document
-    const teamDocRef = doc(db, "teams", state.currentTeam);
+    const teamDocRef = doc(db, COLLECTIONS.TEAMS, state.currentTeam);
     const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => {
         if (doc.exists()) {
             const teamData = doc.data();
@@ -735,7 +664,7 @@ async function loadTeamMembersData() {
 
     if (!state.currentTeam) return;
 
-    const summaryCollectionRef = collection(db, "teams", state.currentTeam, "member_summaries");
+    const summaryCollectionRef = collection(db, COLLECTIONS.TEAMS, state.currentTeam, COLLECTIONS.MEMBER_SUMMARIES);
 
     const unsubscribe = onSnapshot(summaryCollectionRef, (snapshot) => {
         const teamMembersData = { ...state.teamMembersData }; // Preserve existing data
@@ -970,7 +899,7 @@ async function saveData(action) {
         await persistData(dataToSave, partialUpdate);
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
-        console.error("Error persisting data:", error);
+        Logger.error("Error persisting data:", error);
         showMessage(i18n.t("msgSaveRevertError"), 'error');
         const revertedCurrentYearData = originalYearlyData[year] || { activities: {}, leaveOverrides: {} };
         setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
@@ -980,7 +909,7 @@ async function saveData(action) {
 
 function loadDataFromLocalStorage() {
     try {
-        const storedDataString = localStorage.getItem('guestUserData');
+        const storedDataString = localStorage.getItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
         if (!storedDataString) {
             return { yearlyData: {}, leaveTypes: [] };
         }
@@ -997,7 +926,7 @@ function loadDataFromLocalStorage() {
 function saveDataToLocalStorage(data) {
     try {
         // FIX: Store under the new key/structure
-        localStorage.setItem('guestUserData', JSON.stringify(data));
+        localStorage.setItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA, JSON.stringify(data));
     } catch (error) {
         console.error("Error saving local data:", error);
         showMessage(i18n.t("msgSaveLocalError"), 'error');
@@ -1009,7 +938,7 @@ async function saveDataToFirestore(data, partialUpdate = null) {
 
     if (partialUpdate) {
         try {
-            await updateDoc(doc(db, "users", state.userId), partialUpdate);
+            await updateDoc(doc(db, COLLECTIONS.USERS, state.userId), partialUpdate);
             return;
         } catch (e) {
             // Fallback to full save if partial update fails (e.g. document doesn't exist)
@@ -1017,11 +946,11 @@ async function saveDataToFirestore(data, partialUpdate = null) {
         }
     }
     // FIX: Save with the new data structure
-    await setDoc(doc(db, "users", state.userId), data, { merge: true });
+    await setDoc(doc(db, COLLECTIONS.USERS, state.userId), data, { merge: true });
 }
 
 function loadOfflineData() {
-    localStorage.setItem('sessionMode', 'offline');
+    localStorage.setItem(LOCAL_STORAGE_KEYS.SESSION_MODE, 'offline');
     const data = loadDataFromLocalStorage(); // This now handles migration
 
     const year = state.currentMonth.getFullYear();
@@ -1055,7 +984,7 @@ async function resetAllData() {
     if (state.isOnlineMode && state.userId) {
         try {
             // Overwrite the user's document with a cleared state
-            await setDoc(doc(db, "users", state.userId), {
+            await setDoc(doc(db, COLLECTIONS.USERS, state.userId), {
                 yearlyData: {},
                 leaveTypes: []
                 // We leave team info intact
@@ -1071,7 +1000,7 @@ async function resetAllData() {
         }
     } else {
         // FIX: Clear the new local storage key
-        localStorage.removeItem('guestUserData'); 
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
         setState(resetState);
         updateView();
         showMessage(i18n.t("msgLocalResetSuccess"), 'success');
@@ -4736,7 +4665,7 @@ async function revokeProWhitelist(email) {
 
 async function subscribeToAppConfig() {
     await loadFirebaseModules();
-    const configRef = doc(db, "config", "app_config");
+    const configRef = doc(db, COLLECTIONS.CONFIG, COLLECTIONS.APP_CONFIG);
     onSnapshot(configRef, (doc) => {
         if (doc.exists()) {
              const data = doc.data();
@@ -4747,6 +4676,6 @@ async function subscribeToAppConfig() {
         renderAdminButton();
         renderTeamSection(); // Re-render team section as pro status depends on super admin check
     }, (error) => {
-        console.warn("Could not fetch app config (likely permission issue or missing doc):", error);
+        Logger.warn("Could not fetch app config (likely permission issue or missing doc):", error);
     });
 }
