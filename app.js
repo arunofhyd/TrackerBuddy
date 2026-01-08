@@ -16,6 +16,8 @@ import {
     COLOR_MAP,
     LOCAL_STORAGE_KEYS
 } from './constants.js';
+import { createInitialState } from './services/state.js';
+import { Logger } from './services/logger.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
