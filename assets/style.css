@@ -636,21 +636,25 @@ body.dark #spotlight-scope-btn {
     background-color: #374151; /* Gray-700 */
 }
 
-/* Mobile size adjustment */
-@media (max-width: 640px) {
-    #exit-search-btn {
-        margin-left: -16px; /* Half of width (w-8 = 2rem = 32px) */
-    }
-}
-
 #exit-search-btn.visible {
     opacity: 1;
     transform: translateY(-70px) scale(1);
     pointer-events: auto;
+    animation: pulse-shadow 3s infinite ease-in-out;
 }
 
 #exit-search-btn.visible:hover {
     transform: translateY(-70px) scale(1.1); /* Slight grow on hover */
+    animation: none; /* Stop blinking on hover */
+}
+
+@keyframes pulse-shadow {
+    0%, 100% {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); /* Slight blue glow (blue-500) */
+    }
 }
 
 #lang-fab button {
