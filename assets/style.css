@@ -653,7 +653,7 @@ body.dark #spotlight-scope-btn {
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     50% {
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); /* Slight red glow (red-500) */
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); /* Slight blue glow (blue-500) */
     }
 }
 
