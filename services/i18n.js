@@ -24,7 +24,8 @@ export class TranslationService {
             { code: 'id', name: 'Bahasa Indonesia' },
             { code: 'ms', name: 'Bahasa Melayu' },
             { code: 'ta', name: 'தமிழ்' },
-            { code: 'ml', name: 'മലയാളം' }
+            { code: 'ml', name: 'മലയാളം' },
+            { code: 'te', name: 'తెలుగు' }
         ];
     }
 
