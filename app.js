@@ -3751,7 +3751,7 @@ function setupEventListeners() {
         });
     }
 
-    // Global shortcut for spotlight (e.g. Ctrl+K or /) could be added here if desired
+    // Global shortcuts
     document.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
             e.preventDefault();
@@ -3759,6 +3759,30 @@ function setupEventListeners() {
         }
         if (e.key === 'Escape' && !DOM.spotlightModal.classList.contains('hidden')) {
             closeSpotlight();
+        }
+
+        // Navigation Shortcuts (if no input is focused)
+        if (!['INPUT', 'TEXTAREA', 'SELECT', 'TD'].includes(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    document.getElementById('prev-btn')?.click();
+                    break;
+                case 'ArrowRight':
+                    document.getElementById('next-btn')?.click();
+                    break;
+                case 'm':
+                case 'M':
+                    DOM.monthViewBtn?.click();
+                    break;
+                case 'd':
+                case 'D':
+                    DOM.dayViewBtn?.click();
+                    break;
+                case 't':
+                case 'T':
+                    DOM.todayBtnDay?.click();
+                    break;
+            }
         }
     });
 
@@ -3895,6 +3919,37 @@ function setupEventListeners() {
         DOM.infoToggleBtn.addEventListener('click', () => {
             DOM.infoDescription.classList.toggle('visible');
         });
+    }
+
+    // Swipe Gestures
+    const mainContent = document.getElementById('main-content-area'); // Target the main area
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    if (mainContent) {
+        mainContent.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        mainContent.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+    }
+
+    function handleSwipe() {
+        // Minimum distance for a swipe
+        if (Math.abs(touchEndX - touchStartX) < 50) return;
+
+        if (touchEndX < touchStartX) {
+            // Swiped Left -> Next
+            document.getElementById('next-btn')?.click();
+        }
+
+        if (touchEndX > touchStartX) {
+            // Swiped Right -> Prev
+            document.getElementById('prev-btn')?.click();
+        }
     }
 
     document.getElementById('close-leave-overview-btn').addEventListener('click', closeLeaveOverviewModal);
@@ -4196,37 +4251,66 @@ async function grantProByEmail(email) {
     }
 }
 
-async function refreshAdminUserList() {
-    DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+async function refreshAdminUserList(reset = true) {
+    if (reset) {
+        state.adminUsers = [];
+        state.adminNextPageToken = null;
+        DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
+    }
+
+    const loadMoreBtn = document.getElementById('admin-load-more-btn');
+    if (loadMoreBtn) setButtonLoadingState(loadMoreBtn, true);
+
     try {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const getAllUsers = httpsCallable(functions, 'getAllUsers');
-        const result = await getAllUsers();
-        renderAdminUserList(result.data.users);
+        const result = await getAllUsers({ nextPageToken: state.adminNextPageToken, limit: 100 });
+
+        const newUsers = result.data.users;
+        state.adminNextPageToken = result.data.nextPageToken;
+
+        // Deduplicate just in case
+        const existingIds = new Set(state.adminUsers.map(u => u.uid));
+        newUsers.forEach(u => {
+            if (!existingIds.has(u.uid)) {
+                state.adminUsers.push(u);
+            }
+        });
+
+        renderAdminUserList(state.adminUsers, state.adminSearchQuery || '');
     } catch (error) {
         Logger.error("Failed to load users:", error);
-        DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('failedToLoadUsers', {error: error.message})}</p>`;
+        if (reset) {
+            DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('failedToLoadUsers', {error: error.message})}</p>`;
+        } else {
+            showMessage(i18n.t('failedToLoadUsers', {error: error.message}), 'error');
+        }
+    } finally {
+        if (loadMoreBtn) setButtonLoadingState(loadMoreBtn, false);
     }
 }
 
 async function openAdminDashboard() {
     DOM.adminDashboardModal.classList.add('visible');
-    await refreshAdminUserList();
+    state.adminSearchQuery = '';
+    await refreshAdminUserList(true);
 }
 
 function renderAdminUserList(users, searchQuery = '') {
+    state.adminSearchQuery = searchQuery;
+
     // Add search bar if not present
     let searchContainer = DOM.adminDashboardModal.querySelector('#admin-search-container');
     if (!searchContainer) {
         searchContainer = document.createElement('div');
         searchContainer.id = 'admin-search-container';
-        searchContainer.className = 'mb-4 sticky top-0 z-10 pt-1 pb-2 px-1 -mx-1'; // Sticky header
+        searchContainer.className = 'mb-4 sticky top-0 z-10 pt-1 pb-2 px-1 -mx-1 bg-white dark:bg-gray-900'; // Added bg for sticky
         searchContainer.innerHTML = `
             <div class="relative mx-2">
                 <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none" style="padding-left: 1rem;">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" id="admin-user-search" placeholder="${i18n.t('searchUserPlaceholder')}" style="padding-left: 3.5rem; padding-right: 1rem;"
+                <input type="text" id="admin-user-search" placeholder="${i18n.t('searchUserPlaceholder') || 'Search loaded users...'}" style="padding-left: 3.5rem; padding-right: 1rem;"
                     class="block w-full py-2 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
             </div>
         `;
@@ -4237,21 +4321,14 @@ function renderAdminUserList(users, searchQuery = '') {
         // Add event listener for search
         const searchInput = searchContainer.querySelector('#admin-user-search');
         searchInput.addEventListener('input', debounce((e) => {
-            renderAdminUserList(users, e.target.value.trim());
+            // FIX: Use state.adminUsers to avoid stale closure if users array reference changes
+            renderAdminUserList(state.adminUsers, e.target.value.trim());
         }, 300));
-    } else {
-        // Ensure input value matches query if re-rendering completely (though usually we just re-render list content)
-        const searchInput = searchContainer.querySelector('#admin-user-search');
-        if (searchInput && searchInput.value !== searchQuery) {
-            // If we are re-rendering from scratch, keep the input value?
-            // Usually we don't want to overwrite user input.
-            // But if searchQuery is passed, it implies filter state.
-        }
     }
 
     DOM.adminUserList.innerHTML = '';
 
-    // Filter users
+    // Filter users (Client-side filtering of loaded users)
     const lowerQuery = searchQuery.toLowerCase();
     const filteredUsers = users.filter(user => {
         const name = (user.displayName || '').toLowerCase();
@@ -4438,8 +4515,9 @@ function renderAdminUserList(users, searchQuery = '') {
                     const updateUserRole = httpsCallable(functions, 'updateUserRole');
                     await updateUserRole({ targetUserId: uid, newRole: newRole });
 
-                    // Refresh list via helper to maintain search logic capability if we expanded it later
-                    await refreshAdminUserList();
+                    // Refresh list - but try to keep position/data if possible, or just reset?
+                    // Resetting is safer for consistency
+                    await refreshAdminUserList(true);
 
                     showMessage(i18n.t('userRoleUpdated', {role: i18n.t(newRole)}), 'success');
                 }
@@ -4452,6 +4530,23 @@ function renderAdminUserList(users, searchQuery = '') {
             }
         });
     });
+
+    // Add Load More Button if there's a next page token and no active search
+    // (Search is client-side filtering on loaded data, complex to combine with server pagination without Algolia)
+    if (state.adminNextPageToken && !searchQuery) {
+        const loadMoreContainer = document.createElement('div');
+        loadMoreContainer.className = 'text-center py-4';
+        loadMoreContainer.innerHTML = `
+            <button id="admin-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+                ${i18n.t('loadMore') || 'Load More'}
+            </button>
+        `;
+        DOM.adminUserList.appendChild(loadMoreContainer);
+
+        loadMoreContainer.querySelector('#admin-load-more-btn').addEventListener('click', () => {
+            refreshAdminUserList(false);
+        });
+    }
 }
 
 // --- App Initialization ---
