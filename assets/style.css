@@ -608,7 +608,7 @@ body.dark #spotlight-scope-btn {
     position: absolute;
     bottom: 0;
     left: 50%;
-    margin-left: -24px; /* Half of width (48px / 2) */
+    margin-left: -1.5rem; /* Half of width (48px / 2) */
     z-index: 10; /* Behind main button (relative z-20) */
     opacity: 0;
     transform: translateY(0) scale(0.5);
@@ -629,7 +629,17 @@ body.dark #spotlight-scope-btn {
     /* Size adjustments - Prominent */
     width: 3rem; /* 48px */
     height: 3rem; /* 48px */
-    font-size: 1.25rem;
+    font-size: 1.125rem; /* Match text-lg */
+}
+
+/* Desktop sizing to match search button */
+@media (min-width: 640px) {
+    #exit-search-btn {
+        width: 3.5rem; /* 56px */
+        height: 3.5rem;
+        margin-left: -1.75rem; /* Half of width (56px / 2) */
+        font-size: 1.25rem; /* Match text-xl */
+    }
 }
 
 #exit-search-btn:hover {
@@ -649,10 +659,10 @@ body.dark #spotlight-scope-btn {
 }
 
 @keyframes pulse-shadow {
-    0%, 100% {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    0%, 100% { 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
     }
-    50% {
+    50% { 
         box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); /* Slight blue glow (blue-500) */
     }
 }
