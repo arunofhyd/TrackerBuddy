@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
 import { TranslationService } from './services/i18n.js';
+import { isMobileDevice, sanitizeHTML, debounce, waitForDOMUpdate, getYYYYMMDD, formatDateForDisplay, formatTextForDisplay } from './services/utils.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",
@@ -147,29 +148,7 @@ function setState(newState) {
 let DOM = {};
 
 // --- Utilities ---
-function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-}
-
-function sanitizeHTML(text) {
-    const temp = document.createElement('div');
-    temp.textContent = text;
-    return temp.innerHTML;
-}
-
-function debounce(func, delay) {
-    let timeoutId;
-    return function(...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            func.apply(this, args);
-        }, delay);
-    };
-}
-
-function waitForDOMUpdate() {
-    return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-}
+// Imported from services/utils.js
 
 // --- UI Functions ---
 function initUI() {
@@ -493,7 +472,7 @@ function updateView() {
         renderLeaveStats();
         renderTeamSection();
     } else {
-        DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate));
+        DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
         renderDailyActivities();
     }
 }
@@ -655,39 +634,6 @@ function renderMonthPicker() {
     render(html`${months}`, DOM.monthGrid);
 }
 
-function getYYYYMMDD(date) {
-    return format(date, 'yyyy-MM-dd');
-}
-
-function formatDateForDisplay(dateString) {
-    const [y, m, d] = dateString.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString(i18n.currentLang, { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
-}
-
-function formatTextForDisplay(text, highlightQuery = '') {
-    const safeText = text || '';
-
-    if (!highlightQuery) {
-        const tempDiv = document.createElement('div');
-        tempDiv.textContent = safeText;
-        return tempDiv.innerHTML.replace(/\n/g, '<br>');
-    }
-
-    const escapedQuery = highlightQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const parts = safeText.split(new RegExp(`(${escapedQuery})`, 'gi'));
-
-    return parts.map(part => {
-        const tempDiv = document.createElement('div');
-        tempDiv.textContent = part;
-        const escapedPart = tempDiv.innerHTML.replace(/\n/g, '<br>');
-
-        if (part.toLowerCase() === highlightQuery.toLowerCase()) {
-            return `<span class="search-highlight">${escapedPart}</span>`;
-        }
-        return escapedPart;
-    }).join('');
-}
 
 // FIX: Overhaul subscribeToData to handle new nested data structure
 async function subscribeToData(userId, callback) {
@@ -2271,7 +2217,7 @@ function openLeaveOverviewModal(leaveTypeId) {
             leaveDates.push({
                 date: dateKey,
                 dayType: dayData.leave.dayType,
-                formatted: formatDateForDisplay(dateKey)
+                formatted: formatDateForDisplay(dateKey, i18n.currentLang)
             });
         }
     });
@@ -2659,7 +2605,7 @@ function renderLeaveCustomizationModal() {
         const currentDayType = existingLeave ? existingLeave.dayType : LEAVE_DAY_TYPES.FULL;
 
         item.innerHTML = `
-            <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey)}</span>
+            <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey, i18n.currentLang)}</span>
             <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end min-w-0">
                 <div class="leave-type-selector relative flex-grow w-full sm:w-36 min-w-0">
                 </div>
@@ -3467,7 +3413,7 @@ function performSearch(query) {
                     type: 'note',
                     date: dateKey,
                     content: dayData.note,
-                    formattedDate: formatDateForDisplay(dateKey)
+                        formattedDate: formatDateForDisplay(dateKey, i18n.currentLang)
                 });
                 matchFound = true;
             }
@@ -3480,7 +3426,7 @@ function performSearch(query) {
                         type: 'leave',
                         date: dateKey,
                         content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? i18n.t('full') : i18n.t('half')})`,
-                        formattedDate: formatDateForDisplay(dateKey),
+                        formattedDate: formatDateForDisplay(dateKey, i18n.currentLang),
                         color: leaveType.color
                     });
                     matchFound = true;
@@ -3496,7 +3442,7 @@ function performSearch(query) {
                             date: dateKey,
                             time: key,
                             content: dayData[key].text,
-                            formattedDate: formatDateForDisplay(dateKey)
+                            formattedDate: formatDateForDisplay(dateKey, i18n.currentLang)
                         });
                         matchFound = true;
                     }
