@@ -580,6 +580,9 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLE
 
 exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     const { uid: callerUid, token: { email: callerEmail } } = assertAuthenticated(request);
+    // Increased limit to 100 to improve searchability while maintaining pagination
+    const { nextPageToken, limit = 100 } = request.data || {};
+
     const superAdmins = await getSuperAdmins();
     let isAuthorized = superAdmins.includes(callerEmail);
 
@@ -595,7 +598,7 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
     }
 
     try {
-        const listUsersResult = await admin.auth().listUsers(1000);
+        const listUsersResult = await admin.auth().listUsers(limit, nextPageToken);
         const users = listUsersResult.users.map(u => ({
             uid: u.uid,
             email: u.email,
@@ -605,13 +608,23 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
             lastSignInTime: u.metadata.lastSignInTime
         }));
 
-        const usersSnapshot = await db.collection(COLLECTIONS.USERS).get();
+        // Optimize: Only fetch Firestore docs for the users we just retrieved from Auth
+        const userRefs = users.map(u => db.collection(COLLECTIONS.USERS).doc(u.uid));
+        let firestoreDocs = [];
+        if (userRefs.length > 0) {
+            firestoreDocs = await db.getAll(...userRefs);
+        }
+
         const firestoreData = {};
-        usersSnapshot.forEach(doc => {
-            firestoreData[doc.id] = doc.data();
+        firestoreDocs.forEach(doc => {
+            if (doc.exists) {
+                firestoreData[doc.id] = doc.data();
+            }
         });
 
         // 1. Fetch Whitelisted Users
+        // We fetch this on every page to ensure pending users are always visible/searchable
+        // regardless of pagination state of the main Auth list.
         const whitelistSnapshot = await db.collection(COLLECTIONS.PRO_WHITELIST).get();
         const whitelistData = [];
         whitelistSnapshot.forEach(doc => {
@@ -647,7 +660,7 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
             }
         });
 
-        return { users: combined };
+        return { users: combined, nextPageToken: listUsersResult.pageToken };
 
     } catch (error) {
         Logger.error("Error fetching users:", error);
