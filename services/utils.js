@@ -94,3 +94,21 @@ export function formatTextForDisplay(text, highlightQuery = '') {
         return escapedPart;
     }).join('');
 }
+
+/**
+ * Triggers haptic feedback vibration on mobile devices.
+ * @param {string} type - The type of feedback: 'light', 'medium', 'success', 'error'.
+ */
+export function triggerHapticFeedback(type = 'light') {
+    if (!isMobileDevice() || !navigator.vibrate) return;
+
+    const patterns = {
+        light: 10,
+        medium: 40,
+        success: [10, 50, 20],
+        error: [50, 100, 50]
+    };
+
+    const pattern = patterns[type] || patterns.light;
+    navigator.vibrate(pattern);
+}

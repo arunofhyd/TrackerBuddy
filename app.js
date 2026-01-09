@@ -3,7 +3,7 @@
 import { html, render } from 'lit-html';
 import { format } from 'date-fns';
 import { TranslationService } from './services/i18n.js';
-import { isMobileDevice, sanitizeHTML, debounce, waitForDOMUpdate, getYYYYMMDD, formatDateForDisplay, formatTextForDisplay } from './services/utils.js';
+import { isMobileDevice, sanitizeHTML, debounce, waitForDOMUpdate, getYYYYMMDD, formatDateForDisplay, formatTextForDisplay, triggerHapticFeedback } from './services/utils.js';
 import {
     REGION,
     COLLECTIONS,
@@ -27,7 +27,25 @@ import {
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 } from './services/firebase.js';
 
-const i18n = new TranslationService(updateView);
+const i18n = new TranslationService(() => {
+    updateView();
+    // Re-render modals if open to update language-dependent content
+    if (DOM.teamDashboardModal?.classList.contains('visible')) {
+        renderTeamDashboard();
+    }
+    if (DOM.adminDashboardModal?.classList.contains('visible')) {
+        renderAdminUserList(state.adminUsers, state.adminSearchQuery || '');
+    }
+    if (DOM.customizeLeaveModal?.classList.contains('visible')) {
+        renderLeaveCustomizationModal();
+    }
+    if (DOM.leaveOverviewModal?.classList.contains('visible') && state.overviewLeaveTypeId) {
+        openLeaveOverviewModal(state.overviewLeaveTypeId);
+    }
+    if (DOM.spotlightModal?.classList.contains('visible') && state.searchQuery) {
+        performSearch(state.searchQuery);
+    }
+});
 
 // --- Global App State ---
 let state = createInitialState();
@@ -330,10 +348,13 @@ function showMessage(msg, type = 'info') {
     DOM.messageDisplay.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-lg shadow-md transition-opacity duration-300';
     if (type === 'error') {
         DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+        triggerHapticFeedback('error');
     } else if (type === 'success') {
         DOM.messageDisplay.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+        triggerHapticFeedback('success');
     } else {
         DOM.messageDisplay.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+        triggerHapticFeedback('light');
     }
     DOM.messageDisplay.classList.add('show');
     clearTimeout(DOM.messageDisplay.dataset.timeoutId);
@@ -1571,6 +1592,7 @@ function setupDoubleClickConfirm(element, actionKey, messageKey, callback) {
 
 function handleMoveUpClick(currentRow) {
     if (currentRow.previousElementSibling) {
+        triggerHapticFeedback('medium');
         DOM.dailyActivityTableBody.insertBefore(currentRow, currentRow.previousElementSibling);
         updateActivityOrder();
     }
@@ -1578,6 +1600,7 @@ function handleMoveUpClick(currentRow) {
 
 function handleMoveDownClick(currentRow) {
     if (currentRow.nextElementSibling) {
+        triggerHapticFeedback('medium');
         DOM.dailyActivityTableBody.insertBefore(currentRow.nextElementSibling, currentRow);
         updateActivityOrder();
     }
@@ -2092,6 +2115,7 @@ function calculateLeaveBalances() {
 }
 
 function openLeaveOverviewModal(leaveTypeId) {
+    setState({ overviewLeaveTypeId: leaveTypeId });
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
     const leaveType = visibleLeaveTypes.find(lt => lt.id === leaveTypeId);
@@ -3225,6 +3249,14 @@ function setupDailyViewEventListeners() {
         }
     });
 
+// Global click listener for haptic feedback
+document.addEventListener('click', (e) => {
+    // Check if the click target or its parents is a button, link, or interactive element
+    if (e.target.closest('button, a, .calendar-day-cell, .leave-day-item, .team-member-card summary, .toggle-btn, .spotlight-result-item')) {
+        triggerHapticFeedback('light');
+    }
+});
+
     tableBody.addEventListener('blur', e => {
         const target = e.target;
         if (target.matches('.activity-text-editable, .time-editable')) {
@@ -3943,11 +3975,13 @@ function setupEventListeners() {
 
         if (touchEndX < touchStartX) {
             // Swiped Left -> Next
+            triggerHapticFeedback('medium');
             document.getElementById('next-btn')?.click();
         }
 
         if (touchEndX > touchStartX) {
             // Swiped Right -> Prev
+            triggerHapticFeedback('medium');
             document.getElementById('prev-btn')?.click();
         }
     }
@@ -4253,8 +4287,7 @@ async function grantProByEmail(email) {
 
 async function refreshAdminUserList(reset = true) {
     if (reset) {
-        state.adminUsers = [];
-        state.adminNextPageToken = null;
+        setState({ adminUsers: [], adminNextPageToken: null });
         DOM.adminUserList.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i></div>';
     }
 
@@ -4265,19 +4298,23 @@ async function refreshAdminUserList(reset = true) {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const getAllUsers = httpsCallable(functions, 'getAllUsers');
         const result = await getAllUsers({ nextPageToken: state.adminNextPageToken, limit: 100 });
-
+        
         const newUsers = result.data.users;
-        state.adminNextPageToken = result.data.nextPageToken;
-
+        const nextToken = result.data.nextPageToken;
+        
         // Deduplicate just in case
-        const existingIds = new Set(state.adminUsers.map(u => u.uid));
-        newUsers.forEach(u => {
-            if (!existingIds.has(u.uid)) {
-                state.adminUsers.push(u);
-            }
+        const currentUsers = state.adminUsers || [];
+        const existingIds = new Set(currentUsers.map(u => u.uid));
+        const uniqueNewUsers = newUsers.filter(u => !existingIds.has(u.uid));
+        
+        const updatedUsers = [...currentUsers, ...uniqueNewUsers];
+        
+        setState({ 
+            adminUsers: updatedUsers,
+            adminNextPageToken: nextToken
         });
 
-        renderAdminUserList(state.adminUsers, state.adminSearchQuery || '');
+        renderAdminUserList(updatedUsers, state.adminSearchQuery || '');
     } catch (error) {
         Logger.error("Failed to load users:", error);
         if (reset) {
@@ -4292,12 +4329,12 @@ async function refreshAdminUserList(reset = true) {
 
 async function openAdminDashboard() {
     DOM.adminDashboardModal.classList.add('visible');
-    state.adminSearchQuery = '';
+    setState({ adminSearchQuery: '' });
     await refreshAdminUserList(true);
 }
 
 function renderAdminUserList(users, searchQuery = '') {
-    state.adminSearchQuery = searchQuery;
+    setState({ adminSearchQuery: searchQuery });
 
     // Add search bar if not present
     let searchContainer = DOM.adminDashboardModal.querySelector('#admin-search-container');
@@ -4542,7 +4579,7 @@ function renderAdminUserList(users, searchQuery = '') {
             </button>
         `;
         DOM.adminUserList.appendChild(loadMoreContainer);
-
+        
         loadMoreContainer.querySelector('#admin-load-more-btn').addEventListener('click', () => {
             refreshAdminUserList(false);
         });
