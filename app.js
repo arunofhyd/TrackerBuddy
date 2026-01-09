@@ -1675,9 +1675,8 @@ function createMagicParticles() {
 function handleLogoTap() {
     state.logoTapCount++;
 
-    if (navigator.vibrate) {
-        navigator.vibrate(50);
-    }
+    // Explicit strong vibration for testing purposes
+    triggerHapticFeedback('medium');
 
     DOM.appLogo.classList.add('is-shaking');
     setTimeout(() => {
