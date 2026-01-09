@@ -96,19 +96,26 @@ export function formatTextForDisplay(text, highlightQuery = '') {
 }
 
 /**
- * Triggers haptic feedback vibration on mobile devices.
+ * Triggers haptic feedback vibration on supported devices.
  * @param {string} type - The type of feedback: 'light', 'medium', 'success', 'error'.
  */
 export function triggerHapticFeedback(type = 'light') {
-    if (!isMobileDevice() || !navigator.vibrate) return;
+    // Feature detection is better than device detection.
+    // If the browser supports vibration, we use it.
+    if (typeof navigator === 'undefined' || !navigator.vibrate) return;
 
     const patterns = {
-        light: 10,
+        light: 20, // Increased from 10ms to be more perceptible
         medium: 40,
         success: [10, 50, 20],
         error: [50, 100, 50]
     };
 
     const pattern = patterns[type] || patterns.light;
-    navigator.vibrate(pattern);
+    
+    try {
+        navigator.vibrate(pattern);
+    } catch (e) {
+        // Ignore errors (some browsers might throw if user hasn't interacted yet)
+    }
 }
