@@ -105,20 +105,17 @@ export function triggerHapticFeedback(type = 'light') {
     if (typeof navigator === 'undefined' || !navigator.vibrate) return;
 
     const patterns = {
-        light: 50, // Increased to 50ms to ensure perceptibility
-        medium: 75,
-        success: [50, 50, 50],
-        error: [50, 100, 50, 100, 50]
+        light: 20, // Increased from 10ms to be more perceptible
+        medium: 40,
+        success: [10, 50, 20],
+        error: [50, 100, 50]
     };
 
     const pattern = patterns[type] || patterns.light;
     
-    // Debug log to confirm function execution
-    console.log('[Haptic] Vibrating:', type, pattern);
-
     try {
         navigator.vibrate(pattern);
     } catch (e) {
-        console.warn('[Haptic] Error:', e);
+        // Ignore errors (some browsers might throw if user hasn't interacted yet)
     }
 }
