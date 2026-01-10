@@ -3970,6 +3970,25 @@ function setupEventListeners() {
     }
 
     function handleSwipe() {
+        // Check for editing mode or open modals to prevent swipe
+        if (state.editingInlineTimeKey) return;
+        
+        const openModals = document.querySelectorAll('.modal-backdrop.visible, .spotlight-overlay.visible');
+        if (openModals.length > 0) return;
+
+        // Check if an input or contenteditable is focused
+        const activeElement = document.activeElement;
+        if (activeElement && (
+            activeElement.tagName === 'INPUT' || 
+            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.isContentEditable
+        )) {
+            return;
+        }
+
+        // Check if text is selected
+        if (window.getSelection().toString().length > 0) return;
+
         // Minimum distance for a swipe
         if (Math.abs(touchEndX - touchStartX) < 50) return;
 
