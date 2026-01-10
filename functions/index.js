@@ -581,7 +581,11 @@ exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLE
 exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (request) => {
     const { uid: callerUid, token: { email: callerEmail } } = assertAuthenticated(request);
     // Increased limit to 100 to improve searchability while maintaining pagination
-    const { nextPageToken, limit = 100 } = request.data || {};
+    let { nextPageToken, limit = 100 } = request.data || {};
+
+    limit = parseInt(limit);
+    if (isNaN(limit) || limit <= 0 || limit > 1000) limit = 100;
+    if (!nextPageToken) nextPageToken = undefined;
 
     const superAdmins = await getSuperAdmins();
     let isAuthorized = superAdmins.includes(callerEmail);
