@@ -1,5 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 // Use functions v1 for auth trigger as v2 auth triggers (blocking) require Identity Platform and specific configuration, causing deployment issues in some environments.
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -556,24 +556,31 @@ exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, asy
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLECTIONS.TEAMS}/{teamId}`, region: REGION, maxInstances: 10 }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentUpdated({ document: `${COLLECTIONS.TEAMS}/{teamId}`, region: REGION, maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
 
-    if (!afterData) {
-        Logger.info(`Team ${teamId} deleted.`);
+    // With onDocumentUpdated, neither beforeData nor afterData should be undefined, but safety check remains.
+    if (!beforeData || !afterData) {
         return;
     }
 
-    const beforeMembers = beforeData?.members || {};
+    const beforeMembers = beforeData.members || {};
     const afterMembers = afterData.members || {};
 
     const updatedMembers = [];
     for (const memberId in afterMembers) {
         const beforeMember = beforeMembers[memberId];
         const afterMember = afterMembers[memberId];
-        if (!beforeMember || beforeMember.displayName !== afterMember.displayName || beforeMember.role !== afterMember.role) {
+
+        // Optimization: Skip if this is a new member (beforeMember is undefined).
+        // New members are handled by createTeam/joinTeam explicitly, avoiding double writes.
+        if (!beforeMember) {
+            continue;
+        }
+
+        if (beforeMember.displayName !== afterMember.displayName || beforeMember.role !== afterMember.role) {
             updatedMembers.push(memberId);
         }
     }
