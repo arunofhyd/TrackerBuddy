@@ -1,5 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 // Use functions v1 for auth trigger as v2 auth triggers (blocking) require Identity Platform and specific configuration, causing deployment issues in some environments.
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
@@ -167,7 +167,7 @@ function assertAuthenticated(request) {
 async function assertProAccess(userId, userEmail) {
     const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
     const userDoc = await userRef.get();
-    const userData = userDoc.exists ? userDoc.data() : {};
+    let userData = userDoc.exists ? userDoc.data() : {};
 
     let userRole = userData.role || USER_ROLES.STANDARD;
     const superAdmins = await getSuperAdmins();
@@ -180,7 +180,32 @@ async function assertProAccess(userId, userEmail) {
         }
     }
 
-    const isPro = userRole === USER_ROLES.PRO || userRole === USER_ROLES.CO_ADMIN || (userRole === USER_ROLES.STANDARD && userData.isPro === true);
+    let isPro = userRole === USER_ROLES.PRO || userRole === USER_ROLES.CO_ADMIN || (userRole === USER_ROLES.STANDARD && userData.isPro === true);
+
+    if (!isPro && !isSuperAdmin) {
+        // Check whitelist before denying
+        try {
+            const whitelistDoc = await db.collection(COLLECTIONS.PRO_WHITELIST).doc(userEmail).get();
+            if (whitelistDoc.exists) {
+                Logger.info(`User ${userEmail} found in Pro whitelist during access check. Granting access.`);
+
+                const updateData = {
+                    role: USER_ROLES.PRO,
+                    isPro: true,
+                    proSince: admin.firestore.FieldValue.serverTimestamp()
+                };
+
+                await userRef.set(updateData, { merge: true });
+                await db.collection(COLLECTIONS.PRO_WHITELIST).doc(userEmail).delete();
+
+                // Update local state
+                userData = { ...userData, ...updateData };
+                isPro = true;
+            }
+        } catch (error) {
+            Logger.error("Error checking whitelist in assertProAccess:", error);
+        }
+    }
 
     if (!isPro && !isSuperAdmin) {
         throw new HttpsError("permission-denied", "This feature is locked for Pro users.");
@@ -531,24 +556,31 @@ exports.syncTeamMemberSummary = onCall({ region: REGION, maxInstances: 10 }, asy
     return { status: "success", message: "Summary synced." };
 });
 
-exports.updateMemberSummaryOnTeamChange = onDocumentWritten({ document: `${COLLECTIONS.TEAMS}/{teamId}`, region: REGION, maxInstances: 10 }, async (event) => {
+exports.updateMemberSummaryOnTeamChange = onDocumentUpdated({ document: `${COLLECTIONS.TEAMS}/{teamId}`, region: REGION, maxInstances: 10 }, async (event) => {
     const teamId = event.params.teamId;
     const beforeData = event.data?.before.data();
     const afterData = event.data?.after.data();
 
-    if (!afterData) {
-        Logger.info(`Team ${teamId} deleted.`);
+    // With onDocumentUpdated, neither beforeData nor afterData should be undefined, but safety check remains.
+    if (!beforeData || !afterData) {
         return;
     }
 
-    const beforeMembers = beforeData?.members || {};
+    const beforeMembers = beforeData.members || {};
     const afterMembers = afterData.members || {};
 
     const updatedMembers = [];
     for (const memberId in afterMembers) {
         const beforeMember = beforeMembers[memberId];
         const afterMember = afterMembers[memberId];
-        if (!beforeMember || beforeMember.displayName !== afterMember.displayName || beforeMember.role !== afterMember.role) {
+
+        // Optimization: Skip if this is a new member (beforeMember is undefined).
+        // New members are handled by createTeam/joinTeam explicitly, avoiding double writes.
+        if (!beforeMember) {
+            continue;
+        }
+
+        if (beforeMember.displayName !== afterMember.displayName || beforeMember.role !== afterMember.role) {
             updatedMembers.push(memberId);
         }
     }
@@ -784,31 +816,6 @@ exports.grantProByEmail = onCall({ region: REGION, maxInstances: 10 }, async (re
     } catch (error) {
         Logger.error("Error granting pro by email:", error);
         throw new HttpsError("internal", "Failed to grant pro access.");
-    }
-});
-
-// Trigger: When a new user is created in Auth
-exports.checkProWhitelistOnSignup = functions.region(REGION).runWith({ maxInstances: 10 }).auth.user().onCreate(async (user) => {
-    const email = user.email;
-    if (!email) return;
-
-    try {
-        const whitelistDoc = await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).get();
-        if (whitelistDoc.exists) {
-            Logger.info(`New user ${email} found in Pro whitelist. Granting access.`);
-
-            // Grant Pro Access
-            await db.collection(COLLECTIONS.USERS).doc(user.uid).set({
-                role: USER_ROLES.PRO,
-                isPro: true,
-                proSince: admin.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            // Remove from whitelist
-            await db.collection(COLLECTIONS.PRO_WHITELIST).doc(email).delete();
-        }
-    } catch (error) {
-        Logger.error(`Error processing whitelist for new user ${email}:`, error);
     }
 });
 
