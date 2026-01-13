@@ -3539,6 +3539,7 @@ function setupEventListeners() {
     DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
 
     document.getElementById('prev-btn').addEventListener('click', async (e) => {
+        triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
         await waitForDOMUpdate();
@@ -3602,6 +3603,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('next-btn').addEventListener('click', async (e) => {
+        triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
         await waitForDOMUpdate();
@@ -3975,22 +3977,30 @@ function setupEventListeners() {
     }
 
     // Swipe Gestures
-    const mainContent = document.getElementById('main-content-area'); // Target the main area
     let touchStartX = 0;
     let touchEndX = 0;
+    let swipeStartTarget = null;
 
-    if (mainContent) {
-        mainContent.addEventListener('touchstart', e => {
+    const addSwipeListeners = (element) => {
+        if (!element) return;
+        element.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
+            swipeStartTarget = e.target;
         }, { passive: true });
 
-        mainContent.addEventListener('touchend', e => {
+        element.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, { passive: true });
-    }
+    };
+
+    addSwipeListeners(DOM.calendarView);
+    addSwipeListeners(DOM.dailyView);
 
     function handleSwipe() {
+        // Check if swipe started in excluded areas (e.g., bottom controls in day view)
+        if (swipeStartTarget && swipeStartTarget.closest('#day-view-bottom-controls')) return;
+
         // Check for editing mode or open modals to prevent swipe
         if (state.editingInlineTimeKey) return;
         
