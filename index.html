@@ -199,12 +199,14 @@
                     <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer transition-transform transform hover:scale-105"></h2>
                     <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200" aria-label="Next period" data-i18n-aria-label="ariaNextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
-                <div id="month-view-controls" class="w-full p-2 bg-white border-2 border-gray-300 rounded-full flex items-center space-x-2">
-                <div id="leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap py-1 pl-2">
+                <div id="month-view-controls" class="w-full h-14 bg-white border-2 border-gray-300 rounded-full relative overflow-hidden">
+                <div id="leave-pills-container" class="absolute inset-0 flex items-center space-x-2 overflow-x-auto whitespace-nowrap px-4 pr-24">
                 </div>
-                <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Add/Edit Leave Types" aria-label="Add or edit leave types">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
+                <div class="absolute right-0 top-0 bottom-0 w-24 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 pointer-events-none">
+                    <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add or edit leave types">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
             </div>
                 <div id="day-view-top-controls" class="hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
@@ -325,7 +327,7 @@
             </button>
         </div>
         <h3 id="overview-leave-type-name" class="text-xl font-semibold mb-4 truncate">Leave Type</h3>
-        <div class="overflow-y-auto min-h-0 py-1 pr-2"> 
+        <div class="overflow-y-auto min-h-0 py-1 pr-2 pl-2">
             <div id="overview-leave-days-list" class="space-y-3"></div>
             <p id="overview-no-leaves-message" class="text-center text-gray-500 italic mt-6 hidden" data-i18n="noLeaveEntries">No leave entries found for this type.</p>
         </div>
