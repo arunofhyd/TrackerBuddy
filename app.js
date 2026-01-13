@@ -1719,6 +1719,8 @@ function handleLogoTap() {
         DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '100';
         DOM.splashScreen.style.cursor = 'pointer';
+        DOM.splashScreen.style.opacity = '1';
+        DOM.splashScreen.style.backgroundColor = '#0f172a';
 
         DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
     }
