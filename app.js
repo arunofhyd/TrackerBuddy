@@ -2545,18 +2545,20 @@ function renderLeaveCustomizationModal() {
         const currentDayType = existingLeave ? existingLeave.dayType : LEAVE_DAY_TYPES.FULL;
 
         item.innerHTML = `
-            <span class="font-medium mb-2 sm:mb-0 truncate min-w-0">${formatDateForDisplay(dateKey, i18n.currentLang)}</span>
-            <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end min-w-0">
+            <span class="font-medium mb-2 sm:mb-0 truncate min-w-0 w-full sm:w-auto text-left sm:text-left">${formatDateForDisplay(dateKey, i18n.currentLang)}</span>
+            <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto justify-end min-w-0">
                 <div class="leave-type-selector relative flex-grow w-full sm:w-36 min-w-0">
                 </div>
-                <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
-                    <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="full">${i18n.t('full')}</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">${i18n.t('half')}</button>
+                <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
+                    <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
+                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="full">${i18n.t('full')}</button>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">${i18n.t('half')}</button>
+                    </div>
+                    <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </div>
-                <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
             </div>
         `;
         list.appendChild(item);
