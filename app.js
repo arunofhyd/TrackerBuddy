@@ -570,7 +570,6 @@ function renderMonthPicker() {
 }
 
 
-// FIX: Overhaul subscribeToData to handle new nested data structure
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, COLLECTIONS.USERS, userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
@@ -787,7 +786,6 @@ function handleUpdateTime(dayDataCopy, payload) {
     return i18n.t("timeUpdated");
 }
 
-// FIX: Update saveData to work with multi-year structure and granular updates
 async function saveData(action) {
     const timestamp = Date.now();
     state.lastUpdated = timestamp;
@@ -931,7 +929,6 @@ function loadDataFromLocalStorage() {
 
 function saveDataToLocalStorage(data) {
     try {
-        // FIX: Store under the new key/structure
         localStorage.setItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA, JSON.stringify(data));
     } catch (error) {
         Logger.error("Error saving local data:", error);
@@ -951,7 +948,6 @@ async function saveDataToFirestore(data, partialUpdate = null) {
             Logger.warn("Partial update failed, falling back to full merge:", e);
         }
     }
-    // FIX: Save with the new data structure
     await setDoc(doc(db, COLLECTIONS.USERS, state.userId), data, { merge: true });
 }
 
@@ -1005,7 +1001,6 @@ async function resetAllData() {
             showMessage(i18n.t("msgCloudResetError"), 'error');
         }
     } else {
-        // FIX: Clear the new local storage key
         localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA); 
         setState(resetState);
         updateView();
@@ -1205,7 +1200,6 @@ function handleFileUpload(event) {
         try {
             const csvContent = e.target.result;
             
-            // FIX: Use the multi-year copy structure
             const yearlyDataCopy = JSON.parse(JSON.stringify(state.yearlyData));
             const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
@@ -1811,7 +1805,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveTypeModalTitle.dataset.i18n = 'editLeaveType';
         DOM.leaveTypeModalTitle.innerHTML = i18n.t('editLeaveType');
         DOM.editingLeaveTypeId.value = leaveType.id;
-        DOM.leaveNameInput.value = leaveType.name; // FIX: Use name here, not totalDays
+        DOM.leaveNameInput.value = leaveType.name;
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
@@ -3128,12 +3122,10 @@ function renderTeamDashboard() {
         ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
     ];
 
-    // FIX: Use the current year from the app's month view for the dashboard lookup
     const dashboardYear = state.currentMonth.getFullYear().toString(); 
     
 
     const membersHTML = sortedMembers.map(member => {
-        // FIX: Look up balances using the correctly nested structure (yearlyLeaveBalances[year])
         const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
         const isAdmin = member.role === TEAM_ROLES.ADMIN;
 
@@ -4406,7 +4398,6 @@ function renderAdminUserList(users, searchQuery = '') {
         // Add event listener for search
         const searchInput = searchContainer.querySelector('#admin-user-search');
         searchInput.addEventListener('input', debounce((e) => {
-            // FIX: Use state.adminUsers to avoid stale closure if users array reference changes
             renderAdminUserList(state.adminUsers, e.target.value.trim());
         }, 300));
     }

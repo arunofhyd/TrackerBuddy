@@ -5,7 +5,6 @@ export const createInitialState = () => ({
     currentMonth: new Date(),
     selectedDate: new Date(),
     currentView: VIEW_MODES.MONTH,
-    // FIX: Revert to multi-year structure
     yearlyData: {}, // Holds all data, keyed by year
     currentYearData: { activities: {}, leaveOverrides: {} }, // Data for the currently selected year
     userId: null,
@@ -33,7 +32,6 @@ export const createInitialState = () => ({
     searchSortOrder: 'newest', // 'newest' or 'oldest'
     searchScope: 'year', // 'year' or 'global'
     searchQuery: '',
-    // --- FIX: Add flag to prevent race conditions during updates ---
     isUpdating: false,
     isLoggingOut: false,
     lastUpdated: 0,
