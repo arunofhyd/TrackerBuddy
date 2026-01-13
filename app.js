@@ -227,10 +227,20 @@ function switchView(viewToShow, viewToHide, callback) {
 
     const showNewView = () => {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
+            // Ensure splash screen is visible (it might be z-index -10 acting as background, or z-index 100 acting as loader)
             if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
         } else if (viewToShow === DOM.appView) {
             loadTheme();
-            if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
+            // If splash screen is currently covering the screen (loading flow), fade it out smoothly
+            if (DOM.splashScreen && getComputedStyle(DOM.splashScreen).zIndex === '100' && DOM.splashScreen.style.display !== 'none') {
+                 DOM.splashScreen.style.transition = 'opacity 0.5s ease-out';
+                 DOM.splashScreen.style.opacity = '0';
+                 setTimeout(() => {
+                     DOM.splashScreen.style.display = 'none';
+                 }, 500);
+            } else {
+                 if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
+            }
         }
 
         requestAnimationFrame(() => {
@@ -1373,6 +1383,8 @@ async function initAuth() {
     await loadFirebaseModules();
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            // User is logged in: Proceed to login flow (which shows spinner -> app)
+            // Splash screen remains up (z-index 100) showing loading spinner until app is ready.
             handleUserLogin(user);
         } else {
             if (state.isLoggingOut) {
@@ -1383,7 +1395,11 @@ async function initAuth() {
             if (sessionMode === 'offline') {
                 loadOfflineData(); // Centralized offline data loading
             } else {
+                // User not logged in:
+                // 1. Prepare Login View (behind splash)
                 switchView(DOM.loginView, DOM.loadingView);
+                // 2. Enable "Tap to Begin" interaction on Splash Screen
+                setupSplashTapListener();
             }
         }
         DOM.contentWrapper.style.opacity = '1';
@@ -4606,62 +4622,95 @@ function renderAdminUserList(users, searchQuery = '') {
 }
 
 // --- App Initialization ---
-function handleSplashScreen() {
+function initSplashScreen() {
     requestAnimationFrame(() => {
-        if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
-        if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'block';
+        // Reset Splash Screen State (for reload/logout scenarios)
         if (DOM.splashScreen) {
-            DOM.splashScreen.addEventListener('click', () => {
-                if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'none';
-                if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
-                if (DOM.splashText) DOM.splashText.classList.add('animating-out');
+            DOM.splashScreen.style.display = 'flex';
+            DOM.splashScreen.style.zIndex = '100'; // Bring to front
+            DOM.splashScreen.style.opacity = '1';
+            DOM.splashScreen.style.backgroundColor = '#0f172a'; // Reset background color
+            DOM.splashScreen.style.cursor = 'default';
+        }
 
-                initAuth();
-
-                // Wait for the splash screen to fade out
-                const handleSplashTransitionEnd = (e) => {
-                    if (e.target === DOM.splashScreen) {
-                         DOM.splashScreen.style.zIndex = '-10';
-                         DOM.splashScreen.style.cursor = 'default';
-                         DOM.splashScreen.style.backgroundColor = 'transparent';
-                         DOM.splashScreen.removeEventListener('transitionend', handleSplashTransitionEnd);
-                    }
-                };
-                
-                // Wait for splash text to animate out
-                const handleTextAnimationEnd = (e) => {
-                    if (e.target === DOM.splashText) {
-                         DOM.splashText.style.display = 'none';
-                         DOM.splashText.removeEventListener('animationend', handleTextAnimationEnd);
-                    }
-                };
-
-                DOM.splashScreen.addEventListener('transitionend', handleSplashTransitionEnd);
-                if (DOM.splashText) {
-                     // Check if it's animation or transition based on class 'animating-out'
-                     // Assuming animation since it's 'animating-out'
-                     DOM.splashText.addEventListener('animationend', handleTextAnimationEnd);
-                     
-                     // Fallback safety
-                     setTimeout(() => {
-                         if (DOM.splashText && DOM.splashText.style.display !== 'none') {
-                             DOM.splashText.style.display = 'none';
-                         }
-                     }, 1100);
-                }
-
-                // Fallback safety for splash screen
-                setTimeout(() => {
-                     if (DOM.splashScreen && DOM.splashScreen.style.zIndex !== '-10') {
-                         DOM.splashScreen.style.zIndex = '-10';
-                         DOM.splashScreen.style.cursor = 'default';
-                         DOM.splashScreen.style.backgroundColor = 'transparent';
-                     }
-                }, 500);
-
-            }, { once: true });
+        // Show Loading, Hide Tap to Begin initially
+        if (DOM.splashLoading) {
+            DOM.splashLoading.style.display = 'flex';
+            DOM.splashLoading.classList.remove('hiding');
+        }
+        if (DOM.tapToBegin) {
+            DOM.tapToBegin.style.display = 'none';
+            DOM.tapToBegin.classList.remove('hiding');
+        }
+        if (DOM.splashText) {
+            DOM.splashText.style.display = 'block';
+            DOM.splashText.classList.remove('animating-out');
         }
     });
+}
+
+function setupSplashTapListener() {
+    requestAnimationFrame(() => {
+        if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+        if (DOM.tapToBegin) {
+            DOM.tapToBegin.style.display = 'block';
+            DOM.tapToBegin.style.opacity = '1'; // Ensure visibility
+        }
+        if (DOM.splashScreen) {
+            DOM.splashScreen.style.cursor = 'pointer';
+            DOM.splashScreen.addEventListener('click', dismissSplashScreen, { once: true });
+        }
+    });
+}
+
+function dismissSplashScreen() {
+    if (DOM.tapToBegin) DOM.tapToBegin.style.display = 'none';
+    if (DOM.splashLoading) DOM.splashLoading.style.display = 'none';
+    if (DOM.splashText) DOM.splashText.classList.add('animating-out');
+
+    // Explicitly trigger background fade to transparent
+    if (DOM.splashScreen) {
+        DOM.splashScreen.style.backgroundColor = 'transparent';
+    }
+
+    // Wait for the splash screen to fade out
+    const handleSplashTransitionEnd = (e) => {
+        if (e.target === DOM.splashScreen) {
+             DOM.splashScreen.style.zIndex = '-10';
+             DOM.splashScreen.style.cursor = 'default';
+             // Background color is already transparent from above
+             DOM.splashScreen.removeEventListener('transitionend', handleSplashTransitionEnd);
+        }
+    };
+
+    // Wait for splash text to animate out
+    const handleTextAnimationEnd = (e) => {
+        if (e.target === DOM.splashText) {
+             DOM.splashText.style.display = 'none';
+             DOM.splashText.removeEventListener('animationend', handleTextAnimationEnd);
+        }
+    };
+
+    DOM.splashScreen.addEventListener('transitionend', handleSplashTransitionEnd);
+    if (DOM.splashText) {
+         DOM.splashText.addEventListener('animationend', handleTextAnimationEnd);
+
+         // Fallback safety
+         setTimeout(() => {
+             if (DOM.splashText && DOM.splashText.style.display !== 'none') {
+                 DOM.splashText.style.display = 'none';
+             }
+         }, 1100);
+    }
+
+    // Fallback safety for splash screen
+    setTimeout(() => {
+         if (DOM.splashScreen && DOM.splashScreen.style.zIndex !== '-10') {
+             DOM.splashScreen.style.zIndex = '-10';
+             DOM.splashScreen.style.cursor = 'default';
+             DOM.splashScreen.style.backgroundColor = 'transparent';
+         }
+    }, 500);
 }
 
 async function init() {
@@ -4680,8 +4729,10 @@ async function init() {
     setupDailyViewEventListeners();
     setupColorPicker();
     loadTheme();
-    handleSplashScreen();
+
+    initSplashScreen();
     loadSplashScreenVideo();
+    initAuth(); // Call immediately
 
     // Register Service Worker
     if ('serviceWorker' in navigator) {
