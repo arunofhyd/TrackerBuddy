@@ -1551,13 +1551,13 @@ function applyTheme(theme) {
 
     if (theme === 'dark') {
         document.body.classList.add('dark');
-        lightIcon.classList.add('hidden');
-        darkIcon.classList.remove('hidden');
+        lightIcon.classList.remove('hidden');
+        darkIcon.classList.add('hidden');
         if (themeColorMeta) themeColorMeta.content = '#000000';
     } else {
         document.body.classList.remove('dark');
-        lightIcon.classList.remove('hidden');
-        darkIcon.classList.add('hidden');
+        lightIcon.classList.add('hidden');
+        darkIcon.classList.remove('hidden');
         if (themeColorMeta) themeColorMeta.content = '#f0f2f5';
     }
 }
