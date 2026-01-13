@@ -2536,7 +2536,7 @@ function renderLeaveCustomizationModal() {
 
     sortedDates.forEach(dateKey => {
         const item = document.createElement('div');
-        item.className = 'leave-day-item flex flex-col sm:flex-row items-center justify-between p-3 rounded-xl shadow-sm border';
+        item.className = 'leave-day-item flex flex-col sm:flex-row items-center justify-between p-3 rounded-lg shadow-sm border';
         item.dataset.dateKey = dateKey;
 
         const currentActivities = state.currentYearData.activities || {};
