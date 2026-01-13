@@ -317,7 +317,7 @@ body.dark .radial-progress-bg {
 body.dark .stat-card-info p {
     color: #9ca3af;
 }
-        .room-code { font-family: 'Courier New', monospace; letter-spacing: 2px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 9999px; padding: 8px 16px; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); display: inline-flex; align-items: center; }
+        .room-code { font-family: 'Courier New', monospace; letter-spacing: 2px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 9999px; padding: 8px 16px 8px 24px; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); display: inline-flex; align-items: center; }
         .progress-bar { background: linear-gradient(135deg, #10b981, #059669); border-radius: 9999px; transition: width 0.3s ease-in-out; }
         .progress-bg { border-radius: 9999px; overflow: hidden; }
         /* --- Mobile Responsive --- */
