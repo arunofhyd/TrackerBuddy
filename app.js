@@ -2378,17 +2378,17 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
     }
 
     container.innerHTML = `
-        <button type="button" class="leave-type-selector-trigger w-full flex items-center justify-between px-3 py-1.5 border rounded-md shadow-sm text-left">
+        <button type="button" class="leave-type-selector-trigger w-full flex items-center justify-between px-3 py-1.5 border rounded-full shadow-sm text-left transition-all duration-200 active:scale-95">
             ${triggerHTML}
         </button>
         <div class="leave-type-selector-panel">
             <div class="flex flex-col space-y-1">
-                <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center">
+                <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center transition-all duration-200 active:scale-95">
                     <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
                     <span>${i18n.t('none')}</span>
                 </button>
                 ${visibleLeaveTypes.map(lt => `
-                    <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-md text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0">
+                    <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0 transition-all duration-200 active:scale-95">
                         <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
                         <span class="truncate min-w-0" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</span>
                     </button>
@@ -2755,7 +2755,7 @@ function renderTeamSection() {
             <div class="text-center">
                 <h3 class="text-lg font-semibold mb-4">${i18n.t('teamManagement')}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all">
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all active:scale-95 duration-200">
                         <button id="create-team-btn" class="w-full text-left">
                             <div class="flex items-center justify-center mb-3 sm:mb-4">
                                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
@@ -2768,7 +2768,7 @@ function renderTeamSection() {
                             <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('createTeamDesc')}</p>
                         </button>
                     </div>
-                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all">
+                    <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all active:scale-95 duration-200">
                         <button id="join-team-btn" class="w-full text-left">
                             <div class="flex items-center justify-center mb-3 sm:mb-4">
                                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
@@ -2820,28 +2820,28 @@ function renderTeamSection() {
                 
                 <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
                     ${isAdmin ? html`
-                        <button id="team-dashboard-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                        <button id="team-dashboard-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             ${i18n.t('teamDashboard')}
                         </button>
                     ` : ''}
-                    <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                    <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
                         ${i18n.t('changeName')}
                     </button>
                     ${isAdmin ? html`
-                        <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                        <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             ${i18n.t('deleteTeam')}
                         </button>
                     ` : html`
-                        <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center text-sm sm:text-base">
+                        <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             ${i18n.t('leaveTeam')}
                         </button>
@@ -2879,7 +2879,7 @@ function openCreateTeamModal() {
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
                     Creating a team is available for Pro users. Upgrade to manage your own team!
                 </p>
-                <button class="w-full px-6 py-3 btn-primary rounded-lg font-semibold" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
+                <button class="w-full px-6 py-3 btn-primary rounded-full font-semibold active:scale-95 transition-all duration-200" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
                     Upgrade to Pro
                 </button>
                 <div class="mt-4">
@@ -4424,7 +4424,7 @@ function renderAdminUserList(users, searchQuery = '') {
                 <p class="font-medium text-blue-800 dark:text-blue-300">${i18n.t('userNotFound')}</p>
                 <p class="text-sm text-blue-600 dark:text-blue-400">${i18n.t('grantProAccessTo', {email: sanitizeHTML(searchQuery)})}</p>
             </div>
-            <button id="grant-pro-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">${i18n.t('grantProAccess')}</button>
+            <button id="grant-pro-btn" class="px-4 py-2 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors text-sm font-medium active:scale-95 duration-200">${i18n.t('grantProAccess')}</button>
         `;
         DOM.adminUserList.appendChild(grantCard);
 
@@ -4542,11 +4542,11 @@ function renderAdminUserList(users, searchQuery = '') {
             ${!isSuperAdmin ? `
             <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
                 <div class="flex flex-col gap-2 w-full sm:w-auto">
-                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-email="${user.email}" data-pending="${isPending}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
                         ${proButtonText}
                     </button>
-                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded border transition-colors ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
                         ${user.role === 'co-admin' ? i18n.t('revokeCoAdmin') : i18n.t('makeCoAdmin')}
                     </button>
@@ -4613,7 +4613,7 @@ function renderAdminUserList(users, searchQuery = '') {
         const loadMoreContainer = document.createElement('div');
         loadMoreContainer.className = 'text-center py-4';
         loadMoreContainer.innerHTML = `
-            <button id="admin-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium">
+            <button id="admin-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium active:scale-95 duration-200">
                 ${i18n.t('loadMore') || 'Load More'}
             </button>
         `;
