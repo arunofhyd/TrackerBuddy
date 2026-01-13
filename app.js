@@ -214,6 +214,12 @@ let transitionState = {
 function switchView(viewToShow, viewToHide, callback) {
     const mainContainer = document.querySelector('.main-container');
 
+    // Cancel pending show for the view we are about to hide
+    if (viewToHide && viewToHide._pendingShowRAF) {
+        cancelAnimationFrame(viewToHide._pendingShowRAF);
+        viewToHide._pendingShowRAF = null;
+    }
+
     // Cancel pending transition to prevent race conditions
     if (transitionState.active) {
         clearTimeout(transitionState.timeoutId);
@@ -243,7 +249,10 @@ function switchView(viewToShow, viewToHide, callback) {
             }
         }
 
-        requestAnimationFrame(() => {
+        // Store RAF ID to allow cancellation
+        viewToShow._pendingShowRAF = requestAnimationFrame(() => {
+            viewToShow._pendingShowRAF = null;
+
             // Ensure the view starts invisible for the fade-in
             viewToShow.style.opacity = '0';
             
@@ -291,6 +300,8 @@ function switchView(viewToShow, viewToHide, callback) {
 
         viewToHide.addEventListener('transitionend', transitionState.handler, { once: true });
     } else {
+        // Safety: If switching away, ensure it's hidden (catches race condition where it's hidden but pending show was just cancelled)
+        if (viewToHide) viewToHide.classList.add('hidden');
         showNewView();
     }
 }
@@ -1719,6 +1730,8 @@ function handleLogoTap() {
         DOM.splashScreen.style.display = 'flex';
         DOM.splashScreen.style.zIndex = '100';
         DOM.splashScreen.style.cursor = 'pointer';
+        DOM.splashScreen.style.opacity = '1';
+        DOM.splashScreen.style.backgroundColor = '#0f172a';
 
         DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
     }
