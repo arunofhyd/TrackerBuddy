@@ -2820,30 +2820,30 @@ function renderTeamSection() {
                     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('shareCodeMessage')}</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-${isAdmin ? '3' : '2'} gap-3 sm:gap-4">
+                <div class="flex flex-col md:flex-row gap-3 sm:gap-4">
                     ${isAdmin ? html`
-                        <button id="team-dashboard-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
+                        <button id="team-dashboard-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             ${i18n.t('teamDashboard')}
                         </button>
                     ` : ''}
-                    <button id="edit-display-name-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
+                    <button id="edit-display-name-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
                         ${i18n.t('changeName')}
                     </button>
                     ${isAdmin ? html`
-                        <button id="delete-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
+                        <button id="delete-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             ${i18n.t('deleteTeam')}
                         </button>
                     ` : html`
-                        <button id="leave-team-btn" class="px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
+                        <button id="leave-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             ${i18n.t('leaveTeam')}
                         </button>
