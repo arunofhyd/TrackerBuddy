@@ -460,7 +460,10 @@ function renderCalendar() {
         if (hasActivity) classes.push('has-activity');
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
         if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
-        if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) classes.push('leave-selecting');
+        // Apply leave-selecting class if it's in the selection OR if it's the start date of a multi-select range
+        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isMultiSelectMode && state.multiSelectStartDate === dateKey))) {
+            classes.push('leave-selecting');
+        }
 
         const isFullLeave = leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL;
         const isSunday = date.getDay() === 0;
@@ -3921,6 +3924,8 @@ function setupEventListeners() {
             DOM.multiSelectBtn.classList.add('hidden');
             DOM.multiSelectBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'ring-2', 'ring-blue-500');
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
+            // Clean up any stray visual selections
+            renderCalendar();
             updateView();
         } else {
             const year = state.currentMonth.getFullYear();
@@ -3942,7 +3947,7 @@ function setupEventListeners() {
         if (state.isMultiSelectMode) {
              setState({ isMultiSelectMode: false, multiSelectStartDate: null });
              DOM.multiSelectBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'ring-2', 'ring-blue-500');
-             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
+             showMessage(i18n.t("msgRangeModeOff"), 'info');
              renderCalendar();
         } else {
             setState({ isMultiSelectMode: true, multiSelectStartDate: null });
@@ -4055,8 +4060,10 @@ function setupEventListeners() {
             const day = date.getDay();
 
             // Logic: Tick (exclude=false) means Include. Cross (exclude=true) means Exclude.
-            if (day === 6 && excludeSat) return; // Exclude Saturday if crossed out
-            if (day === 0 && excludeSun) return; // Exclude Sunday if crossed out
+            // Check if day is Saturday (6) and we want to exclude it (excludeSat = true)
+            if (day === 6 && excludeSat) return;
+            // Check if day is Sunday (0) and we want to exclude it (excludeSun = true)
+            if (day === 0 && excludeSun) return;
 
             newSelection.add(dateKey);
         });
@@ -4069,10 +4076,10 @@ function setupEventListeners() {
         });
 
         // Reset UI state
-        DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        DOM.multiSelectBtn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'ring-2', 'ring-blue-500');
 
         renderCalendar();
-        showMessage(i18n.t("msgSelectDayAndPill"), 'info');
+        showMessage(i18n.t("msgRangeModeOff"), 'info');
     }
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
