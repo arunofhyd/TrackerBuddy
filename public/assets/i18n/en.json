@@ -203,7 +203,7 @@
     "selectType": "Select Type",
     "multiSelect": "Multi Select",
     "includeWeekendsTitle": "Include Days?",
-    "excludeWeekendsMessage": "",
+    "excludeWeekendsMessage": "Do you want to include these days?",
     "sat": "Sat",
     "sun": "Sun",
     "apply": "Apply",
