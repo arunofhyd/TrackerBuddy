@@ -461,7 +461,8 @@ function renderCalendar() {
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
         if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
         // Apply leave-selecting class if it's in the selection OR if it's the start date of a multi-select range
-        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isMultiSelectMode && state.multiSelectStartDate === dateKey))) {
+        const isInPendingRange = state.pendingRangeSelection && state.pendingRangeSelection.includes(dateKey);
+        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isMultiSelectMode && state.multiSelectStartDate === dateKey) || isInPendingRange)) {
             classes.push('leave-selecting');
         }
 
@@ -3917,12 +3918,17 @@ function setupEventListeners() {
                 selectedLeaveTypeId: null,
                 leaveSelection: new Set(),
                 isMultiSelectMode: false,
-                multiSelectStartDate: null
+                multiSelectStartDate: null,
+                pendingRangeSelection: null
             });
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
             DOM.multiSelectBtn.classList.add('hidden');
-            DOM.multiSelectBtn.classList.remove('bg-blue-200', 'text-blue-800', 'ring-2', 'ring-blue-500');
+            // Reset multi-select button state
+            if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
+                DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+            }
+            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
             // Clean up any stray visual selections
             renderCalendar();
@@ -3938,7 +3944,11 @@ function setupEventListeners() {
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
             DOM.multiSelectBtn.classList.remove('hidden');
-            DOM.multiSelectBtn.classList.remove('bg-blue-200', 'text-blue-800', 'ring-2', 'ring-blue-500');
+            // Ensure button starts in inactive state
+            if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
+                DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+            }
+            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
     });
@@ -3946,12 +3956,14 @@ function setupEventListeners() {
     DOM.multiSelectBtn.addEventListener('click', () => {
         if (state.isMultiSelectMode) {
              setState({ isMultiSelectMode: false, multiSelectStartDate: null });
-             DOM.multiSelectBtn.classList.remove('bg-blue-200', 'text-blue-800', 'ring-2', 'ring-blue-500');
+             DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
              showMessage(i18n.t("msgRangeModeOff"), 'info');
              renderCalendar();
         } else {
             setState({ isMultiSelectMode: true, multiSelectStartDate: null });
-            DOM.multiSelectBtn.classList.add('bg-blue-200', 'text-blue-800', 'ring-2', 'ring-blue-500');
+            DOM.multiSelectBtn.classList.replace('btn-secondary', 'btn-primary');
+            DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t('msgSelectStartDate'), 'info');
         }
     });
@@ -3980,11 +3992,8 @@ function setupEventListeners() {
                 if (!state.multiSelectStartDate) {
                     setState({ multiSelectStartDate: dateKey });
                     showMessage(i18n.t('msgSelectEndDate'), 'info');
-                    cell.classList.add('leave-selecting'); // Use dashed outline
+                    renderCalendar();
                 } else {
-                    // Apply visual style to the end date immediately so it looks selected too
-                    cell.classList.add('leave-selecting');
-                    // Small delay to allow visual update before modal logic (though modal usually overlays)
                     handleRangeSelection(state.multiSelectStartDate, dateKey);
                 }
             } else {
@@ -4043,6 +4052,7 @@ function setupEventListeners() {
         DOM.toggleSunBtn.dataset.excluded = 'false';
 
         DOM.weekendOptionModal.classList.add('visible');
+        renderCalendar();
     }
 
     function closeWeekendOptionModal() {
