@@ -237,6 +237,12 @@
                 </div>
                 <div id="month-view-bottom-controls">
                     <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 flex flex-col md:flex-row gap-3 sm:gap-4">
+                        <button id="stats-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-full flex items-center justify-center active:scale-95 transition-all duration-200">
+                            <i class="fas fa-chart-bar mr-2"></i>
+                            <span data-i18n="stats">Stats</span>
+                            <svg id="stats-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg id="stats-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
                         <div id="log-leave-btn-container" class="w-full md:w-1/3 flex gap-2">
                             <button id="log-new-leave-btn" class="flex-grow px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-primary rounded-full flex items-center justify-center active:scale-95 transition-all duration-200">
                                 <i class="fas fa-calendar-plus mr-2"></i>
@@ -247,12 +253,6 @@
                                 <span data-i18n="multiSelect">Multi Select</span>
                             </button>
                         </div>
-                        <button id="stats-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-full flex items-center justify-center active:scale-95 transition-all duration-200">
-                            <i class="fas fa-chart-bar mr-2"></i>
-                            <span data-i18n="stats">Stats</span>
-                            <svg id="stats-arrow-down" class="w-4 h-4 sm:w-5 sm:h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            <svg id="stats-arrow-up" class="w-4 h-4 sm:w-5 sm:h-5 ml-2 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                        </button>
                         <button id="team-toggle-btn" class="w-full md:w-1/3 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-full flex items-center justify-center active:scale-95 transition-all duration-200">
                             <i id="team-icon" class="fa-solid fa-user w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
                             <span data-i18n="teams">Teams</span>
@@ -536,7 +536,7 @@
 </div>
 <div id="weekend-option-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-xs">
-        <h2 class="text-xl font-bold mb-6 text-center" data-i18n="excludeWeekendsTitle">Exclude?</h2>
+        <h2 class="text-xl font-bold mb-6 text-center" data-i18n="includeWeekendsTitle">Include Days?</h2>
         <div class="flex justify-center gap-6 mb-8">
              <button id="toggle-sat-btn" class="flex flex-col items-center gap-2 group transition-all duration-200 active:scale-95" data-excluded="false">
                 <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 border-gray-200 group-data-[excluded=true]:border-red-500 group-data-[excluded=false]:border-green-500 bg-white transition-colors">

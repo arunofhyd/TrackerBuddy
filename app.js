@@ -3939,9 +3939,17 @@ function setupEventListeners() {
     });
 
     DOM.multiSelectBtn.addEventListener('click', () => {
-        setState({ isMultiSelectMode: true, multiSelectStartDate: null });
-        DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
-        showMessage(i18n.t('msgSelectStartDate'), 'info');
+        if (state.isMultiSelectMode) {
+             setState({ isMultiSelectMode: false, multiSelectStartDate: null });
+             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+             // Optionally clear selection if desired, but user might just want to exit mode
+             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
+             renderCalendar(); // To remove selection highlights if any pending
+        } else {
+            setState({ isMultiSelectMode: true, multiSelectStartDate: null });
+            DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            showMessage(i18n.t('msgSelectStartDate'), 'info');
+        }
     });
 
     DOM.leavePillsContainer.addEventListener('click', (e) => {
@@ -3968,7 +3976,7 @@ function setupEventListeners() {
                 if (!state.multiSelectStartDate) {
                     setState({ multiSelectStartDate: dateKey });
                     showMessage(i18n.t('msgSelectEndDate'), 'info');
-                    cell.classList.add('ring-2', 'ring-blue-500');
+                    cell.classList.add('leave-selecting'); // Use dashed outline
                 } else {
                     handleRangeSelection(state.multiSelectStartDate, dateKey);
                 }
@@ -4044,8 +4052,9 @@ function setupEventListeners() {
             const date = new Date(parts[0], parts[1] - 1, parts[2]);
             const day = date.getDay();
 
-            if (day === 6 && excludeSat) return; // Exclude Saturday
-            if (day === 0 && excludeSun) return; // Exclude Sunday
+            // Logic: Tick (exclude=false) means Include. Cross (exclude=true) means Exclude.
+            if (day === 6 && excludeSat) return; // Exclude Saturday if crossed out
+            if (day === 0 && excludeSun) return; // Exclude Sunday if crossed out
 
             newSelection.add(dateKey);
         });
