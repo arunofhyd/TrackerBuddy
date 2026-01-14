@@ -105,6 +105,11 @@ function initUI() {
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
         logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
+        logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
+        multiSelectBtn: document.getElementById('multi-select-btn'),
+        weekendOptionModal: document.getElementById('weekend-option-modal'),
+        weekendOptionYesBtn: document.getElementById('weekend-option-yes-btn'),
+        weekendOptionNoBtn: document.getElementById('weekend-option-no-btn'),
         statsToggleBtn: document.getElementById('stats-toggle-btn'),
         leaveStatsSection: document.getElementById('leave-stats-section'),
         statsArrowDown: document.getElementById('stats-arrow-down'),
@@ -3903,9 +3908,16 @@ function setupEventListeners() {
 
     DOM.logNewLeaveBtn.addEventListener('click', () => {
         if (state.isLoggingLeave) {
-            setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
+            setState({
+                isLoggingLeave: false,
+                selectedLeaveTypeId: null,
+                leaveSelection: new Set(),
+                isMultiSelectMode: false,
+                multiSelectStartDate: null
+            });
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+            DOM.multiSelectBtn.classList.add('hidden');
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
             updateView();
         } else {
@@ -3918,8 +3930,14 @@ function setupEventListeners() {
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
+            DOM.multiSelectBtn.classList.remove('hidden');
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
+    });
+
+    DOM.multiSelectBtn.addEventListener('click', () => {
+        setState({ isMultiSelectMode: true, multiSelectStartDate: null });
+        showMessage(i18n.t('msgSelectStartDate'), 'info');
     });
 
     DOM.leavePillsContainer.addEventListener('click', (e) => {
@@ -3942,15 +3960,25 @@ function setupEventListeners() {
         const dateKey = cell.dataset.date;
 
         if (state.isLoggingLeave) {
-            if (state.leaveSelection.has(dateKey)) {
-                state.leaveSelection.delete(dateKey);
+            if (state.isMultiSelectMode) {
+                if (!state.multiSelectStartDate) {
+                    setState({ multiSelectStartDate: dateKey });
+                    showMessage(i18n.t('msgSelectEndDate'), 'info');
+                    cell.classList.add('ring-2', 'ring-blue-500');
+                } else {
+                    handleRangeSelection(state.multiSelectStartDate, dateKey);
+                }
             } else {
-                state.leaveSelection.add(dateKey);
-            }
-            renderCalendar();
+                if (state.leaveSelection.has(dateKey)) {
+                    state.leaveSelection.delete(dateKey);
+                } else {
+                    state.leaveSelection.add(dateKey);
+                }
+                renderCalendar();
 
-            if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
-                openLeaveCustomizationModal();
+                if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
+                    openLeaveCustomizationModal();
+                }
             }
         } else {
             const date = new Date(dateKey + 'T00:00:00');
@@ -3958,6 +3986,63 @@ function setupEventListeners() {
             updateView();
         }
     });
+
+    // Weekend Option Modal Listeners
+    DOM.weekendOptionYesBtn.addEventListener('click', () => {
+        applyRangeSelection(true);
+        closeWeekendOptionModal();
+    });
+
+    DOM.weekendOptionNoBtn.addEventListener('click', () => {
+        applyRangeSelection(false);
+        closeWeekendOptionModal();
+    });
+
+    function handleRangeSelection(startDateStr, endDateStr) {
+        const start = new Date(startDateStr + 'T00:00:00');
+        const end = new Date(endDateStr + 'T00:00:00');
+        const [d1, d2] = start < end ? [start, end] : [end, start];
+
+        const range = [];
+        let current = new Date(d1);
+        while (current <= d2) {
+            range.push(getYYYYMMDD(current));
+            current.setDate(current.getDate() + 1);
+        }
+
+        setState({ pendingRangeSelection: range });
+        DOM.weekendOptionModal.classList.add('visible');
+    }
+
+    function closeWeekendOptionModal() {
+        DOM.weekendOptionModal.classList.remove('visible');
+    }
+
+    function applyRangeSelection(excludeWeekends) {
+        const range = state.pendingRangeSelection || [];
+        const newSelection = new Set(state.leaveSelection);
+
+        range.forEach(dateKey => {
+            if (excludeWeekends) {
+                const parts = dateKey.split('-').map(Number);
+                // Note: month is 0-indexed in Date constructor
+                const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                const day = date.getDay();
+                if (day === 0 || day === 6) return;
+            }
+            newSelection.add(dateKey);
+        });
+
+        setState({
+            leaveSelection: newSelection,
+            isMultiSelectMode: false,
+            multiSelectStartDate: null,
+            pendingRangeSelection: null
+        });
+
+        renderCalendar();
+        showMessage(i18n.t("msgSelectDayAndPill"), 'info');
+    }
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');
