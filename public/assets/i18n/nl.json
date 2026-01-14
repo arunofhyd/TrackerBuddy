@@ -255,5 +255,14 @@
     "adminDashboard": "Beheerdashboard",
     "standard": "Standaard",
     "pro": "Pro",
-    "co-admin": "Mede-beheerder"
+    "co-admin": "Mede-beheerder",
+    "msgSelectStartDate": "Selecteer startdatum.",
+    "msgSelectEndDate": "Selecteer nu einddatum.",
+    "msgRangeModeOff": "Bereikmodus uit.",
+    "multiSelect": "Bereik",
+    "includeWeekendsTitle": "Weekenden",
+    "excludeWeekendsMessage": "Wilt u deze dagen opnemen?",
+    "sat": "Za",
+    "sun": "Zo",
+    "apply": "Toepassen"
 }

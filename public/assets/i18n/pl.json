@@ -255,5 +255,14 @@
     "adminDashboard": "Panel administracyjny",
     "standard": "Standard",
     "pro": "Pro",
-    "co-admin": "Co-Admin"
+    "co-admin": "Co-Admin",
+    "msgSelectStartDate": "Wybierz datę początkową.",
+    "msgSelectEndDate": "Teraz wybierz datę końcową.",
+    "msgRangeModeOff": "Tryb zakresu wyłączony.",
+    "multiSelect": "Zakres",
+    "includeWeekendsTitle": "Weekendy",
+    "excludeWeekendsMessage": "Czy chcesz uwzględnić te dni?",
+    "sat": "Sob",
+    "sun": "Niedz",
+    "apply": "Zastosuj"
 }

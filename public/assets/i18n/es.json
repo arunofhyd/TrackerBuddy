@@ -255,5 +255,14 @@
     "adminDashboard": "Panel de administración",
     "standard": "Estándar",
     "pro": "Pro",
-    "co-admin": "Coadministrador"
+    "co-admin": "Coadministrador",
+    "msgSelectStartDate": "Seleccionar fecha de inicio.",
+    "msgSelectEndDate": "Ahora selecciona la fecha de fin.",
+    "msgRangeModeOff": "Modo de rango desactivado.",
+    "multiSelect": "Rango",
+    "includeWeekendsTitle": "Fines de semana",
+    "excludeWeekendsMessage": "¿Quieres incluir estos días?",
+    "sat": "Sáb",
+    "sun": "Dom",
+    "apply": "Aplicar"
 }

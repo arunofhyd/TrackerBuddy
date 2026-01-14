@@ -255,5 +255,14 @@
     "adminDashboard": "لوحة تحكم المشرف",
     "standard": "معيار",
     "pro": "برو",
-    "co-admin": "المشرف المشارك"
+    "co-admin": "المشرف المشارك",
+    "msgSelectStartDate": "حدد تاريخ البدء.",
+    "msgSelectEndDate": "الآن حدد تاريخ الانتهاء.",
+    "msgRangeModeOff": "تم إيقاف وضع المدى.",
+    "multiSelect": "مدى",
+    "includeWeekendsTitle": "عطلات نهاية الأسبوع",
+    "excludeWeekendsMessage": "هل تريد تضمين هذه الأيام؟",
+    "sat": "السبت",
+    "sun": "الأحد",
+    "apply": "تطبيق"
 }

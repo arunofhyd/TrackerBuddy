@@ -255,5 +255,14 @@
     "adminDashboard": "Trang tổng quan dành cho quản trị viên",
     "standard": "Tiêu chuẩn",
     "pro": "chuyên nghiệp",
-    "co-admin": "Đồng quản trị"
+    "co-admin": "Đồng quản trị",
+    "msgSelectStartDate": "Chọn ngày bắt đầu.",
+    "msgSelectEndDate": "Bây giờ chọn ngày kết thúc.",
+    "msgRangeModeOff": "Chế độ phạm vi đã tắt.",
+    "multiSelect": "Phạm vi",
+    "includeWeekendsTitle": "Cuối tuần",
+    "excludeWeekendsMessage": "Bạn có muốn bao gồm những ngày này không?",
+    "sat": "T7",
+    "sun": "CN",
+    "apply": "Áp dụng"
 }

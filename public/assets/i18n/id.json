@@ -255,5 +255,14 @@
     "adminDashboard": "Dasbor Admin",
     "standard": "Standar",
     "pro": "Pro",
-    "co-admin": "Rekan Admin"
+    "co-admin": "Rekan Admin",
+    "msgSelectStartDate": "Pilih tanggal mulai.",
+    "msgSelectEndDate": "Sekarang pilih tanggal akhir.",
+    "msgRangeModeOff": "Mode rentang mati.",
+    "multiSelect": "Rentang",
+    "includeWeekendsTitle": "Akhir Pekan",
+    "excludeWeekendsMessage": "Apakah Anda ingin menyertakan hari-hari ini?",
+    "sat": "Sab",
+    "sun": "Min",
+    "apply": "Terapkan"
 }

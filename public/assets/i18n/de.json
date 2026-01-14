@@ -255,5 +255,14 @@
     "adminDashboard": "Admin-Dashboard",
     "standard": "Standard",
     "pro": "Profi",
-    "co-admin": "Co-Admin"
+    "co-admin": "Co-Admin",
+    "msgSelectStartDate": "Startdatum auswählen.",
+    "msgSelectEndDate": "Jetzt Enddatum auswählen.",
+    "msgRangeModeOff": "Bereichsmodus aus.",
+    "multiSelect": "Bereich",
+    "includeWeekendsTitle": "Wochenenden",
+    "excludeWeekendsMessage": "Möchten Sie diese Tage einschließen?",
+    "sat": "Sa",
+    "sun": "So",
+    "apply": "Anwenden"
 }
