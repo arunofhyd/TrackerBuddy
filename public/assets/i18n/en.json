@@ -203,7 +203,7 @@
     "noneWillBeRemoved": "None (will be removed)",
     "selectType": "Select Type",
     "multiSelect": "Range",
-    "includeWeekendsTitle": "Include Days?",
+    "includeWeekendsTitle": "Weekends",
     "excludeWeekendsMessage": "Do you want to include these days?",
     "sat": "Sat",
     "sun": "Sun",
