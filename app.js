@@ -108,8 +108,9 @@ function initUI() {
         logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
         multiSelectBtn: document.getElementById('multi-select-btn'),
         weekendOptionModal: document.getElementById('weekend-option-modal'),
-        weekendOptionYesBtn: document.getElementById('weekend-option-yes-btn'),
-        weekendOptionNoBtn: document.getElementById('weekend-option-no-btn'),
+        toggleSatBtn: document.getElementById('toggle-sat-btn'),
+        toggleSunBtn: document.getElementById('toggle-sun-btn'),
+        weekendApplyBtn: document.getElementById('weekend-apply-btn'),
         statsToggleBtn: document.getElementById('stats-toggle-btn'),
         leaveStatsSection: document.getElementById('leave-stats-section'),
         statsArrowDown: document.getElementById('stats-arrow-down'),
@@ -3918,6 +3919,7 @@ function setupEventListeners() {
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
             DOM.multiSelectBtn.classList.add('hidden');
+            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
             updateView();
         } else {
@@ -3931,12 +3933,14 @@ function setupEventListeners() {
             DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
             DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
             DOM.multiSelectBtn.classList.remove('hidden');
+            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
     });
 
     DOM.multiSelectBtn.addEventListener('click', () => {
         setState({ isMultiSelectMode: true, multiSelectStartDate: null });
+        DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
         showMessage(i18n.t('msgSelectStartDate'), 'info');
     });
 
@@ -3988,13 +3992,20 @@ function setupEventListeners() {
     });
 
     // Weekend Option Modal Listeners
-    DOM.weekendOptionYesBtn.addEventListener('click', () => {
-        applyRangeSelection(true);
-        closeWeekendOptionModal();
+    DOM.toggleSatBtn.addEventListener('click', () => {
+        const isExcluded = DOM.toggleSatBtn.dataset.excluded === 'true';
+        DOM.toggleSatBtn.dataset.excluded = !isExcluded;
     });
 
-    DOM.weekendOptionNoBtn.addEventListener('click', () => {
-        applyRangeSelection(false);
+    DOM.toggleSunBtn.addEventListener('click', () => {
+        const isExcluded = DOM.toggleSunBtn.dataset.excluded === 'true';
+        DOM.toggleSunBtn.dataset.excluded = !isExcluded;
+    });
+
+    DOM.weekendApplyBtn.addEventListener('click', () => {
+        const excludeSat = DOM.toggleSatBtn.dataset.excluded === 'true';
+        const excludeSun = DOM.toggleSunBtn.dataset.excluded === 'true';
+        applyRangeSelection(excludeSat, excludeSun);
         closeWeekendOptionModal();
     });
 
@@ -4011,6 +4022,11 @@ function setupEventListeners() {
         }
 
         setState({ pendingRangeSelection: range });
+
+        // Reset toggles to default (Included/Green)
+        DOM.toggleSatBtn.dataset.excluded = 'false';
+        DOM.toggleSunBtn.dataset.excluded = 'false';
+
         DOM.weekendOptionModal.classList.add('visible');
     }
 
@@ -4018,18 +4034,19 @@ function setupEventListeners() {
         DOM.weekendOptionModal.classList.remove('visible');
     }
 
-    function applyRangeSelection(excludeWeekends) {
+    function applyRangeSelection(excludeSat, excludeSun) {
         const range = state.pendingRangeSelection || [];
         const newSelection = new Set(state.leaveSelection);
 
         range.forEach(dateKey => {
-            if (excludeWeekends) {
-                const parts = dateKey.split('-').map(Number);
-                // Note: month is 0-indexed in Date constructor
-                const date = new Date(parts[0], parts[1] - 1, parts[2]);
-                const day = date.getDay();
-                if (day === 0 || day === 6) return;
-            }
+            const parts = dateKey.split('-').map(Number);
+            // Note: month is 0-indexed in Date constructor
+            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+            const day = date.getDay();
+
+            if (day === 6 && excludeSat) return; // Exclude Saturday
+            if (day === 0 && excludeSun) return; // Exclude Sunday
+
             newSelection.add(dateKey);
         });
 
@@ -4039,6 +4056,9 @@ function setupEventListeners() {
             multiSelectStartDate: null,
             pendingRangeSelection: null
         });
+
+        // Reset UI state
+        DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
 
         renderCalendar();
         showMessage(i18n.t("msgSelectDayAndPill"), 'info');
