@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Chọn ngày bắt đầu.",
     "msgSelectEndDate": "Bây giờ chọn ngày kết thúc.",
     "msgRangeModeOff": "Chế độ phạm vi đã tắt.",
-    "multiSelect": "Phạm vi",
+    "range": "Phạm vi",
     "includeWeekendsTitle": "Cuối tuần",
     "excludeWeekendsMessage": "Bạn có muốn bao gồm những ngày này không?",
     "sat": "T7",

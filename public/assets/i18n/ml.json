@@ -259,7 +259,7 @@
     "msgSelectStartDate": "തുടങ്ങുന്ന തീയതി തിരഞ്ഞെടുക്കുക.",
     "msgSelectEndDate": "ഇനി അവസാനിക്കുന്ന തീയതി തിരഞ്ഞെടുക്കുക.",
     "msgRangeModeOff": "റേഞ്ച് മോഡ് ഓഫ്.",
-    "multiSelect": "റേഞ്ച്",
+    "range": "റേഞ്ച്",
     "includeWeekendsTitle": "വാരാന്ത്യങ്ങൾ",
     "excludeWeekendsMessage": "ഈ ദിവസങ്ങൾ ഉൾപ്പെടുത്തണോ?",
     "sat": "ശനി",

@@ -259,7 +259,7 @@
     "msgSelectStartDate": "開始日を選択してください。",
     "msgSelectEndDate": "終了日を選択してください。",
     "msgRangeModeOff": "範囲モードオフ。",
-    "multiSelect": "範囲",
+    "range": "範囲",
     "includeWeekendsTitle": "週末",
     "excludeWeekendsMessage": "これらの日を含めますか？",
     "sat": "土",

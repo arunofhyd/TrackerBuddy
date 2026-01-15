@@ -106,7 +106,7 @@ function initUI() {
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
         logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
         logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
-        multiSelectBtn: document.getElementById('multi-select-btn'),
+        rangeBtn: document.getElementById('range-btn'),
         weekendOptionModal: document.getElementById('weekend-option-modal'),
         toggleSatBtn: document.getElementById('toggle-sat-btn'),
         toggleSunBtn: document.getElementById('toggle-sun-btn'),
@@ -424,35 +424,35 @@ function renderActionButtons() {
     if (state.isLoggingLeave) {
         DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
         DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
-        DOM.multiSelectBtn.classList.remove('hidden');
+        DOM.rangeBtn.classList.remove('hidden');
 
-        // Update Multi Select Button Style based on state
-        if (state.isMultiSelectMode) {
-             if (DOM.multiSelectBtn.classList.contains('btn-secondary')) {
-                 DOM.multiSelectBtn.classList.replace('btn-secondary', 'btn-primary');
+        // Update Range Button Style based on state
+        if (state.isRangeMode) {
+             if (DOM.rangeBtn.classList.contains('btn-secondary')) {
+                 DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
              }
-             DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+             DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
         } else {
-             if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
-                 DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+             if (DOM.rangeBtn.classList.contains('btn-primary')) {
+                 DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
              }
-             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
         }
     } else {
         DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
-        DOM.multiSelectBtn.classList.add('hidden');
+        DOM.rangeBtn.classList.add('hidden');
 
-        // Reset multi-select button visual state if needed
-        if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
-            DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+        // Reset range button visual state if needed
+        if (DOM.rangeBtn.classList.contains('btn-primary')) {
+            DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
         }
-        DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
     }
 
-    // Render Multi Select (Range) Button
+    // Render Range Button
     // We explicitly render this to ensure text updates correctly even if active state somehow interfered with data-i18n
-    DOM.multiSelectBtn.innerHTML = `<i class="fas fa-list-check mr-2"></i> ${i18n.t('multiSelect')}`;
+    DOM.rangeBtn.innerHTML = `<i class="fas fa-list-check mr-2"></i> ${i18n.t('range')}`;
 }
 
 function renderCalendar() {
@@ -498,9 +498,9 @@ function renderCalendar() {
         if (hasActivity) classes.push('has-activity');
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
         if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
-        // Apply leave-selecting class if it's in the selection OR if it's the start date of a multi-select range
+        // Apply leave-selecting class if it's in the selection OR if it's the start date of a range
         const isInPendingRange = state.pendingRangeSelection && state.pendingRangeSelection.includes(dateKey);
-        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isMultiSelectMode && state.multiSelectStartDate === dateKey) || isInPendingRange)) {
+        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isRangeMode && state.rangeStartDate === dateKey) || isInPendingRange)) {
             classes.push('leave-selecting');
         }
 
@@ -3955,8 +3955,8 @@ function setupEventListeners() {
                 isLoggingLeave: false,
                 selectedLeaveTypeId: null,
                 leaveSelection: new Set(),
-                isMultiSelectMode: false,
-                multiSelectStartDate: null,
+                isRangeMode: false,
+                rangeStartDate: null,
                 pendingRangeSelection: null
             });
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
@@ -3971,28 +3971,28 @@ function setupEventListeners() {
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            // Ensure button starts in inactive state for multi-select
-            if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
-                DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+            // Ensure button starts in inactive state for range
+            if (DOM.rangeBtn.classList.contains('btn-primary')) {
+                DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
             }
-            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+            DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
 
             updateView(); // This will trigger renderLogLeaveButton
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
     });
 
-    DOM.multiSelectBtn.addEventListener('click', () => {
-        if (state.isMultiSelectMode) {
-             setState({ isMultiSelectMode: false, multiSelectStartDate: null });
-             DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
-             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+    DOM.rangeBtn.addEventListener('click', () => {
+        if (state.isRangeMode) {
+             setState({ isRangeMode: false, rangeStartDate: null });
+             DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
+             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
              showMessage(i18n.t("msgRangeModeOff"), 'info');
              renderCalendar();
         } else {
-            setState({ isMultiSelectMode: true, multiSelectStartDate: null });
-            DOM.multiSelectBtn.classList.replace('btn-secondary', 'btn-primary');
-            DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            setState({ isRangeMode: true, rangeStartDate: null });
+            DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
+            DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t('msgSelectStartDate'), 'info');
         }
     });
@@ -4017,13 +4017,13 @@ function setupEventListeners() {
         const dateKey = cell.dataset.date;
 
         if (state.isLoggingLeave) {
-            if (state.isMultiSelectMode) {
-                if (!state.multiSelectStartDate) {
-                    setState({ multiSelectStartDate: dateKey });
+            if (state.isRangeMode) {
+                if (!state.rangeStartDate) {
+                    setState({ rangeStartDate: dateKey });
                     showMessage(i18n.t('msgSelectEndDate'), 'info');
                     renderCalendar();
                 } else {
-                    handleRangeSelection(state.multiSelectStartDate, dateKey);
+                    handleRangeSelection(state.rangeStartDate, dateKey);
                 }
             } else {
                 if (state.leaveSelection.has(dateKey)) {
@@ -4109,8 +4109,8 @@ function setupEventListeners() {
 
         setState({
             leaveSelection: newSelection,
-            isMultiSelectMode: false,
-            multiSelectStartDate: null,
+            isRangeMode: false,
+            rangeStartDate: null,
             pendingRangeSelection: null
         });
 

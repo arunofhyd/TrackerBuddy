@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Pilih tanggal mulai.",
     "msgSelectEndDate": "Sekarang pilih tanggal akhir.",
     "msgRangeModeOff": "Mode rentang mati.",
-    "multiSelect": "Rentang",
+    "range": "Rentang",
     "includeWeekendsTitle": "Akhir Pekan",
     "excludeWeekendsMessage": "Apakah Anda ingin menyertakan hari-hari ini?",
     "sat": "Sab",

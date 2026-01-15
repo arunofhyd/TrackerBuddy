@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Selecteer startdatum.",
     "msgSelectEndDate": "Selecteer nu einddatum.",
     "msgRangeModeOff": "Bereikmodus uit.",
-    "multiSelect": "Bereik",
+    "range": "Bereik",
     "includeWeekendsTitle": "Weekenden",
     "excludeWeekendsMessage": "Wilt u deze dagen opnemen?",
     "sat": "Za",

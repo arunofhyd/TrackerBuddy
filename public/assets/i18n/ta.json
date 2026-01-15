@@ -259,7 +259,7 @@
     "msgSelectStartDate": "தொடக்க தேதியைத் தேர்ந்தெடுக்கவும்.",
     "msgSelectEndDate": "இப்போது முடிவு தேதியைத் தேர்ந்தெடுக்கவும்.",
     "msgRangeModeOff": "வரம்பு முறை முடக்கப்பட்டுள்ளது.",
-    "multiSelect": "வரம்பு",
+    "range": "வரம்பு",
     "includeWeekendsTitle": "வார இறுதி நாட்கள்",
     "excludeWeekendsMessage": "இந்த நாட்களைச் சேர்க்க விரும்புகிறீர்களா?",
     "sat": "சனி",

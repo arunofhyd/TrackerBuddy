@@ -202,7 +202,7 @@
     "msgUpdateSaveFailed": "Failed to save update.",
     "noneWillBeRemoved": "None (will be removed)",
     "selectType": "Select Type",
-    "multiSelect": "Range",
+    "range": "Range",
     "includeWeekendsTitle": "Weekends",
     "excludeWeekendsMessage": "Do you want to include these days?",
     "sat": "Sat",

@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Sélectionnez la date de début.",
     "msgSelectEndDate": "Maintenant, sélectionnez la date de fin.",
     "msgRangeModeOff": "Mode plage désactivé.",
-    "multiSelect": "Plage",
+    "range": "Plage",
     "includeWeekendsTitle": "Week-ends",
     "excludeWeekendsMessage": "Voulez-vous inclure ces jours ?",
     "sat": "Sam",

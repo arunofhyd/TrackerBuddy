@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Выберите дату начала.",
     "msgSelectEndDate": "Теперь выберите дату окончания.",
     "msgRangeModeOff": "Режим диапазона выключен.",
-    "multiSelect": "Диапазон",
+    "range": "Диапазон",
     "includeWeekendsTitle": "Выходные",
     "excludeWeekendsMessage": "Вы хотите включить эти дни?",
     "sat": "Сб",
