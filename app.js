@@ -13,7 +13,8 @@ import {
     VIEW_MODES,
     ACTION_TYPES,
     COLOR_MAP,
-    LOCAL_STORAGE_KEYS
+    LOCAL_STORAGE_KEYS,
+    NOTIFICATION_SHAPE
 } from './constants.js';
 import { createInitialState } from './services/state.js';
 import { Logger } from './services/logger.js';
@@ -366,7 +367,7 @@ async function handleUserLogin(user) {
 
 function showMessage(msg, type = 'info') {
     DOM.messageText.textContent = msg;
-    DOM.messageDisplay.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-lg shadow-md transition-opacity duration-300';
+        DOM.messageDisplay.className = `fixed bottom-5 right-5 z-50 px-4 py-3 ${NOTIFICATION_SHAPE} shadow-md transition-opacity duration-300`;
     if (type === 'error') {
         DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
         triggerHapticFeedback('error');
