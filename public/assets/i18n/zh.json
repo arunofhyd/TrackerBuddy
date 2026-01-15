@@ -255,5 +255,14 @@
     "adminDashboard": "管理仪表板",
     "standard": "Standard",
     "pro": "Pro",
-    "co-admin": "Co-Admin"
+    "co-admin": "Co-Admin",
+    "msgSelectStartDate": "选择开始日期。",
+    "msgSelectEndDate": "现在选择结束日期。",
+    "msgRangeModeOff": "范围模式已关闭。",
+    "range": "范围",
+    "includeWeekendsTitle": "周末",
+    "excludeWeekendsMessage": "您要包括这些天吗？",
+    "sat": "六",
+    "sun": "日",
+    "apply": "应用"
 }

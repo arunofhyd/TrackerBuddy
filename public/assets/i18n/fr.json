@@ -255,5 +255,14 @@
     "adminDashboard": "Tableau de bord d'administration",
     "standard": "Standard",
     "pro": "Pro",
-    "co-admin": "Co-administrateur"
+    "co-admin": "Co-administrateur",
+    "msgSelectStartDate": "Sélectionnez la date de début.",
+    "msgSelectEndDate": "Maintenant, sélectionnez la date de fin.",
+    "msgRangeModeOff": "Mode plage désactivé.",
+    "range": "Plage",
+    "includeWeekendsTitle": "Week-ends",
+    "excludeWeekendsMessage": "Voulez-vous inclure ces jours ?",
+    "sat": "Sam",
+    "sun": "Dim",
+    "apply": "Appliquer"
 }

@@ -103,9 +103,16 @@ function initUI() {
         editingLeaveTypeId: document.getElementById('editing-leave-type-id'),
         leaveNameInput: document.getElementById('leave-name-input'),
         leaveDaysInput: document.getElementById('leave-days-input'),
+        limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
         logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
+        logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
+        rangeBtn: document.getElementById('range-btn'),
+        weekendOptionModal: document.getElementById('weekend-option-modal'),
+        toggleSatBtn: document.getElementById('toggle-sat-btn'),
+        toggleSunBtn: document.getElementById('toggle-sun-btn'),
+        weekendApplyBtn: document.getElementById('weekend-apply-btn'),
         statsToggleBtn: document.getElementById('stats-toggle-btn'),
         leaveStatsSection: document.getElementById('leave-stats-section'),
         statsArrowDown: document.getElementById('stats-arrow-down'),
@@ -411,7 +418,45 @@ function updateView() {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
         renderDailyActivities();
     }
+    renderActionButtons();
 }
+
+function renderActionButtons() {
+    // Render Log/Cancel Button
+    if (state.isLoggingLeave) {
+        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
+        DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
+        DOM.rangeBtn.classList.remove('hidden');
+
+        // Update Range Button Style based on state
+        if (state.isRangeMode) {
+             if (DOM.rangeBtn.classList.contains('btn-secondary')) {
+                 DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
+             }
+             DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+        } else {
+             if (DOM.rangeBtn.classList.contains('btn-primary')) {
+                 DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
+             }
+             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        }
+    } else {
+        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
+        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+        DOM.rangeBtn.classList.add('hidden');
+
+        // Reset range button visual state if needed
+        if (DOM.rangeBtn.classList.contains('btn-primary')) {
+            DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
+        }
+        DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+    }
+
+    // Render Range Button
+    // We explicitly render this to ensure text updates correctly even if active state somehow interfered with data-i18n
+    DOM.rangeBtn.innerHTML = `<i class="fas fa-list-check mr-2"></i> ${i18n.t('range')}`;
+}
+
 function renderCalendar() {
     // Preserve the header row (first 7 children)
     // Actually, lit-html replacing innerHTML will remove the header rows if I target DOM.calendarView directly.
@@ -455,7 +500,11 @@ function renderCalendar() {
         if (hasActivity) classes.push('has-activity');
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
         if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
-        if (state.isLoggingLeave && state.leaveSelection.has(dateKey)) classes.push('leave-selecting');
+        // Apply leave-selecting class if it's in the selection OR if it's the start date of a range
+        const isInPendingRange = state.pendingRangeSelection && state.pendingRangeSelection.includes(dateKey);
+        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isRangeMode && state.rangeStartDate === dateKey) || isInPendingRange)) {
+            classes.push('leave-selecting');
+        }
 
         const isFullLeave = leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL;
         const isSunday = date.getDay() === 0;
@@ -1791,7 +1840,11 @@ function loadSplashScreenVideo() {
 function getVisibleLeaveTypesForYear(year) {
     const yearData = state.yearlyData[year] || {};
     const overrides = yearData.leaveOverrides || {};
-    return state.leaveTypes.filter(lt => !overrides[lt.id]?.hidden);
+    return state.leaveTypes.filter(lt => {
+        if (overrides[lt.id]?.hidden) return false;
+        if (lt.limitYear && lt.limitYear !== year) return false;
+        return true;
+    });
 }
 
 function openLeaveTypeModal(leaveType = null) {
@@ -1809,6 +1862,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = leaveType.name;
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
+        DOM.limitLeaveToYearBtn.dataset.limited = !!leaveType.limitYear;
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
     } else {
         DOM.leaveTypeModalTitle.dataset.i18n = 'addNewLeaveType';
@@ -1817,6 +1871,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = '';
         DOM.leaveDaysInput.value = '';
         selectColorInPicker(null);
+        DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
     }
     DOM.leaveNameInput.focus();
@@ -1855,6 +1910,7 @@ async function saveLeaveType() {
     const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
     const name = DOM.leaveNameInput.value.trim();
     const totalDays = parseFloat(DOM.leaveDaysInput.value);
+    const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
     const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
     const color = selectedColorEl ? selectedColorEl.dataset.color : null;
 
@@ -1876,6 +1932,7 @@ async function saveLeaveType() {
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
+    const limitYear = limitToCurrentYear ? currentYear : null;
 
     if (existingIndex > -1) {
         // Editing existing leave type
@@ -1883,6 +1940,11 @@ async function saveLeaveType() {
         // Update global name and color
         globalLeaveType.name = name;
         globalLeaveType.color = color;
+        if (limitYear) {
+            globalLeaveType.limitYear = limitYear;
+        } else {
+            delete globalLeaveType.limitYear;
+        }
 
         // Check if the totalDays for the current year is different from the global setting
         if (totalDays !== globalLeaveType.totalDays) {
@@ -1909,7 +1971,11 @@ async function saveLeaveType() {
         }
     } else {
         // Adding a new leave type - this is always a global addition
-        newLeaveTypes.push({ id, name, totalDays, color });
+        const newLeaveType = { id, name, totalDays, color };
+        if (limitYear) {
+            newLeaveType.limitYear = limitYear;
+        }
+        newLeaveTypes.push(newLeaveType);
     }
 
     // Optimistically update state
@@ -2738,9 +2804,9 @@ function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
         } else {
-            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
+            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
         }
     }
 
@@ -3868,6 +3934,10 @@ function setupEventListeners() {
     uploadCsvInput.addEventListener('change', handleFileUpload);
 
     DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
+    DOM.limitLeaveToYearBtn.addEventListener('click', () => {
+        const isLimited = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+        DOM.limitLeaveToYearBtn.dataset.limited = !isLimited;
+    });
     document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
     document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
     setupDoubleClickConfirm(
@@ -3904,10 +3974,17 @@ function setupEventListeners() {
 
     DOM.logNewLeaveBtn.addEventListener('click', () => {
         if (state.isLoggingLeave) {
-            setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
-            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+            setState({
+                isLoggingLeave: false,
+                selectedLeaveTypeId: null,
+                leaveSelection: new Set(),
+                isRangeMode: false,
+                rangeStartDate: null,
+                pendingRangeSelection: null
+            });
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
+            // Clean up any stray visual selections
+            renderCalendar();
             updateView();
         } else {
             const year = state.currentMonth.getFullYear();
@@ -3917,9 +3994,29 @@ function setupEventListeners() {
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
-            DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
+            // Ensure button starts in inactive state for range
+            if (DOM.rangeBtn.classList.contains('btn-primary')) {
+                DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
+            }
+            DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+
+            updateView(); // This will trigger renderLogLeaveButton
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
+        }
+    });
+
+    DOM.rangeBtn.addEventListener('click', () => {
+        if (state.isRangeMode) {
+             setState({ isRangeMode: false, rangeStartDate: null });
+             DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
+             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+             showMessage(i18n.t("msgRangeModeOff"), 'info');
+             renderCalendar();
+        } else {
+            setState({ isRangeMode: true, rangeStartDate: null });
+            DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
+            DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+            showMessage(i18n.t('msgSelectStartDate'), 'info');
         }
     });
 
@@ -3943,15 +4040,25 @@ function setupEventListeners() {
         const dateKey = cell.dataset.date;
 
         if (state.isLoggingLeave) {
-            if (state.leaveSelection.has(dateKey)) {
-                state.leaveSelection.delete(dateKey);
+            if (state.isRangeMode) {
+                if (!state.rangeStartDate) {
+                    setState({ rangeStartDate: dateKey });
+                    showMessage(i18n.t('msgSelectEndDate'), 'info');
+                    renderCalendar();
+                } else {
+                    handleRangeSelection(state.rangeStartDate, dateKey);
+                }
             } else {
-                state.leaveSelection.add(dateKey);
-            }
-            renderCalendar();
+                if (state.leaveSelection.has(dateKey)) {
+                    state.leaveSelection.delete(dateKey);
+                } else {
+                    state.leaveSelection.add(dateKey);
+                }
+                renderCalendar();
 
-            if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
-                openLeaveCustomizationModal();
+                if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
+                    openLeaveCustomizationModal();
+                }
             }
         } else {
             const date = new Date(dateKey + 'T00:00:00');
@@ -3959,6 +4066,81 @@ function setupEventListeners() {
             updateView();
         }
     });
+
+    // Weekend Option Modal Listeners
+    DOM.toggleSatBtn.addEventListener('click', () => {
+        const isExcluded = DOM.toggleSatBtn.dataset.excluded === 'true';
+        DOM.toggleSatBtn.dataset.excluded = !isExcluded;
+    });
+
+    DOM.toggleSunBtn.addEventListener('click', () => {
+        const isExcluded = DOM.toggleSunBtn.dataset.excluded === 'true';
+        DOM.toggleSunBtn.dataset.excluded = !isExcluded;
+    });
+
+    DOM.weekendApplyBtn.addEventListener('click', () => {
+        const excludeSat = DOM.toggleSatBtn.dataset.excluded === 'true';
+        const excludeSun = DOM.toggleSunBtn.dataset.excluded === 'true';
+        applyRangeSelection(excludeSat, excludeSun);
+        closeWeekendOptionModal();
+    });
+
+    function handleRangeSelection(startDateStr, endDateStr) {
+        const start = new Date(startDateStr + 'T00:00:00');
+        const end = new Date(endDateStr + 'T00:00:00');
+        const [d1, d2] = start < end ? [start, end] : [end, start];
+
+        const range = [];
+        let current = new Date(d1);
+        while (current <= d2) {
+            range.push(getYYYYMMDD(current));
+            current.setDate(current.getDate() + 1);
+        }
+
+        setState({ pendingRangeSelection: range });
+
+        // Reset toggles to default (Included/Green)
+        DOM.toggleSatBtn.dataset.excluded = 'false';
+        DOM.toggleSunBtn.dataset.excluded = 'false';
+
+        DOM.weekendOptionModal.classList.add('visible');
+        renderCalendar();
+    }
+
+    function closeWeekendOptionModal() {
+        DOM.weekendOptionModal.classList.remove('visible');
+    }
+
+    function applyRangeSelection(excludeSat, excludeSun) {
+        const range = state.pendingRangeSelection || [];
+        const newSelection = new Set(state.leaveSelection);
+
+        range.forEach(dateKey => {
+            const parts = dateKey.split('-').map(Number);
+            // Note: month is 0-indexed in Date constructor
+            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+            const day = date.getDay();
+
+            // Logic: Tick (exclude=false) means Include. Cross (exclude=true) means Exclude.
+            // Check if day is Saturday (6) and we want to exclude it (excludeSat = true)
+            if (day === 6 && excludeSat) return;
+            // Check if day is Sunday (0) and we want to exclude it (excludeSun = true)
+            if (day === 0 && excludeSun) return;
+
+            newSelection.add(dateKey);
+        });
+
+        setState({
+            leaveSelection: newSelection,
+            isRangeMode: false,
+            rangeStartDate: null,
+            pendingRangeSelection: null
+        });
+
+        renderCalendar();
+        updateView();
+        showMessage(i18n.t("msgRangeModeOff"), 'info');
+    }
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');

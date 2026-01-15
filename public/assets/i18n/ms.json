@@ -255,5 +255,14 @@
     "adminDashboard": "Papan Pemuka Pentadbir",
     "standard": "Standard",
     "pro": "Pro",
-    "co-admin": "Pentadbir Bersama"
+    "co-admin": "Pentadbir Bersama",
+    "msgSelectStartDate": "Pilih tarikh mula.",
+    "msgSelectEndDate": "Sekarang pilih tarikh tamat.",
+    "msgRangeModeOff": "Mod julat dimatikan.",
+    "range": "Julat",
+    "includeWeekendsTitle": "Hujung Minggu",
+    "excludeWeekendsMessage": "Adakah anda mahu memasukkan hari-hari ini?",
+    "sat": "Sab",
+    "sun": "Aha",
+    "apply": "Gunakan"
 }

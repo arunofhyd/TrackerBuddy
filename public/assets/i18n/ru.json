@@ -255,5 +255,14 @@
     "adminDashboard": "Панель администратора",
     "standard": "Стандартный",
     "pro": "Про",
-    "co-admin": "Соадминистратор"
+    "co-admin": "Соадминистратор",
+    "msgSelectStartDate": "Выберите дату начала.",
+    "msgSelectEndDate": "Теперь выберите дату окончания.",
+    "msgRangeModeOff": "Режим диапазона выключен.",
+    "range": "Диапазон",
+    "includeWeekendsTitle": "Выходные",
+    "excludeWeekendsMessage": "Вы хотите включить эти дни?",
+    "sat": "Сб",
+    "sun": "Вс",
+    "apply": "Применить"
 }

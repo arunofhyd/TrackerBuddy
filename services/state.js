@@ -18,6 +18,9 @@ export const createInitialState = () => ({
     selectedLeaveTypeId: null,
     leaveSelection: new Set(),
     initialLeaveSelection: new Set(),
+    isRangeMode: false,
+    rangeStartDate: null,
+    pendingRangeSelection: null,
     logoTapCount: 0, // Easter Egg counter
     // Team Management State
     currentTeam: null,

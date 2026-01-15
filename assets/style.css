@@ -16,11 +16,13 @@
         .smooth-modal {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease-in-out;
+            visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
         .smooth-modal.visible {
             opacity: 1;
             pointer-events: auto;
+            visibility: visible;
         }
         .smooth-modal .modal-container {
             transform: scale(0.95);
@@ -671,10 +673,10 @@ body.dark #spotlight-scope-btn {
 }
 
 @keyframes pulse-shadow {
-    0%, 100% { 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+    0%, 100% {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
-    50% { 
+    50% {
         box-shadow: 0 0 25px rgba(59, 130, 246, 0.8); /* Bolder blue glow (blue-500) */
     }
 }
@@ -765,8 +767,8 @@ body.dark .admin-user-item .text-gray-400 {
     color: #9d174d;
 }
 .role-badge.owner {
-    background-color: #000000; 
-    color: #fcd34d;       
+    background-color: #000000;
+    color: #fcd34d;
 }
 body.dark .role-badge.standard {
     background-color: #374151;
@@ -781,8 +783,8 @@ body.dark .role-badge.co-admin {
     color: #fbcfe8;
 }
 body.dark .role-badge.owner {
-    background-color: #000000; 
-    color: #fcd34d;     
+    background-color: #000000;
+    color: #fcd34d;
 }
 
 .locked-feature-overlay {

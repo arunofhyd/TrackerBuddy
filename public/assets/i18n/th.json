@@ -255,5 +255,14 @@
     "adminDashboard": "แดชบอร์ดผู้ดูแลระบบ",
     "standard": "มาตรฐาน",
     "pro": "โปร",
-    "co-admin": "ผู้ดูแลระบบร่วม"
+    "co-admin": "ผู้ดูแลระบบร่วม",
+    "msgSelectStartDate": "เลือกวันที่เริ่มต้น",
+    "msgSelectEndDate": "ตอนนี้เลือกวันที่สิ้นสุด",
+    "msgRangeModeOff": "ปิดโหมดช่วง",
+    "range": "ช่วง",
+    "includeWeekendsTitle": "วันหยุดสุดสัปดาห์",
+    "excludeWeekendsMessage": "คุณต้องการรวมวันเหล่านี้หรือไม่?",
+    "sat": "ส.",
+    "sun": "อา.",
+    "apply": "นำไปใช้"
 }

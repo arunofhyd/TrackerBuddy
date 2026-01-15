@@ -255,5 +255,14 @@
     "adminDashboard": "అడ్మిన్ డాష్‌బోర్డ్",
     "standard": "ప్రామాణిక",
     "pro": "ప్రో",
-    "co-admin": "సహ-నిర్వాహకుడు"
+    "co-admin": "సహ-నిర్వాహకుడు",
+    "msgSelectStartDate": "ప్రారంభ తేదీని ఎంచుకోండి.",
+    "msgSelectEndDate": "ఇప్పుడు ముగింపు తేదీని ఎంచుకోండి.",
+    "msgRangeModeOff": "శ్రేణి మోడ్ ఆపివేయబడింది.",
+    "range": "శ్రేణి",
+    "includeWeekendsTitle": "వారాంతాలు",
+    "excludeWeekendsMessage": "మీరు ఈ రోజులను చేర్చాలనుకుంటున్నారా?",
+    "sat": "శని",
+    "sun": "ఆది",
+    "apply": "వర్తించు"
 }
