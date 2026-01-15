@@ -58,3 +58,5 @@ export const LOCAL_STORAGE_KEYS = {
     THEME: 'theme',
     APP_LANGUAGE: 'appLanguage'
 };
+
+export const NOTIFICATION_SHAPE = 'rounded-full';
