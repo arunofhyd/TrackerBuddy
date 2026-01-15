@@ -166,6 +166,7 @@
     "msgLeaveTypeColorConflict": "This color is already used by another visible leave type for this year.",
     "msgLeaveTypeSaved": "Leave type saved!",
     "msgLeaveTypeSaveFailed": "Failed to save leave type.",
+    "limitToCurrentYear": "Limit to current year only",
     "msgLeaveTypeHidden": "Leave type hidden for {year} and entries removed.",
     "msgLeaveTypeHideFailed": "Failed to hide leave type.",
     "msgLeaveTypesReordered": "Leave types reordered!",

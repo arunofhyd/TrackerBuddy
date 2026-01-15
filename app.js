@@ -103,6 +103,7 @@ function initUI() {
         editingLeaveTypeId: document.getElementById('editing-leave-type-id'),
         leaveNameInput: document.getElementById('leave-name-input'),
         leaveDaysInput: document.getElementById('leave-days-input'),
+        limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
         logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
@@ -1839,7 +1840,11 @@ function loadSplashScreenVideo() {
 function getVisibleLeaveTypesForYear(year) {
     const yearData = state.yearlyData[year] || {};
     const overrides = yearData.leaveOverrides || {};
-    return state.leaveTypes.filter(lt => !overrides[lt.id]?.hidden);
+    return state.leaveTypes.filter(lt => {
+        if (overrides[lt.id]?.hidden) return false;
+        if (lt.limitYear && lt.limitYear !== year) return false;
+        return true;
+    });
 }
 
 function openLeaveTypeModal(leaveType = null) {
@@ -1857,6 +1862,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = leaveType.name;
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
+        DOM.limitLeaveToYearBtn.dataset.limited = !!leaveType.limitYear;
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
     } else {
         DOM.leaveTypeModalTitle.dataset.i18n = 'addNewLeaveType';
@@ -1865,6 +1871,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = '';
         DOM.leaveDaysInput.value = '';
         selectColorInPicker(null);
+        DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
     }
     DOM.leaveNameInput.focus();
@@ -1903,6 +1910,7 @@ async function saveLeaveType() {
     const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
     const name = DOM.leaveNameInput.value.trim();
     const totalDays = parseFloat(DOM.leaveDaysInput.value);
+    const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
     const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
     const color = selectedColorEl ? selectedColorEl.dataset.color : null;
 
@@ -1924,6 +1932,7 @@ async function saveLeaveType() {
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
+    const limitYear = limitToCurrentYear ? currentYear : null;
 
     if (existingIndex > -1) {
         // Editing existing leave type
@@ -1931,6 +1940,11 @@ async function saveLeaveType() {
         // Update global name and color
         globalLeaveType.name = name;
         globalLeaveType.color = color;
+        if (limitYear) {
+            globalLeaveType.limitYear = limitYear;
+        } else {
+            delete globalLeaveType.limitYear;
+        }
 
         // Check if the totalDays for the current year is different from the global setting
         if (totalDays !== globalLeaveType.totalDays) {
@@ -1957,7 +1971,11 @@ async function saveLeaveType() {
         }
     } else {
         // Adding a new leave type - this is always a global addition
-        newLeaveTypes.push({ id, name, totalDays, color });
+        const newLeaveType = { id, name, totalDays, color };
+        if (limitYear) {
+            newLeaveType.limitYear = limitYear;
+        }
+        newLeaveTypes.push(newLeaveType);
     }
 
     // Optimistically update state
@@ -3916,6 +3934,10 @@ function setupEventListeners() {
     uploadCsvInput.addEventListener('change', handleFileUpload);
 
     DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
+    DOM.limitLeaveToYearBtn.addEventListener('click', () => {
+        const isLimited = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+        DOM.limitLeaveToYearBtn.dataset.limited = !isLimited;
+    });
     document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
     document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
     setupDoubleClickConfirm(
