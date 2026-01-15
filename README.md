@@ -54,8 +54,7 @@
 
 ---
 
-## Contact
+<p align="center">
+  Made with ❤️ by <a href="mailto:arunthomas04042001@gmail.com">Arun Thomas</a>
+</p>
 
-Arun Thomas - [arunthomas04042001@gmail.com](mailto:arunthomas04042001@gmail.com)
-
----
