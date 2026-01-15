@@ -416,7 +416,32 @@ function updateView() {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
         renderDailyActivities();
     }
+    renderActionButtons();
 }
+
+function renderActionButtons() {
+    // Render Log/Cancel Button
+    if (state.isLoggingLeave) {
+        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
+        DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
+        DOM.multiSelectBtn.classList.remove('hidden');
+    } else {
+        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
+        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+        DOM.multiSelectBtn.classList.add('hidden');
+
+        // Reset multi-select button visual state if needed
+        if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
+            DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+        }
+        DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+    }
+
+    // Render Multi Select (Range) Button
+    // We explicitly render this to ensure text updates correctly even if active state somehow interfered with data-i18n
+    DOM.multiSelectBtn.innerHTML = `<i class="fas fa-list-check mr-2"></i> ${i18n.t('multiSelect')}`;
+}
+
 function renderCalendar() {
     // Preserve the header row (first 7 children)
     // Actually, lit-html replacing innerHTML will remove the header rows if I target DOM.calendarView directly.
@@ -2746,11 +2771,10 @@ function handleBulkRemoveClick() {
 function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
-        const baseClasses = "w-4 h-4 sm:w-5 sm:h-5 mr-2 mt-1 sm:mt-0.5";
         if (state.currentTeam) {
-            teamIcon.className = `fa-solid fa-user ${baseClasses}`;
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
         } else {
-            teamIcon.className = `fa-regular fa-user ${baseClasses}`;
+            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
         }
     }
 
@@ -3922,14 +3946,6 @@ function setupEventListeners() {
                 multiSelectStartDate: null,
                 pendingRangeSelection: null
             });
-            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
-            DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
-            DOM.multiSelectBtn.classList.add('hidden');
-            // Reset multi-select button state
-            if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
-                DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
-            }
-            DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
             showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
             // Clean up any stray visual selections
             renderCalendar();
@@ -3942,14 +3958,13 @@ function setupEventListeners() {
                 return;
             }
             setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
-            DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
-            DOM.multiSelectBtn.classList.remove('hidden');
-            // Ensure button starts in inactive state
+            // Ensure button starts in inactive state for multi-select
             if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
                 DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
             }
             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+
+            updateView(); // This will trigger renderLogLeaveButton
             showMessage(i18n.t("msgSelectDayAndPill"), 'info');
         }
     });
