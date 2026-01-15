@@ -4101,10 +4101,8 @@ function setupEventListeners() {
             pendingRangeSelection: null
         });
 
-        // Reset UI state
-        DOM.multiSelectBtn.classList.remove('bg-blue-200', 'text-blue-800', 'ring-2', 'ring-blue-500');
-
         renderCalendar();
+        updateView();
         showMessage(i18n.t("msgRangeModeOff"), 'info');
     }
 
