@@ -2772,9 +2772,9 @@ function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
         } else {
-            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
+            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
         }
     }
 
