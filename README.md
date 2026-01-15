@@ -31,19 +31,6 @@
 
 ---
 
-## 🚀 Performance
-
-This application was built with performance as a top priority. By using a modern buildless approach with optimized assets, it achieves perfect Lighthouse scores.
-
-<p align="center">
-  </p>
-
--   **Optimized CSS:** A tiny, purged CSS file generated from Tailwind CSS ensures only the necessary styles are loaded.
--   **Compressed Assets:** All images have been converted to the modern `.webp` format, and the background video is highly compressed for fast loading.
--   **Lazy-Loaded Video:** The splash screen shows a static image first for an instant load, then progressively loads the video in the background.
-
----
-
 ## Tech Stack
 
 -   **Frontend:** HTML5, CSS3, Vanilla JavaScript (ES6 Modules)
