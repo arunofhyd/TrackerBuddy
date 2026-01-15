@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Vuoi includere questi giorni?",
     "sat": "Sab",
     "sun": "Dom",
-    "apply": "Applica"
+    "apply": "Applica",
+    "limitToCurrentYear": "Limita solo all'anno corrente"
 }
