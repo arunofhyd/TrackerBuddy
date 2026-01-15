@@ -425,6 +425,19 @@ function renderActionButtons() {
         DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
         DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
         DOM.multiSelectBtn.classList.remove('hidden');
+
+        // Update Multi Select Button Style based on state
+        if (state.isMultiSelectMode) {
+             if (DOM.multiSelectBtn.classList.contains('btn-secondary')) {
+                 DOM.multiSelectBtn.classList.replace('btn-secondary', 'btn-primary');
+             }
+             DOM.multiSelectBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+        } else {
+             if (DOM.multiSelectBtn.classList.contains('btn-primary')) {
+                 DOM.multiSelectBtn.classList.replace('btn-primary', 'btn-secondary');
+             }
+             DOM.multiSelectBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        }
     } else {
         DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
         DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
