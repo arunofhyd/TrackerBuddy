@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo_rounded.webp" alt="TrackerBuddy Logo" width="120" height="120">
+  <img src="/public/assetslogo_rounded.webp" alt="TrackerBuddy Logo" width="120" height="120">
   <h1>TrackerBuddy</h1>
   <p><strong>Track Activities, Work Hours & Leave Balances</strong></p>
 
