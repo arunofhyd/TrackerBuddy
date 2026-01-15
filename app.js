@@ -2746,10 +2746,11 @@ function handleBulkRemoveClick() {
 function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
+        const baseClasses = "w-4 h-4 sm:w-5 sm:h-5 mr-2 mt-1 sm:mt-0.5";
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2';
+            teamIcon.className = `fa-solid fa-user ${baseClasses}`;
         } else {
-            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2';
+            teamIcon.className = `fa-regular fa-user ${baseClasses}`;
         }
     }
 
