@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Bạn có muốn bao gồm những ngày này không?",
     "sat": "T7",
     "sun": "CN",
-    "apply": "Áp dụng"
+    "apply": "Áp dụng",
+    "limitToCurrentYear": "Chỉ giới hạn trong năm hiện tại"
 }

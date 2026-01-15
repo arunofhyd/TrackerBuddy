@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "이 날짜를 포함하시겠습니까?",
     "sat": "토",
     "sun": "일",
-    "apply": "적용"
+    "apply": "적용",
+    "limitToCurrentYear": "현재 연도로만 제한"
 }

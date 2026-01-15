@@ -46,6 +46,10 @@ const i18n = new TranslationService(() => {
     if (DOM.spotlightModal?.classList.contains('visible') && state.searchQuery) {
         performSearch(state.searchQuery);
     }
+    // Explicitly update limit to current year text to ensure consistency
+    if (DOM.limitLeaveToYearSpan) {
+        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
+    }
 });
 
 // --- Global App State ---
@@ -104,6 +108,7 @@ function initUI() {
         leaveNameInput: document.getElementById('leave-name-input'),
         leaveDaysInput: document.getElementById('leave-days-input'),
         limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
+        limitLeaveToYearSpan: document.querySelector('[data-i18n="limitToCurrentYear"]'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
         logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
@@ -1873,6 +1878,10 @@ function openLeaveTypeModal(leaveType = null) {
         selectColorInPicker(null);
         DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
+    }
+    // Explicitly update text on modal open
+    if (DOM.limitLeaveToYearSpan) {
+        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
     }
     DOM.leaveNameInput.focus();
 }

@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "これらの日を含めますか？",
     "sat": "土",
     "sun": "日",
-    "apply": "適用"
+    "apply": "適用",
+    "limitToCurrentYear": "現在の年のみに制限"
 }

@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Wilt u deze dagen opnemen?",
     "sat": "Za",
     "sun": "Zo",
-    "apply": "Toepassen"
+    "apply": "Toepassen",
+    "limitToCurrentYear": "Beperk tot alleen het huidige jaar"
 }

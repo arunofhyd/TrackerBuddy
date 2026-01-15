@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "您要包括这些天吗？",
     "sat": "六",
     "sun": "日",
-    "apply": "应用"
+    "apply": "应用",
+    "limitToCurrentYear": "仅限当年"
 }
