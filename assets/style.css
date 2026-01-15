@@ -110,8 +110,10 @@
         .leave-indicator { position: absolute; left: 0; bottom: 0; width: 100%; z-index: 5; transition: height 0.2s ease-in-out; }
         .leave-indicator.full-day { height: 100%; }
         .leave-indicator.half-day { height: 50%; }
-        .calendar-day-cell.leave-selecting { outline: 2px dashed #3b82f6; outline-offset: -2px; background-color: #eff6ff; }
+        .calendar-day-cell.leave-selecting { outline: 2px dashed var(--selected-leave-color, #3b82f6); outline-offset: -2px; background-color: var(--selected-leave-bg, #eff6ff); }
         .calendar-day-cell.is-today.leave-selecting { border-color: transparent !important; }
+        #floating-confirm-container { transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(20px); }
+        #floating-confirm-container.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
         @media (min-width: 768px) { .calendar-day-cell { min-height: 100px; height: auto; padding-top: 0; padding: 12px; display: flex; flex-direction: column; } .calendar-day-content { position: static; width: 100%; height: 100%; padding: 0; } }
         .calendar-day-cell.current-month { background-color: #ffffff; border: 1px solid #e2e8f0; }
         .calendar-day-cell.other-month { background-color: #f8fafc; color: #a0aec0; border: 1px solid #edf2f7; }
@@ -165,8 +167,42 @@
         .icon-btn:hover { background-color: #e2e8f0; border-color: #cbd5e0; }
         .icon-btn:active { transform: scale(0.95); }
         .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-        #message-display { position: fixed; bottom: 20px; right: 20px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+        #message-display {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, transform 0.3s ease-out;
+            max-width: 90vw;
+            width: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            overflow: hidden;
+            cursor: grab;
+            transform: translateX(0);
+        }
         #message-display.show { opacity: 1; visibility: visible; }
+        #message-display:active { cursor: grabbing; }
+
+        @media (max-width: 640px) {
+            #message-display {
+                bottom: 85px; /* Above bottom nav/floating button */
+                left: 50%;
+                transform: translateX(-50%);
+                right: auto;
+                width: 90%;
+                max-width: 350px;
+                text-align: center;
+                font-size: 0.9rem;
+                padding: 10px 16px;
+            }
+            #message-display.show {
+                transform: translateX(-50%);
+            }
+        }
+
         .modal-backdrop {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -459,6 +495,7 @@ body.dark .stat-card-info p {
 .spotlight-overlay.visible {
     opacity: 1;
     pointer-events: auto;
+            transform: translateY(-5px);
 }
 
 .spotlight-modal {
