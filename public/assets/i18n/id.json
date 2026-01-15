@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Apakah Anda ingin menyertakan hari-hari ini?",
     "sat": "Sab",
     "sun": "Min",
-    "apply": "Terapkan"
+    "apply": "Terapkan",
+    "limitToCurrentYear": "Batasi hanya untuk tahun ini"
 }

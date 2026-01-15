@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Adakah anda mahu memasukkan hari-hari ini?",
     "sat": "Sab",
     "sun": "Aha",
-    "apply": "Gunakan"
+    "apply": "Gunakan",
+    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja"
 }
