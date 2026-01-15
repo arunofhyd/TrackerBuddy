@@ -259,7 +259,7 @@
     "msgSelectStartDate": "प्रारंभ तिथि चुनें।",
     "msgSelectEndDate": "अब समाप्ति तिथि चुनें।",
     "msgRangeModeOff": "रेंज मोड बंद।",
-    "multiSelect": "रेंज",
+    "range": "रेंज",
     "includeWeekendsTitle": "सप्ताहांत",
     "excludeWeekendsMessage": "क्या आप इन दिनों को शामिल करना चाहते हैं?",
     "sat": "शनि",

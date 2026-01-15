@@ -259,7 +259,7 @@
     "msgSelectStartDate": "حدد تاريخ البدء.",
     "msgSelectEndDate": "الآن حدد تاريخ الانتهاء.",
     "msgRangeModeOff": "تم إيقاف وضع المدى.",
-    "multiSelect": "مدى",
+    "range": "مدى",
     "includeWeekendsTitle": "عطلات نهاية الأسبوع",
     "excludeWeekendsMessage": "هل تريد تضمين هذه الأيام؟",
     "sat": "السبت",

@@ -259,7 +259,7 @@
     "msgSelectStartDate": "เลือกวันที่เริ่มต้น",
     "msgSelectEndDate": "ตอนนี้เลือกวันที่สิ้นสุด",
     "msgRangeModeOff": "ปิดโหมดช่วง",
-    "multiSelect": "ช่วง",
+    "range": "ช่วง",
     "includeWeekendsTitle": "วันหยุดสุดสัปดาห์",
     "excludeWeekendsMessage": "คุณต้องการรวมวันเหล่านี้หรือไม่?",
     "sat": "ส.",

@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Pilih tarikh mula.",
     "msgSelectEndDate": "Sekarang pilih tarikh tamat.",
     "msgRangeModeOff": "Mod julat dimatikan.",
-    "multiSelect": "Julat",
+    "range": "Julat",
     "includeWeekendsTitle": "Hujung Minggu",
     "excludeWeekendsMessage": "Adakah anda mahu memasukkan hari-hari ini?",
     "sat": "Sab",

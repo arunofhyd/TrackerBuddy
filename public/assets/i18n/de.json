@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Startdatum auswählen.",
     "msgSelectEndDate": "Jetzt Enddatum auswählen.",
     "msgRangeModeOff": "Bereichsmodus aus.",
-    "multiSelect": "Bereich",
+    "range": "Bereich",
     "includeWeekendsTitle": "Wochenenden",
     "excludeWeekendsMessage": "Möchten Sie diese Tage einschließen?",
     "sat": "Sa",

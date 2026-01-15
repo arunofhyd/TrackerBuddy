@@ -259,7 +259,7 @@
     "msgSelectStartDate": "Selecione a data de início.",
     "msgSelectEndDate": "Agora selecione a data de término.",
     "msgRangeModeOff": "Modo de intervalo desativado.",
-    "multiSelect": "Intervalo",
+    "range": "Intervalo",
     "includeWeekendsTitle": "Fins de semana",
     "excludeWeekendsMessage": "Deseja incluir estes dias?",
     "sat": "Sáb",
