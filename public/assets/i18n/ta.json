@@ -44,7 +44,16 @@
     ],
     "saveChanges": "மாற்றங்களை சேமி",
     "sat": "சனி",
-    "sun": "ஞாயிறு"
+    "sun": "ஞாயிறு",
+    "shortDays": [
+      "ஞா",
+      "தி",
+      "செ",
+      "பு",
+      "வி",
+      "வெ",
+      "ச"
+    ]
   },
   "landing": {
     "splashText": "தொடங்க தட்டவும்",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "புதுப்பிக்க முடியவில்லை",
     "pleaseSelectDate": "தேதியைத் தேர்ந்தெடுக்கவும்",
     "includeWeekendsTitle": "வார இறுதிகள்?",
-    "excludeWeekendsMessage": "சனி/ஞாயிறு சேர்க்கவா?"
+    "excludeWeekendsMessage": "சனி/ஞாயிறு சேர்க்கவா?",
+    "days": "நாட்கள்"
   },
   "search": {
     "placeholder": "தேடு...",

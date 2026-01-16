@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Sauvegarder",
     "sat": "Sam",
-    "sun": "Dim"
+    "sun": "Dim",
+    "shortDays": [
+      "Dim",
+      "Lun",
+      "Mar",
+      "Mer",
+      "Jeu",
+      "Ven",
+      "Sam"
+    ]
   },
   "landing": {
     "splashText": "Commencer",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Erreur mise à jour.",
     "pleaseSelectDate": "Choisissez une date.",
     "includeWeekendsTitle": "Week-ends ?",
-    "excludeWeekendsMessage": "Inclure ces jours ?"
+    "excludeWeekendsMessage": "Inclure ces jours ?",
+    "days": "jours"
   },
   "search": {
     "placeholder": "Rechercher...",
@@ -271,7 +281,7 @@
     "upgrade": "Passer Pro",
     "standard": "Standard",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "Co-Administrateur"
   },
   "admin": {
     "dashboard": "Admin",

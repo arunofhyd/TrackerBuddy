@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Simpan Perubahan",
     "sat": "Sab",
-    "sun": "Min"
+    "sun": "Min",
+    "shortDays": [
+      "Min",
+      "Sen",
+      "Sel",
+      "Rab",
+      "Kam",
+      "Jum",
+      "Sab"
+    ]
   },
   "landing": {
     "splashText": "Ketuk untuk Mulai",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Gagal update",
     "pleaseSelectDate": "Pilih tanggal ya",
     "includeWeekendsTitle": "Termasuk akhir pekan?",
-    "excludeWeekendsMessage": "Hitung Sabtu/Minggu juga?"
+    "excludeWeekendsMessage": "Hitung Sabtu/Minggu juga?",
+    "days": "hari"
   },
   "search": {
     "placeholder": "Cari...",
@@ -271,7 +281,7 @@
     "upgrade": "Upgrade ke Pro",
     "standard": "Standar",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "Wakil Admin"
   },
   "admin": {
     "dashboard": "Dasbor Admin",

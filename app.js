@@ -46,6 +46,9 @@ const i18n = new TranslationService(() => {
     if (DOM.spotlightModal?.classList.contains('visible') && state.searchQuery) {
         performSearch(state.searchQuery);
     }
+    if (DOM.monthPickerModal?.classList.contains('visible')) {
+        renderMonthPicker();
+    }
 });
 
 // --- Global App State ---
@@ -551,7 +554,8 @@ function renderActionButtons() {
 }
 
 function renderCalendar() {
-    const days = i18n.getValue('common.days') || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const daysKey = (isMobileDevice() && i18n.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
+    const days = i18n.getValue(daysKey) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const header = days.map((day, i) => html`<div class="py-3 text-center text-sm font-semibold ${i === 0 ? 'text-red-500' : 'text-gray-700'}">${day}</div>`);
 
     const year = state.currentMonth.getFullYear();
@@ -3088,7 +3092,7 @@ function renderTeamSection() {
                 </div>
                 
                 <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
-                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">${i18n.t('teamRoomCode')}</h4>
+                    <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">${i18n.t('team.roomCode')}</h4>
                     <div class="text-center">
                         <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
@@ -3437,8 +3441,8 @@ function renderTeamDashboard() {
                 </div>
                 <div class="stat-card-info min-w-0 overflow-hidden">
                     <h5 class="truncate" title="${sanitizeHTML(balance.name)}">${sanitizeHTML(balance.name)}</h5>
-                    <p>Balance: ${balance.balance} days</p>
-                    <p>Used: ${balance.used} / ${balance.total} days</p>
+                    <p>${i18n.t('tracker.balance')}: ${balance.balance} ${i18n.t('tracker.days')}</p>
+                    <p>${i18n.t('tracker.used')}: ${balance.used} / ${balance.total} ${i18n.t('tracker.days')}</p>
                 </div>
             </div>
         `;
@@ -3801,7 +3805,7 @@ function setupEventListeners() {
     setupDoubleClickConfirm(
         document.getElementById('sign-out-btn'),
         'signOut',
-        'confirmSignOut',
+        'auth.confirmSignOut',
         appSignOut
     );
 
@@ -4512,13 +4516,13 @@ function setupEventListeners() {
             case 'open-edit-team-name-btn': openEditTeamNameModal(); break;
             case 'copy-room-code-btn': copyRoomCode(); break;
             case 'leave-team-btn':
-                handleDoubleClick('leaveTeam', 'confirmLeaveTeam', (btn) => {
+                handleDoubleClick('leaveTeam', 'team.confirmLeave', (btn) => {
                     setButtonLoadingState(btn, true);
                     leaveTeam(btn);
                 });
                 break;
             case 'delete-team-btn':
-                handleDoubleClick('deleteTeam', 'confirmDeleteTeam', (btn) => {
+                handleDoubleClick('deleteTeam', 'team.confirmDelete', (btn) => {
                     setButtonLoadingState(btn, true);
                     deleteTeam(btn);
                 });
@@ -4792,7 +4796,7 @@ function renderAdminUserList(users, searchQuery = '') {
     filteredUsers.forEach(user => {
         const isSuperAdmin = state.superAdmins.includes(user.email);
         const item = document.createElement('div');
-        item.className = 'admin-user-item flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
+        item.className = 'admin-user-item flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm gap-4';
 
         let roleBadgeClass = user.role === 'co-admin' ? 'co-admin' : (user.role === 'pro' ? 'pro' : 'standard');
         const isPending = user.status === 'pending';
@@ -4856,11 +4860,11 @@ function renderAdminUserList(users, searchQuery = '') {
         }
 
         item.innerHTML = `
-            <div class="flex items-center flex-grow min-w-0 mr-2 ${isPending ? 'opacity-70' : ''}">
+            <div class="flex items-center w-full sm:w-auto flex-grow min-w-0 mr-0 sm:mr-2 ${isPending ? 'opacity-70' : ''}">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
                     ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 flex-grow">
                     <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">${sanitizeHTML(user.displayName || 'No Name')}</p>
                     <p class="text-gray-500 truncate" style="font-size: 10px;">${sanitizeHTML(user.email)}</p>
                     <div class="mt-1 flex items-center gap-2">
@@ -4870,25 +4874,25 @@ function renderAdminUserList(users, searchQuery = '') {
             </div>
 
             <!-- Date Stack (Tiny) -->
-            <div class="flex flex-col items-end mr-2 sm:mr-4 min-w-[80px]" style="font-size: 10px;">
-                <div class="text-gray-400 text-right">
+            <div class="flex flex-row sm:flex-col justify-between sm:items-end w-full sm:w-auto sm:min-w-[80px] mt-2 sm:mt-0" style="font-size: 10px;">
+                <div class="text-gray-400">
                     <span class="font-medium text-gray-500">${i18n.t('pro.joined')}</span> ${memberSince}
                 </div>
                 ${proSinceDate ? `
-                <div class="text-gray-400 mt-1 text-right">
+                <div class="text-gray-400 ml-4 sm:ml-0 sm:mt-1 text-right">
                     <span class="font-medium text-blue-500">${i18n.t('pro.label')}</span> ${proSinceDate}
                     ${proExpiryText ? `<div class="text-gray-300" style="font-size: 9px;">${proExpiryText}</div>` : ''}
                 </div>` : ''}
             </div>
 
             ${!isSuperAdmin ? `
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end ml-auto">
-                <div class="flex flex-col gap-2 w-full sm:w-auto">
-                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+            <div class="flex items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0">
+                <div class="flex flex-row sm:flex-col gap-2 w-full sm:w-auto">
+                    <button class="toggle-role-btn flex-1 sm:flex-none px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 justify-center ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-email="${user.email}" data-pending="${isPending}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
                         ${proButtonText}
                     </button>
-                    <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
+                    <button class="toggle-role-btn flex-1 sm:flex-none px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 justify-center ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
                         ${user.role === 'co-admin' ? i18n.t('pro.revokeCoAdmin') : i18n.t('pro.makeCoAdmin')}
                     </button>

@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Simpan Perubahan",
     "sat": "Sab",
-    "sun": "Ahd"
+    "sun": "Ahd",
+    "shortDays": [
+      "Ahd",
+      "Isn",
+      "Sel",
+      "Rab",
+      "Kha",
+      "Jum",
+      "Sab"
+    ]
   },
   "landing": {
     "splashText": "Ketik untuk Mula",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Gagal kemaskini",
     "pleaseSelectDate": "Sila pilih tarikh",
     "includeWeekendsTitle": "Termasuk hujung minggu?",
-    "excludeWeekendsMessage": "Kira Sabtu/Ahad juga?"
+    "excludeWeekendsMessage": "Kira Sabtu/Ahad juga?",
+    "days": "hari"
   },
   "search": {
     "placeholder": "Cari...",
@@ -271,7 +281,7 @@
     "upgrade": "Tingkat ke Pro",
     "standard": "Standard",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "Pentadbir Bersama"
   },
   "admin": {
     "dashboard": "Dashboard Admin",

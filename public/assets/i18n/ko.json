@@ -44,7 +44,16 @@
     ],
     "saveChanges": "변경사항 저장",
     "sat": "토",
-    "sun": "일"
+    "sun": "일",
+    "shortDays": [
+      "일",
+      "월",
+      "화",
+      "수",
+      "목",
+      "금",
+      "토"
+    ]
   },
   "landing": {
     "splashText": "시작하기",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "업데이트 실패.",
     "pleaseSelectDate": "날짜를 선택하세요.",
     "includeWeekendsTitle": "주말 포함?",
-    "excludeWeekendsMessage": "주말도 포함하시겠습니까?"
+    "excludeWeekendsMessage": "주말도 포함하시겠습니까?",
+    "days": "일"
   },
   "search": {
     "placeholder": "검색...",
@@ -271,7 +281,7 @@
     "upgrade": "Pro 업그레이드",
     "standard": "일반",
     "labelPro": "Pro",
-    "coAdmin": "부관리자"
+    "coAdmin": "공동 관리자"
   },
   "admin": {
     "dashboard": "관리자",

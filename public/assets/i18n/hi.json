@@ -44,7 +44,16 @@
     ],
     "saveChanges": "बदलाव सेव करें",
     "sat": "शनि",
-    "sun": "रवि"
+    "sun": "रवि",
+    "shortDays": [
+      "रवि",
+      "सोम",
+      "मंगल",
+      "बुध",
+      "गुरु",
+      "शुक्र",
+      "शनि"
+    ]
   },
   "landing": {
     "splashText": "शुरू करने के लिए टैप करें",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "अपडेट विफल",
     "pleaseSelectDate": "कृपया तारीख चुनें",
     "includeWeekendsTitle": "वीकेंड शामिल करें?",
-    "excludeWeekendsMessage": "क्या शनिवार/रविवार को गिनना है?"
+    "excludeWeekendsMessage": "क्या शनिवार/रविवार को गिनना है?",
+    "days": "दिन"
   },
   "search": {
     "placeholder": "खोजें...",
@@ -271,7 +281,7 @@
     "upgrade": "Pro में अपग्रेड करें",
     "standard": "स्टैंडर्ड",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "सह-एडमिन"
   },
   "admin": {
     "dashboard": "एडमिन डैशबोर्ड",

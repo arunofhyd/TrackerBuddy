@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Speichern",
     "sat": "Sa",
-    "sun": "So"
+    "sun": "So",
+    "shortDays": [
+      "So",
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa"
+    ]
   },
   "landing": {
     "splashText": "Starten",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Fehler beim Aktualisieren.",
     "pleaseSelectDate": "Wähle ein Datum.",
     "includeWeekendsTitle": "Wochenende?",
-    "excludeWeekendsMessage": "Sollen diese Tage zählen?"
+    "excludeWeekendsMessage": "Sollen diese Tage zählen?",
+    "days": "Tage"
   },
   "search": {
     "placeholder": "Suchen...",
@@ -271,7 +281,7 @@
     "upgrade": "Upgrade auf Pro",
     "standard": "Standard",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "Co-Administrator"
   },
   "admin": {
     "dashboard": "Admin",
