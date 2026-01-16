@@ -2029,6 +2029,9 @@ async function saveLeaveType() {
         return;
     }
 
+    // Capture original data for diffing to ensure deletions are persisted
+    const originalYearlyData = state.yearlyData;
+
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
@@ -2053,8 +2056,6 @@ async function saveLeaveType() {
             globalLeaveType.totalDays = totalDays;
 
             // Clean up overrides for this year since we just set the global default to match this year?
-            // Actually, if we limit to 2023, overrides for 2024 are irrelevant.
-            // But overrides for 2023 might be redundant if they match global.
             if (updatedYearlyData[currentYear]?.leaveOverrides?.[id]) {
                  delete updatedYearlyData[currentYear].leaveOverrides[id].totalDays;
                  if (Object.keys(updatedYearlyData[currentYear].leaveOverrides[id]).length === 0) {
@@ -2070,8 +2071,6 @@ async function saveLeaveType() {
 
             // And we implicitly want this to apply "as a whole".
             // Standard behavior: Specific overrides > Global.
-            // User request: "controls... editing as a whole on all entries overall"
-            // This strongly implies resetting deviations.
             // So, we should remove `totalDays` overrides for THIS leave type across ALL years.
             Object.keys(updatedYearlyData).forEach(y => {
                 if (updatedYearlyData[y].leaveOverrides && updatedYearlyData[y].leaveOverrides[id]) {
@@ -2079,11 +2078,6 @@ async function saveLeaveType() {
                     // If override object is empty (and not hidden), delete it
                     if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 0) {
                         delete updatedYearlyData[y].leaveOverrides[id];
-                    } else if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 1 && updatedYearlyData[y].leaveOverrides[id].hidden) {
-                        // Keep hidden flag if it exists?
-                        // If "Universal Function" means "Edit as a whole", maybe it should unhide too?
-                        // "Delete" handles hiding. "Edit" usually handles properties.
-                        // Let's assume unhiding isn't explicitly requested, but resetting days is.
                     }
                 }
             });
@@ -2110,33 +2104,46 @@ async function saveLeaveType() {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
 
-        // Use granular update if possible
         if (state.isOnlineMode && state.userId) {
-            const updates = {};
-            const leaveTypesUpdate = { leaveTypes: newLeaveTypes };
+            const batch = writeBatch(db);
+            const userDocRef = doc(db, "users", state.userId);
 
-            // Construct granular updates for leaveOverrides
-            if (updatedYearlyData[currentYear]?.leaveOverrides) {
-               updates[`yearlyData.${currentYear}.leaveOverrides`] = updatedYearlyData[currentYear].leaveOverrides;
-            }
-
-            const dataToSave = {
+            // 1. Update Leave Types
+            batch.update(userDocRef, {
                 leaveTypes: newLeaveTypes,
                 lastUpdated: timestamp
-            };
+            });
 
-            if (updatedYearlyData[currentYear]) {
-                dataToSave.yearlyData = {
-                    [currentYear]: {
-                        leaveOverrides: updatedYearlyData[currentYear].leaveOverrides || {}
-                    }
-                };
-            }
+            // 2. Diff Leave Overrides across ALL years to ensure deletions are persisted
+            // We need to compare original state with updated state for the specific leave type
+            const allYears = new Set([...Object.keys(updatedYearlyData), ...Object.keys(originalYearlyData)]);
 
-            // We use setDoc with merge: true, which is fine for leaveTypes (array replacement)
-            // and fine for leaveOverrides (map merge).
-            // Crucially, we are NOT including 'activities' in dataToSave, so concurrent activity edits are safe.
-            await saveDataToFirestore(dataToSave);
+            allYears.forEach(year => {
+                const originalOverrides = originalYearlyData[year]?.leaveOverrides || {};
+                const updatedOverrides = updatedYearlyData[year]?.leaveOverrides || {};
+
+                const original = originalOverrides[id];
+                const updated = updatedOverrides[id];
+
+                if (original && !updated) {
+                    // Deleted - We must explicitly remove the field
+                     batch.update(userDocRef, {
+                        [`yearlyData.${year}.leaveOverrides.${id}`]: deleteField()
+                    });
+                } else if (updated && !original) {
+                    // Created
+                    batch.update(userDocRef, {
+                        [`yearlyData.${year}.leaveOverrides.${id}`]: updated
+                    });
+                } else if (updated && original && JSON.stringify(updated) !== JSON.stringify(original)) {
+                    // Modified
+                    batch.update(userDocRef, {
+                        [`yearlyData.${year}.leaveOverrides.${id}`]: updated
+                    });
+                }
+            });
+
+            await batch.commit();
         } else {
             saveDataToLocalStorage({
                 yearlyData: updatedYearlyData,
@@ -2163,10 +2170,19 @@ async function deleteLeaveType() {
     if (!id) return;
 
     const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+
+    // Check if the leave type was originally created as limited to a specific year.
+    // If so, "deleting" it should always be a full delete (Scenario B),
+    // because it has no existence outside of this year anyway.
+    const leaveType = state.leaveTypes.find(lt => lt.id === id);
+    const isOriginallyLimited = leaveType && !!leaveType.limitYear;
+
     const timestamp = Date.now();
     state.lastUpdated = timestamp;
 
-    if (limitToCurrentYear) {
+    // Only perform "Hide" logic if the user wants to limit the delete,
+    // AND the leave type is actually a global type (not originally limited).
+    if (limitToCurrentYear && !isOriginallyLimited) {
         // --- SCENARIO A: Limit to Current Year (Hide Only) ---
         const currentYear = state.currentMonth.getFullYear();
         const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
@@ -2537,7 +2553,17 @@ async function deleteLeaveDay(dateKey) {
     try {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
+
+        if (state.isOnlineMode && state.userId) {
+            const userDocRef = doc(db, "users", state.userId);
+            await updateDoc(userDocRef, {
+                [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField(),
+                lastUpdated: timestamp
+            });
+        } else {
+            await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
+        }
+
         triggerTeamSync();
         showMessage(i18n.t("tracker.msgLeaveEntryDeleted"), 'success');
     } catch (error) {
@@ -2933,6 +2959,9 @@ async function saveLoggedLeaves() {
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
 
+    // Capture original data for diffing before state update
+    const originalYearlyData = state.yearlyData;
+
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
@@ -2946,7 +2975,8 @@ async function saveLoggedLeaves() {
 
             // Handle deletions
             state.initialLeaveSelection.forEach(dateKey => {
-                if (!datesInModal.has(dateKey) && state.yearlyData[year]?.activities[dateKey]?.leave) {
+                // Check original data to see if leave existed
+                if (!datesInModal.has(dateKey) && originalYearlyData[year]?.activities[dateKey]?.leave) {
                     batch.update(userDocRef, {
                         [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField()
                     });
