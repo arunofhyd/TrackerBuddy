@@ -656,7 +656,7 @@ function renderDailyActivities() {
             <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
                 <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
             </td>
-            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex space-x-1 justify-center items-center">
+            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex gap-1 justify-center items-center">
                 <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
                     <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                 </button>
@@ -2346,19 +2346,19 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
         item.dataset.dateKey = leaveDate.date;
 
         item.innerHTML = `
-            <div class="flex items-center space-x-3 w-full sm:w-auto min-w-0">
+            <div class="flex items-center gap-3 w-full sm:w-auto min-w-0">
                 <div class="w-4 h-4 rounded-full flex-shrink-0" style="background-color: ${leaveType.color};"></div>
                 <div class="flex-grow min-w-0">
                     <span class="font-medium truncate" title="${leaveDate.formatted}">${leaveDate.formatted}</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
                 <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
-                    <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out" style="transform: translateX(${leaveDate.dayType === 'half' ? '100%' : '0'});"></div>
+                    <div class="toggle-bg absolute top-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full" data-i18n="full">${i18n.t('full')}</button>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half" data-i18n="half">${i18n.t('half')}</button>
                 </div>
-                <div class="flex items-center space-x-1 flex-shrink-0">
+                <div class="flex items-center gap-1 flex-shrink-0">
                     <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                     </button>
@@ -2605,7 +2605,7 @@ function setupDayTypeToggle(toggleElement) {
 
     const updateUI = (value) => {
         const isHalf = value === LEAVE_DAY_TYPES.HALF;
-        bg.style.transform = `translateX(${isHalf ? '100%' : '0'})`;
+        // Transform is handled by CSS based on data-selected-value
         buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
     };
 
@@ -2624,9 +2624,7 @@ function setupDayTypeToggle(toggleElement) {
         if (toggleElement.id === 'bulk-day-type-toggle') {
             document.querySelectorAll('#leave-days-list .day-type-toggle').forEach(itemToggle => {
                 itemToggle.dataset.selectedValue = value;
-                const itemBg = itemToggle.querySelector('.toggle-bg');
                 const itemButtons = itemToggle.querySelectorAll('.toggle-btn');
-                itemBg.style.transform = `translateX(${value === LEAVE_DAY_TYPES.HALF ? '100%' : '0'})`;
                 itemButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.value === value));
             });
         }
@@ -2708,7 +2706,7 @@ function renderLeaveCustomizationModal() {
                 </div>
                 <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
                     <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
-                        <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
+                        <div class="toggle-bg absolute top-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
                         <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="full">${i18n.t('full')}</button>
                         <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">${i18n.t('half')}</button>
                     </div>
@@ -4275,7 +4273,6 @@ function setupEventListeners() {
             }
 
             toggle.dataset.selectedValue = newValue;
-            toggle.querySelector('.toggle-bg').style.transform = `translateX(${newValue === 'half' ? '100%' : '0'})`;
             toggle.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.value === newValue));
 
             leaveData.dayType = newValue;

@@ -231,8 +231,6 @@
             position: absolute;
             top: 0.25rem;
             inset-inline-start: 0.25rem;
-            left: auto;
-            right: auto;
         }
         .day-type-toggle[data-selected-value="half"] .toggle-bg {
             transform: translateX(100%);
