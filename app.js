@@ -180,10 +180,19 @@ function initUI() {
         floatingConfirmContainer: document.getElementById('floating-confirm-container'),
         bottomControlsRow: document.getElementById('bottom-controls-row'),
         // Message Progress
-        messageProgress: document.getElementById('message-progress')
+        messageProgress: document.getElementById('message-progress'),
+        // Swipe Confirm Modal
+        swipeConfirmModal: document.getElementById('swipe-confirm-modal'),
+        swipeTrack: document.getElementById('swipe-track'),
+        swipeThumb: document.getElementById('swipe-thumb'),
+        swipeFill: document.getElementById('swipe-fill'),
+        swipeText: document.getElementById('swipe-text'),
+        swipeSuccessText: document.getElementById('swipe-success-text'),
+        cancelSwipeBtn: document.getElementById('cancel-swipe-btn')
     };
 
     setupMessageSwipe();
+    setupSwipeConfirm();
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -4138,12 +4147,35 @@ function setupEventListeners() {
     });
     document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
     document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
-    setupDoubleClickConfirm(
-        DOM.deleteLeaveTypeBtn,
-        'deleteLeaveType',
-        'confirmDeleteLeaveType',
-        deleteLeaveType
-    );
+    DOM.deleteLeaveTypeBtn.addEventListener('click', (e) => {
+        const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+        if (limitToCurrentYear) {
+            // Use existing double-click confirm for local delete
+            if (state.confirmAction['deleteLeaveType']) {
+                deleteLeaveType();
+                delete state.confirmAction['deleteLeaveType'];
+                DOM.deleteLeaveTypeBtn.classList.remove('confirm-action');
+            } else {
+                Object.keys(state.confirmAction).forEach(key => {
+                    const el = state.confirmAction[key].element;
+                    if (el) el.classList.remove('confirm-action');
+                });
+                state.confirmAction['deleteLeaveType'] = {
+                    element: DOM.deleteLeaveTypeBtn,
+                    timeoutId: setTimeout(() => {
+                        DOM.deleteLeaveTypeBtn.classList.remove('confirm-action');
+                        delete state.confirmAction['deleteLeaveType'];
+                    }, 3000)
+                };
+                DOM.deleteLeaveTypeBtn.classList.add('confirm-action');
+                showMessage(i18n.t("confirmDeleteLeaveType"), 'info');
+            }
+        } else {
+            // Use Swipe Confirm for Universal Delete
+            DOM.swipeConfirmModal.classList.add('visible');
+            resetSwipeConfirm();
+        }
+    });
     DOM.leaveColorPicker.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
             selectColorInPicker(e.target.dataset.color);
@@ -5147,4 +5179,116 @@ async function subscribeToAppConfig() {
     }, (error) => {
         Logger.warn("Could not fetch app config (likely permission issue or missing doc):", error);
     });
+}
+
+function setupSwipeConfirm() {
+    const track = DOM.swipeTrack;
+    const thumb = DOM.swipeThumb;
+    const fill = DOM.swipeFill;
+    const text = DOM.swipeText;
+    const successText = DOM.swipeSuccessText;
+
+    if (!track || !thumb) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let maxDrag = 0;
+
+    const startDrag = (clientX) => {
+        isDragging = true;
+        startX = clientX;
+        maxDrag = track.clientWidth - thumb.clientWidth - 8; // -8 for padding/borders approx
+        thumb.classList.remove('resetting');
+        fill.classList.remove('resetting');
+    };
+
+    const onMove = (clientX) => {
+        if (!isDragging) return;
+
+        let moveX = clientX - startX;
+        if (moveX < 0) moveX = 0;
+        if (moveX > maxDrag) moveX = maxDrag;
+
+        requestAnimationFrame(() => {
+            thumb.style.transform = `translateX(${moveX}px)`;
+            fill.style.width = `${moveX + thumb.clientWidth / 2}px`;
+            text.style.opacity = Math.max(0, 1 - (moveX / (maxDrag * 0.6)));
+        });
+    };
+
+    const endDrag = (clientX) => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        let moveX = clientX - startX;
+        if (moveX > maxDrag * 0.9) {
+            // Confirm
+            fill.style.width = '100%';
+            thumb.style.transform = `translateX(${maxDrag}px)`; // Snap to end
+            text.style.opacity = '0';
+            successText.style.opacity = '1';
+
+            triggerHapticFeedback('success');
+
+            // Perform Action after brief delay
+            setTimeout(() => {
+                DOM.swipeConfirmModal.classList.remove('visible');
+                deleteLeaveType();
+            }, 300);
+        } else {
+            // Reset
+            thumb.classList.add('resetting');
+            fill.classList.add('resetting');
+            thumb.style.transform = 'translateX(0)';
+            fill.style.width = '0';
+            text.style.opacity = '1';
+        }
+    };
+
+    // Mouse Events
+    thumb.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent text selection
+        startDrag(e.clientX);
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) onMove(e.clientX);
+    });
+    document.addEventListener('mouseup', (e) => {
+        if (isDragging) endDrag(e.clientX);
+    });
+
+    // Touch Events
+    thumb.addEventListener('touchstart', (e) => {
+        // e.preventDefault(); // Might block scrolling if not careful, but needed here?
+        // Using touch-action: none in CSS on track instead.
+        startDrag(e.touches[0].clientX);
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+        if (isDragging) onMove(e.touches[0].clientX);
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        if (isDragging) endDrag(e.changedTouches[0].clientX);
+    });
+
+    DOM.cancelSwipeBtn.addEventListener('click', () => {
+        DOM.swipeConfirmModal.classList.remove('visible');
+    });
+}
+
+function resetSwipeConfirm() {
+    if (!DOM.swipeThumb) return;
+    DOM.swipeThumb.classList.add('resetting');
+    DOM.swipeFill.classList.add('resetting');
+    DOM.swipeThumb.style.transform = 'translateX(0)';
+    DOM.swipeFill.style.width = '0';
+    DOM.swipeText.style.opacity = '1';
+    DOM.swipeSuccessText.style.opacity = '0';
+
+    // Remove resetting class after animation to allow drag without lag
+    setTimeout(() => {
+        DOM.swipeThumb.classList.remove('resetting');
+        DOM.swipeFill.classList.remove('resetting');
+    }, 350);
 }
