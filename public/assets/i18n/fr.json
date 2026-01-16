@@ -268,11 +268,13 @@
     "confirmSelection": "Confirmer",
     "help": "Aide",
     "howToLogLeave": "Comment enregistrer un congé",
-    "step1SelectLeave": "1. Choisir le type de congé",
-    "step1Desc": "Appuyez sur l'une des pastilles de congé en haut pour démarrer la sélection.",
-    "step2SelectDates": "2. Sélectionner les dates",
-    "step2Desc": "Appuyez sur les jours du calendrier que vous souhaitez marquer.",
-    "step3Confirm": "3. Confirmer",
-    "step3Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications.",
-    "limitToCurrentYear": "Limiter à l'année en cours uniquement"
+    "limitToCurrentYear": "Limiter à l'année en cours uniquement",
+    "helpStep1Title": "1. Ajouter un type de congé",
+    "helpStep1Desc": "Appuyez sur le bouton '+' pour créer une nouvelle catégorie de congé.",
+    "helpStep2Title": "2. Choisir le type de congé",
+    "helpStep2Desc": "Appuyez sur l'une des pastilles de congé en haut pour démarrer la sélection.",
+    "helpStep3Title": "3. Sélectionner les dates",
+    "helpStep3Desc": "Appuyez sur les jours du calendrier que vous souhaitez marquer.",
+    "helpStep4Title": "4. Confirmer",
+    "helpStep4Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications."
 }

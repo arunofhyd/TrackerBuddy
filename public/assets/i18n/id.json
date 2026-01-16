@@ -268,11 +268,13 @@
     "confirmSelection": "Konfirmasi",
     "help": "Bantuan",
     "howToLogLeave": "Cara Mencatat Cuti",
-    "step1SelectLeave": "1. Pilih Jenis Cuti",
-    "step1Desc": "Ketuk salah satu pil cuti di atas untuk memulai mode pemilihan.",
-    "step2SelectDates": "2. Pilih Tanggal",
-    "step2Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
-    "step3Confirm": "3. Konfirmasi",
-    "step3Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda.",
-    "limitToCurrentYear": "Batasi hanya untuk tahun ini"
+    "limitToCurrentYear": "Batasi hanya untuk tahun ini",
+    "helpStep1Title": "1. Tambah Jenis Cuti",
+    "helpStep1Desc": "Ketuk tombol '+' untuk membuat kategori cuti baru.",
+    "helpStep2Title": "2. Pilih Jenis Cuti",
+    "helpStep2Desc": "Ketuk salah satu pil cuti di atas untuk memulai mode pemilihan.",
+    "helpStep3Title": "3. Pilih Tanggal",
+    "helpStep3Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
+    "helpStep4Title": "4. Konfirmasi",
+    "helpStep4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda."
 }

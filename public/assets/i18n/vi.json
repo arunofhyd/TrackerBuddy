@@ -268,11 +268,13 @@
     "confirmSelection": "Xác nhận",
     "help": "Trợ giúp",
     "howToLogLeave": "Cách ghi nhận nghỉ phép",
-    "step1SelectLeave": "1. Chọn loại nghỉ phép",
-    "step1Desc": "Nhấn vào một trong các loại nghỉ phép ở trên cùng để bắt đầu chế độ chọn.",
-    "step2SelectDates": "2. Chọn ngày",
-    "step2Desc": "Nhấn vào các ngày trên lịch mà bạn muốn đánh dấu.",
-    "step3Confirm": "3. Xác nhận",
-    "step3Desc": "Nhấn nút 'Xác nhận' nổi để lưu các thay đổi của bạn.",
-    "limitToCurrentYear": "Chỉ giới hạn trong năm hiện tại"
+    "limitToCurrentYear": "Chỉ giới hạn trong năm hiện tại",
+    "helpStep1Title": "1. Thêm loại nghỉ phép",
+    "helpStep1Desc": "Nhấn nút '+' để tạo danh mục nghỉ phép mới.",
+    "helpStep2Title": "2. Chọn loại nghỉ phép",
+    "helpStep2Desc": "Nhấn vào một trong các loại nghỉ phép ở trên cùng để bắt đầu chế độ chọn.",
+    "helpStep3Title": "3. Chọn ngày",
+    "helpStep3Desc": "Nhấn vào các ngày trên lịch mà bạn muốn đánh dấu.",
+    "helpStep4Title": "4. Xác nhận",
+    "helpStep4Desc": "Nhấn nút 'Xác nhận' nổi để lưu các thay đổi của bạn."
 }

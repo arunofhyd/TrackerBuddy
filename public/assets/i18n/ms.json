@@ -268,11 +268,13 @@
     "confirmSelection": "Sahkan",
     "help": "Bantuan",
     "howToLogLeave": "Cara Merekod Cuti",
-    "step1SelectLeave": "1. Pilih Jenis Cuti",
-    "step1Desc": "Ketik salah satu pil cuti di bahagian atas untuk memulakan mod pemilihan.",
-    "step2SelectDates": "2. Pilih Tarikh",
-    "step2Desc": "Ketik hari pada kalendar yang anda ingin tandakan.",
-    "step3Confirm": "3. Sahkan",
-    "step3Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda.",
-    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja"
+    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja",
+    "helpStep1Title": "1. Tambah Jenis Cuti",
+    "helpStep1Desc": "Ketik butang '+' untuk membuat kategori cuti baharu.",
+    "helpStep2Title": "2. Pilih Jenis Cuti",
+    "helpStep2Desc": "Ketik salah satu pil cuti di bahagian atas untuk memulakan mod pemilihan.",
+    "helpStep3Title": "3. Pilih Tarikh",
+    "helpStep3Desc": "Ketik hari pada kalendar yang anda ingin tandakan.",
+    "helpStep4Title": "4. Sahkan",
+    "helpStep4Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda."
 }

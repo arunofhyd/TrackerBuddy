@@ -268,11 +268,13 @@
     "confirmSelection": "Confirmar",
     "help": "Ajuda",
     "howToLogLeave": "Como registrar férias",
-    "step1SelectLeave": "1. Selecione o tipo de licença",
-    "step1Desc": "Toque em uma das opções de licença no topo para iniciar o modo de seleção.",
-    "step2SelectDates": "2. Selecionar datas",
-    "step2Desc": "Toque nos dias no calendário que deseja marcar.",
-    "step3Confirm": "3. Confirmar",
-    "step3Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações.",
-    "limitToCurrentYear": "Limitar apenas ao ano atual"
+    "limitToCurrentYear": "Limitar apenas ao ano atual",
+    "helpStep1Title": "1. Adicionar tipo de licença",
+    "helpStep1Desc": "Toque no botão '+' para criar uma nova categoria de licença.",
+    "helpStep2Title": "2. Selecione o tipo de licença",
+    "helpStep2Desc": "Toque em uma das opções de licença no topo para iniciar o modo de seleção.",
+    "helpStep3Title": "3. Selecionar datas",
+    "helpStep3Desc": "Toque nos dias no calendário que deseja marcar.",
+    "helpStep4Title": "4. Confirmar",
+    "helpStep4Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações."
 }

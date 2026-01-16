@@ -268,11 +268,13 @@
     "confirmSelection": "Bestätigen",
     "help": "Hilfe",
     "howToLogLeave": "So erfassen Sie Urlaub",
-    "step1SelectLeave": "1. Urlaubsart wählen",
-    "step1Desc": "Tippen Sie oben auf eine der Urlaubsarten, um den Auswahlmodus zu starten.",
-    "step2SelectDates": "2. Daten auswählen",
-    "step2Desc": "Tippen Sie auf die Tage im Kalender, die Sie markieren möchten.",
-    "step3Confirm": "3. Bestätigen",
-    "step3Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern.",
-    "limitToCurrentYear": "Nur auf das aktuelle Jahr beschränken"
+    "limitToCurrentYear": "Nur auf das aktuelle Jahr beschränken",
+    "helpStep1Title": "1. Urlaubsart hinzufügen",
+    "helpStep1Desc": "Tippen Sie auf die Schaltfläche '+', um eine neue Urlaubskategorie zu erstellen.",
+    "helpStep2Title": "2. Urlaubsart wählen",
+    "helpStep2Desc": "Tippen Sie oben auf eine der Urlaubsarten, um den Auswahlmodus zu starten.",
+    "helpStep3Title": "3. Daten auswählen",
+    "helpStep3Desc": "Tippen Sie auf die Tage im Kalender, die Sie markieren möchten.",
+    "helpStep4Title": "4. Bestätigen",
+    "helpStep4Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern."
 }

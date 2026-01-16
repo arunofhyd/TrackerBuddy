@@ -269,10 +269,12 @@
     "co-admin": "Co-Admin",
     "help": "Help",
     "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "helpStep1Title": "1. Add Leave Type",
+    "helpStep1Desc": "Tap the '+' button to create a new leave category.",
+    "helpStep2Title": "2. Select Leave Type",
+    "helpStep2Desc": "Tap one of the leave pills at the top to start selection mode.",
+    "helpStep3Title": "3. Select Dates",
+    "helpStep3Desc": "Tap the days on the calendar you want to mark.",
+    "helpStep4Title": "4. Confirm",
+    "helpStep4Desc": "Tap the floating 'Confirm' button to save your changes."
 }

@@ -268,11 +268,13 @@
     "confirmSelection": "Potwierdź",
     "help": "Pomoc",
     "howToLogLeave": "Jak zarejestrować urlop",
-    "step1SelectLeave": "1. Wybierz rodzaj urlopu",
-    "step1Desc": "Dotknij jednej z opcji urlopu u góry, aby rozpocząć tryb wyboru.",
-    "step2SelectDates": "2. Wybierz daty",
-    "step2Desc": "Dotknij dni w kalendarzu, które chcesz zaznaczyć.",
-    "step3Confirm": "3. Potwierdź",
-    "step3Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany.",
-    "limitToCurrentYear": "Ogranicz tylko do bieżącego roku"
+    "limitToCurrentYear": "Ogranicz tylko do bieżącego roku",
+    "helpStep1Title": "1. Dodaj typ urlopu",
+    "helpStep1Desc": "Dotknij przycisku '+', aby utworzyć nową kategorię urlopu.",
+    "helpStep2Title": "2. Wybierz rodzaj urlopu",
+    "helpStep2Desc": "Dotknij jednej z opcji urlopu u góry, aby rozpocząć tryb wyboru.",
+    "helpStep3Title": "3. Wybierz daty",
+    "helpStep3Desc": "Dotknij dni w kalendarzu, które chcesz zaznaczyć.",
+    "helpStep4Title": "4. Potwierdź",
+    "helpStep4Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany."
 }
