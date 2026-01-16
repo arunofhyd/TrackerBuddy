@@ -265,13 +265,13 @@
     "sat": "T7",
     "sun": "CN",
     "apply": "Áp dụng",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "Xác nhận",
+    "help": "Trợ giúp",
+    "howToLogLeave": "Cách ghi nhận nghỉ phép",
+    "step1SelectLeave": "1. Chọn loại nghỉ phép",
+    "step1Desc": "Nhấn vào một trong các loại nghỉ phép ở trên cùng để bắt đầu chế độ chọn.",
+    "step2SelectDates": "2. Chọn ngày",
+    "step2Desc": "Nhấn vào các ngày trên lịch mà bạn muốn đánh dấu.",
+    "step3Confirm": "3. Xác nhận",
+    "step3Desc": "Nhấn nút 'Xác nhận' nổi để lưu các thay đổi của bạn."
 }

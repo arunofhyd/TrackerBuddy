@@ -265,13 +265,13 @@
     "sat": "ส.",
     "sun": "อา.",
     "apply": "นำไปใช้",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "ยืนยัน",
+    "help": "ช่วยเหลือ",
+    "howToLogLeave": "วิธีบันทึกการลา",
+    "step1SelectLeave": "1. เลือกประเภทการลา",
+    "step1Desc": "แตะที่ประเภทการลาด้านบนเพื่อเริ่มโหมดการเลือก",
+    "step2SelectDates": "2. เลือกวันที่",
+    "step2Desc": "แตะวันที่ในปฏิทินที่คุณต้องการทำเครื่องหมาย",
+    "step3Confirm": "3. ยืนยัน",
+    "step3Desc": "แตะปุ่ม 'ยืนยัน' ที่ลอยอยู่เพื่อบันทึกการเปลี่ยนแปลง"
 }

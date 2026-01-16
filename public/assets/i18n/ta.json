@@ -265,13 +265,13 @@
     "sat": "சனி",
     "sun": "ஞாயிறு",
     "apply": "பயன்படுத்து",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "உறுதிப்படுத்து",
+    "help": "உதவி",
+    "howToLogLeave": "விடுப்பை பதிவு செய்வது எப்படி",
+    "step1SelectLeave": "1. விடுப்பு வகையைத் தேர்ந்தெடுக்கவும்",
+    "step1Desc": "தேர்வு முறையைத் தொடங்க மேலே உள்ள விடுப்பு வகைகளில் ஒன்றைத் தட்டவும்.",
+    "step2SelectDates": "2. தேதிகளைத் தேர்ந்தெடுக்கவும்",
+    "step2Desc": "நாள்காட்டியில் நீங்கள் குறிக்க விரும்பும் நாட்களைத் தட்டவும்.",
+    "step3Confirm": "3. உறுதிப்படுத்து",
+    "step3Desc": "மாற்றங்களைச் சேமிக்க மிதக்கும் 'உறுதிப்படுத்து' பொத்தானைத் தட்டவும்."
 }

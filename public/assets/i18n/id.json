@@ -265,13 +265,13 @@
     "sat": "Sab",
     "sun": "Min",
     "apply": "Terapkan",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "Konfirmasi",
+    "help": "Bantuan",
+    "howToLogLeave": "Cara Mencatat Cuti",
+    "step1SelectLeave": "1. Pilih Jenis Cuti",
+    "step1Desc": "Ketuk salah satu pil cuti di atas untuk memulai mode pemilihan.",
+    "step2SelectDates": "2. Pilih Tanggal",
+    "step2Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
+    "step3Confirm": "3. Konfirmasi",
+    "step3Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda."
 }

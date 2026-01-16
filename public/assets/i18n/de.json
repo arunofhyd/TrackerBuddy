@@ -265,13 +265,13 @@
     "sat": "Sa",
     "sun": "So",
     "apply": "Anwenden",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "Bestätigen",
+    "help": "Hilfe",
+    "howToLogLeave": "So erfassen Sie Urlaub",
+    "step1SelectLeave": "1. Urlaubsart wählen",
+    "step1Desc": "Tippen Sie oben auf eine der Urlaubsarten, um den Auswahlmodus zu starten.",
+    "step2SelectDates": "2. Daten auswählen",
+    "step2Desc": "Tippen Sie auf die Tage im Kalender, die Sie markieren möchten.",
+    "step3Confirm": "3. Bestätigen",
+    "step3Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern."
 }

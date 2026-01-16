@@ -265,13 +265,13 @@
     "sat": "Za",
     "sun": "Zo",
     "apply": "Toepassen",
-    "confirmSelection": "Confirm",
+    "confirmSelection": "Bevestigen",
     "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "howToLogLeave": "Hoe verlof te registreren",
+    "step1SelectLeave": "1. Selecteer verloftype",
+    "step1Desc": "Tik op een van de verlofopties bovenaan om de selectiemodus te starten.",
+    "step2SelectDates": "2. Selecteer datums",
+    "step2Desc": "Tik op de dagen in de kalender die u wilt markeren.",
+    "step3Confirm": "3. Bevestigen",
+    "step3Desc": "Tik op de zwevende knop 'Bevestigen' om uw wijzigingen op te slaan."
 }

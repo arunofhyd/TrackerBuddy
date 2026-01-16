@@ -265,13 +265,13 @@
     "sat": "ശനി",
     "sun": "ഞായർ",
     "apply": "പ്രയോഗിക്കുക",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "സ്ഥിരീകരിക്കുക",
+    "help": "സഹായം",
+    "howToLogLeave": "അവധി എങ്ങനെ രേഖപ്പെടുത്താം",
+    "step1SelectLeave": "1. അവധി തരം തിരഞ്ഞെടുക്കുക",
+    "step1Desc": "തിരഞ്ഞെടുക്കൽ മോഡ് ആരംഭിക്കുന്നതിന് മുകളിലുള്ള അവധി ഓപ്ഷനുകളിലൊന്നിൽ ടാപ്പുചെയ്യുക.",
+    "step2SelectDates": "2. തീയതികൾ തിരഞ്ഞെടുക്കുക",
+    "step2Desc": "കലണ്ടറിൽ അടയാളപ്പെടുത്താൻ ആഗ്രഹിക്കുന്ന ദിവസങ്ങളിൽ ടാപ്പുചെയ്യുക.",
+    "step3Confirm": "3. സ്ഥിരീകരിക്കുക",
+    "step3Desc": "മാറ്റങ്ങൾ സംരക്ഷിക്കാൻ ഫ്ലോട്ടിംഗ് 'സ്ഥിരീകരിക്കുക' ബട്ടൺ ടാപ്പുചെയ്യുക."
 }

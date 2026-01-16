@@ -265,13 +265,13 @@
     "sat": "السبت",
     "sun": "الأحد",
     "apply": "تطبيق",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "تأكيد",
+    "help": "مساعدة",
+    "howToLogLeave": "كيفية تسجيل الإجازة",
+    "step1SelectLeave": "1. اختر نوع الإجازة",
+    "step1Desc": "اضغط على أحد خيارات الإجازة في الأعلى لبدء وضع الاختيار.",
+    "step2SelectDates": "2. اختر التواريخ",
+    "step2Desc": "اضغط على الأيام التي تريد تحديدها في التقويم.",
+    "step3Confirm": "3. تأكيد",
+    "step3Desc": "اضغط على زر 'تأكيد' العائم لحفظ التغييرات."
 }

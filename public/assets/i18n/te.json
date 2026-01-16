@@ -265,13 +265,13 @@
     "sat": "శని",
     "sun": "ఆది",
     "apply": "వర్తించు",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "నిర్ధారించండి",
+    "help": "సహాయం",
+    "howToLogLeave": "సెలవును ఎలా నమోదు చేయాలి",
+    "step1SelectLeave": "1. సెలవు రకాన్ని ఎంచుకోండి",
+    "step1Desc": "ఎంపిక మోడ్ ప్రారంభించడానికి పైన ఉన్న సెలవు రకాల్లో ఒకదానిపై నొక్కండి.",
+    "step2SelectDates": "2. తేదీలను ఎంచుకోండి",
+    "step2Desc": "క్యాలెండర్లో మీరు గుర్తించాలనుకుంటున్న రోజులను నొక్కండి.",
+    "step3Confirm": "3. నిర్ధారించండి",
+    "step3Desc": "మీ మార్పులను సేవ్ చేయడానికి ఫ్లోటింగ్ 'నిర్ధారించండి' బటన్‌పై నొక్కండి."
 }

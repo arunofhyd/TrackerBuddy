@@ -265,13 +265,13 @@
     "sat": "六",
     "sun": "日",
     "apply": "应用",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "确认",
+    "help": "帮助",
+    "howToLogLeave": "如何记录休假",
+    "step1SelectLeave": "1. 选择休假类型",
+    "step1Desc": "点击顶部的休假选项以开始选择模式。",
+    "step2SelectDates": "2. 选择日期",
+    "step2Desc": "点击日历上您想要标记的日期。",
+    "step3Confirm": "3. 确认",
+    "step3Desc": "点击悬浮的“确认”按钮以保存更改。"
 }

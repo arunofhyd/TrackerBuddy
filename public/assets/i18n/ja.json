@@ -265,13 +265,13 @@
     "sat": "土",
     "sun": "日",
     "apply": "適用",
-    "confirmSelection": "Confirm",
-    "help": "Help",
-    "howToLogLeave": "How to Log Leave",
-    "step1SelectLeave": "1. Select Leave Type",
-    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
-    "step2SelectDates": "2. Select Dates",
-    "step2Desc": "Tap the days on the calendar you want to mark.",
-    "step3Confirm": "3. Confirm",
-    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
+    "confirmSelection": "確認",
+    "help": "ヘルプ",
+    "howToLogLeave": "休暇の記録方法",
+    "step1SelectLeave": "1. 休暇の種類を選択",
+    "step1Desc": "上部の休暇ピルをタップして選択モードを開始します。",
+    "step2SelectDates": "2. 日付を選択",
+    "step2Desc": "カレンダー上のマークしたい日付をタップします。",
+    "step3Confirm": "3. 確認",
+    "step3Desc": "フローティングの「確認」ボタンをタップして変更を保存します。"
 }
