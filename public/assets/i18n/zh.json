@@ -272,7 +272,7 @@
     "helpStep1Title": "1. 添加休假类型",
     "helpStep1Desc": "点击“+”按钮创建一个新的休假类别。",
     "helpStep2Title": "2. 选择休假类型",
-    "helpStep2Desc": "点击顶部的休假选项以开始选择模式。",
+    "helpStep2Desc": "点击顶部的休假选项以开始选择模式。 (随时再次点击以退出。)",
     "helpStep3Title": "3. 选择日期",
     "helpStep3Desc": "点击日历上您想要标记的日期。",
     "helpStep4Title": "4. 确认",

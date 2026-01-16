@@ -272,7 +272,7 @@
     "helpStep1Title": "1. Aggiungi tipo di permesso",
     "helpStep1Desc": "Tocca il pulsante '+' per creare una nuova categoria di permesso.",
     "helpStep2Title": "2. Seleziona tipo di permesso",
-    "helpStep2Desc": "Tocca una delle opzioni di permesso in alto per avviare la modalità di selezione.",
+    "helpStep2Desc": "Tocca una delle opzioni di permesso in alto per avviare la modalità di selezione. (Tocca di nuovo in qualsiasi momento per uscire.)",
     "helpStep3Title": "3. Seleziona date",
     "helpStep3Desc": "Tocca i giorni sul calendario che desideri contrassegnare.",
     "helpStep4Title": "4. Conferma",

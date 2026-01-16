@@ -272,7 +272,7 @@
     "helpStep1Title": "1. Adicionar tipo de licença",
     "helpStep1Desc": "Toque no botão '+' para criar uma nova categoria de licença.",
     "helpStep2Title": "2. Selecione o tipo de licença",
-    "helpStep2Desc": "Toque em uma das opções de licença no topo para iniciar o modo de seleção.",
+    "helpStep2Desc": "Toque em uma das opções de licença no topo para iniciar o modo de seleção. (Toque novamente a qualquer momento para sair.)",
     "helpStep3Title": "3. Selecionar datas",
     "helpStep3Desc": "Toque nos dias no calendário que deseja marcar.",
     "helpStep4Title": "4. Confirmar",

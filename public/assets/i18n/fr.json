@@ -272,7 +272,7 @@
     "helpStep1Title": "1. Ajouter un type de congé",
     "helpStep1Desc": "Appuyez sur le bouton '+' pour créer une nouvelle catégorie de congé.",
     "helpStep2Title": "2. Choisir le type de congé",
-    "helpStep2Desc": "Appuyez sur l'une des pastilles de congé en haut pour démarrer la sélection.",
+    "helpStep2Desc": "Appuyez sur l'une des pastilles de congé en haut pour démarrer la sélection. (Appuyez à nouveau à tout moment pour quitter.)",
     "helpStep3Title": "3. Sélectionner les dates",
     "helpStep3Desc": "Appuyez sur les jours du calendrier que vous souhaitez marquer.",
     "helpStep4Title": "4. Confirmer",

@@ -272,7 +272,7 @@
     "helpStep1Title": "1. Add Leave Type",
     "helpStep1Desc": "Tap the '+' button to create a new leave category.",
     "helpStep2Title": "2. Select Leave Type",
-    "helpStep2Desc": "Tap one of the leave pills at the top to start selection mode.",
+    "helpStep2Desc": "Tap one of the leave pills at the top to start selection mode. (Tap again anytime to exit.)",
     "helpStep3Title": "3. Select Dates",
     "helpStep3Desc": "Tap the days on the calendar you want to mark.",
     "helpStep4Title": "4. Confirm",

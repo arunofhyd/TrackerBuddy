@@ -272,7 +272,7 @@
     "helpStep1Title": "1. 休暇タイプの追加",
     "helpStep1Desc": "'+'ボタンをタップして新しい休暇カテゴリを作成します。",
     "helpStep2Title": "2. 休暇の種類を選択",
-    "helpStep2Desc": "上部の休暇ピルをタップして選択モードを開始します。",
+    "helpStep2Desc": "上部の休暇ピルをタップして選択モードを開始します。 (いつでももう一度タップして終了します。)",
     "helpStep3Title": "3. 日付を選択",
     "helpStep3Desc": "カレンダー上のマークしたい日付をタップします。",
     "helpStep4Title": "4. 確認",

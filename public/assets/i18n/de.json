@@ -272,7 +272,7 @@
     "helpStep1Title": "1. Urlaubsart hinzufügen",
     "helpStep1Desc": "Tippen Sie auf die Schaltfläche '+', um eine neue Urlaubskategorie zu erstellen.",
     "helpStep2Title": "2. Urlaubsart wählen",
-    "helpStep2Desc": "Tippen Sie oben auf eine der Urlaubsarten, um den Auswahlmodus zu starten.",
+    "helpStep2Desc": "Tippen Sie oben auf eine der Urlaubsarten, um den Auswahlmodus zu starten. (Jederzeit erneut tippen zum Beenden.)",
     "helpStep3Title": "3. Daten auswählen",
     "helpStep3Desc": "Tippen Sie auf die Tage im Kalender, die Sie markieren möchten.",
     "helpStep4Title": "4. Bestätigen",
