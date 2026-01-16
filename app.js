@@ -2381,7 +2381,6 @@ async function editLeaveDay(dateKey) {
     setState({
         leaveSelection: new Set([dateKey]),
         initialLeaveSelection: new Set([dateKey]),
-        isLoggingLeave: false,
         selectedLeaveTypeId: null
     });
 
@@ -2871,7 +2870,7 @@ async function saveLoggedLeaves() {
             state.previousActiveElement.focus();
             state.previousActiveElement = null;
         }
-        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
+        setState({ selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
         // Removed legacy button logic
         updateView();
         setButtonLoadingState(button, false);
