@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "Вы хотите включить эти дни?",
     "sat": "Сб",
     "sun": "Вс",
-    "apply": "Применить"
+    "apply": "Применить",
+    "limitToCurrentYear": "Ограничить только текущим годом"
 }

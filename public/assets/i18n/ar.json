@@ -264,5 +264,6 @@
     "excludeWeekendsMessage": "هل تريد تضمين هذه الأيام؟",
     "sat": "السبت",
     "sun": "الأحد",
-    "apply": "تطبيق"
+    "apply": "تطبيق",
+    "limitToCurrentYear": "تحديد للسنة الحالية فقط"
 }
