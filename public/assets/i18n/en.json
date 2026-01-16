@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Confirm",
     "helpStep4Desc": "Tap the floating 'Confirm' button to save your changes.",
     "resetConfirmCloud": "This will permanently delete all your activity data from the cloud. This action cannot be undone.",
-    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone."
+    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone.",
+    "addLeaveType": "Add or edit leave types",
+    "showDescription": "Show description",
+    "togglePassword": "Toggle password visibility",
+    "closeHelp": "Close help",
+    "closeSearch": "Close search",
+    "toggleSearchScope": "Toggle search scope",
+    "toggleSortOrder": "Toggle sort order",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year"
 }
