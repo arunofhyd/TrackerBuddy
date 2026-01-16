@@ -551,7 +551,7 @@ function renderActionButtons() {
 }
 
 function renderCalendar() {
-    const days = i18n.translations.days || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const days = i18n.getValue('common.days') || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const header = days.map((day, i) => html`<div class="py-3 text-center text-sm font-semibold ${i === 0 ? 'text-red-500' : 'text-gray-700'}">${day}</div>`);
 
     const year = state.currentMonth.getFullYear();
@@ -684,7 +684,7 @@ function renderDailyActivities() {
 
 function renderMonthPicker() {
     DOM.pickerYearDisplay.textContent = state.pickerYear;
-    const monthNames = i18n.translations.months || ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = i18n.getValue('common.months') || ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     const months = monthNames.map((name, index) => {
         const isCurrentMonth = state.pickerYear === state.currentMonth.getFullYear() && index === state.currentMonth.getMonth();
@@ -1988,7 +1988,7 @@ function closeLeaveTypeModal() {
 function setupColorPicker() {
     const colors = Object.keys(COLOR_MAP);
     DOM.leaveColorPicker.innerHTML = colors.map(color => `
-        <button type="button" data-color="${color}" aria-label="${i18n.t('tracker.color' + COLOR_MAP[color])}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
+        <button type="button" data-color="${color}" aria-label="${i18n.t('colors.' + COLOR_MAP[color].toLowerCase())}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
     `).join('');
 }
 
@@ -2029,9 +2029,6 @@ async function saveLeaveType() {
         return;
     }
 
-    // Capture original data for diffing to ensure deletions are persisted
-    const originalYearlyData = state.yearlyData;
-
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
@@ -2056,6 +2053,8 @@ async function saveLeaveType() {
             globalLeaveType.totalDays = totalDays;
 
             // Clean up overrides for this year since we just set the global default to match this year?
+            // Actually, if we limit to 2023, overrides for 2024 are irrelevant.
+            // But overrides for 2023 might be redundant if they match global.
             if (updatedYearlyData[currentYear]?.leaveOverrides?.[id]) {
                  delete updatedYearlyData[currentYear].leaveOverrides[id].totalDays;
                  if (Object.keys(updatedYearlyData[currentYear].leaveOverrides[id]).length === 0) {
@@ -2071,6 +2070,8 @@ async function saveLeaveType() {
 
             // And we implicitly want this to apply "as a whole".
             // Standard behavior: Specific overrides > Global.
+            // User request: "controls... editing as a whole on all entries overall"
+            // This strongly implies resetting deviations.
             // So, we should remove `totalDays` overrides for THIS leave type across ALL years.
             Object.keys(updatedYearlyData).forEach(y => {
                 if (updatedYearlyData[y].leaveOverrides && updatedYearlyData[y].leaveOverrides[id]) {
@@ -2078,6 +2079,11 @@ async function saveLeaveType() {
                     // If override object is empty (and not hidden), delete it
                     if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 0) {
                         delete updatedYearlyData[y].leaveOverrides[id];
+                    } else if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 1 && updatedYearlyData[y].leaveOverrides[id].hidden) {
+                        // Keep hidden flag if it exists?
+                        // If "Universal Function" means "Edit as a whole", maybe it should unhide too?
+                        // "Delete" handles hiding. "Edit" usually handles properties.
+                        // Let's assume unhiding isn't explicitly requested, but resetting days is.
                     }
                 }
             });
@@ -2104,46 +2110,33 @@ async function saveLeaveType() {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
 
+        // Use granular update if possible
         if (state.isOnlineMode && state.userId) {
-            const batch = writeBatch(db);
-            const userDocRef = doc(db, "users", state.userId);
+            const updates = {};
+            const leaveTypesUpdate = { leaveTypes: newLeaveTypes };
 
-            // 1. Update Leave Types
-            batch.update(userDocRef, {
+            // Construct granular updates for leaveOverrides
+            if (updatedYearlyData[currentYear]?.leaveOverrides) {
+               updates[`yearlyData.${currentYear}.leaveOverrides`] = updatedYearlyData[currentYear].leaveOverrides;
+            }
+
+            const dataToSave = {
                 leaveTypes: newLeaveTypes,
                 lastUpdated: timestamp
-            });
+            };
 
-            // 2. Diff Leave Overrides across ALL years to ensure deletions are persisted
-            // We need to compare original state with updated state for the specific leave type
-            const allYears = new Set([...Object.keys(updatedYearlyData), ...Object.keys(originalYearlyData)]);
+            if (updatedYearlyData[currentYear]) {
+                dataToSave.yearlyData = {
+                    [currentYear]: {
+                        leaveOverrides: updatedYearlyData[currentYear].leaveOverrides || {}
+                    }
+                };
+            }
 
-            allYears.forEach(year => {
-                const originalOverrides = originalYearlyData[year]?.leaveOverrides || {};
-                const updatedOverrides = updatedYearlyData[year]?.leaveOverrides || {};
-
-                const original = originalOverrides[id];
-                const updated = updatedOverrides[id];
-
-                if (original && !updated) {
-                    // Deleted - We must explicitly remove the field
-                     batch.update(userDocRef, {
-                        [`yearlyData.${year}.leaveOverrides.${id}`]: deleteField()
-                    });
-                } else if (updated && !original) {
-                    // Created
-                    batch.update(userDocRef, {
-                        [`yearlyData.${year}.leaveOverrides.${id}`]: updated
-                    });
-                } else if (updated && original && JSON.stringify(updated) !== JSON.stringify(original)) {
-                    // Modified
-                    batch.update(userDocRef, {
-                        [`yearlyData.${year}.leaveOverrides.${id}`]: updated
-                    });
-                }
-            });
-
-            await batch.commit();
+            // We use setDoc with merge: true, which is fine for leaveTypes (array replacement)
+            // and fine for leaveOverrides (map merge).
+            // Crucially, we are NOT including 'activities' in dataToSave, so concurrent activity edits are safe.
+            await saveDataToFirestore(dataToSave);
         } else {
             saveDataToLocalStorage({
                 yearlyData: updatedYearlyData,
@@ -2170,19 +2163,10 @@ async function deleteLeaveType() {
     if (!id) return;
 
     const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
-
-    // Check if the leave type was originally created as limited to a specific year.
-    // If so, "deleting" it should always be a full delete (Scenario B),
-    // because it has no existence outside of this year anyway.
-    const leaveType = state.leaveTypes.find(lt => lt.id === id);
-    const isOriginallyLimited = leaveType && !!leaveType.limitYear;
-
     const timestamp = Date.now();
     state.lastUpdated = timestamp;
 
-    // Only perform "Hide" logic if the user wants to limit the delete,
-    // AND the leave type is actually a global type (not originally limited).
-    if (limitToCurrentYear && !isOriginallyLimited) {
+    if (limitToCurrentYear) {
         // --- SCENARIO A: Limit to Current Year (Hide Only) ---
         const currentYear = state.currentMonth.getFullYear();
         const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
@@ -2553,17 +2537,7 @@ async function deleteLeaveDay(dateKey) {
     try {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
-
-        if (state.isOnlineMode && state.userId) {
-            const userDocRef = doc(db, "users", state.userId);
-            await updateDoc(userDocRef, {
-                [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField(),
-                lastUpdated: timestamp
-            });
-        } else {
-            await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
-        }
-
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         triggerTeamSync();
         showMessage(i18n.t("tracker.msgLeaveEntryDeleted"), 'success');
     } catch (error) {
@@ -2959,9 +2933,6 @@ async function saveLoggedLeaves() {
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
 
-    // Capture original data for diffing before state update
-    const originalYearlyData = state.yearlyData;
-
     setState({ yearlyData: updatedYearlyData, currentYearData: updatedYearData });
 
     try {
@@ -2975,8 +2946,7 @@ async function saveLoggedLeaves() {
 
             // Handle deletions
             state.initialLeaveSelection.forEach(dateKey => {
-                // Check original data to see if leave existed
-                if (!datesInModal.has(dateKey) && originalYearlyData[year]?.activities[dateKey]?.leave) {
+                if (!datesInModal.has(dateKey) && state.yearlyData[year]?.activities[dateKey]?.leave) {
                     batch.update(userDocRef, {
                         [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField()
                     });
@@ -3732,7 +3702,7 @@ function toggleSearchScope() {
 
     // Update button text
     if (DOM.spotlightScopeLabel) {
-        const scopeKey = newScope === 'year' ? 'currentYear' : 'allYears';
+        const scopeKey = newScope === 'year' ? 'search.currentYear' : 'search.allYears';
         DOM.spotlightScopeLabel.textContent = i18n.t(scopeKey);
         DOM.spotlightScopeLabel.setAttribute('data-i18n', scopeKey);
     }
@@ -3747,12 +3717,12 @@ function renderSearchResults(results) {
     if (state.searchSortOrder === 'newest') {
         results.sort((a, b) => new Date(b.date) - new Date(a.date));
         DOM.spotlightSortLabel.textContent = i18n.t('search.newestFirst');
-        DOM.spotlightSortLabel.setAttribute('data-i18n', 'newestFirst');
+        DOM.spotlightSortLabel.setAttribute('data-i18n', 'search.newestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ml-2";
     } else {
         results.sort((a, b) => new Date(a.date) - new Date(b.date));
         DOM.spotlightSortLabel.textContent = i18n.t('search.oldestFirst');
-        DOM.spotlightSortLabel.setAttribute('data-i18n', 'oldestFirst');
+        DOM.spotlightSortLabel.setAttribute('data-i18n', 'search.oldestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ml-2";
     }
 
@@ -4876,8 +4846,13 @@ function renderAdminUserList(users, searchQuery = '') {
         } else if (isSuperAdmin) {
             roleBadgeHTML = `<span class="role-badge owner">${i18n.t('pro.owner')}</span>`;
         } else {
-    // Use the role string as the key (e.g., "pro", "standard")
-    roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}" data-i18n="${displayRole}">${i18n.t(displayRole)}</span>`;
+            const roleKeyMap = {
+                'pro': 'pro.label',
+                'standard': 'pro.standard',
+                'co-admin': 'pro.coAdmin'
+            };
+            const i18nKey = roleKeyMap[displayRole] || `pro.${displayRole}`;
+            roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}" data-i18n="${i18nKey}">${i18n.t(i18nKey)}</span>`;
         }
 
         item.innerHTML = `
@@ -4962,7 +4937,13 @@ function renderAdminUserList(users, searchQuery = '') {
                     // Resetting is safer for consistency
                     await refreshAdminUserList(true);
 
-                    showMessage(i18n.t('pro.msgRoleUpdated', {role: i18n.t(newRole)}), 'success');
+                    const roleKeyMap = {
+                        'pro': 'pro.label',
+                        'standard': 'pro.standard',
+                        'co-admin': 'pro.coAdmin'
+                    };
+                    const roleLabelKey = roleKeyMap[newRole] || `pro.${newRole}`;
+                    showMessage(i18n.t('pro.msgRoleUpdated', {role: i18n.t(roleLabelKey)}), 'success');
                 }
             } catch (error) {
                 Logger.error("Failed to update role:", error);
