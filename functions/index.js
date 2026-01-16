@@ -112,6 +112,9 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
         const leaveBalancesForYear = {};
         leaveTypes.forEach(lt => {
             if (overrides[lt.id]?.hidden) return;
+            // Respect limitYear: If defined, this leave type only exists in that year.
+            if (lt.limitYear && String(lt.limitYear) !== year) return;
+
             const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
             const used = leaveCounts[lt.id] || 0;
 
@@ -140,7 +143,8 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
     };
 
     try {
-        await summaryRef.set(summaryData, { merge: true });
+        // Use set without merge to ensure deleted leave types are removed from the summary
+        await summaryRef.set(summaryData);
     } catch (error) {
         Logger.error("Error setting summary for user:", error);
         throw error;

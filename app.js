@@ -3309,8 +3309,8 @@ function renderTeamDashboard() {
                         ${Math.round(usedPercentage)}%
                     </div>
                 </div>
-                <div class="stat-card-info">
-                    <h5>${sanitizeHTML(balance.name)}</h5>
+                <div class="stat-card-info min-w-0 overflow-hidden">
+                    <h5 class="truncate" title="${sanitizeHTML(balance.name)}">${sanitizeHTML(balance.name)}</h5>
                     <p>Balance: ${balance.balance} days</p>
                     <p>Used: ${balance.used} / ${balance.total} days</p>
                 </div>
