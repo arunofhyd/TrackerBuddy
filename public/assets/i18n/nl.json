@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Selecteer datums",
     "step2Desc": "Tik op de dagen in de kalender die u wilt markeren.",
     "step3Confirm": "3. Bevestigen",
-    "step3Desc": "Tik op de zwevende knop 'Bevestigen' om uw wijzigingen op te slaan."
+    "step3Desc": "Tik op de zwevende knop 'Bevestigen' om uw wijzigingen op te slaan.",
+    "limitToCurrentYear": "Beperk tot alleen het huidige jaar"
 }

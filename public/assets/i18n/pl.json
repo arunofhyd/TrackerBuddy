@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Wybierz daty",
     "step2Desc": "Dotknij dni w kalendarzu, które chcesz zaznaczyć.",
     "step3Confirm": "3. Potwierdź",
-    "step3Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany."
+    "step3Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany.",
+    "limitToCurrentYear": "Ogranicz tylko do bieżącego roku"
 }

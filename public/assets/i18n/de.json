@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Daten auswählen",
     "step2Desc": "Tippen Sie auf die Tage im Kalender, die Sie markieren möchten.",
     "step3Confirm": "3. Bestätigen",
-    "step3Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern."
+    "step3Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern.",
+    "limitToCurrentYear": "Nur auf das aktuelle Jahr beschränken"
 }

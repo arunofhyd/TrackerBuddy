@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Pilih Tarikh",
     "step2Desc": "Ketik hari pada kalendar yang anda ingin tandakan.",
     "step3Confirm": "3. Sahkan",
-    "step3Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda."
+    "step3Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda.",
+    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja"
 }

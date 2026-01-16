@@ -273,5 +273,6 @@
     "step2SelectDates": "2. 选择日期",
     "step2Desc": "点击日历上您想要标记的日期。",
     "step3Confirm": "3. 确认",
-    "step3Desc": "点击悬浮的“确认”按钮以保存更改。"
+    "step3Desc": "点击悬浮的“确认”按钮以保存更改。",
+    "limitToCurrentYear": "仅限当前年份"
 }

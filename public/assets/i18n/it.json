@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Seleziona date",
     "step2Desc": "Tocca i giorni sul calendario che desideri contrassegnare.",
     "step3Confirm": "3. Conferma",
-    "step3Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche."
+    "step3Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche.",
+    "limitToCurrentYear": "Limita solo all'anno corrente"
 }

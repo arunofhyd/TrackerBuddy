@@ -273,5 +273,6 @@
     "step2SelectDates": "2. Seleccionar fechas",
     "step2Desc": "Toca los días en el calendario que deseas marcar.",
     "step3Confirm": "3. Confirmar",
-    "step3Desc": "Toca el botón flotante 'Confirmar' para guardar tus cambios."
+    "step3Desc": "Toca el botón flotante 'Confirmar' para guardar tus cambios.",
+    "limitToCurrentYear": "Limitar solo al año actual"
 }
