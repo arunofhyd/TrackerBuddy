@@ -113,6 +113,8 @@
         .calendar-day-cell.leave-selecting { outline: 2px dashed var(--selected-leave-color, #3b82f6); outline-offset: -2px; background-color: var(--selected-leave-bg, #eff6ff); }
         .calendar-day-cell.is-today.leave-selecting { border-color: transparent !important; }
         #floating-confirm-container.visible { opacity: 1; transform: translateY(0); }
+        #confirm-selection-btn { pointer-events: none; }
+        #floating-confirm-container.visible #confirm-selection-btn { pointer-events: auto; }
         #bottom-controls-row.hidden { opacity: 0; pointer-events: none; }
         @media (min-width: 768px) { .calendar-day-cell { min-height: 100px; height: auto; padding-top: 0; padding: 12px; display: flex; flex-direction: column; } .calendar-day-content { position: static; width: 100%; height: 100%; padding: 0; } }
         .calendar-day-cell.current-month { background-color: #ffffff; border: 1px solid #e2e8f0; }
