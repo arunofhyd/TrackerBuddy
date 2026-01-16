@@ -265,5 +265,13 @@
     "sat": "土",
     "sun": "日",
     "apply": "適用",
-    "limitToCurrentYear": "現在の年のみに制限"
+    "confirmSelection": "Confirm",
+    "help": "Help",
+    "howToLogLeave": "How to Log Leave",
+    "step1SelectLeave": "1. Select Leave Type",
+    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
+    "step2SelectDates": "2. Select Dates",
+    "step2Desc": "Tap the days on the calendar you want to mark.",
+    "step3Confirm": "3. Confirm",
+    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
 }

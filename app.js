@@ -46,10 +46,6 @@ const i18n = new TranslationService(() => {
     if (DOM.spotlightModal?.classList.contains('visible') && state.searchQuery) {
         performSearch(state.searchQuery);
     }
-    // Explicitly update limit to current year text to ensure consistency
-    if (DOM.limitLeaveToYearSpan) {
-        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
-    }
 });
 
 // --- Global App State ---
@@ -108,12 +104,8 @@ function initUI() {
         leaveNameInput: document.getElementById('leave-name-input'),
         leaveDaysInput: document.getElementById('leave-days-input'),
         limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
-        limitLeaveToYearSpan: document.querySelector('[data-i18n="limitToCurrentYear"]'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
-        logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
-        logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
-        rangeBtn: document.getElementById('range-btn'),
         weekendOptionModal: document.getElementById('weekend-option-modal'),
         toggleSatBtn: document.getElementById('toggle-sat-btn'),
         toggleSunBtn: document.getElementById('toggle-sun-btn'),
@@ -155,6 +147,10 @@ function initUI() {
         spotlightScopeBtn: document.getElementById('spotlight-scope-btn'),
         spotlightScopeLabel: document.getElementById('spotlight-scope-label'),
         openSpotlightBtn: document.getElementById('open-spotlight-btn'),
+        // Help DOM
+        helpModal: document.getElementById('help-modal'),
+        helpToggleBtn: document.getElementById('help-toggle-btn'),
+        closeHelpBtn: document.getElementById('close-help-btn'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -1968,10 +1964,6 @@ function openLeaveTypeModal(leaveType = null) {
         selectColorInPicker(null);
         DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
-    }
-    // Explicitly update text on modal open
-    if (DOM.limitLeaveToYearSpan) {
-        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
     }
     DOM.leaveNameInput.focus();
 }
@@ -4144,6 +4136,25 @@ function setupEventListeners() {
     if (DOM.infoToggleBtn && DOM.infoDescription) {
         DOM.infoToggleBtn.addEventListener('click', () => {
             DOM.infoDescription.classList.toggle('visible');
+        });
+    }
+
+    // Help Modal
+    if (DOM.helpToggleBtn) {
+        DOM.helpToggleBtn.addEventListener('click', () => {
+            DOM.helpModal.classList.add('visible');
+        });
+    }
+    if (DOM.closeHelpBtn) {
+        DOM.closeHelpBtn.addEventListener('click', () => {
+            DOM.helpModal.classList.remove('visible');
+        });
+    }
+    if (DOM.helpModal) {
+        DOM.helpModal.addEventListener('click', (e) => {
+            if (e.target === DOM.helpModal) {
+                DOM.helpModal.classList.remove('visible');
+            }
         });
     }
 

@@ -265,5 +265,13 @@
     "sat": "ശനി",
     "sun": "ഞായർ",
     "apply": "പ്രയോഗിക്കുക",
-    "limitToCurrentYear": "നിലവിലെ വർഷത്തേക്ക് മാത്രം പരിമിതപ്പെടുത്തുക"
+    "confirmSelection": "Confirm",
+    "help": "Help",
+    "howToLogLeave": "How to Log Leave",
+    "step1SelectLeave": "1. Select Leave Type",
+    "step1Desc": "Tap one of the leave pills at the top to start selection mode.",
+    "step2SelectDates": "2. Select Dates",
+    "step2Desc": "Tap the days on the calendar you want to mark.",
+    "step3Confirm": "3. Confirm",
+    "step3Desc": "Tap the floating 'Confirm' button to save your changes."
 }

@@ -288,6 +288,10 @@
 </div>
 </div>
     <footer id="main-footer" class="mt-10 flex justify-center items-center gap-10">
+        <button id="help-toggle-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" title="How to Log Leave" aria-label="How to Log Leave">
+            <i class="fas fa-info-circle text-base"></i>
+            <span data-i18n="help" class="hidden sm:inline">Help</span>
+        </button>
         <button id="open-lang-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" aria-label="Select Language" data-i18n-aria-label="selectLanguage">
             <i class="fas fa-language text-base" aria-hidden="true"></i>
             <span data-i18n="selectLanguage" class="hidden sm:inline">Language</span>
@@ -322,6 +326,45 @@
             <div id="spotlight-results-list" class="spotlight-results px-2 space-y-2"></div>
             <div id="spotlight-empty-state" class="hidden py-8 text-center text-gray-500 dark:text-gray-400">
                 <p data-i18n="noResults">No matching activities found.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="help-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
+    <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold" data-i18n="howToLogLeave">How to Log Leave</h2>
+            <button id="close-help-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" aria-label="Close help">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="space-y-6">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
+                    <i class="fas fa-hand-pointer text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-1" data-i18n="step1SelectLeave">1. Select Leave Type</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400" data-i18n="step1Desc">Tap one of the leave pills at the top to start selection mode.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
+                    <i class="fas fa-calendar-day text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-1" data-i18n="step2SelectDates">2. Select Dates</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400" data-i18n="step2Desc">Tap the days on the calendar you want to mark.</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 text-green-600">
+                    <i class="fas fa-check text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg mb-1" data-i18n="step3Confirm">3. Confirm</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400" data-i18n="step3Desc">Tap the floating 'Confirm' button to save your changes.</p>
+                </div>
             </div>
         </div>
     </div>
