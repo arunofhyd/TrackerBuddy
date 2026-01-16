@@ -2192,6 +2192,9 @@ async function deleteLeaveType() {
             }
         });
 
+        // Capture original data for persistence logic before state update
+        const originalYearlyDataForPersistence = state.yearlyData;
+
         const currentYearData = updatedYearlyData[currentYear];
         setState({
             yearlyData: updatedYearlyData,
@@ -2208,7 +2211,7 @@ async function deleteLeaveType() {
                     lastUpdated: timestamp
                 });
 
-                const originalYearActivities = state.yearlyData[currentYear]?.activities || {};
+                const originalYearActivities = originalYearlyDataForPersistence[currentYear]?.activities || {};
                 Object.keys(originalYearActivities).forEach(dateKey => {
                     if (originalYearActivities[dateKey].leave?.typeId === id) {
                         batch.update(userDocRef, {
@@ -2257,6 +2260,9 @@ async function deleteLeaveType() {
             }
         });
 
+        // Capture original data for persistence logic before state update
+        const originalYearlyDataForPersistence = state.yearlyData;
+
         const currentYear = state.currentMonth.getFullYear();
         const currentYearData = updatedYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
 
@@ -2296,8 +2302,8 @@ async function deleteLeaveType() {
 
                 // 2. Delete Overrides & Activities recursively
                 // We iterate the *original* state to find what to delete
-                Object.keys(state.yearlyData).forEach(year => {
-                    const yearData = state.yearlyData[year];
+                Object.keys(originalYearlyDataForPersistence).forEach(year => {
+                    const yearData = originalYearlyDataForPersistence[year];
 
                     // Delete Override if exists
                     if (yearData.leaveOverrides && yearData.leaveOverrides[id]) {
