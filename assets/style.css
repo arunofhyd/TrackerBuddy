@@ -9,7 +9,7 @@
         /* --- Base and Font Styles --- */
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #2d3748; transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; }
         .text-gray-800 { color: #1f2937; }
-        .skip-link { position: absolute; top: -40px; left: 0; background: #0f172a; color: white; padding: 8px; z-index: 9999; transition: top 0.3s; }
+        .skip-link { position: absolute; top: -40px; inset-inline-start: 0; background: #0f172a; color: white; padding: 8px; z-index: 9999; transition: top 0.3s; }
         .skip-link:focus { top: 0; }
         /* --- Smooth Transitions --- */
         /* For Modals */
@@ -32,7 +32,7 @@
             transform: scale(1);
         }
         /* --- Splash Screen & Background Video --- */
-        .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0f172a; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 100; cursor: pointer; overflow: hidden; transition: background-color 0.5s ease; }
+        .splash-screen { position: fixed; top: 0; inset-inline-start: 0; width: 100%; height: 100%; background-color: #0f172a; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 100; cursor: pointer; overflow: hidden; transition: background-color 0.5s ease; }
         #splash-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translateX(-50%) translateY(-50%); z-index: 10; object-fit: cover; }
         .splash-text { width: 80%; max-width: 300px; z-index: 20; animation: fadeInSplash 1s ease-out forwards; }
         @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -106,8 +106,8 @@
         @keyframes particle-burst { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
         /* --- Calendar Styles --- */
         .calendar-day-cell { position: relative; height: 0; padding-top: 100%; cursor: pointer; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
-        .calendar-day-content { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 8px; z-index: 10; }
-        .leave-indicator { position: absolute; left: 0; bottom: 0; width: 100%; z-index: 5; transition: height 0.2s ease-in-out; }
+        .calendar-day-content { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 8px; z-index: 10; }
+        .leave-indicator { position: absolute; inset-inline-start: 0; bottom: 0; width: 100%; z-index: 5; transition: height 0.2s ease-in-out; }
         .leave-indicator.full-day { height: 100%; }
         .leave-indicator.half-day { height: 50%; }
         .calendar-day-cell.leave-selecting { outline: 2px dashed var(--selected-leave-color, #3b82f6); outline-offset: -2px; background-color: var(--selected-leave-bg, #eff6ff); }
@@ -172,7 +172,7 @@
         #message-display {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            inset-inline-end: 20px;
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
@@ -217,6 +217,7 @@
         .day-type-toggle {
             background-color: #f3f4f6;
             transition: background-color 0.2s ease-in-out;
+            position: relative;
         }
         .day-type-toggle .toggle-btn.active {
             color: white;
@@ -227,7 +228,19 @@
         .day-type-toggle .toggle-bg {
             background-color: #3b82f6;
             transition: transform 0.3s ease-in-out;
+            position: absolute;
+            top: 0.25rem;
+            inset-inline-start: 0.25rem;
+            left: auto;
+            right: auto;
         }
+        .day-type-toggle[data-selected-value="half"] .toggle-bg {
+            transform: translateX(100%);
+        }
+        [dir="rtl"] .day-type-toggle[data-selected-value="half"] .toggle-bg {
+            transform: translateX(-100%);
+        }
+
         .balance-box { background-color: #3b82f6 !important; }
         .balance-box p { color: white !important; }
         .balance-box .stats-label { color: #dbeafe !important; }
@@ -248,13 +261,13 @@
         .team-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         .team-member-card {
             transition: all 0.2s ease-in-out;
-            border-left: 4px solid #3b82f6;
+            border-inline-start: 4px solid #3b82f6;
             display: grid;
             grid-template-rows: auto 0fr;
             transition: grid-template-rows 0.35s ease-in-out;
         }
         .team-member-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .team-owner-card { border-left-color: #f59e0b !important; }
+        .team-owner-card { border-inline-start-color: #f59e0b !important; }
         details.team-member-card[open] {
             grid-template-rows: auto 1fr;
         }
@@ -357,7 +370,7 @@ body.dark .radial-progress-bg {
 body.dark .stat-card-info p {
     color: #9ca3af;
 }
-        .room-code { font-family: 'Courier New', monospace; letter-spacing: 2px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 9999px; padding: 8px 16px 8px 24px; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); display: inline-flex; align-items: center; }
+        .room-code { font-family: 'Courier New', monospace; letter-spacing: 2px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 9999px; padding-block: 8px; padding-inline-start: 24px; padding-inline-end: 16px; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); display: inline-flex; align-items: center; }
         .progress-bar { background: linear-gradient(135deg, #10b981, #059669); border-radius: 9999px; transition: width 0.3s ease-in-out; }
         .progress-bg { border-radius: 9999px; overflow: hidden; }
         /* --- Mobile Responsive --- */
@@ -368,7 +381,7 @@ body.dark .stat-card-info p {
             .activity-indicator { width: 5px; height: 5px; margin-top: 1px; }
             .day-note-container { height: 10px; }
             .day-note { font-size: 0.55rem; letter-spacing: 0; }
-            .daily-activity-table-body td { padding-left: 8px; padding-right: 8px; font-size: 0.875rem; }
+            .daily-activity-table-body td { padding-inline: 8px; font-size: 0.875rem; }
             .calendar-day-content { padding: 4px; }
             .leave-stat-card { padding: 0.75rem; gap: 0.75rem; }
             .leave-stat-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -478,8 +491,7 @@ body.dark .stat-card-info p {
 .spotlight-overlay {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
@@ -527,8 +539,8 @@ body.dark .stat-card-info p {
     border: none;
     padding-top: 1rem;
     padding-bottom: 1rem;
-    padding-left: 3.5rem; /* Space for icon */
-    padding-right: 4rem;  /* Space for Esc button */
+    padding-inline-start: 3.5rem; /* Space for icon */
+    padding-inline-end: 4rem;  /* Space for Esc button */
     font-size: 1.125rem; /* text-lg */
     color: #1f2937;
     outline: none;
@@ -536,7 +548,7 @@ body.dark .stat-card-info p {
 
 .spotlight-icon {
     position: absolute;
-    left: 1rem;
+    inset-inline-start: 1rem;
     top: 50%;
     transform: translateY(-50%);
     width: 1.5rem;
@@ -550,7 +562,7 @@ body.dark .stat-card-info p {
 
 .spotlight-esc-btn {
     position: absolute;
-    right: 1rem;
+    inset-inline-end: 1rem;
     top: 50%;
     transform: translateY(-50%);
     font-size: 0.75rem;
@@ -899,10 +911,9 @@ body.dark .role-badge.pending {
 .custom-date-input::-webkit-calendar-picker-indicator {
     opacity: 0;
     position: absolute;
-    right: 0;
+    inset-inline: 0;
     top: 0;
     bottom: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     cursor: pointer;
