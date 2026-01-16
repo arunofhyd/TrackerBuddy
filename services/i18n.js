@@ -82,11 +82,21 @@ export class TranslationService {
      */
     async loadTranslations(lang) {
         try {
-            const response = await fetch(`assets/i18n/${lang}.json`);
+            const response = await fetch(`/assets/i18n/${lang}.json`);
             this.translations = await response.json();
         } catch (error) {
             console.error('Failed to load translations:', error);
         }
+    }
+
+    /**
+     * Helper to retrieve a nested value from the translations object using a dot-notation key.
+     * @param {string} key - The key (e.g., 'auth.signIn').
+     * @returns {string|undefined} The translated string or undefined.
+     */
+    getValue(key) {
+        if (!key) return undefined;
+        return key.split('.').reduce((obj, k) => (obj && obj[k] !== undefined) ? obj[k] : undefined, this.translations);
     }
 
     /**
@@ -96,7 +106,7 @@ export class TranslationService {
      * @returns {string} The translated string or the key if not found.
      */
     t(key, params = {}) {
-        let text = this.translations[key] || key;
+        let text = this.getValue(key) || key;
         Object.keys(params).forEach(param => {
             text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
         });
@@ -112,32 +122,37 @@ export class TranslationService {
 
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
-            if (this.translations[key]) {
-                el.innerHTML = this.translations[key];
+            const text = this.getValue(key);
+            if (text) {
+                el.innerHTML = text;
             }
         });
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.dataset.i18nPlaceholder;
-            if (this.translations[key]) {
-                el.placeholder = this.translations[key];
+            const text = this.getValue(key);
+            if (text) {
+                el.placeholder = text;
             }
         });
         document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
             const key = el.dataset.i18nAriaLabel;
-            if (this.translations[key]) {
-                el.setAttribute('aria-label', this.translations[key]);
+            const text = this.getValue(key);
+            if (text) {
+                el.setAttribute('aria-label', text);
             }
         });
         document.querySelectorAll('[data-i18n-title]').forEach(el => {
             const key = el.dataset.i18nTitle;
-            if (this.translations[key]) {
-                el.title = this.translations[key];
+            const text = this.getValue(key);
+            if (text) {
+                el.title = text;
             }
         });
         document.querySelectorAll('[data-i18n-alt]').forEach(el => {
             const key = el.dataset.i18nAlt;
-            if (this.translations[key]) {
-                el.alt = this.translations[key];
+            const text = this.getValue(key);
+            if (text) {
+                el.alt = text;
             }
         });
 

@@ -339,7 +339,7 @@ async function handleUserLogin(user) {
     cleanupTeamSubscriptions();
 
     setState({ userId: user.uid, isOnlineMode: true });
-    DOM.userIdDisplay.textContent = `User ID: ${user.uid}`;
+    DOM.userIdDisplay.textContent = i18n.t('dashboard.userIdPrefix') + user.uid;
 
     switchView(DOM.loadingView, DOM.loginView);
 
@@ -354,7 +354,7 @@ async function handleUserLogin(user) {
                 
                 if (hasData) {
                     // Use a simple confirm for now as per requirements
-                    const promptMsg = i18n.t('migrateDataPrompt');
+                    const promptMsg = i18n.t('admin.migrateDataPrompt');
 
                     if (confirm(promptMsg)) {
                         try {
@@ -362,16 +362,16 @@ async function handleUserLogin(user) {
                             const mergedData = mergeUserData(state, guestData);
                             await persistData(mergedData);
                             localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
-                            showMessage(i18n.t("msgDataMigratedSuccess"), "success");
+                            showMessage(i18n.t("admin.msgMigratedSuccess"), "success");
                             // Refresh state immediately
                             setState(mergedData);
                         } catch (e) {
                             Logger.error("Migration failed", e);
-                            showMessage(i18n.t("msgFailedToMigrate"), "error");
+                            showMessage(i18n.t("admin.msgMigratedFailed"), "error");
                         }
                     } else {
                         // User declined, clear local data to stop asking
-                        const deleteMsg = i18n.t('deleteGuestDataPrompt');
+                        const deleteMsg = i18n.t('admin.deleteGuestDataPrompt');
                         if (confirm(deleteMsg)) {
                             localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
                         }
@@ -840,7 +840,7 @@ async function loadTeamMembersData() {
         }
     }, (error) => {
         Logger.error("Error listening to team member summaries:", error);
-        showMessage(i18n.t("msgRealTimeTeamError"), "error");
+        showMessage(i18n.t("team.msgRealTimeError"), "error");
     });
 
     setState({ unsubscribeFromTeamMembers: [unsubscribe] });
@@ -880,7 +880,7 @@ async function persistData(data, partialUpdate = null) {
             await saveDataToFirestore(data, partialUpdate);
         } catch (error) {
             Logger.error("Error saving to Firestore:", error);
-            showMessage(i18n.t("msgSaveError"), 'error');
+            showMessage(i18n.t("messages.saveError"), 'error');
         }
     } else {
         saveDataToLocalStorage(data);
@@ -904,7 +904,7 @@ function handleAddSlot(dayDataCopy) {
     const maxOrder = existingKeys.length > 0 ? Math.max(...Object.values(dayDataCopy).filter(v => typeof v === 'object').map(v => v.order || 0)) : -1;
     dayDataCopy[newTimeKey] = { text: "", order: maxOrder + 1 };
     delete dayDataCopy._userCleared;
-    return { message: i18n.t("newSlotAdded"), newTimeKey };
+    return { message: i18n.t("messages.newSlotAdded"), newTimeKey };
 }
 
 function handleUpdateActivityText(dayDataCopy, payload) {
@@ -915,17 +915,17 @@ function handleUpdateActivityText(dayDataCopy, payload) {
         dayDataCopy[payload.timeKey] = { text: payload.newText, order };
     }
     delete dayDataCopy._userCleared;
-    return i18n.t("activityUpdated");
+    return i18n.t("messages.activityUpdated");
 }
 
 function handleUpdateTime(dayDataCopy, payload) {
     const { oldTimeKey, newTimeKey } = payload;
     if (!newTimeKey) {
-        showMessage(i18n.t("msgTimeEmpty"), 'error');
+        showMessage(i18n.t("messages.timeEmpty"), 'error');
         return null;
     }
     if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
-        showMessage(i18n.t("msgTimeExists").replace('{time}', newTimeKey), 'error');
+        showMessage(i18n.t("messages.timeExists").replace('{time}', newTimeKey), 'error');
         return null;
     }
 
@@ -933,7 +933,7 @@ function handleUpdateTime(dayDataCopy, payload) {
         dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
         delete dayDataCopy[oldTimeKey];
     }
-    return i18n.t("timeUpdated");
+    return i18n.t("messages.timeUpdated");
 }
 
 async function saveData(action) {
@@ -1054,7 +1054,7 @@ async function saveData(action) {
         if (successMessage) showMessage(successMessage, 'success');
     } catch (error) {
         Logger.error("Error persisting data:", error);
-        showMessage(i18n.t("msgSaveRevertError"), 'error');
+        showMessage(i18n.t("messages.saveRevertError"), 'error');
         const revertedCurrentYearData = originalYearlyData[year] || { activities: {}, leaveOverrides: {} };
         setState({ yearlyData: originalYearlyData, currentYearData: revertedCurrentYearData });
         updateView();
@@ -1072,7 +1072,7 @@ function loadDataFromLocalStorage() {
 
     } catch (error) {
         Logger.error("Error loading local data:", error);
-        showMessage(i18n.t("msgLoadLocalError"), 'error');
+        showMessage(i18n.t("admin.msgLoadLocalError"), 'error');
         return { yearlyData: {}, leaveTypes: [] };
     }
 }
@@ -1082,7 +1082,7 @@ function saveDataToLocalStorage(data) {
         localStorage.setItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA, JSON.stringify(data));
     } catch (error) {
         Logger.error("Error saving local data:", error);
-        showMessage(i18n.t("msgSaveLocalError"), 'error');
+        showMessage(i18n.t("admin.msgSaveLocalError"), 'error');
     }
 }
 
@@ -1144,17 +1144,17 @@ async function resetAllData() {
 
             // This will trigger onSnapshot, which will update the local state.
             triggerTeamSync();
-            showMessage(i18n.t("msgCloudResetSuccess"), 'success');
+            showMessage(i18n.t("messages.cloudResetSuccess"), 'success');
 
         } catch (error) {
             Logger.error("Error resetting cloud data:", error);
-            showMessage(i18n.t("msgCloudResetError"), 'error');
+            showMessage(i18n.t("messages.cloudResetError"), 'error');
         }
     } else {
         localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA); 
         setState(resetState);
         updateView();
-        showMessage(i18n.t("msgLocalResetSuccess"), 'success');
+        showMessage(i18n.t("messages.localResetSuccess"), 'success');
     }
 
     DOM.confirmResetModal.classList.remove('visible');
@@ -1192,10 +1192,10 @@ async function updateActivityOrder() {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
-        showMessage(i18n.t("msgActivitiesReordered"), 'success');
+        showMessage(i18n.t("messages.activitiesReordered"), 'success');
     } catch (error) {
         Logger.error("Failed to reorder activities:", error);
-        showMessage(i18n.t("msgOrderSaveError"), "error");
+        showMessage(i18n.t("messages.orderSaveError"), "error");
         // NOTE: Consider rolling back state on error
     }
 }
@@ -1244,11 +1244,11 @@ async function deleteActivity(dateKey, timeKey) {
         } else {
             saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
         }
-        showMessage(i18n.t("msgActivityDeleted"), 'success');
+        showMessage(i18n.t("messages.activityDeleted"), 'success');
 
     } catch (error) {
         Logger.error("Failed to delete activity:", error);
-        showMessage(i18n.t("msgDeleteSaveError"), "error");
+        showMessage(i18n.t("messages.deleteSaveError"), "error");
         // Rollback on error
         const currentYear = state.currentMonth.getFullYear();
         const rolledBackCurrentYearData = originalYearlyData[currentYear] || { activities: {}, leaveOverrides: {} };
@@ -1327,7 +1327,7 @@ function downloadCSV() {
     });
 
     if (csvRows.length <= 1) {
-        return showMessage(i18n.t("msgNoBackupData"), 'info');
+        return showMessage(i18n.t("messages.noBackupData"), 'info');
     }
 
     const csvString = csvRows.map(row => row.map(escapeCsvField).join(",")).join("\n");
@@ -1361,7 +1361,7 @@ function handleFileUpload(event) {
             const rows = parsed.data;
 
             if (rows.length <= 1) {
-                return showMessage(i18n.t("msgEmptyCSV"), 'error');
+                return showMessage(i18n.t("messages.emptyCSV"), 'error');
             }
 
             let processedRows = 0;
@@ -1452,15 +1452,15 @@ function handleFileUpload(event) {
             });
             triggerTeamSync();
 
-            showMessage(i18n.t("msgRestoreSuccess").replace('{count}', processedRows), 'success');
+            showMessage(i18n.t("messages.restoreSuccess").replace('{count}', processedRows), 'success');
             event.target.value = '';
             updateView();
         } catch (err) {
             Logger.error("Error during CSV restore:", err);
-            showMessage(i18n.t("msgRestoreError"), 'error');
+            showMessage(i18n.t("messages.restoreError"), 'error');
         }
     };
-    reader.onerror = () => showMessage(i18n.t("msgReadError"), 'error');
+    reader.onerror = () => showMessage(i18n.t("messages.readError"), 'error');
     reader.readAsText(file);
 }
 
@@ -1574,7 +1574,7 @@ async function signUpWithEmail(email, password) {
         hasError = true;
     }
     if (hasError) {
-        return showMessage(i18n.t("msgAuthRequired"), 'error');
+        return showMessage(i18n.t("auth.msgRequired"), 'error');
     }
 
     setButtonLoadingState(button, true);
@@ -1583,9 +1583,9 @@ async function signUpWithEmail(email, password) {
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
-            showMessage(i18n.t("msgAccountExists"), 'error');
+            showMessage(i18n.t("auth.msgAccountExists"), 'error');
         } else {
-            showMessage(i18n.t("msgSignUpFailed").replace('{error}', error.message), 'error');
+            showMessage(i18n.t("auth.msgSignUpFailed").replace('{error}', error.message), 'error');
         }
     } finally {
         setButtonLoadingState(button, false);
@@ -1597,7 +1597,7 @@ async function editTeamName() {
     const newTeamName = DOM.newTeamNameInput.value.trim();
 
     if (!newTeamName) {
-        showMessage(i18n.t("msgTeamNameRequired"), 'error');
+        showMessage(i18n.t("team.msgNameRequired"), 'error');
         return;
     }
 
@@ -1606,11 +1606,11 @@ async function editTeamName() {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const editTeamNameCallable = httpsCallable(functions, 'editTeamName');
         await editTeamNameCallable({ newTeamName: newTeamName, teamId: state.currentTeam });
-        showMessage(i18n.t("msgTeamNameUpdated"), 'success');
+        showMessage(i18n.t("team.msgNameUpdated"), 'success');
         closeEditTeamNameModal();
     } catch (error) {
         Logger.error('Error updating team name:', error);
-        showMessage(i18n.t("msgTeamNameUpdateFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -1628,7 +1628,7 @@ async function signInWithEmail(email, password) {
         hasError = true;
     }
     if (hasError) {
-        return showMessage(i18n.t("msgEmailPasswordRequired"), 'error');
+        return showMessage(i18n.t("auth.msgEmailPasswordRequired"), 'error');
     }
 
     setButtonLoadingState(button, true);
@@ -1637,9 +1637,9 @@ async function signInWithEmail(email, password) {
         handleUserLogin(userCredential.user);
     } catch (error) {
         if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-            showMessage(i18n.t("msgAuthFailed"), 'error');
+            showMessage(i18n.t("auth.msgAuthFailed"), 'error');
         } else {
-            showMessage(i18n.t("msgSignInFailed").replace('{error}', error.message), 'error');
+            showMessage(i18n.t("auth.msgSignInFailed").replace('{error}', error.message), 'error');
         }
     } finally {
         setButtonLoadingState(button, false);
@@ -1650,15 +1650,15 @@ async function resetPassword(email) {
     const button = DOM.forgotPasswordBtn;
     if (!email) {
         setInputErrorState(document.getElementById('email-input'), true);
-        return showMessage(i18n.t("msgEmailRequired"), 'info');
+        return showMessage(i18n.t("auth.msgEmailRequired"), 'info');
     }
     setButtonLoadingState(button, true);
     button.classList.add('loading');
     try {
         await sendPasswordResetEmail(auth, email);
-        showMessage(i18n.t("msgResetEmailSent"), 'success');
+        showMessage(i18n.t("auth.msgResetEmailSent"), 'success');
     } catch (error) {
-        showMessage(i18n.t("msgResetEmailFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("auth.msgResetEmailFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
         button.classList.remove('loading');
@@ -1673,7 +1673,7 @@ async function signInWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         handleUserLogin(result.user);
     } catch (error) {
-        showMessage(i18n.t("msgGoogleSignInFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("auth.msgGoogleFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -1687,7 +1687,7 @@ async function appSignOut() {
             handleUserLogout();
         } catch (error) {
             setState({ isLoggingOut: false });
-            showMessage(i18n.t("msgSignOutFailed").replace('{error}', error.message), 'error');
+            showMessage(i18n.t("auth.msgSignOutFailed").replace('{error}', error.message), 'error');
         }
     } else {
         handleUserLogout();
@@ -1957,7 +1957,7 @@ function openLeaveTypeModal(leaveType = null) {
         const totalDays = overrides[leaveType.id]?.totalDays ?? leaveType.totalDays;
 
         DOM.leaveTypeModalTitle.dataset.i18n = 'editLeaveType';
-        DOM.leaveTypeModalTitle.innerHTML = i18n.t('editLeaveType');
+        DOM.leaveTypeModalTitle.innerHTML = i18n.t('tracker.editLeaveType');
         DOM.editingLeaveTypeId.value = leaveType.id;
         DOM.leaveNameInput.value = leaveType.name;
         DOM.leaveDaysInput.value = totalDays;
@@ -1966,7 +1966,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
     } else {
         DOM.leaveTypeModalTitle.dataset.i18n = 'addNewLeaveType';
-        DOM.leaveTypeModalTitle.innerHTML = i18n.t('addNewLeaveType');
+        DOM.leaveTypeModalTitle.innerHTML = i18n.t('tracker.addNewLeaveType');
         DOM.editingLeaveTypeId.value = '';
         DOM.leaveNameInput.value = '';
         DOM.leaveDaysInput.value = '';
@@ -1988,7 +1988,7 @@ function closeLeaveTypeModal() {
 function setupColorPicker() {
     const colors = Object.keys(COLOR_MAP);
     DOM.leaveColorPicker.innerHTML = colors.map(color => `
-        <button type="button" data-color="${color}" aria-label="Select color: ${COLOR_MAP[color]}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
+        <button type="button" data-color="${color}" aria-label="${i18n.t('tracker.color' + COLOR_MAP[color])}" style="background-color: ${color};" class="w-10 h-10 rounded-full border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"></button>
     `).join('');
 }
 
@@ -2015,7 +2015,7 @@ async function saveLeaveType() {
     const color = selectedColorEl ? selectedColorEl.dataset.color : null;
 
     if (!name || isNaN(totalDays) || !color) {
-        showMessage(i18n.t("msgLeaveTypeFieldsRequired"), 'error');
+        showMessage(i18n.t("tracker.msgLeaveTypeFieldsRequired"), 'error');
         setButtonLoadingState(button, false);
         return;
     }
@@ -2024,7 +2024,7 @@ async function saveLeaveType() {
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(currentYear);
     const isColorTaken = visibleLeaveTypes.some(lt => lt.color === color && lt.id !== id);
     if (isColorTaken) {
-        showMessage(i18n.t("msgLeaveTypeColorConflict"), 'error');
+        showMessage(i18n.t("tracker.msgLeaveTypeColorConflict"), 'error');
         setButtonLoadingState(button, false);
         return;
     }
@@ -2153,11 +2153,11 @@ async function saveLeaveType() {
         }
 
         triggerTeamSync();
-        showMessage(i18n.t("msgLeaveTypeSaved"), 'success');
+        showMessage(i18n.t("tracker.msgLeaveTypeSaved"), 'success');
     } catch (error) {
         Logger.error("Failed to save leave type:", error);
-        showMessage(i18n.t("msgLeaveTypeSaveFailed"), 'error');
-        // Rollback?
+        showMessage(i18n.t("tracker.msgLeaveTypeSaveFailed"), 'error');
+        // NOTE: Consider rolling back state
     } finally {
         closeLeaveTypeModal();
         updateView();
@@ -2244,10 +2244,10 @@ async function deleteLeaveType() {
                 });
             }
             triggerTeamSync();
-            showMessage(i18n.t("msgLeaveTypeHidden").replace('{year}', currentYear), 'success');
+            showMessage(i18n.t("tracker.msgLeaveTypeHidden").replace('{year}', currentYear), 'success');
         } catch (error) {
             Logger.error("Failed to hide leave type:", error);
-            showMessage(i18n.t("msgLeaveTypeHideFailed"), 'error');
+            showMessage(i18n.t("tracker.msgLeaveTypeHideFailed"), 'error');
         }
 
     } else {
@@ -2349,10 +2349,10 @@ async function deleteLeaveType() {
                 });
             }
             triggerTeamSync();
-            showMessage(i18n.t("msgLeaveTypeDeleted"), 'success');
+            showMessage(i18n.t("tracker.msgLeaveTypeDeleted"), 'success');
         } catch (error) {
             Logger.error("Failed to delete leave type globally:", error);
-            showMessage(i18n.t("msgLeaveTypeDeleteFailed"), 'error');
+            showMessage(i18n.t("tracker.msgLeaveTypeDeleteFailed"), 'error');
         }
     }
 
@@ -2369,7 +2369,7 @@ async function saveLeaveTypes() {
     if (!state.isOnlineMode) {
         updateView();
     }
-    showMessage(i18n.t("msgLeaveTypesReordered"), 'success');
+    showMessage(i18n.t("tracker.msgLeaveTypesReordered"), 'success');
 }
 
 async function moveLeaveType(typeId, direction) {
@@ -2497,8 +2497,8 @@ function renderLeaveOverviewList(leaveDates, leaveType) {
             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
                 <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${leaveDate.dayType}">
                     <div class="toggle-bg absolute top-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full" data-i18n="full">${i18n.t('full')}</button>
-                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half" data-i18n="half">${i18n.t('half')}</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'full' ? 'active' : ''}" data-value="full" data-i18n="tracker.full">${i18n.t('tracker.full')}</button>
+                    <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold ${leaveDate.dayType === 'half' ? 'active' : ''}" data-value="half" data-i18n="tracker.half">${i18n.t('tracker.half')}</button>
                 </div>
                 <div class="flex items-center gap-1 flex-shrink-0">
                     <button class="edit-leave-day-btn icon-btn" title="Edit this leave entry">
@@ -2565,10 +2565,10 @@ async function deleteLeaveDay(dateKey) {
         }
 
         triggerTeamSync();
-        showMessage(i18n.t("msgLeaveEntryDeleted"), 'success');
+        showMessage(i18n.t("tracker.msgLeaveEntryDeleted"), 'success');
     } catch (error) {
         Logger.error("Failed to delete leave day:", error);
-        showMessage(i18n.t("msgDeleteSaveError"), "error");
+        showMessage(i18n.t("messages.deleteSaveError"), "error");
         // NOTE: A robust implementation might roll back the state change here.
     }
 
@@ -2585,7 +2585,7 @@ function renderLeaveStats() {
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
     if (visibleLeaveTypes.length === 0) {
-        render(html`<p class="text-center text-gray-500">${i18n.t('noLeaveTypesDefined')}</p>`, DOM.leaveStatsSection);
+        render(html`<p class="text-center text-gray-500">${i18n.t('tracker.noLeaveTypesDefined')}</p>`, DOM.leaveStatsSection);
         return;
     }
 
@@ -2613,34 +2613,34 @@ function renderLeaveStats() {
                     </div>
                     
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
-                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('viewLeaveDetails')}" aria-label="${i18n.t('viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
+                        <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('tracker.viewLeaveDetails')}" aria-label="${i18n.t('tracker.viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="${i18n.t('moveUp')}" aria-label="${i18n.t('moveUp')} ${lt.name}" ?disabled=${isFirst} @click=${() => moveLeaveType(lt.id, -1)}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="-1" title="${i18n.t('tracker.moveUp')}" aria-label="${i18n.t('tracker.moveUp')} ${lt.name}" ?disabled=${isFirst} @click=${() => moveLeaveType(lt.id, -1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
                         </button>
-                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="${i18n.t('moveDown')}" aria-label="${i18n.t('moveDown')} ${lt.name}" ?disabled=${isLast} @click=${() => moveLeaveType(lt.id, 1)}>
+                        <button class="move-leave-btn icon-btn" data-id="${lt.id}" data-direction="1" title="${i18n.t('tracker.moveDown')}" aria-label="${i18n.t('tracker.moveDown')} ${lt.name}" ?disabled=${isLast} @click=${() => moveLeaveType(lt.id, 1)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
-                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="${i18n.t('edit')}" aria-label="${i18n.t('edit')} ${lt.name}" @click=${() => openLeaveTypeModal(lt)}>
+                        <button class="edit-leave-type-btn icon-btn" data-id="${lt.id}" title="${i18n.t('common.edit')}" aria-label="${i18n.t('common.edit')} ${lt.name}" @click=${() => openLeaveTypeModal(lt)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-1 sm:gap-2 mt-1 sm:mt-2 text-center">
                     <div class="bg-gray-100 p-1 sm:p-2 rounded">
-                        <p class="text-xs text-gray-500">${i18n.t('used')}</p>
+                        <p class="text-xs text-gray-500">${i18n.t('tracker.used')}</p>
                         <p class="font-bold text-base sm:text-xl text-gray-800">${used}</p>
                     </div>
                     <div class="p-1 sm:p-2 rounded balance-box">
-                        <p class="text-xs stats-label">${i18n.t('balance')}</p>
+                        <p class="text-xs stats-label">${i18n.t('tracker.balance')}</p>
                         <p class="font-bold text-base sm:text-xl stats-value">${balance}</p>
                     </div>
                 </div>
                 <div class="bg-gray-100 p-1 sm:p-2 rounded mt-1 sm:mt-2 text-center">
-                    <p class="text-xs text-gray-500">${i18n.t('total')}</p>
+                    <p class="text-xs text-gray-500">${i18n.t('tracker.total')}</p>
                     <p class="font-bold text-base sm:text-xl text-gray-800">${totalDays}</p>
                     <div class="progress-bg h-1.5 sm:h-2 mt-2 bg-gray-200 rounded-full overflow-hidden">
                         <div class="progress-bar h-1.5 sm:h-2 rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${lt.color};"></div>
@@ -2655,7 +2655,7 @@ function renderLeaveStats() {
 
 function openLeaveCustomizationModal() {
     if (state.leaveSelection.size === 0) {
-        showMessage(i18n.t("msgSelectDayRequired"), 'info');
+        showMessage(i18n.t("tracker.msgSelectDayRequired"), 'info');
         return;
     }
     state.previousActiveElement = document.activeElement;
@@ -2674,7 +2674,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
     let triggerHTML;
     if (currentTypeId === 'remove') {
-        triggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
+        triggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('tracker.noneWillBeRemoved')}</span>`;
     } else if (selectedType) {
         triggerHTML = `
             <span class="flex items-center w-full min-w-0">
@@ -2683,7 +2683,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
             </span>
             <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
     } else {
-        triggerHTML = `<span class="font-medium text-sm text-gray-500">${i18n.t('selectType')}</span>`;
+        triggerHTML = `<span class="font-medium text-sm text-gray-500">${i18n.t('tracker.selectType')}</span>`;
     }
 
     container.innerHTML = `
@@ -2694,7 +2694,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
             <div class="flex flex-col space-y-1">
                 <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center transition-all duration-200 active:scale-95">
                     <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
-                    <span>${i18n.t('none')}</span>
+                    <span>${i18n.t('tracker.none')}</span>
                 </button>
                 ${visibleLeaveTypes.map(lt => `
                     <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0 transition-all duration-200 active:scale-95">
@@ -2727,7 +2727,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
             let newTriggerHTML;
             if (newTypeId === 'remove') {
-                newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
+                newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('tracker.noneWillBeRemoved')}</span>`;
             } else {
                 const newType = visibleLeaveTypes.find(lt => lt.id === newTypeId);
 
@@ -2797,7 +2797,7 @@ function renderLeaveCustomizationModal() {
 
         let newTriggerHTML;
         if (newTypeId === 'remove') {
-            newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
+            newTriggerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('tracker.noneWillBeRemoved')}</span>`;
         } else {
             const newType = visibleLeaveTypes.find(lt => lt.id === newTypeId);
             if (newType) {
@@ -2859,8 +2859,8 @@ function renderLeaveCustomizationModal() {
                 <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-2">
                     <div class="day-type-toggle relative flex w-28 h-8 items-center rounded-full bg-gray-200 p-1 cursor-pointer flex-shrink-0" data-selected-value="${currentDayType}">
                         <div class="toggle-bg absolute top-1 h-6 w-[calc(50%-0.25rem)] rounded-full bg-blue-500 shadow-md transition-transform duration-300 ease-in-out"></div>
-                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="full">${i18n.t('full')}</button>
-                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="half">${i18n.t('half')}</button>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="full" data-i18n="tracker.full">${i18n.t('tracker.full')}</button>
+                        <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold" data-value="half" data-i18n="tracker.half">${i18n.t('tracker.half')}</button>
                     </div>
                     <button class="delete-leave-day-btn text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove this day">
                         <i class="fas fa-trash-alt"></i>
@@ -2922,7 +2922,7 @@ async function saveLoggedLeaves() {
         if (changes[typeId] > (balances[typeId] || 0)) {
             const leaveType = visibleLeaveTypes.find(lt => lt.id === typeId);
             if (leaveType) {
-                showMessage(i18n.t("msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
+                showMessage(i18n.t("tracker.msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
                 balanceError = true;
                 break;
             }
@@ -3014,10 +3014,10 @@ async function saveLoggedLeaves() {
         }
 
         triggerTeamSync();
-        showMessage(i18n.t("msgLeavesSaved"), 'success');
+        showMessage(i18n.t("tracker.msgLeavesSaved"), 'success');
     } catch (error) {
         Logger.error("Failed to save logged leaves:", error);
-        showMessage(i18n.t("msgLeavesSaveFailed"), "error");
+        showMessage(i18n.t("tracker.msgLeavesSaveFailed"), "error");
     } finally {
         DOM.customizeLeaveModal.classList.remove('visible');
         if (state.previousActiveElement) {
@@ -3037,9 +3037,9 @@ function handleBulkRemoveClick() {
         const selectorContainer = item.querySelector('.leave-type-selector');
         const trigger = selectorContainer.querySelector('.leave-type-selector-trigger');
         trigger.dataset.typeId = 'remove';
-        trigger.innerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('noneWillBeRemoved')}</span>`;
+        trigger.innerHTML = `<span class="font-medium text-sm text-red-500">${i18n.t('tracker.noneWillBeRemoved')}</span>`;
     });
-    showMessage(i18n.t("msgLeavesRemovalConfirmation"), 'info');
+    showMessage(i18n.t("tracker.msgLeavesRemovalConfirmation"), 'info');
 }
 
 // --- Team Management Functions ---
@@ -3054,7 +3054,7 @@ function renderTeamSection() {
     }
 
     if (!state.isOnlineMode) {
-        render(html`<p class="text-center text-gray-500">${i18n.t('teamFeaturesOffline')}</p>`, DOM.teamSection);
+        render(html`<p class="text-center text-gray-500">${i18n.t('team.offline')}</p>`, DOM.teamSection);
         return;
     }
 
@@ -3065,7 +3065,7 @@ function renderTeamSection() {
     if (!state.currentTeam) {
         const createTeamTemplate = html`
             <div class="text-center">
-                <h3 class="text-lg font-semibold mb-4">${i18n.t('teamManagement')}</h3>
+                <h3 class="text-lg font-semibold mb-4">${i18n.t('team.management')}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-400 cursor-pointer transition-all active:scale-95 duration-200">
                         <button id="create-team-btn" class="w-full text-left">
@@ -3076,8 +3076,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('createTeam')}</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('createTeamDesc')}</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('team.create')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('team.createDesc')}</p>
                         </button>
                     </div>
                     <div class="team-card bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-400 cursor-pointer transition-all active:scale-95 duration-200">
@@ -3089,8 +3089,8 @@ function renderTeamSection() {
                                     </svg>
                                 </div>
                             </div>
-                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('joinTeam')}</h4>
-                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('joinTeamDesc')}</p>
+                            <h4 class="text-lg sm:text-xl font-bold text-center mb-1 sm:mb-2">${i18n.t('team.join')}</h4>
+                            <p class="text-sm sm:text-base text-center text-gray-600 dark:text-gray-400">${i18n.t('team.joinDesc')}</p>
                         </button>
                     </div>
                 </div>
@@ -3114,7 +3114,7 @@ function renderTeamSection() {
                         </button>
                         ` : ''}
                     </h3>
-                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">${isAdmin ? i18n.t('youAreAdmin') : i18n.t('youAreMember')} • ${memberCount === 1 ? i18n.t('memberCount').replace('{count}', memberCount) : i18n.t('membersCount').replace('{count}', memberCount)}</p>
+                    <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">${isAdmin ? i18n.t('team.youAreAdmin') : i18n.t('team.youAreMember')} • ${memberCount === 1 ? i18n.t('team.memberCount').replace('{count}', memberCount) : i18n.t('team.membersCount').replace('{count}', memberCount)}</p>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
@@ -3122,12 +3122,12 @@ function renderTeamSection() {
                     <div class="text-center">
                         <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="${i18n.t('copyCode')}">
+                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="${i18n.t('team.copyCode')}">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('shareCodeMessage')}</p>
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('team.shareCodeMessage')}</p>
                 </div>
                 
                 <div class="flex flex-col md:flex-row gap-3 sm:gap-4">
@@ -3136,26 +3136,26 @@ function renderTeamSection() {
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
-                            ${i18n.t('teamDashboard')}
+                            ${i18n.t('team.dashboard')}
                         </button>
                     ` : ''}
                     <button id="edit-display-name-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
-                        ${i18n.t('changeName')}
+                        ${i18n.t('tracker.changeName')}
                     </button>
                     ${isAdmin ? html`
                         <button id="delete-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            ${i18n.t('deleteTeam')}
+                            ${i18n.t('team.delete')}
                         </button>
                     ` : html`
                         <button id="leave-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
                             <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
-                            ${i18n.t('leaveTeam')}
+                            ${i18n.t('team.leave')}
                         </button>
                     `}
                 </div>
@@ -3187,15 +3187,15 @@ function openCreateTeamModal() {
                 <div class="mx-auto mb-4 text-center">
                     <i class="fas fa-crown text-5xl text-yellow-500"></i>
                 </div>
-                <h3 class="text-xl font-bold mb-2">Pro Feature</h3>
+                <h3 class="text-xl font-bold mb-2">${i18n.t('pro.featureTitle')}</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
-                    Creating a team is available for Pro users. Upgrade to manage your own team!
+                    ${i18n.t('pro.createTeamMsg')}
                 </p>
                 <button class="w-full px-6 py-3 btn-primary rounded-full font-semibold active:scale-95 transition-all duration-200" onclick="window.location.href='mailto:arunthomas04042001@gmail.com?subject=Upgrade%20to%20Pro'">
-                    Upgrade to Pro
+                    ${i18n.t('pro.upgrade')}
                 </button>
                 <div class="mt-4">
-                    <button class="text-gray-500 hover:text-gray-700 text-sm" onclick="document.getElementById('create-team-modal').classList.remove('visible')">Cancel</button>
+                    <button class="text-gray-500 hover:text-gray-700 text-sm" onclick="document.getElementById('create-team-modal').classList.remove('visible')">${i18n.t('common.cancel')}</button>
                 </div>
             `;
             // Insert after title
@@ -3259,7 +3259,7 @@ async function createTeam() {
     const displayName = DOM.teamAdminDisplayNameInput.value.trim();
 
     if (!teamName || !displayName) {
-        showMessage(i18n.t("msgTeamCreateFieldsRequired"), 'error');
+        showMessage(i18n.t("team.msgCreateFieldsRequired"), 'error');
         return;
     }
 
@@ -3275,7 +3275,7 @@ async function createTeam() {
 
     } catch (error) {
         Logger.error('Error creating team:', error);
-        showMessage(i18n.t("msgTeamCreateFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgCreateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3287,7 +3287,7 @@ async function joinTeam() {
     const displayName = DOM.displayNameInput.value.trim();
 
     if (!roomCode || !displayName) {
-        showMessage(i18n.t("msgTeamJoinFieldsRequired"), 'error');
+        showMessage(i18n.t("team.msgJoinFieldsRequired"), 'error');
         return;
     }
 
@@ -3302,7 +3302,7 @@ async function joinTeam() {
         closeJoinTeamModal();
     } catch (error) {
         Logger.error('Error calling joinTeam function:', error);
-        showMessage(i18n.t("msgTeamJoinFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgJoinFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3313,7 +3313,7 @@ async function editDisplayName() {
     const newDisplayName = DOM.newDisplayNameInput.value.trim();
 
     if (!newDisplayName) {
-        showMessage(i18n.t("msgDisplayNameRequired"), 'error');
+        showMessage(i18n.t("team.msgDisplayNameRequired"), 'error');
         return;
     }
 
@@ -3322,11 +3322,11 @@ async function editDisplayName() {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const editDisplayNameCallable = httpsCallable(functions, 'editDisplayName');
         await editDisplayNameCallable({ newDisplayName: newDisplayName, teamId: state.currentTeam });
-        showMessage(i18n.t("msgDisplayNameUpdated"), 'success');
+        showMessage(i18n.t("team.msgDisplayNameUpdated"), 'success');
         closeEditDisplayNameModal();
     } catch (error) {
         Logger.error('Error updating display name:', error);
-        showMessage(i18n.t("msgDisplayNameUpdateFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgDisplayNameUpdateFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3337,10 +3337,10 @@ async function leaveTeam(button) {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const leaveTeamCallable = httpsCallable(functions, 'leaveTeam');
         await leaveTeamCallable({ teamId: state.currentTeam });
-        showMessage(i18n.t("msgTeamLeftSuccess"), 'success');
+        showMessage(i18n.t("team.msgLeftSuccess"), 'success');
     } catch (error) {
         Logger.error('Error leaving team:', error);
-        showMessage(i18n.t("msgTeamLeftFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgLeftFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
     }
@@ -3351,10 +3351,10 @@ async function deleteTeam(button) {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const deleteTeamCallable = httpsCallable(functions, 'deleteTeam');
         await deleteTeamCallable({ teamId: state.currentTeam });
-        showMessage(i18n.t("msgTeamDeletedSuccess"), 'success');
+        showMessage(i18n.t("team.msgDeletedSuccess"), 'success');
     } catch (error) {
         Logger.error('Error deleting team:', error);
-        showMessage(i18n.t("msgTeamDeleteFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgDeleteFailed").replace('{error}', error.message), 'error');
     } finally {
         if (button) setButtonLoadingState(button, false);
     }
@@ -3362,14 +3362,14 @@ async function deleteTeam(button) {
 
 function copyRoomCode() {
     navigator.clipboard.writeText(state.currentTeam).then(() => {
-        showMessage(i18n.t("msgRoomCodeCopied"), 'success');
+        showMessage(i18n.t("team.msgCodeCopied"), 'success');
     }).catch(() => {
-        showMessage(i18n.t("msgRoomCodeCopyFailed"), 'error');
+        showMessage(i18n.t("team.msgCodeCopyFailed"), 'error');
     });
 }
 
 function openKickMemberModal(memberId, memberName) {
-    DOM.kickModalText.innerHTML = i18n.t('confirmKickMessage').replace('{name}', sanitizeHTML(memberName));
+    DOM.kickModalText.innerHTML = i18n.t('team.confirmKickMessage').replace('{name}', sanitizeHTML(memberName));
     DOM.confirmKickModal.dataset.memberId = memberId;
     DOM.confirmKickModal.classList.add('visible');
 }
@@ -3389,11 +3389,11 @@ async function kickMember() {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const kickTeamMemberCallable = httpsCallable(functions, 'kickTeamMember');
         await kickTeamMemberCallable({ teamId: state.currentTeam, memberId: memberId });
-        showMessage(i18n.t("msgKickMemberSuccess"), 'success');
+        showMessage(i18n.t("team.msgKickSuccess"), 'success');
         closeKickMemberModal();
     } catch (error) {
         Logger.error('Error kicking member:', error);
-        showMessage(i18n.t("msgKickMemberFailed").replace('{error}', error.message), 'error');
+        showMessage(i18n.t("team.msgKickFailed").replace('{error}', error.message), 'error');
     } finally {
         setButtonLoadingState(button, false);
     }
@@ -3417,7 +3417,7 @@ function renderTeamDashboard() {
         }
     });
     if (!state.teamMembers || state.teamMembers.length === 0) {
-        DOM.teamDashboardContent.innerHTML = `<p class="text-center text-gray-500">${i18n.t('loadingTeamData')}</p>`;
+        DOM.teamDashboardContent.innerHTML = `<p class="text-center text-gray-500">${i18n.t('team.loadingData')}</p>`;
         return;
     }
 
@@ -3484,7 +3484,7 @@ function renderTeamDashboard() {
                         </div>
                         <div class="ml-3">
                             <h4 class="font-bold text-base sm:text-lg">${sanitizeHTML(member.displayName)}</h4>
-                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-i18n="${isAdmin ? 'teamAdmin' : 'member'}">${isAdmin ? i18n.t('teamAdmin') : i18n.t('member')}</p>
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-i18n="${isAdmin ? 'teamAdmin' : 'member'}">${isAdmin ? i18n.t('team.roleAdmin') : i18n.t('team.roleMember')}</p>
                         </div>
                     </div>
                     <div class="flex items-center">
@@ -3506,7 +3506,7 @@ function renderTeamDashboard() {
                 <div class="team-member-details-content p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
                     ${Object.keys(balances).length > 0 ? `
                         <div>
-                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">${i18n.t('leaveBalanceOverview')} (${dashboardYear})</h5>
+                            <h5 class="font-semibold mb-3 sm:mb-4 team-dashboard-title">${i18n.t('tracker.leaveBalanceOverview')} (${dashboardYear})</h5>
                             ${leaveTypesHTML}
                         </div>
                     ` : `
@@ -3514,7 +3514,7 @@ function renderTeamDashboard() {
                             <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            <p>${i18n.t('noLeaveTypesOrSummary').replace('{year}', dashboardYear)}</p>
+                            <p>${i18n.t('tracker.noLeaveTypesOrSummary').replace('{year}', dashboardYear)}</p>
                         </div>
                     `}
                 </div>
@@ -3573,7 +3573,7 @@ function setupDailyViewEventListeners() {
                 tableBody.querySelectorAll('.confirm-action').forEach(el => el.classList.remove('confirm-action'));
 
                 button.classList.add('confirm-action');
-                showMessage(i18n.t("msgClickToConfirm"), 'info');
+                showMessage(i18n.t("tracker.msgClickToConfirm"), 'info');
                 const timeoutId = setTimeout(() => {
                     button.classList.remove('confirm-action');
                 }, 3000);
@@ -3683,7 +3683,7 @@ function performSearch(query) {
                     results.push({
                         type: 'leave',
                         date: dateKey,
-                        content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? i18n.t('full') : i18n.t('half')})`,
+                        content: `${leaveType.name} (${dayData.leave.dayType === 'full' ? i18n.t('tracker.full') : i18n.t('tracker.half')})`,
                         formattedDate: formatDateForDisplay(dateKey, i18n.currentLang),
                         color: leaveType.color
                     });
@@ -3746,17 +3746,17 @@ function renderSearchResults(results) {
     // Sort results for display
     if (state.searchSortOrder === 'newest') {
         results.sort((a, b) => new Date(b.date) - new Date(a.date));
-        DOM.spotlightSortLabel.textContent = i18n.t('newestFirst');
+        DOM.spotlightSortLabel.textContent = i18n.t('search.newestFirst');
         DOM.spotlightSortLabel.setAttribute('data-i18n', 'newestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ml-2";
     } else {
         results.sort((a, b) => new Date(a.date) - new Date(b.date));
-        DOM.spotlightSortLabel.textContent = i18n.t('oldestFirst');
+        DOM.spotlightSortLabel.textContent = i18n.t('search.oldestFirst');
         DOM.spotlightSortLabel.setAttribute('data-i18n', 'oldestFirst');
         DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ml-2";
     }
 
-    DOM.spotlightCount.textContent = `${results.length} ${i18n.t('results')}`;
+    DOM.spotlightCount.textContent = `${results.length} ${i18n.t('search.results')}`;
 
     if (results.length === 0) {
         DOM.spotlightEmptyState.classList.remove('hidden');
@@ -3894,7 +3894,7 @@ function setupEventListeners() {
 
                 if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
                     newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                    showMessage(i18n.t("msgSearchResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
+                    showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
                 } else {
                     // Fallback to standard nav if empty (shouldn't happen due to check)
                      newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
@@ -3957,7 +3957,7 @@ function setupEventListeners() {
 
                  if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
                      newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                     showMessage(i18n.t("msgSearchResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
+                     showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
                  } else {
                       newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
                  }
@@ -4164,8 +4164,8 @@ function setupEventListeners() {
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
         DOM.resetModalText.textContent = state.isOnlineMode
-            ? i18n.t("resetConfirmCloud")
-            : i18n.t("resetConfirmLocal");
+            ? i18n.t("dashboard.resetConfirmCloud")
+            : i18n.t("dashboard.resetConfirmLocal");
         DOM.confirmResetModal.classList.add('visible');
     });
     document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
@@ -4204,7 +4204,7 @@ function setupEventListeners() {
                     }, 3000)
                 };
                 DOM.deleteLeaveTypeBtn.classList.add('confirm-action');
-                showMessage(i18n.t("confirmDeleteLeaveType"), 'info');
+                showMessage(i18n.t("tracker.confirmDeleteLeaveType"), 'info');
             }
         } else {
             // Use Swipe Confirm for Universal Delete
@@ -4420,7 +4420,7 @@ function setupEventListeners() {
                 });
 
                 deleteBtn.classList.add('confirm-action');
-                showMessage(i18n.t("msgClickToConfirm"), 'info');
+                showMessage(i18n.t("tracker.msgClickToConfirm"), 'info');
                 const timeoutId = setTimeout(() => {
                     deleteBtn.classList.remove('confirm-action');
                 }, 3000);
@@ -4446,7 +4446,7 @@ function setupEventListeners() {
                 const balances = calculateLeaveBalances();
                 const leaveType = state.leaveTypes.find(lt => lt.id === leaveData.typeId);
                 if (leaveType && balances[leaveData.typeId] < costChange) {
-                    showMessage(i18n.t("msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
+                    showMessage(i18n.t("tracker.msgBalanceInsufficient").replace('{name}', leaveType.name), 'error');
                     return;
                 }
             }
@@ -4466,10 +4466,10 @@ function setupEventListeners() {
         state.lastUpdated = timestamp;
         await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
                 triggerTeamSync();
-                showMessage(i18n.t("msgLeaveDayUpdated"), 'success');
+                showMessage(i18n.t("tracker.msgLeaveDayUpdated"), 'success');
             } catch (error) {
                 Logger.error("Failed to update leave day:", error);
-                showMessage(i18n.t("msgUpdateSaveFailed"), "error");
+                showMessage(i18n.t("tracker.msgUpdateSaveFailed"), "error");
             }
 
             updateView();
@@ -4589,7 +4589,7 @@ function setupEventListeners() {
         document.getElementById('pro-save-date-btn').addEventListener('click', async () => {
             const dateVal = document.getElementById('pro-expiry-date').value;
             if (!dateVal) {
-                showMessage(i18n.t("pleaseSelectDate"), "error");
+                showMessage(i18n.t("tracker.pleaseSelectDate"), "error");
                 return;
             }
             await setProStatus(state.adminTargetUserId, dateVal);
@@ -4620,7 +4620,7 @@ function renderAdminButton() {
     const btn = document.createElement('button');
     btn.id = 'admin-dashboard-btn';
     btn.className = 'inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 cursor-pointer';
-    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline" data-i18n="adminDashboard">${i18n.t("adminDashboard")}</span>`;
+    btn.innerHTML = `<i class="fas fa-shield-alt text-base"></i><span class="hidden sm:inline" data-i18n="admin.dashboard">${i18n.t("admin.dashboard")}</span>`;
 
     // Insert before the language button or at the start
     const footer = document.getElementById('main-footer');
@@ -4661,11 +4661,11 @@ async function setProStatus(targetUserId, expiryDate) {
         const result = await getAllUsers();
         renderAdminUserList(result.data.users);
 
-        showMessage(i18n.t('userPromotedToPro'), 'success');
+        showMessage(i18n.t('pro.msgPromoted'), 'success');
         if (modal) modal.classList.remove('visible');
     } catch (error) {
         Logger.error("Failed to set pro status:", error);
-        showMessage(i18n.t("failedToUpdateRole"), 'error');
+        showMessage(i18n.t("pro.msgFailedUpdateRole"), 'error');
     } finally {
         if (modal) {
             const btnId = expiryDate ? 'pro-save-date-btn' : 'pro-till-revoked-btn';
@@ -4688,7 +4688,7 @@ async function grantProByEmail(email) {
         await refreshAdminUserList();
     } catch (error) {
         Logger.error("Failed to grant pro by email:", error);
-        showMessage(i18n.t("failedToGrantPro"), 'error');
+        showMessage(i18n.t("pro.msgFailedGrant"), 'error');
     }
 }
 
@@ -4725,9 +4725,9 @@ async function refreshAdminUserList(reset = true) {
     } catch (error) {
         Logger.error("Failed to load users:", error);
         if (reset) {
-            DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('failedToLoadUsers', {error: error.message})}</p>`;
+            DOM.adminUserList.innerHTML = `<p class="text-center text-red-500">${i18n.t('pro.msgFailedLoadUsers', {error: error.message})}</p>`;
         } else {
-            showMessage(i18n.t('failedToLoadUsers', {error: error.message}), 'error');
+            showMessage(i18n.t('pro.msgFailedLoadUsers', {error: error.message}), 'error');
         }
     } finally {
         if (loadMoreBtn) setButtonLoadingState(loadMoreBtn, false);
@@ -4754,7 +4754,7 @@ function renderAdminUserList(users, searchQuery = '') {
                 <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none" style="padding-left: 1rem;">
                     <i class="fas fa-search text-gray-400"></i>
                 </div>
-                <input type="text" id="admin-user-search" placeholder="${i18n.t('searchUserPlaceholder') || 'Search loaded users...'}" style="padding-left: 3.5rem; padding-right: 1rem;"
+                <input type="text" id="admin-user-search" placeholder="${i18n.t('pro.searchUserPlaceholder') || 'Search loaded users...'}" style="padding-left: 3.5rem; padding-right: 1rem;"
                     class="block w-full py-2 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
             </div>
         `;
@@ -4788,10 +4788,10 @@ function renderAdminUserList(users, searchQuery = '') {
         grantCard.className = 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4 flex justify-between items-center';
         grantCard.innerHTML = `
             <div>
-                <p class="font-medium text-blue-800 dark:text-blue-300">${i18n.t('userNotFound')}</p>
-                <p class="text-sm text-blue-600 dark:text-blue-400">${i18n.t('grantProAccessTo', {email: sanitizeHTML(searchQuery)})}</p>
+                <p class="font-medium text-blue-800 dark:text-blue-300">${i18n.t('pro.userNotFound')}</p>
+                <p class="text-sm text-blue-600 dark:text-blue-400">${i18n.t('pro.grantAccessTo', {email: sanitizeHTML(searchQuery)})}</p>
             </div>
-            <button id="grant-pro-btn" class="px-4 py-2 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors text-sm font-medium active:scale-95 duration-200">${i18n.t('grantProAccess')}</button>
+            <button id="grant-pro-btn" class="px-4 py-2 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors text-sm font-medium active:scale-95 duration-200">${i18n.t('pro.grantAccess')}</button>
         `;
         DOM.adminUserList.appendChild(grantCard);
 
@@ -4804,7 +4804,7 @@ function renderAdminUserList(users, searchQuery = '') {
     }
 
     if (filteredUsers.length === 0 && !isEmail) {
-        DOM.adminUserList.innerHTML += `<p class="text-center text-gray-500 py-4">${i18n.t('noUsersFound')}</p>`;
+        DOM.adminUserList.innerHTML += `<p class="text-center text-gray-500 py-4">${i18n.t('pro.noUsersFound')}</p>`;
         return;
     }
 
@@ -4847,24 +4847,24 @@ function renderAdminUserList(users, searchQuery = '') {
                     const expiryDate = new Date(user.proExpiry);
                     if (expiryDate < new Date()) {
                         isExpired = true;
-                        proExpiryText = `<span class="text-red-500 font-bold">${i18n.t('expired')}</span>`;
+                        proExpiryText = `<span class="text-red-500 font-bold">${i18n.t('pro.expired')}</span>`;
                     } else {
                         const expiry = expiryDate.toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
-                        proExpiryText = `${i18n.t('expLabel')} ${expiry}`;
+                        proExpiryText = `${i18n.t('pro.expLabel')} ${expiry}`;
                     }
                 } else if (user.role === 'pro') {
-                     proExpiryText = i18n.t('tillRevoked');
+                     proExpiryText = i18n.t('pro.tillRevoked');
                 }
              } catch(e) {}
         }
 
         // Logic for button text
-        let proButtonText = user.role === 'pro' ? i18n.t('revokePro') : i18n.t('makePro');
+        let proButtonText = user.role === 'pro' ? i18n.t('pro.revoke') : i18n.t('pro.makePro');
         if (isPending && user.role === 'pro') {
-            proButtonText = i18n.t('revokeInvite');
+            proButtonText = i18n.t('pro.revokeInvite');
         }
         if (isExpired && user.role === 'pro') {
-            proButtonText = i18n.t('renewPro');
+            proButtonText = i18n.t('pro.renew');
             roleBadgeClass = 'standard';
         }
 
@@ -4872,9 +4872,9 @@ function renderAdminUserList(users, searchQuery = '') {
         let roleBadgeHTML;
 
         if (isPending) {
-            roleBadgeHTML = `<span class="role-badge pending">${i18n.t('pendingSignup')}</span>`;
+            roleBadgeHTML = `<span class="role-badge pending">${i18n.t('pro.pendingSignup')}</span>`;
         } else if (isSuperAdmin) {
-            roleBadgeHTML = `<span class="role-badge owner">${i18n.t('owner')}</span>`;
+            roleBadgeHTML = `<span class="role-badge owner">${i18n.t('pro.owner')}</span>`;
         } else {
     // Use the role string as the key (e.g., "pro", "standard")
     roleBadgeHTML = `<span class="role-badge ${roleBadgeClass}" data-i18n="${displayRole}">${i18n.t(displayRole)}</span>`;
@@ -4897,11 +4897,11 @@ function renderAdminUserList(users, searchQuery = '') {
             <!-- Date Stack (Tiny) -->
             <div class="flex flex-col items-end mr-2 sm:mr-4 min-w-[80px]" style="font-size: 10px;">
                 <div class="text-gray-400 text-right">
-                    <span class="font-medium text-gray-500">${i18n.t('joined')}</span> ${memberSince}
+                    <span class="font-medium text-gray-500">${i18n.t('pro.joined')}</span> ${memberSince}
                 </div>
                 ${proSinceDate ? `
                 <div class="text-gray-400 mt-1 text-right">
-                    <span class="font-medium text-blue-500">${i18n.t('proLabel')}</span> ${proSinceDate}
+                    <span class="font-medium text-blue-500">${i18n.t('pro.label')}</span> ${proSinceDate}
                     ${proExpiryText ? `<div class="text-gray-300" style="font-size: 9px;">${proExpiryText}</div>` : ''}
                 </div>` : ''}
             </div>
@@ -4915,7 +4915,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     </button>
                     <button class="toggle-role-btn px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 ${user.role === 'co-admin' ? 'bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-role="co-admin" data-current="${user.role === 'co-admin'}" ${isPending ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
-                        ${user.role === 'co-admin' ? i18n.t('revokeCoAdmin') : i18n.t('makeCoAdmin')}
+                        ${user.role === 'co-admin' ? i18n.t('pro.revokeCoAdmin') : i18n.t('pro.makeCoAdmin')}
                     </button>
                 </div>
             </div>
@@ -4962,11 +4962,11 @@ function renderAdminUserList(users, searchQuery = '') {
                     // Resetting is safer for consistency
                     await refreshAdminUserList(true);
 
-                    showMessage(i18n.t('userRoleUpdated', {role: i18n.t(newRole)}), 'success');
+                    showMessage(i18n.t('pro.msgRoleUpdated', {role: i18n.t(newRole)}), 'success');
                 }
             } catch (error) {
                 Logger.error("Failed to update role:", error);
-                showMessage(i18n.t("failedToUpdateRole"), 'error');
+                showMessage(i18n.t("pro.msgFailedUpdateRole"), 'error');
             } finally {
                 // Ensure loading state is cleared if not re-rendered
                 // If re-rendered, this element is gone anyway.
@@ -4981,7 +4981,7 @@ function renderAdminUserList(users, searchQuery = '') {
         loadMoreContainer.className = 'text-center py-4';
         loadMoreContainer.innerHTML = `
             <button id="admin-load-more-btn" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium active:scale-95 duration-200">
-                ${i18n.t('loadMore') || 'Load More'}
+                ${i18n.t('pro.loadMore') || 'Load More'}
             </button>
         `;
         DOM.adminUserList.appendChild(loadMoreContainer);
@@ -5196,7 +5196,7 @@ async function revokeProWhitelist(email) {
         await refreshAdminUserList();
     } catch (error) {
         Logger.error("Failed to revoke pro whitelist:", error);
-        showMessage(i18n.t("failedToRevokeProWhitelist"), 'error');
+        showMessage(i18n.t("pro.msgFailedRevoke"), 'error');
     }
 }
 
