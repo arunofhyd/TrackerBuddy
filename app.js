@@ -177,6 +177,7 @@ function initUI() {
         // Floating Confirm Button
         confirmSelectionBtn: document.getElementById('confirm-selection-btn'),
         floatingConfirmContainer: document.getElementById('floating-confirm-container'),
+        bottomControlsRow: document.getElementById('bottom-controls-row'),
         // Message Progress
         messageProgress: document.getElementById('message-progress')
     };
@@ -506,12 +507,34 @@ function updateView() {
 }
 
 function renderActionButtons() {
-    // Logic for Floating Confirm Button visibility
+    // Logic for Floating Confirm Button visibility and Bottom Controls
     const hasSelection = state.leaveSelection.size > 0 && state.selectedLeaveTypeId;
     if (hasSelection) {
         DOM.floatingConfirmContainer.classList.add('visible');
+        DOM.bottomControlsRow.classList.add('hidden');
     } else {
         DOM.floatingConfirmContainer.classList.remove('visible');
+        DOM.bottomControlsRow.classList.remove('hidden');
+    }
+
+    // Toggle active state for Stats and Teams buttons
+    const isStatsVisible = !DOM.leaveStatsSection.classList.contains('hidden') && DOM.leaveStatsSection.classList.contains('visible');
+    const isTeamVisible = !DOM.teamSection.classList.contains('hidden') && DOM.teamSection.classList.contains('visible');
+
+    if (isStatsVisible) {
+         DOM.statsToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+    } else {
+         if (DOM.statsToggleBtn.classList.contains('btn-primary')) {
+            DOM.statsToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         }
+    }
+
+    if (isTeamVisible) {
+         DOM.teamToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+    } else {
+         if (DOM.teamToggleBtn.classList.contains('btn-primary')) {
+            DOM.teamToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         }
     }
 }
 
@@ -2846,8 +2869,7 @@ async function saveLoggedLeaves() {
             state.previousActiveElement = null;
         }
         setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
-        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+        // Removed legacy button logic
         updateView();
         setButtonLoadingState(button, false);
     }
