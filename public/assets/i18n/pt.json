@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Confirmar",
     "helpStep4Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações.",
     "resetConfirmCloud": "Isso excluirá permanentemente todos os seus dados de atividade da nuvem. Esta ação não pode ser desfeita.",
-    "resetConfirmLocal": "Isso excluirá permanentemente todos os seus dados de atividade locais. Esta ação não pode ser desfeita."
+    "resetConfirmLocal": "Isso excluirá permanentemente todos os seus dados de atividade locais. Esta ação não pode ser desfeita.",
+    "addLeaveType": "Adicionar ou editar tipos de licença",
+    "showDescription": "Mostrar descrição",
+    "togglePassword": "Alternar visibilidade da senha",
+    "closeHelp": "Fechar ajuda",
+    "closeSearch": "Fechar pesquisa",
+    "toggleSearchScope": "Alternar escopo da pesquisa",
+    "toggleSortOrder": "Alternar ordem de classificação",
+    "previousYear": "Ano anterior",
+    "nextYear": "Próximo ano"
 }

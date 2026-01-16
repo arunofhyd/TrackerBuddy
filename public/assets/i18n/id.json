@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Konfirmasi",
     "helpStep4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda.",
     "resetConfirmCloud": "Ini akan menghapus semua data aktivitas Anda secara permanen dari cloud. Tindakan ini tidak dapat dibatalkan.",
-    "resetConfirmLocal": "Ini akan menghapus semua data aktivitas lokal Anda secara permanen. Tindakan ini tidak dapat dibatalkan."
+    "resetConfirmLocal": "Ini akan menghapus semua data aktivitas lokal Anda secara permanen. Tindakan ini tidak dapat dibatalkan.",
+    "addLeaveType": "Tambah atau edit tipe cuti",
+    "showDescription": "Tampilkan deskripsi",
+    "togglePassword": "Alihkan visibilitas kata sandi",
+    "closeHelp": "Tutup bantuan",
+    "closeSearch": "Tutup pencarian",
+    "toggleSearchScope": "Alihkan cakupan pencarian",
+    "toggleSortOrder": "Alihkan urutan sortiran",
+    "previousYear": "Tahun Sebelumnya",
+    "nextYear": "Tahun Berikutnya"
 }

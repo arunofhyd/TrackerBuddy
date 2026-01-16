@@ -278,5 +278,14 @@
     "helpStep4Title": "4. पुष्टि करें",
     "helpStep4Desc": "अपने परिवर्तनों को सहेजने के लिए फ्लोटिंग 'पुष्टि करें' बटन पर टैप करें।",
     "resetConfirmCloud": "यह क्लाउड से आपके सभी गतिविधि डेटा को स्थायी रूप से हटा देगा। इस कार्रवाई को पूर्ववत नहीं किया जा सकता है।",
-    "resetConfirmLocal": "यह आपके सभी स्थानीय गतिविधि डेटा को स्थायी रूप से हटा देगा। इस कार्रवाई को पूर्ववत नहीं किया जा सकता है।"
+    "resetConfirmLocal": "यह आपके सभी स्थानीय गतिविधि डेटा को स्थायी रूप से हटा देगा। इस कार्रवाई को पूर्ववत नहीं किया जा सकता है।",
+    "addLeaveType": "Add or edit leave types",
+    "showDescription": "Show description",
+    "togglePassword": "Toggle password visibility",
+    "closeHelp": "Close help",
+    "closeSearch": "Close search",
+    "toggleSearchScope": "Toggle search scope",
+    "toggleSortOrder": "Toggle sort order",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year"
 }

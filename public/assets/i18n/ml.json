@@ -278,5 +278,14 @@
     "helpStep4Title": "4. സ്ഥിരീകരിക്കുക",
     "helpStep4Desc": "മാറ്റങ്ങൾ സംരക്ഷിക്കാൻ ഫ്ലോട്ടിംഗ് 'സ്ഥിരീകരിക്കുക' ബട്ടൺ ടാപ്പുചെയ്യുക.",
     "resetConfirmCloud": "ഇത് ക്ലൗഡിൽ നിന്ന് നിങ്ങളുടെ എല്ലാ പ്രവർത്തന ഡാറ്റയും ശാശ്വതമായി ഇല്ലാതാക്കും. ഈ പ്രവർത്തനം പഴയപടിയാക്കാൻ കഴിയില്ല.",
-    "resetConfirmLocal": "ഇത് നിങ്ങളുടെ എല്ലാ പ്രാദേശിക പ്രവർത്തന ഡാറ്റയും ശാശ്വതമായി ഇല്ലാതാക്കും. ഈ പ്രവർത്തനം പഴയപടിയാക്കാൻ കഴിയില്ല."
+    "resetConfirmLocal": "ഇത് നിങ്ങളുടെ എല്ലാ പ്രാദേശിക പ്രവർത്തന ഡാറ്റയും ശാശ്വതമായി ഇല്ലാതാക്കും. ഈ പ്രവർത്തനം പഴയപടിയാക്കാൻ കഴിയില്ല.",
+    "addLeaveType": "Add or edit leave types",
+    "showDescription": "Show description",
+    "togglePassword": "Toggle password visibility",
+    "closeHelp": "Close help",
+    "closeSearch": "Close search",
+    "toggleSearchScope": "Toggle search scope",
+    "toggleSortOrder": "Toggle sort order",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year"
 }

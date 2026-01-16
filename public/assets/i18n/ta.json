@@ -278,5 +278,14 @@
     "helpStep4Title": "4. உறுதிப்படுத்து",
     "helpStep4Desc": "மாற்றங்களைச் சேமிக்க மிதக்கும் 'உறுதிப்படுத்து' பொத்தானைத் தட்டவும்.",
     "resetConfirmCloud": "இது மேகக்கணியிலிருந்து உங்கள் அனைத்து செயல்பாட்டுத் தரவையும் நிரந்தரமாக அழிக்கும். இந்த செயலை தவிர்க்க முடியாது.",
-    "resetConfirmLocal": "இது உங்கள் உள்ளூர் செயல்பாட்டுத் தரவு அனைத்தையும் நிரந்தரமாக அழிக்கும். இந்த செயலை தவிர்க்க முடியாது."
+    "resetConfirmLocal": "இது உங்கள் உள்ளூர் செயல்பாட்டுத் தரவு அனைத்தையும் நிரந்தரமாக அழிக்கும். இந்த செயலை தவிர்க்க முடியாது.",
+    "addLeaveType": "Add or edit leave types",
+    "showDescription": "Show description",
+    "togglePassword": "Toggle password visibility",
+    "closeHelp": "Close help",
+    "closeSearch": "Close search",
+    "toggleSearchScope": "Toggle search scope",
+    "toggleSortOrder": "Toggle sort order",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year"
 }

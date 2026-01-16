@@ -278,5 +278,14 @@
     "helpStep4Title": "4. 確認",
     "helpStep4Desc": "フローティングの「確認」ボタンをタップして変更を保存します。",
     "resetConfirmCloud": "これにより、クラウドからすべてのアクティビティデータが完全に削除されます。この操作は元に戻せません。",
-    "resetConfirmLocal": "これにより、すべてのローカルアクティビティデータが完全に削除されます。この操作は元に戻せません。"
+    "resetConfirmLocal": "これにより、すべてのローカルアクティビティデータが完全に削除されます。この操作は元に戻せません。",
+    "addLeaveType": "休暇タイプの追加・編集",
+    "showDescription": "説明を表示",
+    "togglePassword": "パスワードの表示切り替え",
+    "closeHelp": "ヘルプを閉じる",
+    "closeSearch": "検索を閉じる",
+    "toggleSearchScope": "検索範囲の切り替え",
+    "toggleSortOrder": "並び順の切り替え",
+    "previousYear": "前年",
+    "nextYear": "翌年"
 }

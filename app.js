@@ -4485,7 +4485,7 @@ async function setProStatus(targetUserId, expiryDate) {
         const result = await getAllUsers();
         renderAdminUserList(result.data.users);
 
-        showMessage('User promoted to Pro', 'success');
+        showMessage(i18n.t('userPromotedToPro'), 'success');
         if (modal) modal.classList.remove('visible');
     } catch (error) {
         Logger.error("Failed to set pro status:", error);

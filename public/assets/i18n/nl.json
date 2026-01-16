@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Bevestigen",
     "helpStep4Desc": "Tik op de zwevende knop 'Bevestigen' om uw wijzigingen op te slaan.",
     "resetConfirmCloud": "Dit verwijdert permanent al uw activiteitsgegevens uit de cloud. Deze actie kan niet ongedaan worden gemaakt.",
-    "resetConfirmLocal": "Dit verwijdert permanent al uw lokale activiteitsgegevens. Deze actie kan niet ongedaan worden gemaakt."
+    "resetConfirmLocal": "Dit verwijdert permanent al uw lokale activiteitsgegevens. Deze actie kan niet ongedaan worden gemaakt.",
+    "addLeaveType": "Verloftypes toevoegen of bewerken",
+    "showDescription": "Toon beschrijving",
+    "togglePassword": "Wachtwoord zichtbaarheid wisselen",
+    "closeHelp": "Hulp sluiten",
+    "closeSearch": "Zoeken sluiten",
+    "toggleSearchScope": "Zoekbereik wisselen",
+    "toggleSortOrder": "Sorteervolgorde wisselen",
+    "previousYear": "Vorig jaar",
+    "nextYear": "Volgend jaar"
 }

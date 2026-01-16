@@ -278,5 +278,14 @@
     "helpStep4Title": "4. నిర్ధారించండి",
     "helpStep4Desc": "మీ మార్పులను సేవ్ చేయడానికి ఫ్లోటింగ్ 'నిర్ధారించండి' బటన్‌పై నొక్కండి.",
     "resetConfirmCloud": "ఇది క్లౌడ్ నుండి మీ కార్యాచరణ డేటాను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయడం సాధ్యం కాదు.",
-    "resetConfirmLocal": "ఇది మీ స్థానిక కార్యాచరణ డేటాను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయడం సాధ్యం కాదు."
+    "resetConfirmLocal": "ఇది మీ స్థానిక కార్యాచరణ డేటాను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయడం సాధ్యం కాదు.",
+    "addLeaveType": "Add or edit leave types",
+    "showDescription": "Show description",
+    "togglePassword": "Toggle password visibility",
+    "closeHelp": "Close help",
+    "closeSearch": "Close search",
+    "toggleSearchScope": "Toggle search scope",
+    "toggleSortOrder": "Toggle sort order",
+    "previousYear": "Previous Year",
+    "nextYear": "Next Year"
 }

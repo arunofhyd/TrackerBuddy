@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Conferma",
     "helpStep4Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche.",
     "resetConfirmCloud": "Questo eliminerà permanentemente tutti i tuoi dati di attività dal cloud. Questa azione non può essere annullata.",
-    "resetConfirmLocal": "Questo eliminerà permanentemente tutti i tuoi dati di attività locali. Questa azione non può essere annullata."
+    "resetConfirmLocal": "Questo eliminerà permanentemente tutti i tuoi dati di attività locali. Questa azione non può essere annullata.",
+    "addLeaveType": "Aggiungi o modifica tipi di permesso",
+    "showDescription": "Mostra descrizione",
+    "togglePassword": "Mostra/Nascondi password",
+    "closeHelp": "Chiudi aiuto",
+    "closeSearch": "Chiudi ricerca",
+    "toggleSearchScope": "Cambia ambito ricerca",
+    "toggleSortOrder": "Cambia ordine",
+    "previousYear": "Anno precedente",
+    "nextYear": "Anno successivo"
 }
