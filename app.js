@@ -2170,10 +2170,19 @@ async function deleteLeaveType() {
     if (!id) return;
 
     const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+
+    // Check if the leave type was originally created as limited to a specific year.
+    // If so, "deleting" it should always be a full delete (Scenario B),
+    // because it has no existence outside of this year anyway.
+    const leaveType = state.leaveTypes.find(lt => lt.id === id);
+    const isOriginallyLimited = leaveType && !!leaveType.limitYear;
+
     const timestamp = Date.now();
     state.lastUpdated = timestamp;
 
-    if (limitToCurrentYear) {
+    // Only perform "Hide" logic if the user wants to limit the delete,
+    // AND the leave type is actually a global type (not originally limited).
+    if (limitToCurrentYear && !isOriginallyLimited) {
         // --- SCENARIO A: Limit to Current Year (Hide Only) ---
         const currentYear = state.currentMonth.getFullYear();
         const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
