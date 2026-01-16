@@ -516,23 +516,27 @@ function renderActionButtons() {
     }
 
     // Toggle active state for Stats and Teams buttons
-    const isStatsVisible = !DOM.leaveStatsSection.classList.contains('hidden') && DOM.leaveStatsSection.classList.contains('visible');
-    const isTeamVisible = !DOM.teamSection.classList.contains('hidden') && DOM.teamSection.classList.contains('visible');
+    const isStatsVisible = DOM.leaveStatsSection.classList.contains('visible');
+    const isTeamVisible = DOM.teamSection.classList.contains('visible');
 
     if (isStatsVisible) {
          DOM.statsToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+         DOM.statsArrowDown.classList.add('hidden');
+         DOM.statsArrowUp.classList.remove('hidden');
     } else {
-         if (DOM.statsToggleBtn.classList.contains('btn-primary')) {
-            DOM.statsToggleBtn.classList.replace('btn-primary', 'btn-secondary');
-         }
+         DOM.statsToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         DOM.statsArrowDown.classList.remove('hidden');
+         DOM.statsArrowUp.classList.add('hidden');
     }
 
     if (isTeamVisible) {
          DOM.teamToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+         DOM.teamArrowDown.classList.add('hidden');
+         DOM.teamArrowUp.classList.remove('hidden');
     } else {
-         if (DOM.teamToggleBtn.classList.contains('btn-primary')) {
-            DOM.teamToggleBtn.classList.replace('btn-primary', 'btn-secondary');
-         }
+         DOM.teamToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         DOM.teamArrowDown.classList.remove('hidden');
+         DOM.teamArrowUp.classList.add('hidden');
     }
 }
 
@@ -4038,15 +4042,13 @@ function setupEventListeners() {
     });
     DOM.statsToggleBtn.addEventListener('click', () => {
         DOM.leaveStatsSection.classList.toggle('visible');
-        DOM.statsArrowDown.classList.toggle('hidden');
-        DOM.statsArrowUp.classList.toggle('hidden');
+        renderActionButtons();
     });
 
     // Team toggle button
     DOM.teamToggleBtn.addEventListener('click', () => {
         const isVisible = DOM.teamSection.classList.toggle('visible');
-        DOM.teamArrowDown.classList.toggle('hidden');
-        DOM.teamArrowUp.classList.toggle('hidden');
+        renderActionButtons();
 
         if (isVisible && !state.unsubscribeFromTeam) {
             // If the section is opened and we're not subscribed yet, subscribe.
