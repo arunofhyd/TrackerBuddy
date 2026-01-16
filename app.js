@@ -511,10 +511,8 @@ function renderActionButtons() {
     const hasSelection = state.leaveSelection.size > 0 && state.selectedLeaveTypeId;
     if (hasSelection) {
         DOM.floatingConfirmContainer.classList.add('visible');
-        DOM.bottomControlsRow.classList.add('hidden');
     } else {
         DOM.floatingConfirmContainer.classList.remove('visible');
-        DOM.bottomControlsRow.classList.remove('hidden');
     }
 
     // Toggle active state for Stats and Teams buttons
