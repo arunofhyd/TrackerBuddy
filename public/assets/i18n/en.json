@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Select Dates",
     "helpStep3Desc": "Tap the days on the calendar you want to mark.",
     "helpStep4Title": "4. Confirm",
-    "helpStep4Desc": "Tap the floating 'Confirm' button to save your changes."
+    "helpStep4Desc": "Tap the floating 'Confirm' button to save your changes.",
+    "resetConfirmCloud": "This will permanently delete all your activity data from the cloud. This action cannot be undone.",
+    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone."
 }

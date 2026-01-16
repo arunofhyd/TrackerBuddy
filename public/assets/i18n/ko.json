@@ -276,5 +276,7 @@
     "helpStep3Title": "3. 날짜 선택",
     "helpStep3Desc": "캘린더에서 표시할 날짜를 탭하세요.",
     "helpStep4Title": "4. 확인",
-    "helpStep4Desc": "변경 사항을 저장하려면 떠 있는 '확인' 버튼을 탭하세요."
+    "helpStep4Desc": "변경 사항을 저장하려면 떠 있는 '확인' 버튼을 탭하세요.",
+    "resetConfirmCloud": "이 작업은 클라우드에서 모든 활동 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
+    "resetConfirmLocal": "이 작업은 모든 로컬 활동 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다."
 }

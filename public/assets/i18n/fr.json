@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Sélectionner les dates",
     "helpStep3Desc": "Appuyez sur les jours du calendrier que vous souhaitez marquer.",
     "helpStep4Title": "4. Confirmer",
-    "helpStep4Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications."
+    "helpStep4Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications.",
+    "resetConfirmCloud": "Cela supprimera définitivement toutes vos données d'activité du cloud. Cette action est irréversible.",
+    "resetConfirmLocal": "Cela supprimera définitivement toutes vos données d'activité locales. Cette action est irréversible."
 }

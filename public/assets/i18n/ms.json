@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Pilih Tarikh",
     "helpStep3Desc": "Ketik hari pada kalendar yang anda ingin tandakan.",
     "helpStep4Title": "4. Sahkan",
-    "helpStep4Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda."
+    "helpStep4Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda.",
+    "resetConfirmCloud": "Ini akan memadamkan semua data aktiviti anda secara kekal dari awan. Tindakan ini tidak boleh dibatalkan.",
+    "resetConfirmLocal": "Ini akan memadamkan semua data aktiviti tempatan anda secara kekal. Tindakan ini tidak boleh dibatalkan."
 }

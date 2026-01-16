@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Selecionar datas",
     "helpStep3Desc": "Toque nos dias no calendário que deseja marcar.",
     "helpStep4Title": "4. Confirmar",
-    "helpStep4Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações."
+    "helpStep4Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações.",
+    "resetConfirmCloud": "Isso excluirá permanentemente todos os seus dados de atividade da nuvem. Esta ação não pode ser desfeita.",
+    "resetConfirmLocal": "Isso excluirá permanentemente todos os seus dados de atividade locais. Esta ação não pode ser desfeita."
 }

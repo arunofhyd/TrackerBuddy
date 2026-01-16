@@ -4011,8 +4011,8 @@ function setupEventListeners() {
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
         DOM.resetModalText.textContent = state.isOnlineMode
-            ? "This will permanently delete all your activity data from the cloud. This action cannot be undone."
-            : "This will permanently delete all your local activity data. This action cannot be undone.";
+            ? i18n.t("resetConfirmCloud")
+            : i18n.t("resetConfirmLocal");
         DOM.confirmResetModal.classList.add('visible');
     });
     document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));

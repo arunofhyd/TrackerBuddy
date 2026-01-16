@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Pilih Tanggal",
     "helpStep3Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
     "helpStep4Title": "4. Konfirmasi",
-    "helpStep4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda."
+    "helpStep4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda.",
+    "resetConfirmCloud": "Ini akan menghapus semua data aktivitas Anda secara permanen dari cloud. Tindakan ini tidak dapat dibatalkan.",
+    "resetConfirmLocal": "Ini akan menghapus semua data aktivitas lokal Anda secara permanen. Tindakan ini tidak dapat dibatalkan."
 }

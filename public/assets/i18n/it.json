@@ -276,5 +276,7 @@
     "helpStep3Title": "3. Seleziona date",
     "helpStep3Desc": "Tocca i giorni sul calendario che desideri contrassegnare.",
     "helpStep4Title": "4. Conferma",
-    "helpStep4Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche."
+    "helpStep4Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche.",
+    "resetConfirmCloud": "Questo eliminerà permanentemente tutti i tuoi dati di attività dal cloud. Questa azione non può essere annullata.",
+    "resetConfirmLocal": "Questo eliminerà permanentemente tutti i tuoi dati di attività locali. Questa azione non può essere annullata."
 }
