@@ -916,3 +916,25 @@ body.dark .role-badge.pending {
     height: 100%;
     cursor: pointer;
 }
+
+/* --- Swipe to Delete Confirmation --- */
+#swipe-thumb {
+    transition: transform 0s; /* Handled by JS for drag, reset adds transition */
+}
+#swipe-thumb.resetting {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#swipe-fill {
+    transition: width 0s;
+}
+#swipe-fill.resetting {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* RTL support for swipe */
+[dir="rtl"] #swipe-text {
+    direction: ltr; /* Keep arrows pointing logically or reverse them? Usually swipe is LTR direction physically */
+    /* If we want RTL swipe (right to left), we need different logic.
+       For simplicity, let's keep physical LTR swipe (Start to End) but text might need adjustment.
+       Actually, ">>" implies LTR.
+    */
+}
