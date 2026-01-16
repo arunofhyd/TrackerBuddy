@@ -44,7 +44,16 @@
     ],
     "saveChanges": "మార్పులను సేవ్ చేయండి",
     "sat": "శని",
-    "sun": "ఆది"
+    "sun": "ఆది",
+    "shortDays": [
+      "ఆది",
+      "సోమ",
+      "మం",
+      "బుధ",
+      "గురు",
+      "శుక్ర",
+      "శని"
+    ]
   },
   "landing": {
     "splashText": "ప్రారంభించడానికి నొక్కండి",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "అప్‌డేట్ విఫలమైంది",
     "pleaseSelectDate": "దయచేసి తేదీని ఎంచుకోండి",
     "includeWeekendsTitle": "వారాంతాలు కలపాలా?",
-    "excludeWeekendsMessage": "శని/ఆదివారాలను లెక్కించాలా?"
+    "excludeWeekendsMessage": "శని/ఆదివారాలను లెక్కించాలా?",
+    "days": "రోజులు"
   },
   "search": {
     "placeholder": "వెతకండి...",

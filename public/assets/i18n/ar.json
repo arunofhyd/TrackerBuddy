@@ -44,7 +44,16 @@
     ],
     "saveChanges": "حفظ التغييرات",
     "sat": "سبت",
-    "sun": "أحد"
+    "sun": "أحد",
+    "shortDays": [
+      "أحد",
+      "إثن",
+      "ثلا",
+      "أرب",
+      "خمي",
+      "جمع",
+      "سبت"
+    ]
   },
   "landing": {
     "splashText": "اضغط للبدء",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "فشل التحديث",
     "pleaseSelectDate": "يرجى اختيار تاريخ",
     "includeWeekendsTitle": "شامل العطلات؟",
-    "excludeWeekendsMessage": "هل تريد احتساب عطلة نهاية الأسبوع؟"
+    "excludeWeekendsMessage": "هل تريد احتساب عطلة نهاية الأسبوع؟",
+    "days": "أيام"
   },
   "search": {
     "placeholder": "بحث...",
@@ -271,7 +281,7 @@
     "upgrade": "ترقية إلى Pro",
     "standard": "قياسي",
     "labelPro": "Pro",
-    "coAdmin": "مشرف مساعد"
+    "coAdmin": "مشرف مشارك"
   },
   "admin": {
     "dashboard": "لوحة المشرف",

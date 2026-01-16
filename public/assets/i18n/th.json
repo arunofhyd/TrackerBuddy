@@ -44,7 +44,16 @@
     ],
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
     "sat": "ส",
-    "sun": "อา"
+    "sun": "อา",
+    "shortDays": [
+      "อา",
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส"
+    ]
   },
   "landing": {
     "splashText": "แตะเพื่อเริ่ม",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "อัปเดตไม่ได้",
     "pleaseSelectDate": "เลือกวันที่ด้วย",
     "includeWeekendsTitle": "รวมเสาร์อาทิตย์?",
-    "excludeWeekendsMessage": "นับรวมวันหยุดด้วยไหม?"
+    "excludeWeekendsMessage": "นับรวมวันหยุดด้วยไหม?",
+    "days": "วัน"
   },
   "search": {
     "placeholder": "ค้นหา...",
@@ -271,7 +281,7 @@
     "upgrade": "อัปเกรดเป็น Pro",
     "standard": "ทั่วไป",
     "labelPro": "Pro",
-    "coAdmin": "ผู้ช่วย"
+    "coAdmin": "ผู้ดูแลร่วม"
   },
   "admin": {
     "dashboard": "หน้าแอดมิน",

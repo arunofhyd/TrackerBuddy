@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Save Changes",
     "sat": "Sat",
-    "sun": "Sun"
+    "sun": "Sun",
+    "shortDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ]
   },
   "landing": {
     "splashText": "Tap to Begin",
@@ -117,6 +126,7 @@
     "editLeaveType": "Edit Leave Type",
     "limitToCurrentYear": "Limit to current year only",
     "leaveName": "Leave Name",
+    "days": "days",
     "totalDaysPerYear": "Total Days",
     "color": "Color",
     "delete": "Delete",

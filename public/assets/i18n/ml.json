@@ -44,7 +44,16 @@
     ],
     "saveChanges": "മാറ്റങ്ങൾ സേവ് ചെയ്യുക",
     "sat": "ശനി",
-    "sun": "ഞായർ"
+    "sun": "ഞായർ",
+    "shortDays": [
+      "ഞാ",
+      "തി",
+      "ചൊ",
+      "ബു",
+      "വ്യാ",
+      "വെ",
+      "ശ"
+    ]
   },
   "landing": {
     "splashText": "തുടങ്ങാൻ ടാപ്പുചെയ്യുക",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "അപ്ഡേറ്റ് പരാജയപ്പെട്ടു",
     "pleaseSelectDate": "തീയതി തിരഞ്ഞെടുക്കുക",
     "includeWeekendsTitle": "അവധി ദിവസങ്ങൾ?",
-    "excludeWeekendsMessage": "ശനി/ഞായർ കൂട്ടണോ?"
+    "excludeWeekendsMessage": "ശനി/ഞായർ കൂട്ടണോ?",
+    "days": "ദിവസങ്ങൾ"
   },
   "search": {
     "placeholder": "തിരയുക...",

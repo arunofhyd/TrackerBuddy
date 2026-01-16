@@ -44,7 +44,16 @@
     ],
     "saveChanges": "保存更改",
     "sat": "周六",
-    "sun": "周日"
+    "sun": "周日",
+    "shortDays": [
+      "周日",
+      "周一",
+      "周二",
+      "周三",
+      "周四",
+      "周五",
+      "周六"
+    ]
   },
   "landing": {
     "splashText": "点击开始",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "更新失败。",
     "pleaseSelectDate": "请选择日期。",
     "includeWeekendsTitle": "包含周末？",
-    "excludeWeekendsMessage": "是否计入周末？"
+    "excludeWeekendsMessage": "是否计入周末？",
+    "days": "天"
   },
   "search": {
     "placeholder": "搜索...",

@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Lưu thay đổi",
     "sat": "Th 7",
-    "sun": "CN"
+    "sun": "CN",
+    "shortDays": [
+      "CN",
+      "Th 2",
+      "Th 3",
+      "Th 4",
+      "Th 5",
+      "Th 6",
+      "Th 7"
+    ]
   },
   "landing": {
     "splashText": "Chạm để bắt đầu",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Cập nhật lỗi.",
     "pleaseSelectDate": "Chọn ngày đi.",
     "includeWeekendsTitle": "Tính cả cuối tuần?",
-    "excludeWeekendsMessage": "Có tính luôn thứ 7, CN không?"
+    "excludeWeekendsMessage": "Có tính luôn thứ 7, CN không?",
+    "days": "ngày"
   },
   "search": {
     "placeholder": "Tìm kiếm...",
@@ -271,7 +281,7 @@
     "upgrade": "Nâng cấp Pro",
     "standard": "Thường",
     "labelPro": "Pro",
-    "coAdmin": "Phó nhóm"
+    "coAdmin": "Đồng quản trị viên"
   },
   "admin": {
     "dashboard": "Trang Admin",

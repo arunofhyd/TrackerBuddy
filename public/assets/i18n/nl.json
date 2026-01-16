@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Opslaan",
     "sat": "Za",
-    "sun": "Zo"
+    "sun": "Zo",
+    "shortDays": [
+      "Zo",
+      "Ma",
+      "Di",
+      "Wo",
+      "Do",
+      "Vr",
+      "Za"
+    ]
   },
   "landing": {
     "splashText": "Starten",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Update mislukt.",
     "pleaseSelectDate": "Kies een datum.",
     "includeWeekendsTitle": "Weekend?",
-    "excludeWeekendsMessage": "Deze dagen meetellen?"
+    "excludeWeekendsMessage": "Deze dagen meetellen?",
+    "days": "dagen"
   },
   "search": {
     "placeholder": "Zoeken...",
@@ -271,7 +281,7 @@
     "upgrade": "Upgrade naar Pro",
     "standard": "Standaard",
     "labelPro": "Pro",
-    "coAdmin": "Co-Admin"
+    "coAdmin": "Medebeheerder"
   },
   "admin": {
     "dashboard": "Admin",

@@ -44,7 +44,16 @@
     ],
     "saveChanges": "Сохранить",
     "sat": "Сб",
-    "sun": "Вс"
+    "sun": "Вс",
+    "shortDays": [
+      "Вс",
+      "Пн",
+      "Вт",
+      "Ср",
+      "Чт",
+      "Пт",
+      "Сб"
+    ]
   },
   "landing": {
     "splashText": "Начать",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "Ошибка обновления.",
     "pleaseSelectDate": "Выберите дату.",
     "includeWeekendsTitle": "Выходные?",
-    "excludeWeekendsMessage": "Включать эти дни?"
+    "excludeWeekendsMessage": "Включать эти дни?",
+    "days": "дней"
   },
   "search": {
     "placeholder": "Поиск...",
@@ -271,7 +281,7 @@
     "upgrade": "Купить Pro",
     "standard": "Обычный",
     "labelPro": "Pro",
-    "coAdmin": "Ко-Админ"
+    "coAdmin": "Со-администратор"
   },
   "admin": {
     "dashboard": "Админка",

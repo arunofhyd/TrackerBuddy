@@ -44,7 +44,16 @@
     ],
     "saveChanges": "変更を保存",
     "sat": "土",
-    "sun": "日"
+    "sun": "日",
+    "shortDays": [
+      "日",
+      "月",
+      "火",
+      "水",
+      "木",
+      "金",
+      "土"
+    ]
   },
   "landing": {
     "splashText": "タップして開始",
@@ -161,7 +170,8 @@
     "msgUpdateSaveFailed": "更新エラー。",
     "pleaseSelectDate": "日付を選んでください。",
     "includeWeekendsTitle": "週末を含める？",
-    "excludeWeekendsMessage": "土日もカウントしますか？"
+    "excludeWeekendsMessage": "土日もカウントしますか？",
+    "days": "日"
   },
   "search": {
     "placeholder": "検索...",
