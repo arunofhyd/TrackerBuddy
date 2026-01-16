@@ -278,5 +278,14 @@
     "helpStep4Title": "4. 确认",
     "helpStep4Desc": "点击悬浮的“确认”按钮以保存更改。",
     "resetConfirmCloud": "这将从云端永久删除您的所有活动数据。此操作无法撤销。",
-    "resetConfirmLocal": "这将永久删除您的所有本地活动数据。此操作无法撤销。"
+    "resetConfirmLocal": "这将永久删除您的所有本地活动数据。此操作无法撤销。",
+    "addLeaveType": "添加或编辑请假类型",
+    "showDescription": "显示说明",
+    "togglePassword": "切换密码可见性",
+    "closeHelp": "关闭帮助",
+    "closeSearch": "关闭搜索",
+    "toggleSearchScope": "切换搜索范围",
+    "toggleSortOrder": "切换排序顺序",
+    "previousYear": "上一年",
+    "nextYear": "下一年"
 }

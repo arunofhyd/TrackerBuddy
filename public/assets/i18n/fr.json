@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Confirmer",
     "helpStep4Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications.",
     "resetConfirmCloud": "Cela supprimera définitivement toutes vos données d'activité du cloud. Cette action est irréversible.",
-    "resetConfirmLocal": "Cela supprimera définitivement toutes vos données d'activité locales. Cette action est irréversible."
+    "resetConfirmLocal": "Cela supprimera définitivement toutes vos données d'activité locales. Cette action est irréversible.",
+    "addLeaveType": "Ajouter ou modifier des types de congés",
+    "showDescription": "Afficher la description",
+    "togglePassword": "Afficher/Masquer le mot de passe",
+    "closeHelp": "Fermer l'aide",
+    "closeSearch": "Fermer la recherche",
+    "toggleSearchScope": "Changer la portée de la recherche",
+    "toggleSortOrder": "Changer l'ordre de tri",
+    "previousYear": "Année précédente",
+    "nextYear": "Année suivante"
 }

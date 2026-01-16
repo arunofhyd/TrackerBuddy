@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Sahkan",
     "helpStep4Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda.",
     "resetConfirmCloud": "Ini akan memadamkan semua data aktiviti anda secara kekal dari awan. Tindakan ini tidak boleh dibatalkan.",
-    "resetConfirmLocal": "Ini akan memadamkan semua data aktiviti tempatan anda secara kekal. Tindakan ini tidak boleh dibatalkan."
+    "resetConfirmLocal": "Ini akan memadamkan semua data aktiviti tempatan anda secara kekal. Tindakan ini tidak boleh dibatalkan.",
+    "addLeaveType": "Tambah atau edit jenis cuti",
+    "showDescription": "Tunjukkan penerangan",
+    "togglePassword": "Tunjukkan/Sembunyikan kata laluan",
+    "closeHelp": "Tutup bantuan",
+    "closeSearch": "Tutup carian",
+    "toggleSearchScope": "Tukar skop carian",
+    "toggleSortOrder": "Tukar susunan isihan",
+    "previousYear": "Tahun Sebelumnya",
+    "nextYear": "Tahun Berikutnya"
 }

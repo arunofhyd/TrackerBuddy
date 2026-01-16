@@ -219,7 +219,7 @@
     "activityUpdated": "활동이 업데이트되었습니다!",
     "timeUpdated": "시간이 업데이트되었습니다!",
     "newSlotAdded": "새 슬롯이 추가되었습니다!",
-    "userPromotedToPro": "사용자가 Pro로 승격되었습니다",
+    "userPromotedToPro": "사용자가 프로로 승격됨",
     "failedToUpdateRole": "역할 업데이트 실패",
     "failedToGrantPro": "Pro 권한 부여 실패",
     "userRoleUpdated": "사용자 역할이 {role}(으)로 업데이트되었습니다",
@@ -278,5 +278,14 @@
     "helpStep4Title": "4. 확인",
     "helpStep4Desc": "변경 사항을 저장하려면 떠 있는 '확인' 버튼을 탭하세요.",
     "resetConfirmCloud": "이 작업은 클라우드에서 모든 활동 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
-    "resetConfirmLocal": "이 작업은 모든 로컬 활동 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다."
+    "resetConfirmLocal": "이 작업은 모든 로컬 활동 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
+    "addLeaveType": "휴가 유형 추가 또는 편집",
+    "showDescription": "설명 표시",
+    "togglePassword": "비밀번호 표시 전환",
+    "closeHelp": "도움말 닫기",
+    "closeSearch": "검색 닫기",
+    "toggleSearchScope": "검색 범위 전환",
+    "toggleSortOrder": "정렬 순서 전환",
+    "previousYear": "작년",
+    "nextYear": "내년"
 }

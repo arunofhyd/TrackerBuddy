@@ -219,7 +219,7 @@
     "activityUpdated": "¡Actividad actualizada!",
     "timeUpdated": "¡Hora actualizada!",
     "newSlotAdded": "¡Nueva ranura añadida!",
-    "userPromotedToPro": "Usuario promovido a Pro",
+    "userPromotedToPro": "Usuario ascendido a Pro",
     "failedToUpdateRole": "Error al actualizar rol",
     "failedToGrantPro": "Error al otorgar acceso Pro",
     "userRoleUpdated": "Rol de usuario actualizado a {role}",
@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Confirmar",
     "helpStep4Desc": "Toca el botón flotante 'Confirmar' para guardar tus cambios.",
     "resetConfirmCloud": "Esto eliminará permanentemente todos tus datos de actividad de la nube. Esta acción no se puede deshacer.",
-    "resetConfirmLocal": "Esto eliminará permanentemente todos tus datos de actividad locales. Esta acción no se puede deshacer."
+    "resetConfirmLocal": "Esto eliminará permanentemente todos tus datos de actividad locales. Esta acción no se puede deshacer.",
+    "addLeaveType": "Añadir o editar tipos de permiso",
+    "showDescription": "Mostrar descripción",
+    "togglePassword": "Alternar visibilidad de la contraseña",
+    "closeHelp": "Cerrar ayuda",
+    "closeSearch": "Cerrar búsqueda",
+    "toggleSearchScope": "Alternar ámbito de búsqueda",
+    "toggleSortOrder": "Alternar orden de clasificación",
+    "previousYear": "Año anterior",
+    "nextYear": "Año siguiente"
 }

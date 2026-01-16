@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Potwierdź",
     "helpStep4Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany.",
     "resetConfirmCloud": "Spowoduje to trwałe usunięcie wszystkich danych aktywności z chmury. Tego działania nie można cofnąć.",
-    "resetConfirmLocal": "Spowoduje to trwałe usunięcie wszystkich lokalnych danych aktywności. Tego działania nie można cofnąć."
+    "resetConfirmLocal": "Spowoduje to trwałe usunięcie wszystkich lokalnych danych aktywności. Tego działania nie można cofnąć.",
+    "addLeaveType": "Dodaj lub edytuj typy urlopów",
+    "showDescription": "Pokaż opis",
+    "togglePassword": "Pokaż/ukryj hasło",
+    "closeHelp": "Zamknij pomoc",
+    "closeSearch": "Zamknij wyszukiwanie",
+    "toggleSearchScope": "Zmień zakres wyszukiwania",
+    "toggleSortOrder": "Zmień kolejność sortowania",
+    "previousYear": "Poprzedni rok",
+    "nextYear": "Następny rok"
 }

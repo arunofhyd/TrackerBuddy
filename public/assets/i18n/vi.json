@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Xác nhận",
     "helpStep4Desc": "Nhấn nút 'Xác nhận' nổi để lưu các thay đổi của bạn.",
     "resetConfirmCloud": "Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu hoạt động của bạn khỏi đám mây. Hành động này không thể hoàn tác.",
-    "resetConfirmLocal": "Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu hoạt động cục bộ của bạn. Hành động này không thể hoàn tác."
+    "resetConfirmLocal": "Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu hoạt động cục bộ của bạn. Hành động này không thể hoàn tác.",
+    "addLeaveType": "Thêm hoặc sửa loại nghỉ phép",
+    "showDescription": "Hiện mô tả",
+    "togglePassword": "Hiện/ẩn mật khẩu",
+    "closeHelp": "Đóng trợ giúp",
+    "closeSearch": "Đóng tìm kiếm",
+    "toggleSearchScope": "Đổi phạm vi tìm kiếm",
+    "toggleSortOrder": "Đổi thứ tự sắp xếp",
+    "previousYear": "Năm trước",
+    "nextYear": "Năm sau"
 }

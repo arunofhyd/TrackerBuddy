@@ -278,5 +278,14 @@
     "helpStep4Title": "4. Bestätigen",
     "helpStep4Desc": "Tippen Sie auf die schwebende Schaltfläche 'Bestätigen', um Ihre Änderungen zu speichern.",
     "resetConfirmCloud": "Dies löscht dauerhaft alle Ihre Aktivitätsdaten aus der Cloud. Diese Aktion kann nicht rückgängig gemacht werden.",
-    "resetConfirmLocal": "Dies löscht dauerhaft alle Ihre lokalen Aktivitätsdaten. Diese Aktion kann nicht rückgängig gemacht werden."
+    "resetConfirmLocal": "Dies löscht dauerhaft alle Ihre lokalen Aktivitätsdaten. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "addLeaveType": "Urlaubsarten hinzufügen oder bearbeiten",
+    "showDescription": "Beschreibung anzeigen",
+    "togglePassword": "Passwort anzeigen/ausblenden",
+    "closeHelp": "Hilfe schließen",
+    "closeSearch": "Suche schließen",
+    "toggleSearchScope": "Suchbereich ändern",
+    "toggleSortOrder": "Sortierreihenfolge ändern",
+    "previousYear": "Vorheriges Jahr",
+    "nextYear": "Nächstes Jahr"
 }
