@@ -106,10 +106,6 @@ function initUI() {
         limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
-        weekendOptionModal: document.getElementById('weekend-option-modal'),
-        toggleSatBtn: document.getElementById('toggle-sat-btn'),
-        toggleSunBtn: document.getElementById('toggle-sun-btn'),
-        weekendApplyBtn: document.getElementById('weekend-apply-btn'),
         statsToggleBtn: document.getElementById('stats-toggle-btn'),
         leaveStatsSection: document.getElementById('leave-stats-section'),
         statsArrowDown: document.getElementById('stats-arrow-down'),
@@ -4104,20 +4100,6 @@ function setupEventListeners() {
             updateView();
         }
     });
-
-    // Weekend Option Modal Listeners
-    DOM.toggleSatBtn.addEventListener('click', () => {
-        const isExcluded = DOM.toggleSatBtn.dataset.excluded === 'true';
-        DOM.toggleSatBtn.dataset.excluded = !isExcluded;
-    });
-
-    DOM.toggleSunBtn.addEventListener('click', () => {
-        const isExcluded = DOM.toggleSunBtn.dataset.excluded === 'true';
-        DOM.toggleSunBtn.dataset.excluded = !isExcluded;
-    });
-
-    // Weekend/Range Logic is removed/hidden for now as per new flow requirements.
-    // If needed, we can re-introduce it as a feature of the selection mode later.
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');
