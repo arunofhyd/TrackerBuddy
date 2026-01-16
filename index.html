@@ -206,21 +206,21 @@
             </button>
         </header>
         <main id="main-content">
-            <div class="flex flex-col space-y-3 sm:space-y-4 mb-6 sm:mb-8 w-full">
-                <div class="flex space-x-3 sm:space-x-4 w-full">
+                <div class="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8 w-full">
+                <div class="flex gap-3 sm:gap-4 w-full">
                     <button id="month-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold btn-primary rounded-full active:scale-95 transition-all duration-200" data-i18n="monthView">Month View</button>
                     <button id="day-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-semibold btn-secondary rounded-full active:scale-95 transition-all duration-200" data-i18n="dayView">Day View</button>
                 </div>
                 <div class="flex items-center justify-between w-full">
-                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200" aria-label="Previous period" data-i18n-aria-label="ariaPreviousPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180" aria-label="Previous period" data-i18n-aria-label="ariaPreviousPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
                     <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer transition-transform transform hover:scale-105"></h2>
-                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200" aria-label="Next period" data-i18n-aria-label="ariaNextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                    <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180" aria-label="Next period" data-i18n-aria-label="ariaNextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
                 <div id="month-view-controls" class="w-full h-14 bg-white border-2 border-gray-300 rounded-full relative overflow-hidden">
-                <div id="leave-pills-container" class="absolute inset-0 flex items-center space-x-2 overflow-x-auto whitespace-nowrap px-4 pr-32">
+                <div id="leave-pills-container" class="absolute inset-0 flex items-center gap-2 overflow-x-auto whitespace-nowrap px-4 pe-32">
                 </div>
-                <div class="absolute right-0 top-0 bottom-0 w-32 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 pointer-events-none">
-                    <button id="help-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto mr-1" title="How to Log Leave" aria-label="How to Log Leave" data-i18n-title="howToLogLeave" data-i18n-aria-label="howToLogLeave">
+                <div class="absolute end-0 top-0 bottom-0 w-32 flex items-center justify-end gap-1 pe-2 bg-gradient-to-l rtl:bg-gradient-to-r from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 pointer-events-none">
+                    <button id="help-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="How to Log Leave" aria-label="How to Log Leave" data-i18n-title="howToLogLeave" data-i18n-aria-label="howToLogLeave">
                         <i class="fas fa-info-circle text-lg"></i>
                     </button>
                     <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add or edit leave types" data-i18n-title="addLeaveType" data-i18n-aria-label="addLeaveType">
@@ -258,7 +258,7 @@
                 <div id="month-view-bottom-controls" class="transition-all duration-300 mt-4">
                     <div class="relative w-full">
                          <!-- Stats & Teams Buttons -->
-                        <div id="bottom-controls-row" class="flex space-x-3 sm:space-x-4 w-full transition-opacity duration-300">
+                        <div id="bottom-controls-row" class="flex gap-3 sm:gap-4 w-full transition-opacity duration-300">
                             <button id="stats-toggle-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base btn-secondary rounded-full flex items-center justify-center active:scale-95 transition-all duration-200">
                                 <i class="fas fa-chart-bar mr-1 sm:mr-2 flex-shrink-0"></i>
                                 <span data-i18n="stats" class="truncate min-w-0">Stats</span>
@@ -462,9 +462,9 @@
         <p class="text-center mb-6 text-xs" data-i18n="logLeaveDesc">Assign a leave type and duration for each selected day.</p>
         <div id="bulk-leave-controls" class="p-3 mb-4 border rounded-lg flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <span class="font-semibold flex-shrink-0 text-sm" data-i18n="applyToAll">Apply to All:</span>
-            <div id="modal-leave-pills-container" class="flex-grow flex items-center space-x-2 overflow-x-auto whitespace-nowrap p-2">
+            <div id="modal-leave-pills-container" class="flex-grow flex items-center gap-2 overflow-x-auto whitespace-nowrap p-2">
             </div>
-            <div class="flex items-center space-x-2 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0">
                 <div id="bulk-day-type-toggle" class="day-type-toggle relative flex w-28 h-8 items-center rounded-full p-1 cursor-pointer flex-shrink-0" data-selected-value="full">
                     <div class="toggle-bg absolute top-1 left-1 h-6 w-[calc(50%-0.25rem)] rounded-full shadow-md transition-transform duration-300 ease-in-out"></div>
                     <button type="button" class="toggle-btn relative z-10 w-1/2 h-full text-center text-xs font-semibold active" data-value="full" data-i18n="full">Full</button>
