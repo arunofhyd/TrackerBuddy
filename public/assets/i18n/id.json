@@ -265,5 +265,18 @@
     "sat": "Sab",
     "sun": "Min",
     "apply": "Terapkan",
-    "limitToCurrentYear": "Batasi hanya untuk tahun ini"
+    "confirmSelection": "Konfirmasi",
+    "help": "Bantuan",
+    "howToLogLeave": "Cara Mencatat Cuti",
+    "limitToCurrentYear": "Batasi hanya untuk tahun ini",
+    "helpStep1Title": "1. Tambah Jenis Cuti",
+    "helpStep1Desc": "Ketuk tombol '+' untuk membuat kategori cuti baru.",
+    "helpStep2Title": "2. Pilih Jenis Cuti",
+    "helpStep2Desc": "Ketuk salah satu pil cuti di atas untuk memulai mode pemilihan. (Ketuk lagi kapan saja untuk keluar.)",
+    "helpStep3Title": "3. Pilih Tanggal",
+    "helpStep3Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
+    "helpStep4Title": "4. Konfirmasi",
+    "helpStep4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda.",
+    "resetConfirmCloud": "Ini akan menghapus semua data aktivitas Anda secara permanen dari cloud. Tindakan ini tidak dapat dibatalkan.",
+    "resetConfirmLocal": "Ini akan menghapus semua data aktivitas lokal Anda secara permanen. Tindakan ini tidak dapat dibatalkan."
 }

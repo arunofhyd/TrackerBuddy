@@ -265,5 +265,18 @@
     "sat": "Sáb",
     "sun": "Dom",
     "apply": "Aplicar",
-    "limitToCurrentYear": "Limitar apenas ao ano atual"
+    "confirmSelection": "Confirmar",
+    "help": "Ajuda",
+    "howToLogLeave": "Como registrar férias",
+    "limitToCurrentYear": "Limitar apenas ao ano atual",
+    "helpStep1Title": "1. Adicionar tipo de licença",
+    "helpStep1Desc": "Toque no botão '+' para criar uma nova categoria de licença.",
+    "helpStep2Title": "2. Selecione o tipo de licença",
+    "helpStep2Desc": "Toque em uma das opções de licença no topo para iniciar o modo de seleção. (Toque novamente a qualquer momento para sair.)",
+    "helpStep3Title": "3. Selecionar datas",
+    "helpStep3Desc": "Toque nos dias no calendário que deseja marcar.",
+    "helpStep4Title": "4. Confirmar",
+    "helpStep4Desc": "Toque no botão flutuante 'Confirmar' para salvar suas alterações.",
+    "resetConfirmCloud": "Isso excluirá permanentemente todos os seus dados de atividade da nuvem. Esta ação não pode ser desfeita.",
+    "resetConfirmLocal": "Isso excluirá permanentemente todos os seus dados de atividade locais. Esta ação não pode ser desfeita."
 }

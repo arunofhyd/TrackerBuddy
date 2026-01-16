@@ -46,10 +46,6 @@ const i18n = new TranslationService(() => {
     if (DOM.spotlightModal?.classList.contains('visible') && state.searchQuery) {
         performSearch(state.searchQuery);
     }
-    // Explicitly update limit to current year text to ensure consistency
-    if (DOM.limitLeaveToYearSpan) {
-        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
-    }
 });
 
 // --- Global App State ---
@@ -108,12 +104,8 @@ function initUI() {
         leaveNameInput: document.getElementById('leave-name-input'),
         leaveDaysInput: document.getElementById('leave-days-input'),
         limitLeaveToYearBtn: document.getElementById('limit-leave-to-year-btn'),
-        limitLeaveToYearSpan: document.querySelector('[data-i18n="limitToCurrentYear"]'),
         leaveColorPicker: document.getElementById('leave-color-picker'),
         deleteLeaveTypeBtn: document.getElementById('delete-leave-type-btn'),
-        logNewLeaveBtn: document.getElementById('log-new-leave-btn'),
-        logLeaveBtnContainer: document.getElementById('log-leave-btn-container'),
-        rangeBtn: document.getElementById('range-btn'),
         weekendOptionModal: document.getElementById('weekend-option-modal'),
         toggleSatBtn: document.getElementById('toggle-sat-btn'),
         toggleSunBtn: document.getElementById('toggle-sun-btn'),
@@ -155,6 +147,10 @@ function initUI() {
         spotlightScopeBtn: document.getElementById('spotlight-scope-btn'),
         spotlightScopeLabel: document.getElementById('spotlight-scope-label'),
         openSpotlightBtn: document.getElementById('open-spotlight-btn'),
+        // Help DOM
+        helpModal: document.getElementById('help-modal'),
+        helpToggleBtn: document.getElementById('help-toggle-btn'),
+        closeHelpBtn: document.getElementById('close-help-btn'),
         // Team Management DOM References
         teamToggleBtn: document.getElementById('team-toggle-btn'),
         teamSection: document.getElementById('team-section'),
@@ -178,9 +174,16 @@ function initUI() {
         // Admin DOM
         adminDashboardModal: document.getElementById('admin-dashboard-modal'),
         adminUserList: document.getElementById('admin-user-list'),
-        closeAdminDashboardBtn: document.getElementById('close-admin-dashboard-btn')
+        closeAdminDashboardBtn: document.getElementById('close-admin-dashboard-btn'),
+        // Floating Confirm Button
+        confirmSelectionBtn: document.getElementById('confirm-selection-btn'),
+        floatingConfirmContainer: document.getElementById('floating-confirm-container'),
+        bottomControlsRow: document.getElementById('bottom-controls-row'),
+        // Message Progress
+        messageProgress: document.getElementById('message-progress')
     };
 
+    setupMessageSwipe();
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -379,7 +382,10 @@ async function handleUserLogin(user) {
 
 function showMessage(msg, type = 'info') {
     DOM.messageText.textContent = msg;
-        DOM.messageDisplay.className = `fixed bottom-5 right-5 z-50 px-4 py-3 ${NOTIFICATION_SHAPE} shadow-md transition-opacity duration-300`;
+    // Reset classes but keep base structure
+    DOM.messageDisplay.className = `fixed bottom-5 right-5 z-50 px-4 py-3 ${NOTIFICATION_SHAPE} shadow-md transition-opacity duration-300`;
+
+    // Add type-specific styles
     if (type === 'error') {
         DOM.messageDisplay.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
         triggerHapticFeedback('error');
@@ -390,10 +396,85 @@ function showMessage(msg, type = 'info') {
         DOM.messageDisplay.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
         triggerHapticFeedback('light');
     }
+
+    // Reset Swipe Transform
+    DOM.messageDisplay.style.transform = '';
+
+    // Show
     DOM.messageDisplay.classList.add('show');
+
+    // Reset Progress Bar
+    if (DOM.messageProgress) {
+        DOM.messageProgress.style.width = '100%';
+        DOM.messageProgress.style.transition = 'none';
+        requestAnimationFrame(() => {
+            DOM.messageProgress.style.transition = 'width 3s linear';
+            DOM.messageProgress.style.width = '0%';
+        });
+    }
+
+    // Auto-dismiss
     clearTimeout(DOM.messageDisplay.dataset.timeoutId);
-    const timeoutId = setTimeout(() => DOM.messageDisplay.classList.remove('show'), 3000);
+    const timeoutId = setTimeout(() => hideMessage(), 3000);
     DOM.messageDisplay.dataset.timeoutId = timeoutId;
+}
+
+function hideMessage() {
+    DOM.messageDisplay.classList.remove('show');
+    // Allow transition to finish before resetting content or state if needed
+}
+
+function setupMessageSwipe() {
+    const el = DOM.messageDisplay;
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    el.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        // Pause auto-dismiss on interaction
+        clearTimeout(el.dataset.timeoutId);
+        if (DOM.messageProgress) {
+            DOM.messageProgress.style.transition = 'none';
+            DOM.messageProgress.style.width = '100%'; // Or freeze current width if possible, but full is fine feedback
+        }
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        currentX = e.touches[0].clientX - startX;
+        el.style.transform = `translateX(calc(${isMobileDevice() ? '-50% + ' : ''}${currentX}px))`;
+        el.style.opacity = Math.max(0, 1 - Math.abs(currentX) / 150);
+    }, { passive: true });
+
+    el.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        if (Math.abs(currentX) > 100) {
+            // Swipe threshold met - dismiss
+            const direction = currentX > 0 ? 1 : -1;
+            el.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+            el.style.transform = `translateX(calc(${isMobileDevice() ? '-50% + ' : ''}${direction * 100}%))`;
+            el.style.opacity = '0';
+            setTimeout(() => hideMessage(), 300);
+        } else {
+            // Reset position
+            el.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+            el.style.transform = '';
+            el.style.opacity = '1';
+
+            // Resume auto-dismiss
+            const timeoutId = setTimeout(() => hideMessage(), 3000);
+            el.dataset.timeoutId = timeoutId;
+             if (DOM.messageProgress) {
+                DOM.messageProgress.style.transition = 'width 3s linear';
+                DOM.messageProgress.style.width = '0%';
+            }
+        }
+        currentX = 0;
+    });
 }
 
 function updateView() {
@@ -427,45 +508,40 @@ function updateView() {
 }
 
 function renderActionButtons() {
-    // Render Log/Cancel Button
-    if (state.isLoggingLeave) {
-        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-times mr-2"></i> ${i18n.t('cancelLogging')}`;
-        DOM.logNewLeaveBtn.classList.replace('btn-primary', 'btn-danger');
-        DOM.rangeBtn.classList.remove('hidden');
-
-        // Update Range Button Style based on state
-        if (state.isRangeMode) {
-             if (DOM.rangeBtn.classList.contains('btn-secondary')) {
-                 DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
-             }
-             DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
-        } else {
-             if (DOM.rangeBtn.classList.contains('btn-primary')) {
-                 DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
-             }
-             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
-        }
+    // Logic for Floating Confirm Button visibility and Bottom Controls
+    const hasSelection = state.leaveSelection.size > 0 && state.selectedLeaveTypeId;
+    if (hasSelection) {
+        DOM.floatingConfirmContainer.classList.add('visible');
     } else {
-        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
-        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
-        DOM.rangeBtn.classList.add('hidden');
-
-        // Reset range button visual state if needed
-        if (DOM.rangeBtn.classList.contains('btn-primary')) {
-            DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
-        }
-        DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        DOM.floatingConfirmContainer.classList.remove('visible');
     }
 
-    // Render Range Button
-    // We explicitly render this to ensure text updates correctly even if active state somehow interfered with data-i18n
-    DOM.rangeBtn.innerHTML = `<i class="fas fa-list-check mr-2"></i> ${i18n.t('range')}`;
+    // Toggle active state for Stats and Teams buttons
+    const isStatsVisible = DOM.leaveStatsSection.classList.contains('visible');
+    const isTeamVisible = DOM.teamSection.classList.contains('visible');
+
+    if (isStatsVisible) {
+         DOM.statsToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+         DOM.statsArrowDown.classList.add('hidden');
+         DOM.statsArrowUp.classList.remove('hidden');
+    } else {
+         DOM.statsToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         DOM.statsArrowDown.classList.remove('hidden');
+         DOM.statsArrowUp.classList.add('hidden');
+    }
+
+    if (isTeamVisible) {
+         DOM.teamToggleBtn.classList.replace('btn-secondary', 'btn-primary');
+         DOM.teamArrowDown.classList.add('hidden');
+         DOM.teamArrowUp.classList.remove('hidden');
+    } else {
+         DOM.teamToggleBtn.classList.replace('btn-primary', 'btn-secondary');
+         DOM.teamArrowDown.classList.remove('hidden');
+         DOM.teamArrowUp.classList.add('hidden');
+    }
 }
 
 function renderCalendar() {
-    // Preserve the header row (first 7 children)
-    // Actually, lit-html replacing innerHTML will remove the header rows if I target DOM.calendarView directly.
-    // I will recreate the header in lit-html for simplicity, using i18n
     const days = i18n.translations.days || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const header = days.map((day, i) => html`<div class="py-3 text-center text-sm font-semibold ${i === 0 ? 'text-red-500' : 'text-gray-700'}">${day}</div>`);
 
@@ -477,6 +553,13 @@ function renderCalendar() {
     
     const currentActivities = state.currentYearData.activities || {};
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
+
+    // Get selected color if active
+    let selectedColor = null;
+    if (state.selectedLeaveTypeId) {
+        const type = visibleLeaveTypes.find(lt => lt.id === state.selectedLeaveTypeId);
+        if (type) selectedColor = type.color;
+    }
 
     const emptyCellsBefore = [];
     for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
@@ -505,17 +588,20 @@ function renderCalendar() {
         if (hasActivity) classes.push('has-activity');
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
         if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
-        // Apply leave-selecting class if it's in the selection OR if it's the start date of a range
-        const isInPendingRange = state.pendingRangeSelection && state.pendingRangeSelection.includes(dateKey);
-        if (state.isLoggingLeave && (state.leaveSelection.has(dateKey) || (state.isRangeMode && state.rangeStartDate === dateKey) || isInPendingRange)) {
+
+        let styleAttr = '';
+        if (state.selectedLeaveTypeId && state.leaveSelection.has(dateKey)) {
             classes.push('leave-selecting');
+            if (selectedColor) {
+                 styleAttr = `--selected-leave-color: ${selectedColor}; --selected-leave-bg: ${selectedColor}15;`; // 15 = ~8% opacity
+            }
         }
 
         const isFullLeave = leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL;
         const isSunday = date.getDay() === 0;
 
         dayCells.push(html`
-            <div class="${classes.join(' ')}" data-date="${dateKey}">
+            <div class="${classes.join(' ')}" data-date="${dateKey}" style="${styleAttr}">
                 ${leaveIndicator}
                 <div class="calendar-day-content">
                     <div class="day-number" style="${isFullLeave ? 'color: white' : (isSunday ? 'color: #ef4444' : '')}">${day}</div>
@@ -1879,10 +1965,6 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
     }
-    // Explicitly update text on modal open
-    if (DOM.limitLeaveToYearSpan) {
-        DOM.limitLeaveToYearSpan.innerHTML = i18n.t('limitToCurrentYear');
-    }
     DOM.leaveNameInput.focus();
 }
 
@@ -2168,8 +2250,8 @@ function renderLeavePills() {
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
     const pills = visibleLeaveTypes.map(lt => {
-        const isSelected = state.isLoggingLeave && state.selectedLeaveTypeId === lt.id;
-        const classes = `flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105 ${isSelected ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`;
+        const isSelected = state.selectedLeaveTypeId === lt.id;
+        const classes = `flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow transition-transform transform hover:scale-105 ${isSelected ? 'ring-4 ring-offset-2 ring-blue-400 scale-105' : ''}`;
 
         return html`
         <button class="${classes}"
@@ -2299,7 +2381,6 @@ async function editLeaveDay(dateKey) {
     setState({
         leaveSelection: new Set([dateKey]),
         initialLeaveSelection: new Set([dateKey]),
-        isLoggingLeave: false,
         selectedLeaveTypeId: null
     });
 
@@ -2789,9 +2870,8 @@ async function saveLoggedLeaves() {
             state.previousActiveElement.focus();
             state.previousActiveElement = null;
         }
-        setState({ isLoggingLeave: false, selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
-        DOM.logNewLeaveBtn.innerHTML = `<i class="fas fa-calendar-plus mr-2"></i> ${i18n.t('logLeave')}`;
-        DOM.logNewLeaveBtn.classList.replace('btn-danger', 'btn-primary');
+        setState({ selectedLeaveTypeId: null, leaveSelection: new Set(), initialLeaveSelection: new Set() });
+        // Removed legacy button logic
         updateView();
         setButtonLoadingState(button, false);
     }
@@ -3930,8 +4010,8 @@ function setupEventListeners() {
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
         DOM.resetModalText.textContent = state.isOnlineMode
-            ? "This will permanently delete all your activity data from the cloud. This action cannot be undone."
-            : "This will permanently delete all your local activity data. This action cannot be undone.";
+            ? i18n.t("resetConfirmCloud")
+            : i18n.t("resetConfirmLocal");
         DOM.confirmResetModal.classList.add('visible');
     });
     document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
@@ -3962,15 +4042,13 @@ function setupEventListeners() {
     });
     DOM.statsToggleBtn.addEventListener('click', () => {
         DOM.leaveStatsSection.classList.toggle('visible');
-        DOM.statsArrowDown.classList.toggle('hidden');
-        DOM.statsArrowUp.classList.toggle('hidden');
+        renderActionButtons();
     });
 
     // Team toggle button
     DOM.teamToggleBtn.addEventListener('click', () => {
         const isVisible = DOM.teamSection.classList.toggle('visible');
-        DOM.teamArrowDown.classList.toggle('hidden');
-        DOM.teamArrowUp.classList.toggle('hidden');
+        renderActionButtons();
 
         if (isVisible && !state.unsubscribeFromTeam) {
             // If the section is opened and we're not subscribed yet, subscribe.
@@ -3981,65 +4059,25 @@ function setupEventListeners() {
         }
     });
 
-    DOM.logNewLeaveBtn.addEventListener('click', () => {
-        if (state.isLoggingLeave) {
-            setState({
-                isLoggingLeave: false,
-                selectedLeaveTypeId: null,
-                leaveSelection: new Set(),
-                isRangeMode: false,
-                rangeStartDate: null,
-                pendingRangeSelection: null
-            });
-            showMessage(i18n.t("msgLeaveLoggingCancelled"), 'info');
-            // Clean up any stray visual selections
-            renderCalendar();
-            updateView();
-        } else {
-            const year = state.currentMonth.getFullYear();
-            const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
-            if (visibleLeaveTypes.length === 0) {
-                showMessage(i18n.t("msgAddLeaveTypeFirst"), 'info');
-                return;
-            }
-            setState({ isLoggingLeave: true, selectedLeaveTypeId: null, leaveSelection: new Set() });
-            // Ensure button starts in inactive state for range
-            if (DOM.rangeBtn.classList.contains('btn-primary')) {
-                DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
-            }
-            DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
-
-            updateView(); // This will trigger renderLogLeaveButton
-            showMessage(i18n.t("msgSelectDayAndPill"), 'info');
-        }
-    });
-
-    DOM.rangeBtn.addEventListener('click', () => {
-        if (state.isRangeMode) {
-             setState({ isRangeMode: false, rangeStartDate: null });
-             DOM.rangeBtn.classList.replace('btn-primary', 'btn-secondary');
-             DOM.rangeBtn.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
-             showMessage(i18n.t("msgRangeModeOff"), 'info');
-             renderCalendar();
-        } else {
-            setState({ isRangeMode: true, rangeStartDate: null });
-            DOM.rangeBtn.classList.replace('btn-secondary', 'btn-primary');
-            DOM.rangeBtn.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
-            showMessage(i18n.t('msgSelectStartDate'), 'info');
+    DOM.confirmSelectionBtn.addEventListener('click', () => {
+        if (state.leaveSelection.size > 0) {
+            openLeaveCustomizationModal();
         }
     });
 
     DOM.leavePillsContainer.addEventListener('click', (e) => {
         const pill = e.target.closest('button');
-        if (!pill || !state.isLoggingLeave) return;
+        if (!pill) return;
 
         const leaveTypeId = pill.dataset.id;
-        setState({ selectedLeaveTypeId: leaveTypeId });
-        renderLeavePills();
-
-        if (state.leaveSelection.size > 0) {
-            openLeaveCustomizationModal();
+        if (state.selectedLeaveTypeId === leaveTypeId) {
+            // Deselect/Cancel
+            setState({ selectedLeaveTypeId: null, leaveSelection: new Set() });
+        } else {
+            // Select new type and start fresh
+            setState({ selectedLeaveTypeId: leaveTypeId, leaveSelection: new Set() });
         }
+        updateView();
     });
 
     DOM.calendarView.addEventListener('click', (e) => {
@@ -4048,28 +4086,19 @@ function setupEventListeners() {
 
         const dateKey = cell.dataset.date;
 
-        if (state.isLoggingLeave) {
-            if (state.isRangeMode) {
-                if (!state.rangeStartDate) {
-                    setState({ rangeStartDate: dateKey });
-                    showMessage(i18n.t('msgSelectEndDate'), 'info');
-                    renderCalendar();
-                } else {
-                    handleRangeSelection(state.rangeStartDate, dateKey);
-                }
+        if (state.selectedLeaveTypeId) {
+            // Toggle selection
+            if (state.leaveSelection.has(dateKey)) {
+                state.leaveSelection.delete(dateKey);
             } else {
-                if (state.leaveSelection.has(dateKey)) {
-                    state.leaveSelection.delete(dateKey);
-                } else {
-                    state.leaveSelection.add(dateKey);
-                }
-                renderCalendar();
-
-                if (state.selectedLeaveTypeId && state.leaveSelection.size > 0) {
-                    openLeaveCustomizationModal();
-                }
+                state.leaveSelection.add(dateKey);
             }
+            // Haptic feedback
+            triggerHapticFeedback('light');
+            renderCalendar();
+            renderActionButtons(); // Updates Floating Button Visibility
         } else {
+            // Normal navigation
             const date = new Date(dateKey + 'T00:00:00');
             setState({ selectedDate: date, currentView: VIEW_MODES.DAY });
             updateView();
@@ -4087,69 +4116,8 @@ function setupEventListeners() {
         DOM.toggleSunBtn.dataset.excluded = !isExcluded;
     });
 
-    DOM.weekendApplyBtn.addEventListener('click', () => {
-        const excludeSat = DOM.toggleSatBtn.dataset.excluded === 'true';
-        const excludeSun = DOM.toggleSunBtn.dataset.excluded === 'true';
-        applyRangeSelection(excludeSat, excludeSun);
-        closeWeekendOptionModal();
-    });
-
-    function handleRangeSelection(startDateStr, endDateStr) {
-        const start = new Date(startDateStr + 'T00:00:00');
-        const end = new Date(endDateStr + 'T00:00:00');
-        const [d1, d2] = start < end ? [start, end] : [end, start];
-
-        const range = [];
-        let current = new Date(d1);
-        while (current <= d2) {
-            range.push(getYYYYMMDD(current));
-            current.setDate(current.getDate() + 1);
-        }
-
-        setState({ pendingRangeSelection: range });
-
-        // Reset toggles to default (Included/Green)
-        DOM.toggleSatBtn.dataset.excluded = 'false';
-        DOM.toggleSunBtn.dataset.excluded = 'false';
-
-        DOM.weekendOptionModal.classList.add('visible');
-        renderCalendar();
-    }
-
-    function closeWeekendOptionModal() {
-        DOM.weekendOptionModal.classList.remove('visible');
-    }
-
-    function applyRangeSelection(excludeSat, excludeSun) {
-        const range = state.pendingRangeSelection || [];
-        const newSelection = new Set(state.leaveSelection);
-
-        range.forEach(dateKey => {
-            const parts = dateKey.split('-').map(Number);
-            // Note: month is 0-indexed in Date constructor
-            const date = new Date(parts[0], parts[1] - 1, parts[2]);
-            const day = date.getDay();
-
-            // Logic: Tick (exclude=false) means Include. Cross (exclude=true) means Exclude.
-            // Check if day is Saturday (6) and we want to exclude it (excludeSat = true)
-            if (day === 6 && excludeSat) return;
-            // Check if day is Sunday (0) and we want to exclude it (excludeSun = true)
-            if (day === 0 && excludeSun) return;
-
-            newSelection.add(dateKey);
-        });
-
-        setState({
-            leaveSelection: newSelection,
-            isRangeMode: false,
-            rangeStartDate: null,
-            pendingRangeSelection: null
-        });
-
-        renderCalendar();
-        updateView();
-        showMessage(i18n.t("msgRangeModeOff"), 'info');
-    }
+    // Weekend/Range Logic is removed/hidden for now as per new flow requirements.
+    // If needed, we can re-introduce it as a feature of the selection mode later.
 
     document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');
@@ -4167,6 +4135,25 @@ function setupEventListeners() {
     if (DOM.infoToggleBtn && DOM.infoDescription) {
         DOM.infoToggleBtn.addEventListener('click', () => {
             DOM.infoDescription.classList.toggle('visible');
+        });
+    }
+
+    // Help Modal
+    if (DOM.helpToggleBtn) {
+        DOM.helpToggleBtn.addEventListener('click', () => {
+            DOM.helpModal.classList.add('visible');
+        });
+    }
+    if (DOM.closeHelpBtn) {
+        DOM.closeHelpBtn.addEventListener('click', () => {
+            DOM.helpModal.classList.remove('visible');
+        });
+    }
+    if (DOM.helpModal) {
+        DOM.helpModal.addEventListener('click', (e) => {
+            if (e.target === DOM.helpModal) {
+                DOM.helpModal.classList.remove('visible');
+            }
         });
     }
 

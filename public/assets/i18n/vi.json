@@ -265,5 +265,18 @@
     "sat": "T7",
     "sun": "CN",
     "apply": "Áp dụng",
-    "limitToCurrentYear": "Chỉ giới hạn trong năm hiện tại"
+    "confirmSelection": "Xác nhận",
+    "help": "Trợ giúp",
+    "howToLogLeave": "Cách ghi nhận nghỉ phép",
+    "limitToCurrentYear": "Chỉ giới hạn trong năm hiện tại",
+    "helpStep1Title": "1. Thêm loại nghỉ phép",
+    "helpStep1Desc": "Nhấn nút '+' để tạo danh mục nghỉ phép mới.",
+    "helpStep2Title": "2. Chọn loại nghỉ phép",
+    "helpStep2Desc": "Nhấn vào một trong các loại nghỉ phép ở trên cùng để bắt đầu chế độ chọn. (Nhấn lại bất cứ lúc nào để thoát.)",
+    "helpStep3Title": "3. Chọn ngày",
+    "helpStep3Desc": "Nhấn vào các ngày trên lịch mà bạn muốn đánh dấu.",
+    "helpStep4Title": "4. Xác nhận",
+    "helpStep4Desc": "Nhấn nút 'Xác nhận' nổi để lưu các thay đổi của bạn.",
+    "resetConfirmCloud": "Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu hoạt động của bạn khỏi đám mây. Hành động này không thể hoàn tác.",
+    "resetConfirmLocal": "Thao tác này sẽ xóa vĩnh viễn tất cả dữ liệu hoạt động cục bộ của bạn. Hành động này không thể hoàn tác."
 }

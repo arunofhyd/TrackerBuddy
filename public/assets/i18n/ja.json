@@ -265,5 +265,18 @@
     "sat": "土",
     "sun": "日",
     "apply": "適用",
-    "limitToCurrentYear": "現在の年のみに制限"
+    "confirmSelection": "確認",
+    "help": "ヘルプ",
+    "howToLogLeave": "休暇の記録方法",
+    "limitToCurrentYear": "現在の年のみに制限",
+    "helpStep1Title": "1. 休暇タイプの追加",
+    "helpStep1Desc": "'+'ボタンをタップして新しい休暇カテゴリを作成します。",
+    "helpStep2Title": "2. 休暇の種類を選択",
+    "helpStep2Desc": "上部の休暇ピルをタップして選択モードを開始します。 (いつでももう一度タップして終了します。)",
+    "helpStep3Title": "3. 日付を選択",
+    "helpStep3Desc": "カレンダー上のマークしたい日付をタップします。",
+    "helpStep4Title": "4. 確認",
+    "helpStep4Desc": "フローティングの「確認」ボタンをタップして変更を保存します。",
+    "resetConfirmCloud": "これにより、クラウドからすべてのアクティビティデータが完全に削除されます。この操作は元に戻せません。",
+    "resetConfirmLocal": "これにより、すべてのローカルアクティビティデータが完全に削除されます。この操作は元に戻せません。"
 }

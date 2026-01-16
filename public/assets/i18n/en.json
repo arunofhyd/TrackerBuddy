@@ -52,6 +52,7 @@
     "close": "Close",
     "save": "Save",
     "delete": "Delete",
+    "confirmSelection": "Confirm",
     "editLeaveType": "Edit Leave Type",
     "addNewLeaveType": "Add New Leave Type",
     "leaveName": "Leave Name",
@@ -265,5 +266,17 @@
     "adminDashboard": "Admin Dashboard",
     "standard": "Standard",
     "pro": "Pro",
-    "co-admin": "Co-Admin"
+    "co-admin": "Co-Admin",
+    "help": "Help",
+    "howToLogLeave": "How to Log Leave",
+    "helpStep1Title": "1. Add Leave Type",
+    "helpStep1Desc": "Tap the '+' button to create a new leave category.",
+    "helpStep2Title": "2. Select Leave Type",
+    "helpStep2Desc": "Tap one of the leave pills at the top to start selection mode. (Tap again anytime to exit.)",
+    "helpStep3Title": "3. Select Dates",
+    "helpStep3Desc": "Tap the days on the calendar you want to mark.",
+    "helpStep4Title": "4. Confirm",
+    "helpStep4Desc": "Tap the floating 'Confirm' button to save your changes.",
+    "resetConfirmCloud": "This will permanently delete all your activity data from the cloud. This action cannot be undone.",
+    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone."
 }

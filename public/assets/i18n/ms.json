@@ -265,5 +265,18 @@
     "sat": "Sab",
     "sun": "Aha",
     "apply": "Gunakan",
-    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja"
+    "confirmSelection": "Sahkan",
+    "help": "Bantuan",
+    "howToLogLeave": "Cara Merekod Cuti",
+    "limitToCurrentYear": "Hadkan kepada tahun semasa sahaja",
+    "helpStep1Title": "1. Tambah Jenis Cuti",
+    "helpStep1Desc": "Ketik butang '+' untuk membuat kategori cuti baharu.",
+    "helpStep2Title": "2. Pilih Jenis Cuti",
+    "helpStep2Desc": "Ketik salah satu pil cuti di bahagian atas untuk memulakan mod pemilihan. (Ketik lagi bila-bila masa untuk keluar.)",
+    "helpStep3Title": "3. Pilih Tarikh",
+    "helpStep3Desc": "Ketik hari pada kalendar yang anda ingin tandakan.",
+    "helpStep4Title": "4. Sahkan",
+    "helpStep4Desc": "Ketik butang 'Sahkan' terapung untuk menyimpan perubahan anda.",
+    "resetConfirmCloud": "Ini akan memadamkan semua data aktiviti anda secara kekal dari awan. Tindakan ini tidak boleh dibatalkan.",
+    "resetConfirmLocal": "Ini akan memadamkan semua data aktiviti tempatan anda secara kekal. Tindakan ini tidak boleh dibatalkan."
 }

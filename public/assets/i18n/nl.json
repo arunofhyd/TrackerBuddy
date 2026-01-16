@@ -265,5 +265,18 @@
     "sat": "Za",
     "sun": "Zo",
     "apply": "Toepassen",
-    "limitToCurrentYear": "Beperk tot alleen het huidige jaar"
+    "confirmSelection": "Bevestigen",
+    "help": "Help",
+    "howToLogLeave": "Hoe verlof te registreren",
+    "limitToCurrentYear": "Beperk tot alleen het huidige jaar",
+    "helpStep1Title": "1. Voeg verloftype toe",
+    "helpStep1Desc": "Tik op de knop '+' om een nieuwe verlofcategorie aan te maken.",
+    "helpStep2Title": "2. Selecteer verloftype",
+    "helpStep2Desc": "Tik op een van de verlofopties bovenaan om de selectiemodus te starten. (Tik op elk moment nogmaals om te sluiten.)",
+    "helpStep3Title": "3. Selecteer datums",
+    "helpStep3Desc": "Tik op de dagen in de kalender die u wilt markeren.",
+    "helpStep4Title": "4. Bevestigen",
+    "helpStep4Desc": "Tik op de zwevende knop 'Bevestigen' om uw wijzigingen op te slaan.",
+    "resetConfirmCloud": "Dit verwijdert permanent al uw activiteitsgegevens uit de cloud. Deze actie kan niet ongedaan worden gemaakt.",
+    "resetConfirmLocal": "Dit verwijdert permanent al uw lokale activiteitsgegevens. Deze actie kan niet ongedaan worden gemaakt."
 }

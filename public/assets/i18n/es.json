@@ -265,5 +265,18 @@
     "sat": "Sáb",
     "sun": "Dom",
     "apply": "Aplicar",
-    "limitToCurrentYear": "Limitar solo al año actual"
+    "confirmSelection": "Confirmar",
+    "help": "Ayuda",
+    "howToLogLeave": "Cómo registrar vacaciones",
+    "limitToCurrentYear": "Limitar solo al año actual",
+    "helpStep1Title": "1. Añadir tipo de permiso",
+    "helpStep1Desc": "Toca el botón '+' para crear una nueva categoría de permiso.",
+    "helpStep2Title": "2. Seleccionar tipo de permiso",
+    "helpStep2Desc": "Toca una de las opciones de permiso arriba para iniciar el modo de selección. (Toca de nuevo en cualquier momento para salir.)",
+    "helpStep3Title": "3. Seleccionar fechas",
+    "helpStep3Desc": "Toca los días en el calendario que deseas marcar.",
+    "helpStep4Title": "4. Confirmar",
+    "helpStep4Desc": "Toca el botón flotante 'Confirmar' para guardar tus cambios.",
+    "resetConfirmCloud": "Esto eliminará permanentemente todos tus datos de actividad de la nube. Esta acción no se puede deshacer.",
+    "resetConfirmLocal": "Esto eliminará permanentemente todos tus datos de actividad locales. Esta acción no se puede deshacer."
 }

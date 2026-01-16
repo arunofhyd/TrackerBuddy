@@ -265,5 +265,18 @@
     "sat": "六",
     "sun": "日",
     "apply": "应用",
-    "limitToCurrentYear": "仅限当年"
+    "confirmSelection": "确认",
+    "help": "帮助",
+    "howToLogLeave": "如何记录休假",
+    "limitToCurrentYear": "仅限当前年份",
+    "helpStep1Title": "1. 添加休假类型",
+    "helpStep1Desc": "点击“+”按钮创建一个新的休假类别。",
+    "helpStep2Title": "2. 选择休假类型",
+    "helpStep2Desc": "点击顶部的休假选项以开始选择模式。 (随时再次点击以退出。)",
+    "helpStep3Title": "3. 选择日期",
+    "helpStep3Desc": "点击日历上您想要标记的日期。",
+    "helpStep4Title": "4. 确认",
+    "helpStep4Desc": "点击悬浮的“确认”按钮以保存更改。",
+    "resetConfirmCloud": "这将从云端永久删除您的所有活动数据。此操作无法撤销。",
+    "resetConfirmLocal": "这将永久删除您的所有本地活动数据。此操作无法撤销。"
 }

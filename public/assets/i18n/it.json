@@ -265,5 +265,18 @@
     "sat": "Sab",
     "sun": "Dom",
     "apply": "Applica",
-    "limitToCurrentYear": "Limita solo all'anno corrente"
+    "confirmSelection": "Conferma",
+    "help": "Aiuto",
+    "howToLogLeave": "Come registrare le ferie",
+    "limitToCurrentYear": "Limita solo all'anno corrente",
+    "helpStep1Title": "1. Aggiungi tipo di permesso",
+    "helpStep1Desc": "Tocca il pulsante '+' per creare una nuova categoria di permesso.",
+    "helpStep2Title": "2. Seleziona tipo di permesso",
+    "helpStep2Desc": "Tocca una delle opzioni di permesso in alto per avviare la modalità di selezione. (Tocca di nuovo in qualsiasi momento per uscire.)",
+    "helpStep3Title": "3. Seleziona date",
+    "helpStep3Desc": "Tocca i giorni sul calendario che desideri contrassegnare.",
+    "helpStep4Title": "4. Conferma",
+    "helpStep4Desc": "Tocca il pulsante mobile 'Conferma' per salvare le modifiche.",
+    "resetConfirmCloud": "Questo eliminerà permanentemente tutti i tuoi dati di attività dal cloud. Questa azione non può essere annullata.",
+    "resetConfirmLocal": "Questo eliminerà permanentemente tutti i tuoi dati di attività locali. Questa azione non può essere annullata."
 }
