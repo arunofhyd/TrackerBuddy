@@ -219,7 +219,7 @@
     "activityUpdated": "อัปเดตกิจกรรมแล้ว!",
     "timeUpdated": "อัปเดตเวลาแล้ว!",
     "newSlotAdded": "เพิ่มช่องใหม่แล้ว!",
-    "userPromotedToPro": "ผู้ใช้ได้รับการเลื่อนเป็น Pro",
+    "userPromotedToPro": "ผู้ใช้ได้รับการเลื่อนขั้นเป็น Pro",
     "failedToUpdateRole": "อัปเดตบทบาทล้มเหลว",
     "failedToGrantPro": "ให้สิทธิ์การเข้าถึง Pro ล้มเหลว",
     "userRoleUpdated": "อัปเดตบทบาทผู้ใช้เป็น {role}",
@@ -284,8 +284,8 @@
     "togglePassword": "แสดง/ซ่อนรหัสผ่าน",
     "closeHelp": "ปิดวิธีใช้",
     "closeSearch": "ปิดการค้นหา",
-    "toggleSearchScope": "สลับขอบเขตการค้นหา",
-    "toggleSortOrder": "สลับลำดับการจัดเรียง",
+    "toggleSearchScope": "เปลี่ยนขอบเขตการค้นหา",
+    "toggleSortOrder": "เปลี่ยนลำดับการจัดเรียง",
     "previousYear": "ปีก่อนหน้า",
     "nextYear": "ปีถัดไป"
 }

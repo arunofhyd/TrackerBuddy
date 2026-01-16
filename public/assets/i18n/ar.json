@@ -281,7 +281,7 @@
     "resetConfirmLocal": "سيؤدي هذا إلى حذف جميع بيانات نشاطك المحلية نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
     "addLeaveType": "إضافة أو تعديل أنواع الإجازات",
     "showDescription": "إظهار الوصف",
-    "togglePassword": "تبديل رؤية كلمة المرور",
+    "togglePassword": "إظهار/إخفاء كلمة المرور",
     "closeHelp": "إغلاق المساعدة",
     "closeSearch": "إغلاق البحث",
     "toggleSearchScope": "تغيير نطاق البحث",

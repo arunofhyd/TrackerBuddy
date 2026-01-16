@@ -219,7 +219,7 @@
     "activityUpdated": "활동이 업데이트되었습니다!",
     "timeUpdated": "시간이 업데이트되었습니다!",
     "newSlotAdded": "새 슬롯이 추가되었습니다!",
-    "userPromotedToPro": "사용자가 Pro로 승격되었습니다",
+    "userPromotedToPro": "사용자가 프로로 승격됨",
     "failedToUpdateRole": "역할 업데이트 실패",
     "failedToGrantPro": "Pro 권한 부여 실패",
     "userRoleUpdated": "사용자 역할이 {role}(으)로 업데이트되었습니다",
