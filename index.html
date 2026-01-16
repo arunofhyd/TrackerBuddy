@@ -121,7 +121,7 @@
                 <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-2 sm:mb-4 break-words transition-colors duration-300" data-i18n="appTitle">TrackerBuddy</h1>
                 <div class="flex items-center justify-center gap-2 mb-2 sm:mb-4">
                     <p class="subtitle-text text-sm sm:text-base transition-colors duration-300" data-i18n="appSubtitle">Your all-in-one tracker.</p>
-                    <button id="info-toggle-btn" class="subtitle-text hover:text-blue-500 focus:outline-none transition-colors duration-200 rounded-full" title="Show description">
+                    <button id="info-toggle-btn" class="subtitle-text hover:text-blue-500 focus:outline-none transition-colors duration-200 rounded-full" title="Show description" data-i18n-title="showDescription" aria-label="Show description" data-i18n-aria-label="showDescription">
                         <i class="fas fa-info-circle"></i>
                     </button>
                 </div>
@@ -151,7 +151,7 @@
                     <input type="email" id="email-input" placeholder="Email" data-i18n-placeholder="emailPlaceholder" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-full shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
                     <div class="relative">
                         <input type="password" id="password-input" placeholder="Password" data-i18n-placeholder="passwordPlaceholder" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base input-field rounded-full shadow-inner focus:ring-2 focus:ring-blue-500 placeholder-opacity-70 transition-all duration-300">
-                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-3 sm:px-4 subtitle-text hover:text-blue-500 transition-colors duration-200 rounded-full" aria-label="Toggle password visibility">
+                        <button type="button" id="password-toggle-btn" class="absolute inset-y-0 right-0 flex items-center px-3 sm:px-4 subtitle-text hover:text-blue-500 transition-colors duration-200 rounded-full" aria-label="Toggle password visibility" data-i18n-aria-label="togglePassword">
                             <i id="password-toggle-icon" class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -217,10 +217,13 @@
                     <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200" aria-label="Next period" data-i18n-aria-label="ariaNextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
                 <div id="month-view-controls" class="w-full h-14 bg-white border-2 border-gray-300 rounded-full relative overflow-hidden">
-                <div id="leave-pills-container" class="absolute inset-0 flex items-center space-x-2 overflow-x-auto whitespace-nowrap px-4 pr-24">
+                <div id="leave-pills-container" class="absolute inset-0 flex items-center space-x-2 overflow-x-auto whitespace-nowrap px-4 pr-32">
                 </div>
-                <div class="absolute right-0 top-0 bottom-0 w-24 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 pointer-events-none">
-                    <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add or edit leave types">
+                <div class="absolute right-0 top-0 bottom-0 w-32 flex items-center justify-end pr-2 bg-gradient-to-l from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 pointer-events-none">
+                    <button id="help-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto mr-1" title="How to Log Leave" aria-label="How to Log Leave" data-i18n-title="howToLogLeave" data-i18n-aria-label="howToLogLeave">
+                        <i class="fas fa-info-circle text-lg"></i>
+                    </button>
+                    <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add or edit leave types" data-i18n-title="addLeaveType" data-i18n-aria-label="addLeaveType">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </div>
@@ -288,10 +291,6 @@
 </div>
 </div>
     <footer id="main-footer" class="mt-10 flex justify-center items-center gap-10 relative z-10">
-        <button id="help-toggle-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" title="How to Log Leave" aria-label="How to Log Leave">
-            <i class="fas fa-info-circle text-base"></i>
-            <span data-i18n="help" class="hidden sm:inline">Help</span>
-        </button>
         <button id="open-lang-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" aria-label="Select Language" data-i18n-aria-label="selectLanguage">
             <i class="fas fa-language text-base" aria-hidden="true"></i>
             <span data-i18n="selectLanguage" class="hidden sm:inline">Language</span>
@@ -307,18 +306,18 @@
         <div class="spotlight-input-wrapper">
             <i class="fas fa-search spotlight-icon"></i>
             <input id="spotlight-input" type="text" class="spotlight-input" placeholder="Search activities, notes, or leave..." data-i18n-placeholder="searchPlaceholder" autocomplete="off">
-            <button id="spotlight-close-btn" class="spotlight-esc-btn rounded-full" aria-label="Close search">
+            <button id="spotlight-close-btn" class="spotlight-esc-btn rounded-full" aria-label="Close search" data-i18n-aria-label="closeSearch">
                 <span data-i18n="esc">Esc</span>
             </button>
         </div>
         <div id="spotlight-content" class="flex flex-col">
             <div class="flex justify-between items-center px-4 py-2 border-b border-gray-200 spotlight-header dark:bg-gray-800 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
                 <span id="spotlight-count" class="font-medium"></span>
-                <button id="spotlight-scope-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs active:scale-95 duration-200" aria-label="Toggle search scope">
+                <button id="spotlight-scope-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-xs active:scale-95 duration-200" aria-label="Toggle search scope" data-i18n-aria-label="toggleSearchScope">
                     <i class="fas fa-filter mr-2"></i>
                     <span id="spotlight-scope-label" data-i18n="currentYear">Current Year</span>
                 </button>
-                <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-full px-2 py-1 active:scale-95 duration-200" aria-label="Toggle sort order">
+                <button id="spotlight-sort-btn" class="flex items-center font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors rounded-full px-2 py-1 active:scale-95 duration-200" aria-label="Toggle sort order" data-i18n-aria-label="toggleSortOrder">
                     <span id="spotlight-sort-label" data-i18n="newestFirst">Newest First</span>
                     <i class="fas fa-sort-amount-down ml-2"></i>
                 </button>
@@ -334,7 +333,7 @@
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold" data-i18n="howToLogLeave">How to Log Leave</h2>
-            <button id="close-help-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" aria-label="Close help">
+            <button id="close-help-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" aria-label="Close help" data-i18n-aria-label="closeHelp">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -485,11 +484,11 @@
 <div id="month-picker-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
         <div class="flex justify-between items-center mb-6">
-            <button id="prev-year-btn" class="p-2 btn-secondary rounded-full active:scale-95 transition-all duration-200" aria-label="Previous Year">
+            <button id="prev-year-btn" class="p-2 btn-secondary rounded-full active:scale-95 transition-all duration-200" aria-label="Previous Year" data-i18n-aria-label="previousYear">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
             </button>
             <h3 id="picker-year-display" class="text-2xl font-semibold">2023</h3>
-            <button id="next-year-btn" class="p-2 btn-secondary rounded-full active:scale-95 transition-all duration-200" aria-label="Next Year">
+            <button id="next-year-btn" class="p-2 btn-secondary rounded-full active:scale-95 transition-all duration-200" aria-label="Next Year" data-i18n-aria-label="nextYear">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7"></path></svg>
             </button>
         </div>

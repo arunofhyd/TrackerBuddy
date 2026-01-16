@@ -497,7 +497,7 @@ body.dark .stat-card-info p {
 .spotlight-overlay.visible {
     opacity: 1;
     pointer-events: auto;
-            transform: translateY(-5px);
+    transform: translateY(0);
 }
 
 .spotlight-modal {
