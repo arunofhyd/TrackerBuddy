@@ -132,8 +132,8 @@
     "logLeaveTitle": "Registrar Ausencia",
     "logLeaveDesc": "Elige tipo y duración para los días seleccionados.",
     "applyToAll": "Para todos:",
-    "full": "Día entero",
-    "half": "Medio día",
+    "full": "Completo",
+    "half": "Medio",
     "previousYear": "Año anterior",
     "nextYear": "Año siguiente",
     "confirmReset": "Confirmar borrado",
@@ -281,7 +281,7 @@
     "upgrade": "Mejorar a Pro",
     "standard": "Estándar",
     "labelPro": "Pro",
-    "coAdmin": "Co-Administrador"
+    "coAdmin": "Co-Admin"
   },
   "admin": {
     "dashboard": "Panel Admin",

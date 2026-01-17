@@ -4887,7 +4887,7 @@ function renderAdminUserList(users, searchQuery = '') {
 
             ${!isSuperAdmin ? `
             <div class="flex items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0">
-                <div class="flex flex-row sm:flex-col gap-2 w-full sm:w-auto flex-wrap">
+                <div class="flex flex-col sm:flex-col gap-2 w-full sm:w-auto">
                     <button class="toggle-role-btn flex-1 sm:flex-none px-3 py-1 text-xs font-medium rounded-full border transition-colors active:scale-95 duration-200 justify-center ${user.role === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}"
                             data-uid="${user.uid}" data-email="${user.email}" data-pending="${isPending}" data-role="pro" data-current="${user.role === 'pro'}" data-expired="${isExpired}">
                         ${proButtonText}

@@ -132,8 +132,8 @@
     "logLeaveTitle": "登记休假",
     "logLeaveDesc": "为选定日期设置类型和时长。",
     "applyToAll": "批量设置:",
-    "full": "全天",
-    "half": "半天",
+    "full": "全",
+    "half": "半",
     "previousYear": "去年",
     "nextYear": "明年",
     "confirmReset": "确认重置",
@@ -280,8 +280,8 @@
     "createTeamMsg": "创建团队是 Pro 专属功能。升级账号，轻松管理团队！",
     "upgrade": "升级 Pro",
     "standard": "标准版",
-    "labelPro": "专业版",
-    "coAdmin": "副管理员"
+    "labelPro": "Pro",
+    "coAdmin": "副管"
   },
   "admin": {
     "dashboard": "管理后台",

@@ -132,8 +132,8 @@
     "logLeaveTitle": "Đăng ký nghỉ",
     "logLeaveDesc": "Chọn loại và thời gian cho các ngày đã chọn.",
     "applyToAll": "Áp dụng hết:",
-    "full": "Cả ngày",
-    "half": "Nửa ngày",
+    "full": "Full",
+    "half": "Half",
     "previousYear": "Năm ngoái",
     "nextYear": "Năm sau",
     "confirmReset": "Xác nhận xóa",
@@ -281,7 +281,7 @@
     "upgrade": "Nâng cấp Pro",
     "standard": "Thường",
     "labelPro": "Pro",
-    "coAdmin": "Đồng quản trị viên"
+    "coAdmin": "Co-Admin"
   },
   "admin": {
     "dashboard": "Trang Admin",

@@ -1,16 +1,16 @@
 {
   "app": {
     "title": "TrackerBuddy",
-    "subtitle": "O seu assistente completo.",
-    "pageTitle": "TrackerBuddy - Gestão de Atividades e Férias",
-    "skipToMainContent": "Ir para o conteúdo"
+    "subtitle": "O seu organizador tudo-em-um.",
+    "pageTitle": "TrackerBuddy - Rastreador de Férias e Atividades",
+    "skipToMainContent": "Saltar para o conteúdo principal"
   },
   "common": {
     "loading": "A carregar...",
     "or": "OU",
     "confirm": "Confirmar",
     "language": "Idioma",
-    "contactDeveloper": "Contactar Suporte",
+    "contactDeveloper": "Contactar Programador",
     "close": "Fechar",
     "cancel": "Cancelar",
     "save": "Guardar",
@@ -56,18 +56,18 @@
     ]
   },
   "landing": {
-    "splashText": "Começar",
-    "showDescription": "Saber mais",
-    "infoLogActivities": "<strong>Registe o seu dia</strong>, controle horas e gira as suas férias facilmente.",
-    "infoRestoreBackup": "<strong>Backups simples</strong>. Exporte e importe os seus dados em CSV.",
-    "infoGuestOrSync": "<strong>Comece já</strong> como convidado ou entre para sincronizar tudo.",
-    "infoTeamCollaboration": "<strong>Crie a sua equipa</strong>. Gira férias e ausências em conjunto."
+    "splashText": "Toque para Começar",
+    "showDescription": "Mostrar descrição",
+    "infoLogActivities": "<strong>Registe facilmente atividades diárias</strong>, acompanhe horas de trabalho e gira saldos de férias.",
+    "infoRestoreBackup": "<strong>Restaure e faça cópias de segurança</strong> dos seus dados para CSV para relatórios.",
+    "infoGuestOrSync": "<strong>Comece instantaneamente</strong> como Convidado ou inicie sessão para sincronizar entre dispositivos.",
+    "infoTeamCollaboration": "<strong>Crie equipas</strong> para colaborar e gerir as férias da equipa em conjunto."
   },
   "auth": {
     "email": "Email",
     "password": "Palavra-passe",
     "togglePassword": "Ver palavra-passe",
-    "forgotPassword": "Esqueceu-se da palavra-passe?",
+    "forgotPassword": "Esqueceu a palavra-passe?",
     "signIn": "Entrar",
     "signUp": "Registar",
     "continueWithGoogle": "Continuar com Google",
@@ -132,8 +132,8 @@
     "logLeaveTitle": "Marcar Ausência",
     "logLeaveDesc": "Escolha tipo e duração para os dias selecionados.",
     "applyToAll": "Para todos:",
-    "full": "Dia completo",
-    "half": "Meio dia",
+    "full": "Completo",
+    "half": "Meio",
     "previousYear": "Ano anterior",
     "nextYear": "Próximo ano",
     "confirmReset": "Confirmar limpeza",
