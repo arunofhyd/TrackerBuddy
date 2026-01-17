@@ -5,11 +5,7 @@ module.exports = {
     "./assets/**/*.js"
   ],
   theme: {
-    extend: {
-      colors: {
-        slate: { 850: '#1e293b', 950: '#020617' }
-      }
-    },
+    extend: {},
   },
   plugins: [],
   darkMode: 'class',

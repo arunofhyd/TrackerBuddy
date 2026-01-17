@@ -83,7 +83,7 @@
         @keyframes tap-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
     <link href="assets/style.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="assets/tog-tracker.css" rel="stylesheet">
 </head>
 <body>
 <a href="#main-content" class="skip-link" data-i18n="app.skipToMainContent">Skip to main content</a>
@@ -291,7 +291,7 @@
         </div>
 </div>
 
-<div id="tog-tracker-view" class="view-container w-full max-w-[1400px] mx-auto hidden tog-tracker-view space-y-6 p-4">
+<div id="tog-tracker-view" class="view-container w-full max-w-[1400px] mx-auto hidden tog-tracker-view space-y-6">
 
     <div class="flex flex-row items-center justify-between relative z-20">
         <div>
@@ -301,7 +301,7 @@
         <div class="flex items-center gap-3">
             <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
                 <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Memory</span>
-                <span id="global-memory-display" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
+                <span id="globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
             </div>
 
             <button id="tog-theme-toggle" class="p-2 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
@@ -319,10 +319,25 @@
 
                 <!-- Dropdown Menu -->
                 <div id="user-dropdown" class="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl transform origin-top-right transition-all duration-200 opacity-0 scale-95 pointer-events-none z-50">
-                    <div class="p-2">
+                    <div class="p-2 space-y-1">
                         <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                             <p id="menu-user-email" class="text-xs text-slate-500 dark:text-slate-400 truncate">Guest</p>
                         </div>
+
+                        <!-- New Items -->
+                        <button id="tog-export-btn" class="w-full text-left px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Export Data</span>
+                        </button>
+                        <button id="tog-import-btn" class="w-full text-left px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            <span>Import Data</span>
+                        </button>
+                         <button id="tog-reset-btn" class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>Reset Data</span>
+                        </button>
+
                         <button id="tog-logout-btn" class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                             <span>Log Out</span>
@@ -332,6 +347,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Hidden File Input for Import -->
+    <input type="file" id="tog-import-input" accept=".json" class="hidden">
 
     <div class="grid md:grid-cols-2 gap-4">
         <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
@@ -356,42 +374,42 @@
     <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 md:p-6 rounded-xl shadow-sm">
 
         <div class="flex justify-center items-center gap-4 mb-6 relative">
-            <button id="tog-prev-btn" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            <button onclick="window.changeMonth(-1)" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
 
             <div class="text-center w-48">
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white" id="tog-month-label">...</h2>
-                <button id="tog-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider">Jump to Today</button>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white" id="monthLabel">...</h2>
+                <button onclick="window.goToToday()" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider">Jump to Today</button>
             </div>
 
-            <button id="tog-next-btn" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+            <button onclick="window.changeMonth(1)" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
         </div>
 
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-t border-b border-slate-100 dark:border-slate-800 py-3">
 
             <div class="flex flex-col items-center md:items-start gap-1">
                 <span class="text-[10px] uppercase font-bold text-slate-400">Visible Days</span>
-                <div id="day-toggles-container" class="flex gap-1">
+                <div id="dayToggles" class="flex gap-1">
                     </div>
             </div>
 
             <div class="flex gap-6 items-center bg-slate-50 dark:bg-slate-800/50 px-5 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
                 <div class="text-center md:text-right">
                     <span class="block text-[10px] uppercase font-bold text-slate-400">Total (View)</span>
-                    <span id="tog-month-total" class="text-xl font-bold text-slate-900 dark:text-white leading-none">0.0</span>
+                    <span id="monthTotal" class="text-xl font-bold text-slate-900 dark:text-white leading-none">0.0</span>
                 </div>
                 <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                 <div class="text-center md:text-right">
                     <span class="block text-[10px] uppercase font-bold text-slate-400">Avg (Active)</span>
-                    <span id="tog-month-avg" class="text-xl font-bold text-blue-600 dark:text-blue-400 leading-none">0.0</span>
+                    <span id="monthAvg" class="text-xl font-bold text-blue-600 dark:text-blue-400 leading-none">0.0</span>
                 </div>
             </div>
         </div>
 
         <div class="scroll-container">
-            <div class="calendar-grid mb-2" id="tog-header-row" style="display: grid; gap: 0.5rem;">
+            <div class="calendar-grid mb-2" id="headerRow">
                 </div>
 
-            <div class="calendar-grid" id="tog-calendar-grid" style="display: grid; gap: 0.5rem;">
+            <div class="calendar-grid" id="calendarGrid">
                 </div>
         </div>
 
@@ -792,6 +810,7 @@
         <button id="cancel-swipe-btn" class="mt-6 w-full py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-i18n="common.cancel">Cancel</button>
     </div>
 </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
 <script src="app.js" type="module"></script>
 </body>
 </html>
