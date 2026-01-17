@@ -1,9 +1,9 @@
 {
   "app": {
     "title": "TrackerBuddy",
-    "subtitle": "Il tuo organizer tuttofare.",
-    "pageTitle": "TrackerBuddy - Gestione Ferie e Attività",
-    "skipToMainContent": "Vai al contenuto"
+    "subtitle": "Il tuo organizzatore tutto in uno.",
+    "pageTitle": "TrackerBuddy - Tracciatore di Ferie e Attività",
+    "skipToMainContent": "Vai al contenuto principale"
   },
   "common": {
     "loading": "Caricamento...",
@@ -15,7 +15,7 @@
     "cancel": "Annulla",
     "save": "Salva",
     "remove": "Rimuovi",
-    "areYouSure": "Sicuro?",
+    "areYouSure": "Sei sicuro?",
     "orText": "o",
     "apply": "Applica",
     "edit": "Modifica",
@@ -56,17 +56,17 @@
     ]
   },
   "landing": {
-    "splashText": "Inizia",
-    "showDescription": "Scopri di più",
-    "infoLogActivities": "<strong>Segna le attività</strong>, traccia le ore e gestisci le ferie in un attimo.",
-    "infoRestoreBackup": "<strong>Backup facile</strong>. Esporta e importa i tuoi dati in CSV.",
-    "infoGuestOrSync": "<strong>Parti subito</strong> come ospite o accedi per sincronizzare tutto.",
-    "infoTeamCollaboration": "<strong>Crea un team</strong>. Gestite le ferie insieme."
+    "splashText": "Tocca per iniziare",
+    "showDescription": "Mostra descrizione",
+    "infoLogActivities": "<strong>Registra facilmente le tue attività quotidiane</strong>, traccia le ore di lavoro e gestisci i saldi ferie.",
+    "infoRestoreBackup": "<strong>Ripristina e fai il backup</strong> dei tuoi dati in CSV per i report.",
+    "infoGuestOrSync": "<strong>Inizia subito</strong> come Ospite o accedi per sincronizzare i tuoi dati su più dispositivi.",
+    "infoTeamCollaboration": "<strong>Crea team</strong> per collaborare e gestire le ferie del team insieme."
   },
   "auth": {
     "email": "Email",
     "password": "Password",
-    "togglePassword": "Mostra password",
+    "togglePassword": "Mostra/Nascondi password",
     "forgotPassword": "Password dimenticata?",
     "signIn": "Accedi",
     "signUp": "Registrati",
@@ -132,7 +132,7 @@
     "logLeaveTitle": "Segna Assenza",
     "logLeaveDesc": "Scegli tipo e durata per i giorni selezionati.",
     "applyToAll": "Per tutti:",
-    "full": "Giornata",
+    "full": "Intero",
     "half": "Mezza",
     "previousYear": "Anno scorso",
     "nextYear": "Anno prossimo",
@@ -281,7 +281,7 @@
     "upgrade": "Passa a Pro",
     "standard": "Standard",
     "labelPro": "Pro",
-    "coAdmin": "Co-Amministratore"
+    "coAdmin": "Co-Admin"
   },
   "admin": {
     "dashboard": "Admin",

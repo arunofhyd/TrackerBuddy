@@ -132,8 +132,8 @@
     "logLeaveTitle": "บันทึกวันลา",
     "logLeaveDesc": "เลือกประเภทและระบุวัน",
     "applyToAll": "ใช้ทั้งหมด:",
-    "full": "เต็มวัน",
-    "half": "ครึ่งวัน",
+    "full": "เต็ม",
+    "half": "ครึ่ง",
     "previousYear": "ปีก่อน",
     "nextYear": "ปีหน้า",
     "confirmReset": "ยืนยันล้างข้อมูล",
@@ -266,7 +266,7 @@
     "pendingSignup": "รอสมัคร",
     "owner": "เจ้าของ",
     "joined": "เข้าร่วม",
-    "label": "Pro",
+    "label": "โปร",
     "expired": "หมดอายุ",
     "expLabel": "หมด",
     "revoke": "ถอน Pro",
@@ -280,8 +280,8 @@
     "createTeamMsg": "สร้างทีมได้เฉพาะ Pro อัปเกรดเลยเพื่อจัดการทีมของคุณ!",
     "upgrade": "อัปเกรดเป็น Pro",
     "standard": "ทั่วไป",
-    "labelPro": "Pro",
-    "coAdmin": "ผู้ดูแลร่วม"
+    "labelPro": "โปร",
+    "coAdmin": "โคแอดมิน"
   },
   "admin": {
     "dashboard": "หน้าแอดมิน",
