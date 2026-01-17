@@ -42,5 +42,8 @@ export const createInitialState = () => ({
     userRole: USER_ROLES.STANDARD, // 'standard', 'pro', 'co-admin'
     isAdminDashboardOpen: false,
     adminTargetUserId: null,
-    superAdmins: []
+    superAdmins: [],
+    // TOG Tracker State
+    dayVisibility: [true, true, true, true, true, true, true],
+    togMemory: 0.0
 });

@@ -18,7 +18,6 @@ import {
 } from './constants.js';
 import { createInitialState } from './services/state.js';
 import { Logger } from './services/logger.js';
-import { initTogTracker } from './tog-tracker.js';
 import {
     app,
     auth,
@@ -183,11 +182,20 @@ function initUI() {
         confirmSelectionBtn: document.getElementById('confirm-selection-btn'),
         floatingConfirmContainer: document.getElementById('floating-confirm-container'),
         bottomControlsRow: document.getElementById('bottom-controls-row'),
-        // TOG Tracker
-        togTrackerBtn: document.getElementById('tog-tracker-btn'),
-        togTrackerView: document.getElementById('tog-tracker-view'),
         // Message Progress
         messageProgress: document.getElementById('message-progress'),
+        // TOG Components
+        togCalculators: document.getElementById('tog-calculators'),
+        dayVisibilityControls: document.getElementById('day-visibility-controls'),
+        dayTogglesContainer: document.getElementById('day-toggles-container'),
+        globalMemoryDisplay: document.getElementById('global-memory-display'),
+        c1_h: document.getElementById('c1_h'),
+        c1_m: document.getElementById('c1_m'),
+        c2_d: document.getElementById('c2_d'),
+        res_decimal: document.getElementById('res_decimal'),
+        res_time: document.getElementById('res_time'),
+        togMonthTotal: document.getElementById('tog-month-total'),
+        togMonthAvg: document.getElementById('tog-month-avg'),
         // Swipe Confirm Modal
         swipeConfirmModal: document.getElementById('swipe-confirm-modal'),
         swipeTrack: document.getElementById('swipe-track'),
@@ -512,12 +520,17 @@ function updateView() {
 
     if (isMonthView) {
         DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString(i18n.currentLang, { month: 'long', year: 'numeric' });
+        if (DOM.togCalculators) DOM.togCalculators.classList.remove('hidden');
+        if (DOM.dayVisibilityControls) DOM.dayVisibilityControls.classList.remove('hidden');
+        renderDayToggles();
         renderCalendar();
         renderLeavePills();
         renderLeaveStats();
         renderTeamSection();
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
+        if (DOM.togCalculators) DOM.togCalculators.classList.add('hidden');
+        if (DOM.dayVisibilityControls) DOM.dayVisibilityControls.classList.add('hidden');
         renderDailyActivities();
     }
     renderActionButtons();
@@ -557,10 +570,97 @@ function renderActionButtons() {
     }
 }
 
+// TOG Logic
+function toggleDayVisibility(index) {
+    const newVisibility = [...state.dayVisibility];
+    newVisibility[index] = !newVisibility[index];
+    setState({ dayVisibility: newVisibility });
+
+    // Save preference
+    if (state.userId) {
+        updateDoc(doc(db, COLLECTIONS.USERS, state.userId), { dayVisibility: newVisibility }).catch(e => Logger.error(e));
+    } else {
+        const localData = loadDataFromLocalStorage();
+        localData.dayVisibility = newVisibility;
+        saveDataToLocalStorage(localData);
+    }
+
+    renderDayToggles();
+    renderCalendar();
+}
+
+function handleTogInput(dateKey, type, value) {
+    const year = new Date(dateKey).getFullYear();
+    const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
+
+    if (!updatedYearlyData[year]) updatedYearlyData[year] = { activities: {}, leaveOverrides: {} };
+    if (!updatedYearlyData[year].activities[dateKey]) updatedYearlyData[year].activities[dateKey] = {};
+
+    const dayData = updatedYearlyData[year].activities[dateKey];
+    if (!dayData.tog) dayData.tog = { main: '', bonus: '' };
+
+    dayData.tog[type] = value;
+
+    // Optimistic Update
+    const currentYearData = updatedYearlyData[year];
+    setState({ yearlyData: updatedYearlyData, currentYearData });
+    renderCalendar(); // Re-render to update stats and UI
+
+    const timestamp = Date.now();
+
+    if (state.userId) {
+        const updatePath = `yearlyData.${year}.activities.${dateKey}.tog.${type}`;
+        updateDoc(doc(db, COLLECTIONS.USERS, state.userId), {
+            [updatePath]: value,
+            lastUpdated: timestamp
+        });
+    } else {
+        saveDataToLocalStorage({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, dayVisibility: state.dayVisibility });
+    }
+}
+
+function pasteTogValue(dateKey) {
+    if (state.togMemory === 0 || !state.togMemory) {
+        showMessage('Nothing in memory to paste!', 'info');
+        return;
+    }
+    handleTogInput(dateKey, 'main', state.togMemory);
+    showMessage('Pasted ' + state.togMemory, 'success');
+    renderCalendar(); // Re-render to show value in input
+}
+
+function renderDayToggles() {
+    if (!DOM.dayTogglesContainer) return;
+    const daysKey = (isMobileDevice() && i18n.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
+    const dayNames = i18n.getValue(daysKey) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const buttons = dayNames.map((name, i) => html`
+        <button class="w-6 h-6 sm:w-8 sm:h-8 rounded text-[10px] font-bold border transition-colors flex items-center justify-center ${state.dayVisibility[i] ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800' : 'bg-gray-50 text-gray-300 border-gray-100 dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700'}"
+            @click=${() => toggleDayVisibility(i)}
+            title="${state.dayVisibility[i] ? 'Hide' : 'Show'} ${name}">
+            ${name.charAt(0)}
+        </button>
+    `);
+    render(html`${buttons}`, DOM.dayTogglesContainer);
+}
+
 function renderCalendar() {
     const daysKey = (isMobileDevice() && i18n.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
-    const days = i18n.getValue(daysKey) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const header = days.map((day, i) => html`<div class="py-3 text-center text-sm font-semibold ${i === 0 ? 'text-red-500' : 'text-gray-700'}">${day}</div>`);
+    const allDayNames = i18n.getValue(daysKey) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // Calculate visible columns
+    const visibleIndices = [];
+    state.dayVisibility.forEach((vis, i) => { if(vis) visibleIndices.push(i); });
+    const colCount = visibleIndices.length;
+
+    // Update Grid Columns
+    DOM.calendarView.style.gridTemplateColumns = `repeat(${colCount}, minmax(0, 1fr))`;
+
+    // Header
+    const header = allDayNames
+        .map((day, i) => ({ name: day, index: i }))
+        .filter(d => state.dayVisibility[d.index])
+        .map((d, i) => html`<div class="py-3 text-center text-sm font-semibold ${d.index === 0 ? 'text-red-500' : 'text-gray-700'}">${d.name}</div>`);
 
     const year = state.currentMonth.getFullYear();
     const month = state.currentMonth.getMonth();
@@ -571,26 +671,51 @@ function renderCalendar() {
     const currentActivities = state.currentYearData.activities || {};
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
 
-    // Get selected color if active
     let selectedColor = null;
     if (state.selectedLeaveTypeId) {
         const type = visibleLeaveTypes.find(lt => lt.id === state.selectedLeaveTypeId);
         if (type) selectedColor = type.color;
     }
 
-    const emptyCellsBefore = [];
-    for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
-        emptyCellsBefore.push(html`<div class="calendar-day-cell other-month"><div class="calendar-day-content"></div></div>`);
+    // Empty Cells (Account for visibility)
+    const startDayIndex = firstDayOfMonth.getDay();
+    let emptyCount = 0;
+    for (let i = 0; i < startDayIndex; i++) {
+        if (state.dayVisibility[i]) emptyCount++;
     }
+
+    const emptyCellsBefore = [];
+    for (let i = 0; i < emptyCount; i++) {
+        emptyCellsBefore.push(html`<div class="calendar-day-cell other-month bg-gray-50/50 dark:bg-slate-800/30"></div>`);
+    }
+
+    let monthTotal = 0;
+    let monthActiveDays = 0;
 
     const dayCells = [];
     for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
         const date = new Date(year, month, day);
+        const dayIndex = date.getDay();
+
+        // Skip hidden days
+        if (!state.dayVisibility[dayIndex]) continue;
+
         const dateKey = getYYYYMMDD(date);
         const dayData = currentActivities[dateKey] || {}; 
         const noteText = dayData.note || '';
-        const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
+        const hasActivity = Object.keys(dayData).some(key => !['_userCleared', 'note', 'leave', 'tog'].includes(key) && dayData[key].text?.trim());
         const leaveData = dayData.leave;
+
+        // TOG Data
+        const togData = dayData.tog || { main: '', bonus: '' };
+
+        // Stats Calculation
+        const mVal = parseFloat(togData.main) || 0;
+        const bVal = parseFloat(togData.bonus) || 0;
+        monthTotal += mVal + bVal;
+        if (togData.main !== '' && togData.main !== undefined) {
+            monthActiveDays++;
+        }
 
         let leaveIndicator = html``;
         if (leaveData) {
@@ -600,44 +725,89 @@ function renderCalendar() {
             }
         }
 
-        const classes = ['calendar-day-cell', 'current-month'];
-        if (date.getDay() === 0) classes.push('is-sunday');
+        const classes = ['calendar-day-cell', 'current-month', 'relative', 'min-h-[100px]', 'flex', 'flex-col', 'justify-between'];
+        if (dayIndex === 0) classes.push('is-sunday');
         if (hasActivity) classes.push('has-activity');
         if (getYYYYMMDD(date) === getYYYYMMDD(today)) classes.push('is-today');
-        if (getYYYYMMDD(date) === getYYYYMMDD(state.selectedDate) && state.currentView === VIEW_MODES.DAY) classes.push('selected-day');
 
         let styleAttr = '';
         if (state.selectedLeaveTypeId && state.leaveSelection.has(dateKey)) {
             classes.push('leave-selecting');
             if (selectedColor) {
-                 styleAttr = `--selected-leave-color: ${selectedColor}; --selected-leave-bg: ${selectedColor}15;`; // 15 = ~8% opacity
+                 styleAttr = `--selected-leave-color: ${selectedColor}; --selected-leave-bg: ${selectedColor}15;`;
             }
         }
 
         const isFullLeave = leaveData && leaveData.dayType === LEAVE_DAY_TYPES.FULL;
-        const isSunday = date.getDay() === 0;
+        const isSunday = dayIndex === 0;
 
         dayCells.push(html`
             <div class="${classes.join(' ')}" data-date="${dateKey}" style="${styleAttr}">
                 ${leaveIndicator}
-                <div class="calendar-day-content">
-                    <div class="day-number" style="${isFullLeave ? 'color: white' : (isSunday ? 'color: #ef4444' : '')}">${day}</div>
-                    <div class="day-note-container">
-                        ${noteText ? html`<span class="day-note" style="${isFullLeave ? 'color: white' : ''}">${noteText}</span>` : ''}
+                <div class="calendar-day-content p-1 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start">
+                        <div class="day-number text-sm font-bold" style="${isFullLeave ? 'color: white' : (isSunday ? 'color: #ef4444' : '')}">${day}</div>
+                        ${hasActivity ? html`<div class="w-2 h-2 rounded-full bg-blue-400"></div>` : ''}
                     </div>
-                    ${hasActivity ? html`<div class="activity-indicator"></div>` : ''}
+
+                    <div class="day-note-container min-h-[16px]">
+                        ${noteText ? html`<span class="day-note text-[10px] truncate block" style="${isFullLeave ? 'color: white' : ''}">${noteText}</span>` : ''}
+                    </div>
+
+                    <!-- TOG Inputs -->
+                    <div class="tog-inputs mt-auto flex flex-col gap-1 z-10 relative pt-1" @click=${(e) => e.stopPropagation()}>
+                        <input type="number" step="0.1" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded px-1 text-center font-mono font-bold text-slate-900 dark:text-white text-sm focus:ring-1 focus:ring-blue-500 shadow-sm"
+                            .value=${togData.main}
+                            placeholder="-"
+                            @change=${(e) => handleTogInput(dateKey, 'main', e.target.value)}>
+
+                        <div class="flex gap-1">
+                             <input type="number" step="0.1" class="w-full bg-yellow-50/80 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded px-1 text-center font-mono font-bold text-yellow-700 dark:text-yellow-500 text-xs focus:ring-1 focus:ring-yellow-500 shadow-sm"
+                                .value=${togData.bonus}
+                                placeholder="+"
+                                @change=${(e) => handleTogInput(dateKey, 'bonus', e.target.value)}>
+
+                             <button class="px-1 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900 text-slate-400 hover:text-blue-500 rounded transition-colors"
+                                title="Paste"
+                                @click=${(e) => pasteTogValue(dateKey)}>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                             </button>
+                        </div>
+                    </div>
                 </div>
             </div>`);
     }
 
-    const totalCells = firstDayOfMonth.getDay() + lastDayOfMonth.getDate();
-    const remainingCells = 42 - totalCells;
-    const emptyCellsAfter = [];
-    for (let i = 0; i < remainingCells; i++) {
-        emptyCellsAfter.push(html`<div class="calendar-day-cell other-month"><div class="calendar-day-content"></div></div>`);
-    }
+    render(html`${header}${emptyCellsBefore}${dayCells}`, DOM.calendarView);
+    updateTogStats(monthTotal, monthActiveDays);
+}
 
-    render(html`${header}${emptyCellsBefore}${dayCells}${emptyCellsAfter}`, DOM.calendarView);
+function updateTogStats(total, activeDays) {
+    if (DOM.togMonthTotal) DOM.togMonthTotal.innerText = total.toFixed(2);
+    const avg = activeDays > 0 ? (total / activeDays) : 0;
+    if (DOM.togMonthAvg) DOM.togMonthAvg.innerText = avg.toFixed(2);
+}
+
+function calcTime() {
+    const h = parseFloat(DOM.c1_h.value) || 0;
+    const m = parseFloat(DOM.c1_m.value) || 0;
+    const decimal = h + (m / 60);
+    const fmt = Number.isInteger(decimal) ? decimal : decimal.toFixed(2);
+    if(DOM.res_decimal) DOM.res_decimal.innerText = fmt;
+    updateMemory(fmt);
+}
+
+function calcDecimal() {
+    const val = parseFloat(DOM.c2_d.value) || 0;
+    const hours = Math.floor(val);
+    const minutes = Math.round((val - hours) * 60);
+    if(DOM.res_time) DOM.res_time.innerText = (minutes === 60) ? `${hours + 1}h 0m` : `${hours}h ${minutes}m`;
+    updateMemory(val);
+}
+
+function updateMemory(val) {
+    setState({ togMemory: val });
+    if(DOM.globalMemoryDisplay) DOM.globalMemoryDisplay.innerText = val;
 }
 
 function renderDailyActivities() {
@@ -768,7 +938,8 @@ async function subscribeToData(userId, callback) {
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
             teamRole: data.teamRole || null,
-            userRole: userRole
+            userRole: userRole,
+            dayVisibility: data.dayVisibility || [true, true, true, true, true, true, true]
         });
 
         // Render admin button if applicable
@@ -1121,6 +1292,7 @@ function loadOfflineData() {
         yearlyData: yearlyData,
         currentYearData: currentYearData,
         leaveTypes: data.leaveTypes || [],
+        dayVisibility: data.dayVisibility || [true, true, true, true, true, true, true],
         isOnlineMode: false,
         userId: null
     });
@@ -3824,8 +3996,13 @@ function setupEventListeners() {
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
 
-    if (DOM.togTrackerBtn) {
-        DOM.togTrackerBtn.addEventListener('click', toggleTogTracker);
+    // TOG Listeners
+    if(DOM.c1_h) {
+        DOM.c1_h.addEventListener('input', calcTime);
+        DOM.c1_m.addEventListener('input', calcTime);
+    }
+    if(DOM.c2_d) {
+        DOM.c2_d.addEventListener('input', calcDecimal);
     }
 
     DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));

@@ -83,7 +83,6 @@
         @keyframes tap-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
     <link href="assets/style.css" rel="stylesheet">
-    <link href="assets/tog-tracker.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -208,6 +207,27 @@
             </button>
         </header>
         <main id="main-content">
+            <div id="tog-calculators" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <!-- Time to Decimal -->
+                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-xl flex items-center gap-3 border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="text-[10px] font-bold uppercase text-gray-400 min-w-[60px]">Time → Dec</div>
+                    <input type="number" id="c1_h" class="w-12 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1 text-center text-sm font-mono text-gray-900 dark:text-white" placeholder="H">
+                    <span class="text-gray-400">:</span>
+                    <input type="number" id="c1_m" class="w-12 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1 text-center text-sm font-mono text-gray-900 dark:text-white" placeholder="M">
+                    <div class="flex-1 text-right">
+                        <span id="res_decimal" class="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">0.0</span>
+                    </div>
+                </div>
+                <!-- Decimal to Time -->
+                <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-xl flex items-center gap-3 border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="text-[10px] font-bold uppercase text-gray-400 min-w-[60px]">Dec → Time</div>
+                    <input type="number" id="c2_d" class="w-20 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-1 text-center text-sm font-mono text-gray-900 dark:text-white" placeholder="1.5">
+                    <div class="flex-1 text-right">
+                        <span id="res_time" class="font-mono font-bold text-lg text-green-600 dark:text-green-400">0h 0m</span>
+                    </div>
+                </div>
+            </div>
+
                 <div class="flex flex-col gap-3 sm:gap-4 mb-6 sm:mb-8 w-full">
                 <div class="flex gap-3 sm:gap-4 w-full">
                     <button id="month-view-btn" class="w-1/2 px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold btn-primary rounded-full active:scale-95 transition-all duration-200" data-i18n="dashboard.monthView">Month View</button>
@@ -238,8 +258,37 @@
                 </div>
                 <input type="file" id="upload-csv-input" accept=".csv,text/csv,application/csv,application/x-csv,text/x-csv,text/comma-separated-values,text/x-comma-separated-values" class="opacity-0 w-0 h-0 absolute pointer-events-none">
             </div>
+
+            <div id="day-visibility-controls" class="flex flex-wrap justify-between items-center mb-4 px-1 gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase hidden sm:inline">Days:</span>
+                    <div id="day-toggles-container" class="flex gap-1">
+                        <!-- Buttons injected by JS -->
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div id="tog-stats-display" class="flex gap-3 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="text-right flex flex-col justify-center">
+                            <span class="block text-[8px] uppercase font-bold text-gray-400 leading-none mb-0.5">Total</span>
+                            <span id="tog-month-total" class="font-bold text-gray-900 dark:text-white leading-none text-xs">0.0</span>
+                        </div>
+                        <div class="w-px bg-gray-300 dark:bg-gray-600 my-0.5"></div>
+                        <div class="text-right flex flex-col justify-center">
+                            <span class="block text-[8px] uppercase font-bold text-gray-400 leading-none mb-0.5">Avg</span>
+                            <span id="tog-month-avg" class="font-bold text-blue-600 dark:text-blue-400 leading-none text-xs">0.0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700">
+                         <span class="text-[10px] font-bold uppercase text-gray-400">Mem:</span>
+                         <span id="global-memory-display" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="main-content-area" class="w-full relative">
-                <div id="calendar-view" class="grid grid-cols-7 gap-3 mb-6"></div>
+                <div id="calendar-view" class="grid grid-cols-7 gap-3 mb-6 transition-all duration-300"></div>
                 <div id="daily-view" class="hidden">
                     <div id="daily-view-container"><table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"><thead class="bg-gray-50"><tr><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-1/6" data-i18n="tracker.time">Time</th><th class="py-3 px-4 text-left text-sm font-semibold uppercase w-4/6" data-i18n="tracker.activity">Activity</th><th class="py-3 px-4 text-center text-sm font-semibold uppercase w-1/6" data-i18n="tracker.actions">Actions</th></tr></thead><tbody id="daily-activity-table-body" class="divide-y divide-gray-200"></tbody></table></div>
                     <p id="no-daily-activities-message" class="text-center text-gray-500 italic mt-6 hidden" data-i18n="tracker.noActivities">No activities recorded for this day.</p>
@@ -292,121 +341,8 @@
         </div>
 </div>
 
-<div id="tog-tracker-view" class="view-container w-full max-w-[1400px] mx-auto hidden tog-tracker-view space-y-6">
-
-    <div class="flex flex-row items-center justify-between relative z-20">
-        <div>
-            <h1 class="text-xl font-bold tracking-tight">TOG Tracker</h1>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
-                <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Memory</span>
-                <span id="globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
-            </div>
-
-            <button id="tog-theme-toggle" class="p-2 rounded-md bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-                <!-- Sun Icon (Show in Dark Mode) -->
-                <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <!-- Moon Icon (Show in Light Mode) -->
-                <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
-
-            <!-- User Avatar & Menu -->
-            <div class="relative" id="user-menu-container">
-                <button id="user-avatar-btn" class="w-9 h-9 rounded-full flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700 transition-transform hover:scale-105 overflow-hidden">
-                    <!-- Content injected by JS -->
-                </button>
-
-                <!-- Dropdown Menu -->
-                <div id="user-dropdown" class="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl transform origin-top-right transition-all duration-200 opacity-0 scale-95 pointer-events-none z-50">
-                    <div class="p-2">
-                        <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-                            <p id="menu-user-email" class="text-xs text-slate-500 dark:text-slate-400 truncate">Guest</p>
-                        </div>
-                        <button id="tog-logout-btn" class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors">
-                            <i data-lucide="log-out" class="w-4 h-4"></i>
-                            <span>Log Out</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid md:grid-cols-2 gap-4">
-        <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400">TIME TO TOG</div>
-            <input type="number" id="c1_h" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
-            <span class="text-slate-300">:</span>
-            <input type="number" id="c1_m" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
-            <div class="flex-1 text-right">
-                <span id="res_decimal" class="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">0.0</span>
-            </div>
-        </div>
-
-        <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400">TOG TO TIME</div>
-            <input type="number" id="c2_d" class="input-field w-24 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
-            <div class="flex-1 text-right">
-                <span id="res_time" class="font-mono font-bold text-lg text-emerald-600 dark:text-emerald-400">0h 0m</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 md:p-6 rounded-xl shadow-sm">
-
-        <div class="flex justify-center items-center gap-4 mb-6 relative">
-            <button onclick="window.changeMonth(-1)" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-
-            <div class="text-center w-48">
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white" id="monthLabel">...</h2>
-                <button onclick="window.goToToday()" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider">Jump to Today</button>
-            </div>
-
-            <button onclick="window.changeMonth(1)" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-        </div>
-
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-t border-b border-slate-100 dark:border-slate-800 py-3">
-
-            <div class="flex flex-col items-center md:items-start gap-1">
-                <span class="text-[10px] uppercase font-bold text-slate-400">Visible Days</span>
-                <div id="dayToggles" class="flex gap-1">
-                    </div>
-            </div>
-
-            <div class="flex gap-6 items-center bg-slate-50 dark:bg-slate-800/50 px-5 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
-                <div class="text-center md:text-right">
-                    <span class="block text-[10px] uppercase font-bold text-slate-400">Total (View)</span>
-                    <span id="monthTotal" class="text-xl font-bold text-slate-900 dark:text-white leading-none">0.0</span>
-                </div>
-                <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
-                <div class="text-center md:text-right">
-                    <span class="block text-[10px] uppercase font-bold text-slate-400">Avg (Active)</span>
-                    <span id="monthAvg" class="text-xl font-bold text-blue-600 dark:text-blue-400 leading-none">0.0</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="scroll-container">
-            <div class="calendar-grid mb-2" id="headerRow">
-                </div>
-
-            <div class="calendar-grid" id="calendarGrid">
-                </div>
-        </div>
-
-    </div>
-
-    <div id="tog-toast" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg">Notification</div>
-</div>
-
 </div>
     <footer id="main-footer" class="mt-10 flex justify-center items-center gap-10 relative z-10">
-        <button id="tog-tracker-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95">
-            <i class="fas fa-clock text-base"></i>
-            <span class="hidden sm:inline">TOG Tracker</span>
-        </button>
         <button id="open-lang-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" aria-label="Select Language" data-i18n-aria-label="common.language">
             <i class="fas fa-language text-base" aria-hidden="true"></i>
             <span data-i18n="common.language" class="hidden sm:inline">Language</span>
