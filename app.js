@@ -185,8 +185,15 @@ function initUI() {
         // Message Progress
         messageProgress: document.getElementById('message-progress'),
         // TOG Components
-        togCalculators: document.getElementById('tog-calculators'),
-        dayVisibilityControls: document.getElementById('day-visibility-controls'),
+        togTrackerBtn: document.getElementById('tog-tracker-btn'),
+        togTrackerView: document.getElementById('tog-tracker-view'),
+        togThemeToggle: document.getElementById('tog-theme-toggle'),
+        togLogoutBtn: document.getElementById('tog-logout-btn'),
+        togHeaderRow: document.getElementById('tog-header-row'),
+        togCalendarGrid: document.getElementById('tog-calendar-grid'),
+        togMonthLabel: document.getElementById('tog-month-label'),
+        togMonthTotal: document.getElementById('tog-month-total'),
+        togMonthAvg: document.getElementById('tog-month-avg'),
         dayTogglesContainer: document.getElementById('day-toggles-container'),
         globalMemoryDisplay: document.getElementById('global-memory-display'),
         c1_h: document.getElementById('c1_h'),
@@ -194,8 +201,6 @@ function initUI() {
         c2_d: document.getElementById('c2_d'),
         res_decimal: document.getElementById('res_decimal'),
         res_time: document.getElementById('res_time'),
-        togMonthTotal: document.getElementById('tog-month-total'),
-        togMonthAvg: document.getElementById('tog-month-avg'),
         // Swipe Confirm Modal
         swipeConfirmModal: document.getElementById('swipe-confirm-modal'),
         swipeTrack: document.getElementById('swipe-track'),
@@ -275,7 +280,7 @@ function switchView(viewToShow, viewToHide, callback) {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
             // Ensure splash screen is visible (it might be z-index -10 acting as background, or z-index 100 acting as loader)
             if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
-        } else if (viewToShow === DOM.appView) {
+        } else if (viewToShow === DOM.appView || (DOM.togTrackerView && viewToShow === DOM.togTrackerView)) {
             loadTheme();
             // If splash screen is currently covering the screen (loading flow), fade it out smoothly
             if (DOM.splashScreen && getComputedStyle(DOM.splashScreen).zIndex === '100' && DOM.splashScreen.style.display !== 'none') {
@@ -520,17 +525,12 @@ function updateView() {
 
     if (isMonthView) {
         DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString(i18n.currentLang, { month: 'long', year: 'numeric' });
-        if (DOM.togCalculators) DOM.togCalculators.classList.remove('hidden');
-        if (DOM.dayVisibilityControls) DOM.dayVisibilityControls.classList.remove('hidden');
-        renderDayToggles();
         renderCalendar();
         renderLeavePills();
         renderLeaveStats();
         renderTeamSection();
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
-        if (DOM.togCalculators) DOM.togCalculators.classList.add('hidden');
-        if (DOM.dayVisibilityControls) DOM.dayVisibilityControls.classList.add('hidden');
         renderDailyActivities();
     }
     renderActionButtons();
@@ -586,7 +586,7 @@ function toggleDayVisibility(index) {
     }
 
     renderDayToggles();
-    renderCalendar();
+    renderTogCalendar();
 }
 
 function handleTogInput(dateKey, type, value) {
@@ -604,7 +604,7 @@ function handleTogInput(dateKey, type, value) {
     // Optimistic Update
     const currentYearData = updatedYearlyData[year];
     setState({ yearlyData: updatedYearlyData, currentYearData });
-    renderCalendar(); // Re-render to update stats and UI
+    renderTogCalendar(); // Re-render to update stats and UI
 
     const timestamp = Date.now();
 
@@ -626,7 +626,7 @@ function pasteTogValue(dateKey) {
     }
     handleTogInput(dateKey, 'main', state.togMemory);
     showMessage('Pasted ' + state.togMemory, 'success');
-    renderCalendar(); // Re-render to show value in input
+    renderTogCalendar(); // Re-render to show value in input
 }
 
 function renderDayToggles() {
@@ -642,6 +642,131 @@ function renderDayToggles() {
         </button>
     `);
     render(html`${buttons}`, DOM.dayTogglesContainer);
+}
+
+// TOG Navigation Logic
+function changeTogMonth(offset) {
+    // state.currentMonth is shared, but that's fine if user considers it "current context"
+    // or we can use a separate state variable. Let's use shared for simplicity unless "separate" means independent dates.
+    // Assuming independent since "separate view" usually implies distinct context.
+    // Let's use `state.currentMonth` for now as it drives data loading.
+    const newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + offset));
+    setState({ currentMonth: newDate });
+    const newYear = newDate.getFullYear();
+    // Ensure year data is loaded if year changed
+    if (!state.yearlyData[newYear]) {
+         setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
+    }
+    renderTogCalendar();
+}
+
+function goToTogToday() {
+    const today = new Date();
+    setState({ currentMonth: new Date(today.getFullYear(), today.getMonth(), 1) });
+    renderTogCalendar();
+}
+
+function renderTogCalendar() {
+    if(!DOM.togCalendarGrid) return;
+
+    const daysKey = (isMobileDevice() && i18n.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
+    const allDayNames = i18n.getValue(daysKey) || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    // Calculate visible columns
+    const visibleIndices = [];
+    state.dayVisibility.forEach((vis, i) => { if(vis) visibleIndices.push(i); });
+    const colCount = visibleIndices.length;
+
+    // Update Grid Columns
+    const style = `grid-template-columns: repeat(${colCount}, minmax(0, 1fr))`;
+    DOM.togHeaderRow.style.cssText = style + '; display: grid; gap: 0.5rem;';
+    DOM.togCalendarGrid.style.cssText = style + '; display: grid; gap: 0.5rem;';
+
+    // Header
+    const header = allDayNames
+        .map((day, i) => ({ name: day, index: i }))
+        .filter(d => state.dayVisibility[d.index])
+        .map((d, i) => html`<div class="text-center text-xs font-bold text-slate-400 uppercase py-1 ${d.index === 0 ? 'text-red-500' : ''}">${d.name}</div>`);
+    render(html`${header}`, DOM.togHeaderRow);
+
+    const year = state.currentMonth.getFullYear();
+    const month = state.currentMonth.getMonth();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    if(DOM.togMonthLabel) DOM.togMonthLabel.innerText = `${monthNames[month]} ${year}`;
+
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const today = new Date();
+
+    const currentActivities = state.currentYearData.activities || {};
+
+    // Empty Cells
+    const startDayIndex = firstDayOfMonth.getDay();
+    let emptyCount = 0;
+    for (let i = 0; i < startDayIndex; i++) {
+        if (state.dayVisibility[i]) emptyCount++;
+    }
+
+    const emptyCellsBefore = [];
+    for (let i = 0; i < emptyCount; i++) {
+        emptyCellsBefore.push(html`<div class="day-card invisible"></div>`);
+    }
+
+    let monthTotal = 0;
+    let monthActiveDays = 0;
+
+    const dayCells = [];
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+        const date = new Date(year, month, day);
+        const dayIndex = date.getDay();
+
+        if (!state.dayVisibility[dayIndex]) continue;
+
+        const dateKey = getYYYYMMDD(date);
+        const dayData = currentActivities[dateKey] || {};
+        const togData = dayData.tog || { main: '', bonus: '' };
+
+        // Stats
+        const mVal = parseFloat(togData.main) || 0;
+        const bVal = parseFloat(togData.bonus) || 0;
+        monthTotal += mVal + bVal;
+        if (togData.main !== '' && togData.main !== undefined) {
+            monthActiveDays++;
+        }
+
+        const isToday = getYYYYMMDD(date) === getYYYYMMDD(today);
+        const cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
+        const cardBorder = isToday ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700';
+        const dayText = isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium';
+        const footerBg = 'bg-yellow-50 dark:bg-yellow-900/10';
+
+        dayCells.push(html`
+            <div class="day-card border ${cardBorder} ${cardBg} rounded-md overflow-hidden flex flex-col min-h-[100px]">
+                <div class="day-header p-1 flex justify-between items-center text-xs">
+                    <span class="${dayText}">${day}</span>
+                    <button class="icon-btn text-slate-300 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded"
+                        title="Paste"
+                        @click=${() => pasteTogValue(dateKey)}>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </button>
+                </div>
+                <div class="day-body flex-1 flex items-center justify-center p-0.5">
+                    <input type="number" step="0.1" class="input-field bg-transparent border-none font-mono font-bold text-center text-xl w-full text-slate-900 dark:text-white focus:ring-0 p-0"
+                        .value=${togData.main}
+                        placeholder="-"
+                        @change=${(e) => handleTogInput(dateKey, 'main', e.target.value)}>
+                </div>
+                <div class="day-footer h-6 flex items-center justify-center border-t border-slate-100 dark:border-slate-800 ${footerBg}">
+                    <input type="number" step="0.1" class="input-field bg-transparent border-none font-mono font-bold text-center text-xs w-full text-yellow-700 dark:text-yellow-500 placeholder-yellow-200/50 focus:ring-0 p-0"
+                        .value=${togData.bonus}
+                        placeholder="+"
+                        @change=${(e) => handleTogInput(dateKey, 'bonus', e.target.value)}>
+                </div>
+            </div>`);
+    }
+
+    render(html`${emptyCellsBefore}${dayCells}`, DOM.togCalendarGrid);
+    updateTogStats(monthTotal, monthActiveDays);
 }
 
 function renderCalendar() {
@@ -778,8 +903,7 @@ function renderCalendar() {
             </div>`);
     }
 
-    render(html`${header}${emptyCellsBefore}${dayCells}`, DOM.calendarView);
-    updateTogStats(monthTotal, monthActiveDays);
+    render(html`${header}${emptyCellsBefore}${dayCells}${emptyCellsAfter}`, DOM.calendarView);
 }
 
 function updateTogStats(total, activeDays) {
@@ -1999,18 +2123,14 @@ function toggleTogTracker() {
 
     if (isShowingTog) {
         // Exit TOG Tracker -> Show App
+        DOM.footer.style.display = 'flex';
         switchView(DOM.appView, DOM.togTrackerView, () => {
              updateView();
         });
     } else {
         // Enter TOG Tracker
-
-        // Initialize if first time
-        if (!isTogTrackerInitialized) {
-             initTogTracker(db, auth);
-             isTogTrackerInitialized = true;
-        }
-
+        DOM.footer.style.display = 'none';
+        renderTogCalendar();
         switchView(DOM.togTrackerView, DOM.appView);
     }
 }
@@ -3996,6 +4116,10 @@ function setupEventListeners() {
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
 
+    if (DOM.togTrackerBtn) {
+        DOM.togTrackerBtn.addEventListener('click', toggleTogTracker);
+    }
+
     // TOG Listeners
     if(DOM.c1_h) {
         DOM.c1_h.addEventListener('input', calcTime);
@@ -4003,6 +4127,29 @@ function setupEventListeners() {
     }
     if(DOM.c2_d) {
         DOM.c2_d.addEventListener('input', calcDecimal);
+    }
+
+    if(DOM.togThemeToggle) {
+        DOM.togThemeToggle.addEventListener('click', toggleTheme);
+    }
+
+    if(DOM.togLogoutBtn) {
+        DOM.togLogoutBtn.addEventListener('click', appSignOut);
+    }
+
+    const togPrevBtn = document.getElementById('tog-prev-btn');
+    if(togPrevBtn) {
+        togPrevBtn.addEventListener('click', () => changeTogMonth(-1));
+    }
+
+    const togNextBtn = document.getElementById('tog-next-btn');
+    if(togNextBtn) {
+        togNextBtn.addEventListener('click', () => changeTogMonth(1));
+    }
+
+    const togTodayBtn = document.getElementById('tog-today-btn');
+    if(togTodayBtn) {
+        togTodayBtn.addEventListener('click', goToTogToday);
     }
 
     DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
