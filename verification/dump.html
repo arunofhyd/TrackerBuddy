@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en" dir="ltr"><head>
+  <script type="module" src="/@vite/client"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="iExbroKtO4ZRq3ZjUsyY8JJowXvx-yHOy4yQq0iS6vY" />
-    <title data-i18n="app.pageTitle">TrackerBuddy - Leave & Activity Tracker</title>
+    <meta name="google-site-verification" content="iExbroKtO4ZRq3ZjUsyY8JJowXvx-yHOy4yQq0iS6vY">
+    <title data-i18n="app.pageTitle">TrackerBuddy - Leave &amp; Activity Tracker</title>
     <meta name="description" content="TrackerBuddy is a free, all-in-one app to track your daily activities, log work hours, and manage leave balances!">
     <meta name="keywords" content="trackerbuddy, activity tracker, leave tracker, work hours tracker, time log, attendance tracker, employee leave management, daily activity log, free tracker app, PTO tracker, leave balance, work schedule tracker, time off management">
     <link rel="canonical" href="https://trackerbuddy.vercel.app/">
@@ -12,14 +12,14 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://trackerbuddy.vercel.app/">
-    <meta property="og:title" content="TrackerBuddy - Leave & Activity Tracker">
+    <meta property="og:title" content="TrackerBuddy - Leave &amp; Activity Tracker">
     <meta property="og:description" content="TrackerBuddy is a free, all-in-one app to track your daily activities, log work hours, and manage leave balances!">
     <meta property="og:image" content="https://trackerbuddy.vercel.app/assets/logo_rounded.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://trackerbuddy.vercel.app/">
-    <meta property="twitter:title" content="TrackerBuddy - Leave & Activity Tracker">
+    <meta property="twitter:title" content="TrackerBuddy - Leave &amp; Activity Tracker">
     <meta property="twitter:description" content="TrackerBuddy is a free, all-in-one app to track your daily activities, log work hours, and manage leave balances!">
     <meta property="twitter:image" content="https://trackerbuddy.vercel.app/assets/logo_rounded.png">
 
@@ -36,24 +36,24 @@
     <link rel="preconnect" href="https://www.googleapis.com">
     <link rel="preconnect" href="https://identitytoolkit.googleapis.com">
     <link rel="preload" as="image" href="/assets/splashtext.webp" fetchpriority="high">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" crossorigin="">
     <noscript>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css?display=swap">
     </noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&amp;display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap">
     </noscript>
     <!-- Optimal Favicon for all modern browsers -->
     <link rel="icon" href="/assets/logo_rounded.png" type="image/png" sizes="any">
-    
+
     <!-- Apple Touch Icon for iOS home screen -->
     <link rel="apple-touch-icon" href="/assets/logo.png">
-    
+
     <!-- PWA and Mobile Theming -->
     <meta name="application-name" content="TrackerBuddy">
     <meta name="apple-mobile-web-app-title" content="TrackerBuddy">
@@ -62,12 +62,12 @@
     <meta name="msapplication-TileImage" content="/assets/logo.png">
     <meta name="msapplication-TileColor" content="#3b82f6">
     <meta name="theme-color" id="theme-color-meta" content="#3b82f6">
-    
+
     <!-- Main Stylesheet -->
     <style>
         /* Splash Screen Critical CSS */
         .splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0f172a; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 100; cursor: pointer; overflow: hidden; transition: background-color 0.5s ease; }
-        #splash-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translateX(-50%) translateY(-50%); z-index: 10; object-fit: cover; }
+        #splash-video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translateX(-50%) translateY(-50%); z-index: 10; -o-object-fit: cover; object-fit: cover; }
         .splash-text { width: 80%; max-width: 300px; z-index: 20; animation: fadeInSplash 1s ease-out forwards; }
         @keyframes fadeInSplash { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .splash-text.animating-out { animation: moveUpAndFade 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -77,7 +77,7 @@
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { font-size: 16px; font-weight: 500; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); }
-        .tap-to-begin { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); color: white; font-size: 18px; font-weight: 600; text-align: center; opacity: 0; animation: bounceIn 1s ease-out 0.5s forwards; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); pointer-events: none; user-select: none; z-index: 20; }
+        .tap-to-begin { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); color: white; font-size: 18px; font-weight: 600; text-align: center; opacity: 0; animation: bounceIn 1s ease-out 0.5s forwards; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); pointer-events: none; -webkit-user-select: none; -moz-user-select: none; user-select: none; z-index: 20; }
         @keyframes bounceIn { from { opacity: 0; transform: translateX(-50%) translateY(30px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
         .tap-icon { display: block; font-size: 24px; margin-bottom: 8px; animation: tap-pulse 2s ease-in-out infinite; }
         @keyframes tap-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
@@ -89,17 +89,11 @@
 <body>
 <a href="#main-content" class="skip-link" data-i18n="app.skipToMainContent">Skip to main content</a>
 <div id="splash-screen" class="splash-screen">
-    <img id="splash-image" 
-         src="/assets/splashbg.webp" 
-         data-video-src="/assets/splashbg.mp4" 
-         alt=""
-         width="1920"
-         height="1080"
-         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
+    <img id="splash-image" src="/assets/splashbg.webp" data-video-src="/assets/splashbg.mp4" alt="" width="1920" height="1080" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
     <img src="/assets/splashtext.webp" alt="TrackerBuddy" data-i18n-alt="app.title" class="splash-text" width="500" height="500">
     <div id="splash-loading" class="splash-loading">
         <div class="spinner"></div>
-        <div class="loading-text" data-i18n="common.loading">...</div>
+        <div class="loading-text" data-i18n="common.loading">Loading...</div>
     </div>
     <div id="tap-to-begin" class="tap-to-begin" style="display: none;">
         <i class="fas fa-hand-pointer tap-icon"></i>
@@ -119,7 +113,7 @@
         </div>
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
             <div class="login-container rounded-xl shadow-2xl p-6 sm:p-8 text-center transform transition-all duration-300">
-                 <img src="/assets/logo_rounded.webp" class="w-24 h-24 mb-4 mx-auto rounded-full object-cover logo-glow transition-all duration-300" alt="TrackerBuddy Logo" data-i18n-alt="app.title">
+                 <img src="/assets/logo_rounded.webp" class="w-24 h-24 mb-4 mx-auto rounded-full object-cover logo-glow transition-all duration-300" alt="TrackerBuddy" data-i18n-alt="app.title">
                 <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-2 sm:mb-4 break-words transition-colors duration-300" data-i18n="app.title">TrackerBuddy</h1>
                 <div class="flex items-center justify-center gap-2 mb-2 sm:mb-4">
                     <p class="subtitle-text text-sm sm:text-base transition-colors duration-300" data-i18n="app.subtitle">Your all-in-one tracker.</p>
@@ -187,7 +181,7 @@
         </div>
 <div id="app-view" class="view-container w-full max-w-4xl mx-auto hidden">
     <div id="search-fab" class="fixed z-40" style="bottom: 1.5rem; right: 1.5rem;">
-        <button id="exit-search-btn" title="Exit Search View" data-i18n-title="a11y.exitSearch" aria-label="Exit search view" data-i18n-aria-label="a11y.exitSearch" class="rounded-full">
+        <button id="exit-search-btn" title="Exit search view" data-i18n-title="a11y.exitSearch" aria-label="Exit search view" data-i18n-aria-label="a11y.exitSearch" class="rounded-full">
             <i class="fas fa-times text-sm sm:text-base"></i>
         </button>
         <button id="open-spotlight-btn" class="relative z-20 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-blue-300 w-12 h-12 sm:w-14 sm:h-14" aria-label="Open search" data-i18n-aria-label="a11y.openSearch">
@@ -196,14 +190,14 @@
     </div>
     <div class="bg-white rounded-xl border border-gray-200 shadow-2xl p-4 sm:p-6 md:p-8">
         <header class="flex justify-between items-center mb-4 sm:mb-6">
-            <button id="theme-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Toggle Theme" aria-label="Toggle dark mode" data-i18n-title="a11y.toggleTheme" data-i18n-aria-label="a11y.toggleTheme">
+            <button id="theme-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Toggle Theme" aria-label="Toggle Theme" data-i18n-title="a11y.toggleTheme" data-i18n-aria-label="a11y.toggleTheme">
                 <svg id="theme-icon-light" class="w-6 h-6 sm:w-7 sm:h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <svg id="theme-icon-dark" class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
             </button>
             <div id="logo-container" class="relative cursor-pointer">
-                <img src="/assets/logo_rounded.webp" id="app-logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full" alt="TrackerBuddy Logo" data-i18n-alt="app.title">
+                <img src="/assets/logo_rounded.webp" id="app-logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full" alt="TrackerBuddy" data-i18n-alt="app.title">
             </div>
-            <button id="sign-out-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Sign Out" aria-label="Sign out" data-i18n-title="a11y.signOut" data-i18n-aria-label="a11y.signOut">
+            <button id="sign-out-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Sign Out" aria-label="Sign Out" data-i18n-title="a11y.signOut" data-i18n-aria-label="a11y.signOut">
                 <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
         </header>
@@ -225,7 +219,7 @@
                     <button id="help-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="How to Log Leave" aria-label="How to Log Leave" data-i18n-title="tracker.howToLog" data-i18n-aria-label="tracker.howToLog">
                         <i class="fas fa-info-circle text-lg"></i>
                     </button>
-                    <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add or edit leave types" data-i18n-title="tracker.addLeaveType" data-i18n-aria-label="tracker.addLeaveType">
+                    <button id="add-leave-type-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200 pointer-events-auto" title="Add/Edit Leave Types" aria-label="Add/Edit Leave Types" data-i18n-title="tracker.addLeaveType" data-i18n-aria-label="tracker.addLeaveType">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </div>
@@ -407,7 +401,7 @@
             <i class="fas fa-clock text-base"></i>
             <span class="hidden sm:inline">TOG Tracker</span>
         </button>
-        <button id="open-lang-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" aria-label="Select Language" data-i18n-aria-label="common.language">
+        <button id="open-lang-btn" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-full p-2 transition-all duration-200 active:scale-95" aria-label="Language" data-i18n-aria-label="common.language">
             <i class="fas fa-language text-base" aria-hidden="true"></i>
             <span data-i18n="common.language" class="hidden sm:inline">Language</span>
         </button>
@@ -496,7 +490,7 @@
 <div id="language-modal" class="spotlight-overlay">
     <div class="spotlight-modal max-w-sm mx-auto">
         <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 rounded-t-xl">
-            <h3 class="text-lg font-bold" data-i18n="common.language">Select Language</h3>
+            <h3 class="text-lg font-bold" data-i18n="common.language">Language</h3>
             <button id="close-lang-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full p-1 active:scale-95 transition-all duration-200" aria-label="Close" data-i18n-aria-label="common.close">
                 <i class="fas fa-times text-lg"></i>
             </button>
@@ -525,11 +519,11 @@
 </div>
 <div id="edit-team-name-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="tracker.changeName">Change Team Name</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="tracker.changeName">Change Name</h2>
         <div class="space-y-4">
             <div>
-                <label for="new-team-name-input" class="block text-sm font-medium mb-1" data-i18n="team.name">New Team Name</label>
-                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter new team name" data-i18n-placeholder="team.enterName">
+                <label for="new-team-name-input" class="block text-sm font-medium mb-1" data-i18n="team.name">Team Name</label>
+                <input type="text" id="new-team-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="Enter team name" data-i18n-placeholder="team.enterName">
             </div>
         </div>
         <div class="flex flex-col-reverse sm:flex-row sm:justify-end mt-6 gap-3">
@@ -556,7 +550,7 @@
                 <input type="text" id="leave-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
-                <label for="leave-days-input" class="block text-sm font-medium mb-1" data-i18n="tracker.totalDaysPerYear">Total Days per Year</label>
+                <label for="leave-days-input" class="block text-sm font-medium mb-1" data-i18n="tracker.totalDaysPerYear">Total Days</label>
                 <input type="number" id="leave-days-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
             </div>
             <div>
@@ -626,7 +620,7 @@
 </div>
 <div id="create-team-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="team.create">Create New Team</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="team.create">Create Team</h2>
         <div class="space-y-4">
             <div>
                 <label for="team-name-input" class="block text-sm font-medium mb-1" data-i18n="team.name">Team Name</label>
@@ -679,10 +673,10 @@
 </div>
 <div id="edit-display-name-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-md">
-        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="tracker.changeName">Change Display Name</h2>
+        <h2 class="text-2xl font-bold mb-6 text-center" data-i18n="tracker.changeName">Change Name</h2>
         <div class="space-y-4">
             <div>
-                <label for="new-display-name-input" class="block text-sm font-medium mb-1" data-i18n="team.displayName">New Display Name</label>
+                <label for="new-display-name-input" class="block text-sm font-medium mb-1" data-i18n="team.displayName">Your Display Name</label>
                 <input type="text" id="new-display-name-input" class="w-full px-4 py-2.5 text-base rounded-lg shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" placeholder="How others will see you" data-i18n-placeholder="team.howOthersSeeYou">
             </div>
         </div>
@@ -780,7 +774,7 @@
         <p class="text-sm text-gray-600 dark:text-gray-300 text-center mb-6" data-i18n="admin.swipeToDeleteDesc">This will delete this leave type from ALL years. This action cannot be undone.</p>
 
         <div id="swipe-track" class="relative w-full h-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden select-none touch-none shadow-inner border border-gray-300 dark:border-gray-600">
-            <div id="swipe-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pointer-events-none transition-opacity duration-200" data-i18n="admin.swipeToDelete">Swipe to Delete >></div>
+            <div id="swipe-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pointer-events-none transition-opacity duration-200" data-i18n="admin.swipeToDelete">Swipe to Delete &gt;&gt;</div>
             <div id="swipe-success-text" class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white opacity-0 transition-opacity duration-200 pointer-events-none">
                 <i class="fas fa-check mr-2"></i> <span data-i18n="admin.deleted">Deleted</span>
             </div>
@@ -794,5 +788,6 @@
     </div>
 </div>
 <script src="app.js" type="module"></script>
-</body>
-</html>
+
+
+</body></html>

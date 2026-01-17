@@ -18,6 +18,7 @@ import {
 } from './constants.js';
 import { createInitialState } from './services/state.js';
 import { Logger } from './services/logger.js';
+import { initTogTracker } from './tog-tracker.js';
 import {
     app,
     auth,
@@ -182,6 +183,9 @@ function initUI() {
         confirmSelectionBtn: document.getElementById('confirm-selection-btn'),
         floatingConfirmContainer: document.getElementById('floating-confirm-container'),
         bottomControlsRow: document.getElementById('bottom-controls-row'),
+        // TOG Tracker
+        togTrackerBtn: document.getElementById('tog-tracker-btn'),
+        togTrackerView: document.getElementById('tog-tracker-view'),
         // Message Progress
         messageProgress: document.getElementById('message-progress'),
         // Swipe Confirm Modal
@@ -284,7 +288,7 @@ function switchView(viewToShow, viewToHide, callback) {
             // Ensure the view starts invisible for the fade-in
             viewToShow.style.opacity = '0';
             
-            if (viewToShow === DOM.appView) {
+            if (viewToShow === DOM.appView || (DOM.togTrackerView && viewToShow === DOM.togTrackerView)) {
                 mainContainer.classList.add('is-app-view');
             } else {
                 mainContainer.classList.remove('is-app-view');
@@ -1813,6 +1817,29 @@ function handleInlineEditKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         event.currentTarget.blur();
+    }
+}
+
+let isTogTrackerInitialized = false;
+
+function toggleTogTracker() {
+    const isShowingTog = !DOM.togTrackerView.classList.contains('hidden');
+
+    if (isShowingTog) {
+        // Exit TOG Tracker -> Show App
+        switchView(DOM.appView, DOM.togTrackerView, () => {
+             updateView();
+        });
+    } else {
+        // Enter TOG Tracker
+
+        // Initialize if first time
+        if (!isTogTrackerInitialized) {
+             initTogTracker(db, auth);
+             isTogTrackerInitialized = true;
+        }
+
+        switchView(DOM.togTrackerView, DOM.appView);
     }
 }
 
@@ -3796,6 +3823,11 @@ function renderSearchResults(results) {
 function setupEventListeners() {
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
+
+    if (DOM.togTrackerBtn) {
+        DOM.togTrackerBtn.addEventListener('click', toggleTogTracker);
+    }
+
     DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
     DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
     DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
