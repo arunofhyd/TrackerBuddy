@@ -3851,6 +3851,7 @@ function setupEventListeners() {
     emailInput?.addEventListener('input', () => setInputErrorState(emailInput, false));
     passwordInput?.addEventListener('input', () => setInputErrorState(passwordInput, false));
     document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
+    document.getElementById('tog-theme-toggle-btn')?.addEventListener('click', toggleTheme);
     DOM.monthViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.MONTH }); updateView(); });
     DOM.dayViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
 
