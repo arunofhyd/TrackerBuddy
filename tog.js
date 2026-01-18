@@ -1,5 +1,6 @@
-import { auth, db, doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
-import { COLLECTIONS } from './constants.js';
+import { doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
+
+const COLLECTIONS = { USERS: 'users' };
 
 let state = {
     viewDate: new Date(),
@@ -7,16 +8,26 @@ let state = {
     storedData: {},
     dayVisibility: [true, true, true, true, true, true, true], // Mon-Sun
     userId: null,
-    unsubscribe: null
+    db: null,
+    auth: null,
+    unsubscribe: null,
+    isInitialized: false
 };
 
 const STORAGE_KEY = 'tog_tracker_v1';
 const DOM = {};
 
-export function initTog(userId) {
+export function initTog(userId, db, auth) {
     state.userId = userId;
+    state.db = db;
+    state.auth = auth;
+
     cacheDOM();
-    bindEvents();
+
+    if (!state.isInitialized) {
+        bindEvents();
+        state.isInitialized = true;
+    }
 
     // Load local data first if available (for guest mode or offline)
     const local = localStorage.getItem(STORAGE_KEY);
@@ -27,7 +38,7 @@ export function initTog(userId) {
         } catch(e) { console.error(e); }
     }
 
-    if (userId) {
+    if (userId && db) {
         subscribeToData(userId);
     } else {
         renderHeader(null); // Ensure guest avatar
@@ -102,14 +113,15 @@ function bindEvents() {
     });
 
     // Make window functions for inline HTML clicks (legacy support)
-    window.tog_pasteValue = pasteValue;
+    window.tog_insertValue = insertValue;
     window.tog_handleInputChange = handleInputChange;
 }
 
 function subscribeToData(userId) {
     if(state.unsubscribe) state.unsubscribe();
+    if(!state.db) return;
 
-    const userRef = doc(db, COLLECTIONS.USERS, userId);
+    const userRef = doc(state.db, COLLECTIONS.USERS, userId);
     state.unsubscribe = onSnapshot(userRef, (docSnap) => {
         if(docSnap.exists()) {
             const data = docSnap.data();
@@ -126,8 +138,8 @@ function subscribeToData(userId) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
 
             // If data doesn't have email, try to get it from Auth
-            if (!data.email && auth.currentUser) {
-                data.email = auth.currentUser.email;
+            if (!data.email && state.auth && state.auth.currentUser) {
+                data.email = state.auth.currentUser.email;
             }
             // If data doesn't have uid, add it
             if (!data.uid) {
@@ -139,8 +151,8 @@ function subscribeToData(userId) {
             renderCalendar();
         } else {
             // Document doesn't exist yet, but user is logged in
-            if (auth.currentUser) {
-                renderHeader({ email: auth.currentUser.email, uid: auth.currentUser.uid });
+            if (state.auth && state.auth.currentUser) {
+                renderHeader({ email: state.auth.currentUser.email, uid: state.auth.currentUser.uid });
             }
         }
     });
@@ -148,8 +160,8 @@ function subscribeToData(userId) {
 
 function renderHeader(user) {
     // Fallback if user is null (Guest) or if user object is incomplete
-    const email = user ? (user.email || (auth.currentUser ? auth.currentUser.email : "Guest Session")) : "Guest Session";
-    const displayUser = user || (auth.currentUser ? { email: auth.currentUser.email, uid: auth.currentUser.uid } : null);
+    const email = user ? (user.email || (state.auth && state.auth.currentUser ? state.auth.currentUser.email : "Guest Session")) : "Guest Session";
+    const displayUser = user || (state.auth && state.auth.currentUser ? { email: state.auth.currentUser.email, uid: state.auth.currentUser.uid } : null);
 
     if(DOM.userEmail) DOM.userEmail.innerText = email;
     if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(displayUser);
@@ -218,8 +230,8 @@ async function saveData(key, value) {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
 
-    if(state.userId) {
-        const userRef = doc(db, COLLECTIONS.USERS, state.userId);
+    if(state.userId && state.db) {
+        const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
         const fieldPath = `togData.${key}`;
         try {
             if(value === "") {
@@ -276,7 +288,7 @@ export function renderCalendar(preserveFocus = false) {
     // 2. Grid Setup
     const visibleCount = state.dayVisibility.filter(Boolean).length;
     const gridCols = visibleCount + 1;
-    const style = `grid-template-columns: repeat(${gridCols}, minmax(100px, 1fr));`;
+    const style = `grid-template-columns: repeat(${gridCols}, minmax(100px, 1fr)); min-width: 900px;`;
     DOM.headerRow.style.cssText = style;
     DOM.calendarGrid.style.cssText = style;
 
@@ -351,12 +363,12 @@ export function renderCalendar(preserveFocus = false) {
                 const footerBg = 'bg-yellow-50 dark:bg-yellow-900/10';
 
                 const card = document.createElement('div');
-                card.className = `day-card border ${cardBorder} ${cardBg} ${baseOpacity}`;
+                card.className = `day-card min-h-[100px] border ${cardBorder} ${cardBg} ${baseOpacity}`;
                 // Restored structure exactly from prompt source
                 card.innerHTML = `
                     <div class="day-header">
                         <span class="${dayText}">${currentLoopDate.getDate()}</span>
-                        <button onclick="window.tog_pasteValue('${dateKey}')" class="icon-btn text-slate-300 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <button onclick="window.tog_insertValue('${dateKey}', 'main')" class="icon-btn text-slate-300 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800" title="Insert Memory">
                             <!-- lucide arrow-down-to-line replacement -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line w-3 h-3"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
                         </button>
@@ -369,7 +381,7 @@ export function renderCalendar(preserveFocus = false) {
                     </div>
                     <div class="day-footer ${footerBg}">
                         <div class="flex items-center w-full px-1">
-                            <button onclick="window.tog_pasteValue('${bonusKey}')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 mr-1">
+                            <button onclick="window.tog_insertValue('${bonusKey}', 'bonus')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 mr-1" title="Insert Memory">
                                 <!-- lucide plus replacement -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                             </button>
@@ -390,7 +402,7 @@ export function renderCalendar(preserveFocus = false) {
         // Weekly Stats
         const weekAvg = weekActiveDays > 0 ? (weekTotal / weekActiveDays) : 0;
         const statCard = document.createElement('div');
-        statCard.className = "stats-card bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700";
+        statCard.className = "stats-card min-h-[100px] bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800";
         statCard.innerHTML = `
             <div class="flex flex-col gap-2 text-center">
                 <div>
@@ -421,10 +433,10 @@ export function renderCalendar(preserveFocus = false) {
 
 function handleInputChange(key, value) { saveData(key, value); }
 
-function pasteValue(key) {
+function insertValue(key, type) {
     if(state.lastCalculatedDecimal == 0) { showToast("Calculate first!", 'error'); return; }
     saveData(key, state.lastCalculatedDecimal);
-    showToast("Pasted!", 'success');
+    showToast("Inserted!", 'success');
 }
 
 function changeMonth(offset) {
@@ -503,13 +515,17 @@ function handleRestore(e) {
     e.target.value = ""; // Reset input
 }
 
-export async function performReset() {
+export async function performReset(userId, db) {
     state.storedData = { _dayVisibility: [true,true,true,true,true,true,true] };
     state.dayVisibility = [true,true,true,true,true,true,true];
     localStorage.removeItem(STORAGE_KEY);
 
-    if(state.userId) {
-         const userRef = doc(db, COLLECTIONS.USERS, state.userId);
+    // Use passed context or fallback to state
+    const targetUserId = userId || state.userId;
+    const targetDb = db || state.db;
+
+    if(targetUserId && targetDb) {
+         const userRef = doc(targetDb, COLLECTIONS.USERS, targetUserId);
          await updateDoc(userRef, { togData: deleteField() });
     }
     renderCalendar();

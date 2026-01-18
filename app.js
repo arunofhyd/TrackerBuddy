@@ -205,6 +205,8 @@ function initUI() {
 
     setupMessageSwipe();
     setupSwipeConfirm();
+
+    window.showAppMessage = showMessage;
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -1159,7 +1161,7 @@ async function resetAllData() {
     };
 
     // Also reset TOG data
-    await performTogReset();
+    await performTogReset(state.userId, db);
 
     if (state.isOnlineMode && state.userId) {
         try {
@@ -4167,12 +4169,7 @@ function setupEventListeners() {
         });
     }
 
-    document.getElementById('reset-data-btn')?.addEventListener('click', () => {
-        DOM.resetModalText.textContent = state.isOnlineMode
-            ? i18n.t("dashboard.resetConfirmCloud")
-            : i18n.t("dashboard.resetConfirmLocal");
-        DOM.confirmResetModal.classList.add('visible');
-    });
+    document.getElementById('reset-data-btn')?.addEventListener('click', confirmResetAllData);
     document.getElementById('cancel-reset-btn')?.addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
     document.getElementById('confirm-reset-btn')?.addEventListener('click', resetAllData);
 
@@ -5252,7 +5249,7 @@ function switchToTrackerMode() {
 }
 
 function switchToTogMode() {
-    initTog(state.userId);
+    initTog(state.userId, db, auth);
     switchView(DOM.togView, DOM.appView);
     if (DOM.navTogBtn) {
         DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">TrackerBuddy</span>`;
