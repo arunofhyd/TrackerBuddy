@@ -188,7 +188,8 @@ function subscribeToData(userId) {
 
             renderHeader(data);
 
-            renderCalendar();
+            // Render with focus preservation, deferred to match optimistic update and ensure focus stability
+            setTimeout(() => renderCalendar(true), 0);
         } else {
             // Document doesn't exist yet, but user is logged in
             if (state.auth && state.auth.currentUser) {
