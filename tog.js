@@ -140,7 +140,13 @@ function subscribeToData(userId) {
                         const monthData = yearData[monthKey];
                         if (typeof monthData === 'object') {
                             for (const dateKey in monthData) {
-                                flatCloudData[dateKey] = monthData[dateKey];
+                                const dayValue = monthData[dateKey];
+                                if (typeof dayValue === 'object') {
+                                    if (dayValue.main !== undefined) flatCloudData[dateKey] = dayValue.main;
+                                    if (dayValue.bonus !== undefined) flatCloudData[`bonus_${dateKey}`] = dayValue.bonus;
+                                } else {
+                                    flatCloudData[dateKey] = dayValue;
+                                }
                             }
                         }
                     }
@@ -253,49 +259,58 @@ async function saveData(key, value) {
     if(state.userId && state.db) {
         const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
 
-        let fieldPath;
         if (key.startsWith('_')) {
-             fieldPath = `togData.${key}`;
+             const fieldPath = `togData.${key}`;
+             try {
+                 if (value === "") await updateDoc(userRef, { [fieldPath]: deleteField() });
+                 else await updateDoc(userRef, { [fieldPath]: value });
+             } catch(e) {
+                 const payload = { togData: { [key]: value === "" ? deleteField() : value } };
+                 await setDoc(userRef, payload, { merge: true });
+             }
         } else {
              // Parse date from key
              let datePart = key.startsWith('bonus_') ? key.replace('bonus_', '') : key;
              const [year, month] = datePart.split('-');
 
              if (!year || !month) {
-                 fieldPath = `togData.${key}`;
+                 // Fallback for weird keys
+                 const fieldPath = `togData.${key}`;
+                 await updateDoc(userRef, { [fieldPath]: value === "" ? deleteField() : value });
              } else {
-                 fieldPath = `togData.${year}.${month}.${key}`;
+                 // Construct the day object from state
+                 const mainVal = state.storedData[datePart];
+                 const bonusVal = state.storedData[`bonus_${datePart}`];
+
+                 const dayObj = {};
+                 if (mainVal !== undefined && mainVal !== "") dayObj.main = mainVal;
+                 if (bonusVal !== undefined && bonusVal !== "") dayObj.bonus = bonusVal;
+
+                 const fieldPath = `togData.${year}.${month}.${datePart}`;
+
+                 try {
+                     if (Object.keys(dayObj).length === 0) {
+                         await updateDoc(userRef, { [fieldPath]: deleteField() });
+                     } else {
+                         await updateDoc(userRef, { [fieldPath]: dayObj });
+                     }
+                 } catch(e) {
+                     console.warn("Update failed, trying set/merge", e);
+
+                     // Reconstruct nested object for setDoc
+                     const payload = { togData: {} };
+                     if (!payload.togData[year]) payload.togData[year] = {};
+                     if (!payload.togData[year][month]) payload.togData[year][month] = {};
+
+                     if (Object.keys(dayObj).length === 0) {
+                         payload.togData[year][month][datePart] = deleteField();
+                     } else {
+                         payload.togData[year][month][datePart] = dayObj;
+                     }
+
+                     await setDoc(userRef, payload, { merge: true });
+                 }
              }
-        }
-
-        try {
-            if(value === "") {
-                await updateDoc(userRef, { [fieldPath]: deleteField() });
-            } else {
-                await updateDoc(userRef, { [fieldPath]: value });
-            }
-        } catch(e) {
-            console.warn("Update failed, trying set/merge", e);
-
-            // Reconstruct nested object for setDoc
-            const payload = { togData: {} };
-            const parts = fieldPath.split('.'); // e.g. ["togData", "2023", "10", "key"]
-
-            let current = payload.togData;
-            for (let i = 1; i < parts.length - 1; i++) {
-                const part = parts[i];
-                if (!current[part]) current[part] = {};
-                current = current[part];
-            }
-            const lastPart = parts[parts.length - 1];
-
-            if (value === "") {
-                current[lastPart] = deleteField();
-            } else {
-                current[lastPart] = value;
-            }
-
-            await setDoc(userRef, payload, { merge: true });
         }
     }
 }
