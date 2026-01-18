@@ -30,6 +30,7 @@ export function initTog(userId) {
     if (userId) {
         subscribeToData(userId);
     } else {
+        renderHeader(null); // Ensure guest avatar
         renderCalendar();
     }
 }
@@ -58,7 +59,6 @@ function cacheDOM() {
     DOM.restoreBtn = document.getElementById('tog-restore-btn');
     DOM.resetBtn = document.getElementById('tog-reset-btn');
     DOM.restoreInput = document.getElementById('tog-restore-input');
-    DOM.toast = document.getElementById('tog-toast');
 }
 
 function bindEvents() {
@@ -85,9 +85,7 @@ function bindEvents() {
     DOM.backupBtn?.addEventListener('click', backupData);
     DOM.restoreBtn?.addEventListener('click', () => DOM.restoreInput.click());
     DOM.restoreInput?.addEventListener('change', handleRestore);
-    // Reset is handled by app.js hooking into setupSwipeConfirm, but we need to trigger it.
-    // We will dispatch a custom event or let app.js attach the listener.
-    // For now, let's expose a method or dispatch event.
+
     DOM.resetBtn?.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('tog-reset-request'));
         closeDropdown();
@@ -117,18 +115,43 @@ function subscribeToData(userId) {
             // Update local storage for redundancy/offline fallback
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
 
-            // Update User Email in menu
-            if(DOM.userEmail) DOM.userEmail.innerText = data.email || "User";
-            if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(data.email || "?");
+            renderHeader(data);
 
             renderCalendar();
         }
     });
 }
 
-function getAvatarContent(email) {
+function renderHeader(user) {
+    if(DOM.userEmail) DOM.userEmail.innerText = user ? user.email : "Guest Session";
+    if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(user);
+}
+
+function getAvatarContent(user) {
+    if (!user) {
+        // Guest - Simple user icon SVG
+        return `<div class="bg-gray-200 dark:bg-slate-800 w-full h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>`;
+    }
+
+    const email = user.email || "?";
     const letter = email.charAt(0).toUpperCase();
-    return letter;
+
+    // Generate deterministic color based on UID (reusing logic from prompt)
+    const uid = user.uid || email;
+    let hash = 0;
+    for (let i = 0; i < uid.length; i++) {
+        hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c1 = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    const c2 = ((hash >> 4) & 0x00FFFFFF).toString(16).toUpperCase();
+    const color1 = "#" + "00000".substring(0, 6 - c1.length) + c1;
+    const color2 = "#" + "00000".substring(0, 6 - c2.length) + c2;
+
+    return `<div style="background: linear-gradient(135deg, ${color1}, ${color2});" class="w-full h-full flex items-center justify-center text-white font-bold text-sm shadow-inner">
+        ${letter}
+    </div>`;
 }
 
 // --- Logic ---
@@ -177,10 +200,9 @@ async function saveData(key, value) {
                 await updateDoc(userRef, { [fieldPath]: value });
             }
         } catch(e) {
-            // If update fails (e.g. doc doesn't exist or togData undefined), try set with merge
             console.warn("Update failed, trying set/merge", e);
             const payload = { togData: { [key]: value } };
-            if (value === "") delete payload.togData[key]; // Logic gap here for delete with set, but simpler to rely on update mostly
+            if (value === "") delete payload.togData[key];
             await setDoc(userRef, { togData: state.storedData }, { merge: true });
         }
     }
@@ -301,11 +323,13 @@ export function renderCalendar(preserveFocus = false) {
 
                 const card = document.createElement('div');
                 card.className = `day-card border ${cardBorder} ${cardBg} ${baseOpacity}`;
+                // Restored structure exactly from prompt source
                 card.innerHTML = `
                     <div class="day-header">
                         <span class="${dayText}">${currentLoopDate.getDate()}</span>
                         <button onclick="window.tog_pasteValue('${dateKey}')" class="icon-btn text-slate-300 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            <i class="fas fa-file-download w-3 h-3"></i>
+                            <!-- lucide arrow-down-to-line replacement -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line w-3 h-3"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
                         </button>
                     </div>
                     <div class="day-body">
@@ -317,7 +341,8 @@ export function renderCalendar(preserveFocus = false) {
                     <div class="day-footer ${footerBg}">
                         <div class="flex items-center w-full px-1">
                             <button onclick="window.tog_pasteValue('${bonusKey}')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 mr-1">
-                                <i class="fas fa-plus w-3 h-3"></i>
+                                <!-- lucide plus replacement -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                             </button>
                             <input type="number" step="0.1"
                                 data-key="${dateKey}" data-type="bonus"
@@ -368,9 +393,9 @@ export function renderCalendar(preserveFocus = false) {
 function handleInputChange(key, value) { saveData(key, value); }
 
 function pasteValue(key) {
-    if(state.lastCalculatedDecimal == 0) { showToast("Calculate first!"); return; }
+    if(state.lastCalculatedDecimal == 0) { showToast("Calculate first!", 'error'); return; }
     saveData(key, state.lastCalculatedDecimal);
-    showToast("Pasted!");
+    showToast("Pasted!", 'success');
 }
 
 function changeMonth(offset) {
@@ -380,11 +405,13 @@ function changeMonth(offset) {
 
 function goToToday() { state.viewDate = new Date(); renderCalendar(); }
 
-function showToast(msg) {
-    if(!DOM.toast) return;
-    DOM.toast.innerText = msg;
-    DOM.toast.className = "show";
-    setTimeout(() => { DOM.toast.className = ""; }, 2000);
+function showToast(msg, type = 'info') {
+    if (window.showAppMessage) {
+        window.showAppMessage(msg, type);
+    } else {
+        // Fallback if not available
+        console.log("Toast:", msg);
+    }
 }
 
 // --- Avatar Menu Logic ---
@@ -436,10 +463,10 @@ function handleRestore(e) {
             }
 
             renderCalendar();
-            showToast("Restored Successfully");
+            showToast("Restored Successfully", "success");
         } catch(err) {
             console.error(err);
-            showToast("Invalid JSON File");
+            showToast("Invalid JSON File", "error");
         }
     };
     reader.readAsText(file);
@@ -457,5 +484,5 @@ export async function performReset() {
          await updateDoc(userRef, { togData: deleteField() });
     }
     renderCalendar();
-    showToast("Reset Complete");
+    showToast("Reset Complete", "success");
 }

@@ -72,6 +72,9 @@ function initUI() {
         document.body.classList.add('is-mobile');
     }
 
+    // Expose for TOGtracker
+    window.showAppMessage = showMessage;
+
     DOM = {
         splashScreen: document.getElementById('splash-screen'),
         splashText: document.querySelector('.splash-text'),
@@ -5218,42 +5221,16 @@ async function subscribeToAppConfig() {
     });
 }
 
-function toggleTogView(event) {
+function toggleTogView() {
     const isAppVisible = !DOM.appView.classList.contains('hidden');
     if (isAppVisible) {
-        switchViewCircular(event, DOM.togView, DOM.appView);
+        switchView(DOM.togView, DOM.appView);
     } else {
-        switchViewCircular(event, DOM.appView, DOM.togView);
-    }
-}
-
-function switchViewCircular(event, viewToShow, viewToHide) {
-    const x = event.clientX;
-    const y = event.clientY;
-
-    viewToShow.style.setProperty('--click-x', x + 'px');
-    viewToShow.style.setProperty('--click-y', y + 'px');
-
-    viewToShow.classList.remove('hidden');
-    viewToShow.classList.add('reveal-enter');
-
-    // Force reflow
-    void viewToShow.offsetWidth;
-
-    requestAnimationFrame(() => {
-        viewToShow.classList.add('reveal-enter-active');
-    });
-
-    viewToShow.addEventListener('transitionend', () => {
-        viewToShow.classList.remove('reveal-enter', 'reveal-enter-active');
-        viewToShow.style.removeProperty('--click-x');
-        viewToShow.style.removeProperty('--click-y');
-        viewToHide.classList.add('hidden');
-        if (viewToShow === DOM.appView) {
+        switchView(DOM.appView, DOM.togView, () => {
             loadTheme();
             updateView();
-        }
-    }, { once: true });
+        });
+    }
 }
 
 function setupSwipeConfirm() {
