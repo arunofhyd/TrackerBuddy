@@ -938,3 +938,56 @@ body.dark .role-badge.pending {
        Actually, ">>" implies LTR.
     */
 }
+
+/* --- TOG Tracker Styles --- */
+#tog-view .input-field { transition: all 0.2s; outline: none; }
+#tog-view .btn-outline { transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+#tog-view .icon-btn { padding: 2px; border-radius: 4px; transition: all 0.2s; cursor: pointer; }
+
+/* Grid Layout */
+#tog-view .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(100px, 1fr));
+    gap: 0.5rem;
+}
+
+#tog-view .day-card { border-radius: 0.375rem; overflow: hidden; display: flex; flex-direction: column; min-height: 100px; }
+#tog-view .stats-card { border-radius: 0.375rem; display: flex; flex-direction: column; justify-content: center; padding: 0.5rem; min-height: 100px; }
+
+#tog-view .day-header { padding: 4px 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; }
+#tog-view .day-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px; }
+#tog-view .day-footer { height: 24px; display: flex; align-items: center; justify-content: center; border-top-width: 1px; }
+
+#tog-toast { visibility: hidden; min-width: 200px; text-align: center; border-radius: 6px; padding: 10px; position: fixed; z-index: 50; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
+#tog-toast.show { visibility: visible; opacity: 1; }
+
+.main-gradient-text {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.main-gradient-box {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+}
+
+@media (max-width: 1024px) {
+    #tog-view .scroll-container { overflow-x: auto; padding-bottom: 10px; }
+    #tog-view .calendar-grid { min-width: 900px; }
+}
+
+/* Circular Reveal Transition */
+.view-container.reveal-enter {
+    clip-path: circle(0% at var(--click-x, 50%) var(--click-y, 50%));
+    transition: clip-path 0.5s ease-in-out;
+    display: block !important;
+    opacity: 1 !important;
+    position: fixed; /* Fix position during animation to cover screen */
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 50;
+    background-color: inherit; /* Ensure background is opaque */
+    height: 100vh;
+    overflow: auto;
+}
+.view-container.reveal-enter-active {
+    clip-path: circle(150% at var(--click-x, 50%) var(--click-y, 50%));
+}

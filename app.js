@@ -27,6 +27,7 @@ import {
     getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 } from './services/firebase.js';
+import { initTog, performReset as performTogReset } from './tog.js';
 
 const i18n = new TranslationService(() => {
     updateView();
@@ -80,6 +81,8 @@ function initUI() {
         footer: document.getElementById('main-footer'),
         loginView: document.getElementById('login-view'),
         appView: document.getElementById('app-view'),
+        togView: document.getElementById('tog-view'),
+        navTogBtn: document.getElementById('nav-tog-btn'),
         loadingView: document.getElementById('loading-view'),
         userIdDisplay: document.getElementById('user-id-display'),
         messageDisplay: document.getElementById('message-display'),
@@ -345,6 +348,9 @@ async function handleUserLogin(user) {
     DOM.userIdDisplay.textContent = i18n.t('dashboard.userIdPrefix') + user.uid;
 
     switchView(DOM.loadingView, DOM.loginView);
+
+    // Initialize TOG Tracker
+    initTog(user.uid);
 
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, async () => {
@@ -1121,15 +1127,13 @@ function loadOfflineData() {
         userId: null
     });
 
+    initTog(null);
+
     // Switch directly to app view
     switchView(DOM.appView, DOM.loginView, updateView);
 }
 
 async function resetAllData() {
-    const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
-    setButtonLoadingState(button, true);
-    await waitForDOMUpdate();
-
     // Define the reset state
     const resetState = {
         yearlyData: {},
@@ -1160,9 +1164,6 @@ async function resetAllData() {
         updateView();
         showMessage(i18n.t("messages.localResetSuccess"), 'success');
     }
-
-    DOM.confirmResetModal.classList.remove('visible');
-    setButtonLoadingState(button, false);
 }
 
 async function updateActivityOrder() {
@@ -4137,13 +4138,24 @@ function setupEventListeners() {
     }
 
     document.getElementById('reset-data-btn').addEventListener('click', () => {
-        DOM.resetModalText.textContent = state.isOnlineMode
-            ? i18n.t("dashboard.resetConfirmCloud")
-            : i18n.t("dashboard.resetConfirmLocal");
-        DOM.confirmResetModal.classList.add('visible');
+        state.swipeActionCallback = resetAllData;
+        DOM.swipeText.innerText = "Swipe to Reset >>";
+        DOM.swipeConfirmModal.querySelector('h3').innerText = i18n.t("common.areYouSure");
+        DOM.swipeConfirmModal.querySelector('p').innerText = state.isOnlineMode ? i18n.t("dashboard.resetConfirmCloud") : i18n.t("dashboard.resetConfirmLocal");
+        DOM.swipeConfirmModal.classList.add('visible');
+        resetSwipeConfirm();
     });
-    document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
-    document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
+
+    // TOG Listeners
+    if(DOM.navTogBtn) DOM.navTogBtn.addEventListener('click', toggleTogView);
+    document.addEventListener('tog-reset-request', () => {
+        state.swipeActionCallback = performTogReset;
+        DOM.swipeText.innerText = "Swipe to Reset >>";
+        DOM.swipeConfirmModal.querySelector('h3').innerText = "Reset TOG Data";
+        DOM.swipeConfirmModal.querySelector('p').innerText = "This will permanently delete all TOGTracker data.";
+        DOM.swipeConfirmModal.classList.add('visible');
+        resetSwipeConfirm();
+    });
 
     const uploadCsvInput = document.getElementById('upload-csv-input');
     DOM.uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
@@ -4182,6 +4194,10 @@ function setupEventListeners() {
             }
         } else {
             // Use Swipe Confirm for Universal Delete
+            state.swipeActionCallback = deleteLeaveType;
+            DOM.swipeText.innerText = i18n.t("admin.swipeToDelete");
+            DOM.swipeConfirmModal.querySelector('h3').innerText = i18n.t("admin.dangerZone");
+            DOM.swipeConfirmModal.querySelector('p').innerText = i18n.t("admin.swipeToDeleteDesc");
             DOM.swipeConfirmModal.classList.add('visible');
             resetSwipeConfirm();
         }
@@ -5202,6 +5218,44 @@ async function subscribeToAppConfig() {
     });
 }
 
+function toggleTogView(event) {
+    const isAppVisible = !DOM.appView.classList.contains('hidden');
+    if (isAppVisible) {
+        switchViewCircular(event, DOM.togView, DOM.appView);
+    } else {
+        switchViewCircular(event, DOM.appView, DOM.togView);
+    }
+}
+
+function switchViewCircular(event, viewToShow, viewToHide) {
+    const x = event.clientX;
+    const y = event.clientY;
+
+    viewToShow.style.setProperty('--click-x', x + 'px');
+    viewToShow.style.setProperty('--click-y', y + 'px');
+
+    viewToShow.classList.remove('hidden');
+    viewToShow.classList.add('reveal-enter');
+
+    // Force reflow
+    void viewToShow.offsetWidth;
+
+    requestAnimationFrame(() => {
+        viewToShow.classList.add('reveal-enter-active');
+    });
+
+    viewToShow.addEventListener('transitionend', () => {
+        viewToShow.classList.remove('reveal-enter', 'reveal-enter-active');
+        viewToShow.style.removeProperty('--click-x');
+        viewToShow.style.removeProperty('--click-y');
+        viewToHide.classList.add('hidden');
+        if (viewToShow === DOM.appView) {
+            loadTheme();
+            updateView();
+        }
+    }, { once: true });
+}
+
 function setupSwipeConfirm() {
     const track = DOM.swipeTrack;
     const thumb = DOM.swipeThumb;
@@ -5254,7 +5308,10 @@ function setupSwipeConfirm() {
             // Perform Action after brief delay
             setTimeout(() => {
                 DOM.swipeConfirmModal.classList.remove('visible');
-                deleteLeaveType();
+                if (state.swipeActionCallback) {
+                    state.swipeActionCallback();
+                    state.swipeActionCallback = null;
+                }
             }, 300);
         } else {
             // Reset
