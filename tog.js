@@ -270,6 +270,11 @@ async function saveData(key, value) {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
 
+    // Update UI immediately (optimistic update) - mainly for Guest mode or immediate feedback
+    // Pass true to preserve focus so user can continue typing/tabbing
+    // Defer render slightly to ensure focus has settled (e.g. if clicking from one input to another)
+    setTimeout(() => renderCalendar(true), 0);
+
     if(state.userId && state.db) {
         const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
 
