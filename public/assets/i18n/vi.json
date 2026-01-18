@@ -330,5 +330,23 @@
     "fuchsia": "Hồng cánh sen",
     "pink": "Hồng",
     "gray": "Xám"
+  },
+  "tog": {
+    "title": "Trình theo dõi TOG",
+    "memory": "Bộ nhớ",
+    "timeToTog": "THỜI GIAN SANG TOG",
+    "togToTime": "TOG SANG THỜI GIAN",
+    "visibleDays": "Ngày hiển thị",
+    "monthlyTotal": "TOG (Tổng hàng tháng)",
+    "monthlyAvg": "TOG (Trung bình tháng)",
+    "jumpToToday": "Đến hôm nay",
+    "wkAvg": "TB Tuần",
+    "total": "Tổng",
+    "calcFirst": "Tính toán trước!",
+    "inserted": "Đã chèn!",
+    "restored": "Khôi phục thành công",
+    "invalidJson": "Tệp JSON không hợp lệ",
+    "resetComplete": "Đặt lại hoàn tất",
+    "weekly": "Hàng tuần"
   }
 }

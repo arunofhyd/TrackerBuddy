@@ -330,5 +330,23 @@
     "fuchsia": "ఫ్యూషియా",
     "pink": "పింక్",
     "gray": "బూడిద"
+  },
+  "tog": {
+    "title": "TOG ట్రాకర్",
+    "memory": "మెమరీ",
+    "timeToTog": "సమయం TOGకి",
+    "togToTime": "TOG సమయానికి",
+    "visibleDays": "కనిపించే రోజులు",
+    "monthlyTotal": "TOG (నెలవారీ మొత్తం)",
+    "monthlyAvg": "TOG (నెలవారీ సగటు)",
+    "jumpToToday": "ఈ రోజుకి వెళ్లండి",
+    "wkAvg": "వారపు సగటు",
+    "total": "మొత్తం",
+    "calcFirst": "మొదట లెక్కించండి!",
+    "inserted": "చొప్పించబడింది!",
+    "restored": "విజయవంతంగా పునరుద్ధరించబడింది",
+    "invalidJson": "చెల్లని JSON ఫైల్",
+    "resetComplete": "రీసెట్ పూర్తయింది",
+    "weekly": "వారపు"
   }
 }

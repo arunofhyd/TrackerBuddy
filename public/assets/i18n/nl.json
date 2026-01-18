@@ -330,5 +330,23 @@
     "fuchsia": "Fuchsia",
     "pink": "Roze",
     "gray": "Grijs"
+  },
+  "tog": {
+    "title": "TOG Tracker",
+    "memory": "Geheugen",
+    "timeToTog": "TIJD NAAR TOG",
+    "togToTime": "TOG NAAR TIJD",
+    "visibleDays": "Zichtbare Dagen",
+    "monthlyTotal": "TOG (Maandtotaal)",
+    "monthlyAvg": "TOG (Maandgemiddelde)",
+    "jumpToToday": "Ga naar Vandaag",
+    "wkAvg": "Weekgem.",
+    "total": "Totaal",
+    "calcFirst": "Eerst berekenen!",
+    "inserted": "Ingevoegd!",
+    "restored": "Succesvol hersteld",
+    "invalidJson": "Ongeldig JSON-bestand",
+    "resetComplete": "Reset voltooid",
+    "weekly": "Wekelijks"
   }
 }

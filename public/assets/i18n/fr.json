@@ -330,5 +330,23 @@
     "fuchsia": "Fuchsia",
     "pink": "Rose",
     "gray": "Gris"
+  },
+  "tog": {
+    "title": "Suivi TOG",
+    "memory": "Mémoire",
+    "timeToTog": "TEMPS VERS TOG",
+    "togToTime": "TOG VERS TEMPS",
+    "visibleDays": "Jours Visibles",
+    "monthlyTotal": "TOG (Total Mensuel)",
+    "monthlyAvg": "TOG (Moyenne Mensuelle)",
+    "jumpToToday": "Aller à Aujourd'hui",
+    "wkAvg": "Moy. Hebd.",
+    "total": "Total",
+    "calcFirst": "Calculez d'abord !",
+    "inserted": "Inséré !",
+    "restored": "Restauré avec succès",
+    "invalidJson": "Fichier JSON invalide",
+    "resetComplete": "Réinitialisation terminée",
+    "weekly": "Hebdomadaire"
   }
 }

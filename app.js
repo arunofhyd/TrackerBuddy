@@ -27,6 +27,7 @@ import {
     getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 } from './services/firebase.js';
+import { initTog, performReset as performTogReset, renderCalendar as renderTogCalendar } from './tog.js';
 
 const i18n = new TranslationService(() => {
     updateView();
@@ -48,6 +49,9 @@ const i18n = new TranslationService(() => {
     }
     if (DOM.monthPickerModal?.classList.contains('visible')) {
         renderMonthPicker();
+    }
+    if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
+        renderTogCalendar();
     }
 });
 
@@ -80,6 +84,7 @@ function initUI() {
         footer: document.getElementById('main-footer'),
         loginView: document.getElementById('login-view'),
         appView: document.getElementById('app-view'),
+        togView: document.getElementById('tog-view'),
         loadingView: document.getElementById('loading-view'),
         userIdDisplay: document.getElementById('user-id-display'),
         messageDisplay: document.getElementById('message-display'),
@@ -191,11 +196,20 @@ function initUI() {
         swipeFill: document.getElementById('swipe-fill'),
         swipeText: document.getElementById('swipe-text'),
         swipeSuccessText: document.getElementById('swipe-success-text'),
-        cancelSwipeBtn: document.getElementById('cancel-swipe-btn')
+        cancelSwipeBtn: document.getElementById('cancel-swipe-btn'),
+        // Navigation & Menus
+        navTogBtn: document.getElementById('nav-tog-btn'),
+        tbUserAvatarBtn: document.getElementById('tb-user-avatar-btn'),
+        tbUserDropdown: document.getElementById('tb-user-dropdown'),
+        tbMenuContainer: document.getElementById('tb-user-menu-container'),
+        tbMenuAvatar: document.getElementById('tb-menu-avatar'),
+        tbMenuEmail: document.getElementById('tb-menu-user-email')
     };
 
     setupMessageSwipe();
     setupSwipeConfirm();
+
+    window.showAppMessage = showMessage;
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -263,7 +277,7 @@ function switchView(viewToShow, viewToHide, callback) {
         if (viewToShow === DOM.loginView || viewToShow === DOM.loadingView) {
             // Ensure splash screen is visible (it might be z-index -10 acting as background, or z-index 100 acting as loader)
             if (DOM.splashScreen) DOM.splashScreen.style.display = 'flex';
-        } else if (viewToShow === DOM.appView) {
+        } else if (viewToShow === DOM.appView || viewToShow === DOM.togView) {
             loadTheme();
             // If splash screen is currently covering the screen (loading flow), fade it out smoothly
             if (DOM.splashScreen && getComputedStyle(DOM.splashScreen).zIndex === '100' && DOM.splashScreen.style.display !== 'none') {
@@ -326,7 +340,7 @@ function switchView(viewToShow, viewToHide, callback) {
              }
         }, 350);
 
-        viewToHide.addEventListener('transitionend', transitionState.handler, { once: true });
+        viewToHide?.addEventListener('transitionend', transitionState.handler, { once: true });
     } else {
         // Safety: If switching away, ensure it's hidden (catches race condition where it's hidden but pending show was just cancelled)
         if (viewToHide) viewToHide.classList.add('hidden');
@@ -387,8 +401,11 @@ async function handleUserLogin(user) {
             }
         }
 
+        setupTbUserMenu(user);
         // Team data will now be loaded on-demand when the user expands the team section.
         switchView(DOM.appView, DOM.loadingView, updateView);
+        // Toggle Nav Button
+        DOM.navTogBtn.classList.remove('hidden');
     });
 }
 
@@ -442,7 +459,7 @@ function setupMessageSwipe() {
     let currentX = 0;
     let isDragging = false;
 
-    el.addEventListener('touchstart', (e) => {
+    el?.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
         isDragging = true;
         // Pause auto-dismiss on interaction
@@ -453,14 +470,14 @@ function setupMessageSwipe() {
         }
     }, { passive: true });
 
-    el.addEventListener('touchmove', (e) => {
+    el?.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
         currentX = e.touches[0].clientX - startX;
         el.style.transform = `translateX(calc(${isMobileDevice() ? '-50% + ' : ''}${currentX}px))`;
         el.style.opacity = Math.max(0, 1 - Math.abs(currentX) / 150);
     }, { passive: true });
 
-    el.addEventListener('touchend', () => {
+    el?.addEventListener('touchend', () => {
         if (!isDragging) return;
         isDragging = false;
 
@@ -697,6 +714,14 @@ function renderMonthPicker() {
         return html`
         <button class="${classes}" @click=${() => {
             const newYear = state.pickerYear;
+
+            if (state.pickerCallback) {
+                state.pickerCallback(new Date(newYear, index, 1));
+                state.pickerCallback = null;
+                DOM.monthPickerModal.classList.remove('visible');
+                return;
+            }
+
             const currentYear = state.currentMonth.getFullYear();
 
             // If the year has changed, update the currentYearData
@@ -704,7 +729,7 @@ function renderMonthPicker() {
                 const newCurrentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
                 setState({ currentYearData: newCurrentYearData });
             }
-            
+
             const newMonth = new Date(newYear, index, 1);
             const lastDayOfNewMonth = new Date(newYear, index + 1, 0).getDate();
             let newSelectedDate = new Date(state.selectedDate);
@@ -1120,9 +1145,10 @@ function loadOfflineData() {
         isOnlineMode: false,
         userId: null
     });
-
+    setupTbUserMenu(null);
     // Switch directly to app view
     switchView(DOM.appView, DOM.loginView, updateView);
+    DOM.navTogBtn.classList.remove('hidden');
 }
 
 async function resetAllData() {
@@ -1136,6 +1162,9 @@ async function resetAllData() {
         currentYearData: { activities: {}, leaveOverrides: {} },
         leaveTypes: []
     };
+
+    // Also reset TOG data
+    await performTogReset(state.userId, db);
 
     if (state.isOnlineMode && state.userId) {
         try {
@@ -1155,7 +1184,7 @@ async function resetAllData() {
             showMessage(i18n.t("messages.cloudResetError"), 'error');
         }
     } else {
-        localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA); 
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
         setState(resetState);
         updateView();
         showMessage(i18n.t("messages.localResetSuccess"), 'success');
@@ -1235,7 +1264,7 @@ async function deleteActivity(dateKey, timeKey) {
         if (state.isOnlineMode && state.userId) {
             const userDocRef = doc(db, "users", state.userId);
             const fieldPathToDelete = `yearlyData.${year}.activities.${dateKey}.${timeKey}`;
-            const updates = { 
+            const updates = {
                 [fieldPathToDelete]: deleteField(),
                 lastUpdated: timestamp
             };
@@ -1353,7 +1382,7 @@ function handleFileUpload(event) {
     reader.onload = async (e) => {
         try {
             const csvContent = e.target.result;
-            
+
             const yearlyDataCopy = JSON.parse(JSON.stringify(state.yearlyData));
             const leaveTypesMap = new Map(state.leaveTypes.map(lt => [lt.id, { ...lt }]));
 
@@ -1737,7 +1766,8 @@ function loadTheme() {
 }
 
 function setupDoubleClickConfirm(element, actionKey, messageKey, callback) {
-    element.addEventListener('click', (e) => {
+    if (!element) return;
+    element?.addEventListener('click', (e) => {
         if (state.confirmAction[actionKey]) {
             callback(e);
             delete state.confirmAction[actionKey];
@@ -1881,7 +1911,7 @@ function handleLogoTap() {
         DOM.splashScreen.style.opacity = '1';
         DOM.splashScreen.style.backgroundColor = '#0f172a';
 
-        DOM.splashScreen.addEventListener('click', returnToApp, { once: true });
+        DOM.splashScreen?.addEventListener('click', returnToApp, { once: true });
     }
 }
 
@@ -1928,8 +1958,8 @@ function loadSplashScreenVideo() {
     };
 
     // Use addEventListener for better reliability
-    video.addEventListener('canplay', showVideo, { once: true });
-    video.addEventListener('loadeddata', showVideo, { once: true });
+    video?.addEventListener('canplay', showVideo, { once: true });
+    video?.addEventListener('loadeddata', showVideo, { once: true });
 
     // Explicitly try to play
     video.play().catch(error => {
@@ -2589,7 +2619,7 @@ function renderLeaveStats() {
                     <div class="flex items-center min-w-0 pr-2">
                         <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
                     </div>
-                    
+
                     <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
                         <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('tracker.viewLeaveDetails')}" aria-label="${i18n.t('tracker.viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2690,7 +2720,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
     const closePanel = () => panel.classList.remove('open');
 
-    trigger.addEventListener('click', (e) => {
+    trigger?.addEventListener('click', (e) => {
         e.stopPropagation();
         document.querySelectorAll('.leave-type-selector-panel.open').forEach(p => {
             if (p !== panel) p.classList.remove('open');
@@ -2699,7 +2729,7 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
     });
 
     panel.querySelectorAll('.leave-type-option').forEach(option => {
-        option.addEventListener('click', () => {
+        option?.addEventListener('click', () => {
             const newTypeId = option.dataset.id;
             trigger.dataset.typeId = newTypeId;
 
@@ -2725,8 +2755,8 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
         });
     });
 
-    document.addEventListener('click', closePanel, { once: true });
-    container.addEventListener('click', e => e.stopPropagation());
+    document?.addEventListener('click', closePanel, { once: true });
+    container?.addEventListener('click', e => e.stopPropagation());
 }
 
 function setupDayTypeToggle(toggleElement) {
@@ -2741,7 +2771,7 @@ function setupDayTypeToggle(toggleElement) {
 
     updateUI(toggleElement.dataset.selectedValue || LEAVE_DAY_TYPES.FULL);
 
-    toggleElement.addEventListener('click', (e) => {
+    toggleElement?.addEventListener('click', (e) => {
         const clickedButton = e.target.closest('.toggle-btn');
         if (!clickedButton) return;
 
@@ -2805,7 +2835,7 @@ function renderLeaveCustomizationModal() {
             if (lt.id === modalBulkTypeId) {
                 pill.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800');
             }
-            pill.addEventListener('click', () => {
+            pill?.addEventListener('click', () => {
                 modalBulkTypeId = lt.id;
                 renderBulkPills();
                 list.querySelectorAll('.leave-type-selector').forEach(container => {
@@ -2853,7 +2883,7 @@ function renderLeaveCustomizationModal() {
     });
 
     list.querySelectorAll('.delete-leave-day-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn?.addEventListener('click', (e) => {
             e.stopPropagation();
             const item = e.currentTarget.closest('[data-date-key]');
             if (item) {
@@ -3090,7 +3120,7 @@ function renderTeamSection() {
                     </h3>
                     <p class="text-xs sm:text-base text-gray-600 dark:text-gray-400">${isAdmin ? i18n.t('team.youAreAdmin') : i18n.t('team.youAreMember')} • ${memberCount === 1 ? i18n.t('team.memberCount').replace('{count}', memberCount) : i18n.t('team.membersCount').replace('{count}', memberCount)}</p>
                 </div>
-                
+
                 <div class="bg-white dark:bg-gray-100 p-3 sm:p-4 rounded-lg border">
                     <h4 class="font-semibold text-sm sm:text-base mb-2 sm:mb-3 text-center">${i18n.t('team.roomCode')}</h4>
                     <div class="text-center">
@@ -3103,7 +3133,7 @@ function renderTeamSection() {
                     </div>
                     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-2 sm:mt-3">${i18n.t('team.shareCodeMessage')}</p>
                 </div>
-                
+
                 <div class="flex flex-col md:flex-row gap-3 sm:gap-4">
                     ${isAdmin ? html`
                         <button id="team-dashboard-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
@@ -3408,8 +3438,8 @@ function renderTeamDashboard() {
         ...members.sort((a, b) => a.displayName.localeCompare(b.displayName))
     ];
 
-    const dashboardYear = state.currentMonth.getFullYear().toString(); 
-    
+    const dashboardYear = state.currentMonth.getFullYear().toString();
+
 
     const membersHTML = sortedMembers.map(member => {
         const balances = member.summary.yearlyLeaveBalances ? (member.summary.yearlyLeaveBalances[dashboardYear] || {}) : {};
@@ -3517,7 +3547,7 @@ function setupDailyViewEventListeners() {
     const tableBody = DOM.dailyActivityTableBody;
     if (!tableBody) return;
 
-    tableBody.addEventListener('click', async e => {
+    tableBody?.addEventListener('click', async e => {
         const target = e.target;
 
         const editableCell = target.closest('.activity-text-editable, .time-editable');
@@ -3557,21 +3587,21 @@ function setupDailyViewEventListeners() {
     });
 
 // Global click listener for haptic feedback
-document.addEventListener('click', (e) => {
+document?.addEventListener('click', (e) => {
     // Check if the click target or its parents is a button, link, or interactive element
     if (e.target.closest('button, a, .calendar-day-cell, .leave-day-item, .team-member-card summary, .toggle-btn, .spotlight-result-item')) {
         triggerHapticFeedback('light');
     }
 });
 
-    tableBody.addEventListener('blur', e => {
+    tableBody?.addEventListener('blur', e => {
         const target = e.target;
         if (target.matches('.activity-text-editable, .time-editable')) {
             handleInlineEditBlur({ currentTarget: target });
         }
     }, true);
 
-    tableBody.addEventListener('keydown', e => {
+    tableBody?.addEventListener('keydown', e => {
         const target = e.target;
         if (target.matches('.activity-text-editable, .time-editable')) {
             handleInlineEditKeydown(e);
@@ -3771,7 +3801,7 @@ function renderSearchResults(results) {
             </div>
         `;
 
-        item.addEventListener('click', () => {
+        item?.addEventListener('click', () => {
             const date = new Date(result.date + 'T00:00:00');
             const currentYear = state.currentMonth.getFullYear();
             const newYear = date.getFullYear();
@@ -3796,35 +3826,41 @@ function renderSearchResults(results) {
 function setupEventListeners() {
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
-    DOM.emailSignupBtn.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
-    DOM.emailSigninBtn.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
-    DOM.forgotPasswordBtn.addEventListener('click', () => resetPassword(emailInput.value));
-    DOM.googleSigninBtn.addEventListener('click', signInWithGoogle);
-    document.getElementById('anon-continue-btn').addEventListener('click', loadOfflineData);
+    DOM.emailSignupBtn?.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
+    DOM.emailSigninBtn?.addEventListener('click', () => signInWithEmail(emailInput.value, passwordInput.value));
+    DOM.forgotPasswordBtn?.addEventListener('click', () => resetPassword(emailInput.value));
+    DOM.googleSigninBtn?.addEventListener('click', signInWithGoogle);
+    document.getElementById('anon-continue-btn')?.addEventListener('click', loadOfflineData);
 
-    setupDoubleClickConfirm(
-        document.getElementById('sign-out-btn'),
-        'signOut',
-        'auth.confirmSignOut',
-        appSignOut
-    );
+    // Nav Toggle
+    DOM.navTogBtn?.addEventListener('click', toggleAppMode);
+
+    // TOG Events
+    document.addEventListener('tog-reset-request', confirmResetAllData);
+
+    // User Menu
+    document.getElementById('tb-backup-btn')?.addEventListener('click', downloadCSV);
+    document.getElementById('tb-restore-btn')?.addEventListener('click', () => DOM.uploadCsvBtn.click());
+    document.getElementById('tb-reset-btn')?.addEventListener('click', confirmResetAllData);
+    document.getElementById('tb-logout-btn')?.addEventListener('click', appSignOut);
 
     const passwordToggleBtn = document.getElementById('password-toggle-btn');
     const passwordToggleIcon = document.getElementById('password-toggle-icon');
-    passwordToggleBtn.addEventListener('click', () => {
+    passwordToggleBtn?.addEventListener('click', () => {
         const isPassword = passwordInput.type === 'password';
         passwordInput.type = isPassword ? 'text' : 'password';
         passwordToggleIcon.classList.toggle('fa-eye', !isPassword);
         passwordToggleIcon.classList.toggle('fa-eye-slash', isPassword);
     });
 
-    emailInput.addEventListener('input', () => setInputErrorState(emailInput, false));
-    passwordInput.addEventListener('input', () => setInputErrorState(passwordInput, false));
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    DOM.monthViewBtn.addEventListener('click', () => { setState({ currentView: VIEW_MODES.MONTH }); updateView(); });
-    DOM.dayViewBtn.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
+    emailInput?.addEventListener('input', () => setInputErrorState(emailInput, false));
+    passwordInput?.addEventListener('input', () => setInputErrorState(passwordInput, false));
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
+    document.getElementById('tog-theme-toggle-btn')?.addEventListener('click', toggleTheme);
+    DOM.monthViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.MONTH }); updateView(); });
+    DOM.dayViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
 
-    document.getElementById('prev-btn').addEventListener('click', async (e) => {
+    document.getElementById('prev-btn')?.addEventListener('click', async (e) => {
         triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
@@ -3888,7 +3924,7 @@ function setupEventListeners() {
         setButtonLoadingState(button, false);
     });
 
-    document.getElementById('next-btn').addEventListener('click', async (e) => {
+    document.getElementById('next-btn')?.addEventListener('click', async (e) => {
         triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
@@ -3949,7 +3985,7 @@ function setupEventListeners() {
         updateView();
         setButtonLoadingState(button, false);
     });
-    DOM.todayBtnDay.addEventListener('click', async () => {
+    DOM.todayBtnDay?.addEventListener('click', async () => {
         setButtonLoadingState(DOM.todayBtnDay, true);
         await waitForDOMUpdate();
         const today = new Date();
@@ -3970,7 +4006,7 @@ function setupEventListeners() {
         setButtonLoadingState(DOM.todayBtnDay, false);
     });
 
-    DOM.currentPeriodDisplay.addEventListener('click', () => {
+    DOM.currentPeriodDisplay?.addEventListener('click', () => {
         state.previousActiveElement = document.activeElement;
         setState({ pickerYear: state.currentView === VIEW_MODES.MONTH ? state.currentMonth.getFullYear() : state.selectedDate.getFullYear() });
         renderMonthPicker();
@@ -3979,14 +4015,14 @@ function setupEventListeners() {
         document.getElementById('close-month-picker-btn')?.focus();
     });
 
-    document.getElementById('close-month-picker-btn').addEventListener('click', () => {
+    document.getElementById('close-month-picker-btn')?.addEventListener('click', () => {
         DOM.monthPickerModal.classList.remove('visible');
         if (state.previousActiveElement) {
             state.previousActiveElement.focus();
             state.previousActiveElement = null;
         }
     });
-    document.getElementById('prev-year-btn').addEventListener('click', async (e) => {
+    document.getElementById('prev-year-btn')?.addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
         await waitForDOMUpdate();
@@ -3995,7 +4031,7 @@ function setupEventListeners() {
         setButtonLoadingState(button, false);
     });
 
-    document.getElementById('next-year-btn').addEventListener('click', async (e) => {
+    document.getElementById('next-year-btn')?.addEventListener('click', async (e) => {
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
         await waitForDOMUpdate();
@@ -4005,21 +4041,21 @@ function setupEventListeners() {
     });
 
     // Use debounced 'input' for a better UX
-    DOM.dailyNoteInput.addEventListener('input', debounce((e) => {
+    DOM.dailyNoteInput?.addEventListener('input', debounce((e) => {
         saveData({ type: ACTION_TYPES.SAVE_NOTE, payload: e.target.value });
     }, 500));
 
     // Spotlight Search Listeners
     if (DOM.openSpotlightBtn) {
-        DOM.openSpotlightBtn.addEventListener('click', openSpotlight);
+        DOM.openSpotlightBtn?.addEventListener('click', openSpotlight);
     }
 
     if (DOM.spotlightCloseBtn) {
-        DOM.spotlightCloseBtn.addEventListener('click', closeSpotlight);
+        DOM.spotlightCloseBtn?.addEventListener('click', closeSpotlight);
     }
 
     if (DOM.spotlightModal) {
-        DOM.spotlightModal.addEventListener('click', (e) => {
+        DOM.spotlightModal?.addEventListener('click', (e) => {
             if (e.target === DOM.spotlightModal) {
                 closeSpotlight();
             }
@@ -4027,11 +4063,11 @@ function setupEventListeners() {
     }
 
     if (DOM.spotlightInput) {
-        DOM.spotlightInput.addEventListener('input', debounce((e) => {
+        DOM.spotlightInput?.addEventListener('input', debounce((e) => {
             performSearch(e.target.value.trim());
         }, 300));
 
-        DOM.spotlightInput.addEventListener('keydown', (e) => {
+        DOM.spotlightInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeSpotlight();
             }
@@ -4039,15 +4075,15 @@ function setupEventListeners() {
     }
 
     if (DOM.spotlightSortBtn) {
-        DOM.spotlightSortBtn.addEventListener('click', toggleSearchSort);
+        DOM.spotlightSortBtn?.addEventListener('click', toggleSearchSort);
     }
 
     if (DOM.spotlightScopeBtn) {
-        DOM.spotlightScopeBtn.addEventListener('click', toggleSearchScope);
+        DOM.spotlightScopeBtn?.addEventListener('click', toggleSearchScope);
     }
 
     if (DOM.exitSearchBtn) {
-        DOM.exitSearchBtn.addEventListener('click', exitSearchMode);
+        DOM.exitSearchBtn?.addEventListener('click', exitSearchMode);
     }
 
     // Language Switcher Logic
@@ -4057,7 +4093,7 @@ function setupEventListeners() {
     const languageList = document.getElementById('language-list');
 
     if (openLangBtn && languageModal && languageList) {
-        openLangBtn.addEventListener('click', () => {
+        openLangBtn?.addEventListener('click', () => {
             // Render language options
             languageList.innerHTML = ''; // Clear existing
             i18n.supportedLangs.forEach(lang => {
@@ -4072,7 +4108,7 @@ function setupEventListeners() {
                     ${isActive ? '<i class="fas fa-check ml-auto text-blue-500"></i>' : ''}
                 `;
 
-                option.addEventListener('click', () => {
+                option?.addEventListener('click', () => {
                     i18n.setLanguage(lang.code);
                     languageModal.classList.remove('visible');
                 });
@@ -4085,15 +4121,15 @@ function setupEventListeners() {
 
         const closeLangModal = () => languageModal.classList.remove('visible');
 
-        if (closeLangBtn) closeLangBtn.addEventListener('click', closeLangModal);
+        if (closeLangBtn) closeLangBtn?.addEventListener('click', closeLangModal);
 
-        languageModal.addEventListener('click', (e) => {
+        languageModal?.addEventListener('click', (e) => {
             if (e.target === languageModal) closeLangModal();
         });
     }
 
     // Global shortcuts
-    document.addEventListener('keydown', (e) => {
+    document?.addEventListener('keydown', (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
             e.preventDefault();
             openSpotlight();
@@ -4129,35 +4165,30 @@ function setupEventListeners() {
 
     const addNewSlotBtn = document.getElementById('add-new-slot-btn');
     if (addNewSlotBtn) {
-        addNewSlotBtn.addEventListener('click', async () => {
+        addNewSlotBtn?.addEventListener('click', async () => {
             setButtonLoadingState(addNewSlotBtn, true);
             await saveData({ type: ACTION_TYPES.ADD_SLOT });
             setButtonLoadingState(addNewSlotBtn, false);
         });
     }
 
-    document.getElementById('reset-data-btn').addEventListener('click', () => {
-        DOM.resetModalText.textContent = state.isOnlineMode
-            ? i18n.t("dashboard.resetConfirmCloud")
-            : i18n.t("dashboard.resetConfirmLocal");
-        DOM.confirmResetModal.classList.add('visible');
-    });
-    document.getElementById('cancel-reset-btn').addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
-    document.getElementById('confirm-reset-btn').addEventListener('click', resetAllData);
+    document.getElementById('reset-data-btn')?.addEventListener('click', confirmResetAllData);
+    document.getElementById('cancel-reset-btn')?.addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
+    document.getElementById('confirm-reset-btn')?.addEventListener('click', resetAllData);
 
     const uploadCsvInput = document.getElementById('upload-csv-input');
-    DOM.uploadCsvBtn.addEventListener('click', () => uploadCsvInput.click());
-    DOM.downloadCsvBtn.addEventListener('click', downloadCSV);
-    uploadCsvInput.addEventListener('change', handleFileUpload);
+    DOM.uploadCsvBtn?.addEventListener('click', () => uploadCsvInput.click());
+    DOM.downloadCsvBtn?.addEventListener('click', downloadCSV);
+    uploadCsvInput?.addEventListener('change', handleFileUpload);
 
-    DOM.addLeaveTypeBtn.addEventListener('click', () => openLeaveTypeModal());
-    DOM.limitLeaveToYearBtn.addEventListener('click', () => {
+    DOM.addLeaveTypeBtn?.addEventListener('click', () => openLeaveTypeModal());
+    DOM.limitLeaveToYearBtn?.addEventListener('click', () => {
         const isLimited = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
         DOM.limitLeaveToYearBtn.dataset.limited = !isLimited;
     });
-    document.getElementById('cancel-leave-type-btn').addEventListener('click', closeLeaveTypeModal);
-    document.getElementById('save-leave-type-btn').addEventListener('click', saveLeaveType);
-    DOM.deleteLeaveTypeBtn.addEventListener('click', (e) => {
+    document.getElementById('cancel-leave-type-btn')?.addEventListener('click', closeLeaveTypeModal);
+    document.getElementById('save-leave-type-btn')?.addEventListener('click', saveLeaveType);
+    DOM.deleteLeaveTypeBtn?.addEventListener('click', (e) => {
         const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
         if (limitToCurrentYear) {
             // Use existing double-click confirm for local delete
@@ -4186,18 +4217,18 @@ function setupEventListeners() {
             resetSwipeConfirm();
         }
     });
-    DOM.leaveColorPicker.addEventListener('click', (e) => {
+    DOM.leaveColorPicker?.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
             selectColorInPicker(e.target.dataset.color);
         }
     });
-    DOM.statsToggleBtn.addEventListener('click', () => {
+    DOM.statsToggleBtn?.addEventListener('click', () => {
         DOM.leaveStatsSection.classList.toggle('visible');
         renderActionButtons();
     });
 
     // Team toggle button
-    DOM.teamToggleBtn.addEventListener('click', () => {
+    DOM.teamToggleBtn?.addEventListener('click', () => {
         const isVisible = DOM.teamSection.classList.toggle('visible');
         renderActionButtons();
 
@@ -4210,13 +4241,13 @@ function setupEventListeners() {
         }
     });
 
-    DOM.confirmSelectionBtn.addEventListener('click', () => {
+    DOM.confirmSelectionBtn?.addEventListener('click', () => {
         if (state.leaveSelection.size > 0) {
             openLeaveCustomizationModal();
         }
     });
 
-    DOM.leavePillsContainer.addEventListener('click', (e) => {
+    DOM.leavePillsContainer?.addEventListener('click', (e) => {
         const pill = e.target.closest('button');
         if (!pill) return;
 
@@ -4231,7 +4262,7 @@ function setupEventListeners() {
         updateView();
     });
 
-    DOM.calendarView.addEventListener('click', (e) => {
+    DOM.calendarView?.addEventListener('click', (e) => {
         const cell = e.target.closest('.calendar-day-cell.current-month');
         if (!cell) return;
 
@@ -4257,12 +4288,12 @@ function setupEventListeners() {
     });
 
     // Weekend Option Modal Listeners
-    DOM.toggleSatBtn.addEventListener('click', () => {
+    DOM.toggleSatBtn?.addEventListener('click', () => {
         const isExcluded = DOM.toggleSatBtn.dataset.excluded === 'true';
         DOM.toggleSatBtn.dataset.excluded = !isExcluded;
     });
 
-    DOM.toggleSunBtn.addEventListener('click', () => {
+    DOM.toggleSunBtn?.addEventListener('click', () => {
         const isExcluded = DOM.toggleSunBtn.dataset.excluded === 'true';
         DOM.toggleSunBtn.dataset.excluded = !isExcluded;
     });
@@ -4270,7 +4301,7 @@ function setupEventListeners() {
     // Weekend/Range Logic is removed/hidden for now as per new flow requirements.
     // If needed, we can re-introduce it as a feature of the selection mode later.
 
-    document.getElementById('cancel-log-leave-btn').addEventListener('click', () => {
+    document.getElementById('cancel-log-leave-btn')?.addEventListener('click', () => {
         DOM.customizeLeaveModal.classList.remove('visible');
         if (state.previousActiveElement) {
             state.previousActiveElement.focus();
@@ -4278,30 +4309,30 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('save-log-leave-btn').addEventListener('click', saveLoggedLeaves);
-    DOM.removeAllLeavesBtn.addEventListener('click', handleBulkRemoveClick);
+    document.getElementById('save-log-leave-btn')?.addEventListener('click', saveLoggedLeaves);
+    DOM.removeAllLeavesBtn?.addEventListener('click', handleBulkRemoveClick);
 
-    DOM.logoContainer.addEventListener('click', handleLogoTap);
+    DOM.logoContainer?.addEventListener('click', handleLogoTap);
 
     if (DOM.infoToggleBtn && DOM.infoDescription) {
-        DOM.infoToggleBtn.addEventListener('click', () => {
+        DOM.infoToggleBtn?.addEventListener('click', () => {
             DOM.infoDescription.classList.toggle('visible');
         });
     }
 
     // Help Modal
     if (DOM.helpToggleBtn) {
-        DOM.helpToggleBtn.addEventListener('click', () => {
+        DOM.helpToggleBtn?.addEventListener('click', () => {
             DOM.helpModal.classList.add('visible');
         });
     }
     if (DOM.closeHelpBtn) {
-        DOM.closeHelpBtn.addEventListener('click', () => {
+        DOM.closeHelpBtn?.addEventListener('click', () => {
             DOM.helpModal.classList.remove('visible');
         });
     }
     if (DOM.helpModal) {
-        DOM.helpModal.addEventListener('click', (e) => {
+        DOM.helpModal?.addEventListener('click', (e) => {
             if (e.target === DOM.helpModal) {
                 DOM.helpModal.classList.remove('visible');
             }
@@ -4315,12 +4346,12 @@ function setupEventListeners() {
 
     const addSwipeListeners = (element) => {
         if (!element) return;
-        element.addEventListener('touchstart', e => {
+        element?.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
             swipeStartTarget = e.target;
         }, { passive: true });
 
-        element.addEventListener('touchend', e => {
+        element?.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, { passive: true });
@@ -4335,15 +4366,15 @@ function setupEventListeners() {
 
         // Check for editing mode or open modals to prevent swipe
         if (state.editingInlineTimeKey) return;
-        
+
         const openModals = document.querySelectorAll('.modal-backdrop.visible, .spotlight-overlay.visible');
         if (openModals.length > 0) return;
 
         // Check if an input or contenteditable is focused
         const activeElement = document.activeElement;
         if (activeElement && (
-            activeElement.tagName === 'INPUT' || 
-            activeElement.tagName === 'TEXTAREA' || 
+            activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
             activeElement.isContentEditable
         )) {
             return;
@@ -4368,9 +4399,9 @@ function setupEventListeners() {
         }
     }
 
-    document.getElementById('close-leave-overview-btn').addEventListener('click', closeLeaveOverviewModal);
+    document.getElementById('close-leave-overview-btn')?.addEventListener('click', closeLeaveOverviewModal);
 
-    DOM.overviewLeaveDaysList.addEventListener('click', async (e) => {
+    DOM.overviewLeaveDaysList?.addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.edit-leave-day-btn');
         const deleteBtn = e.target.closest('.delete-leave-day-btn');
         const toggleBtn = e.target.closest('.toggle-btn');
@@ -4451,23 +4482,23 @@ function setupEventListeners() {
     });
 
     // Team Management Event Listeners
-    document.getElementById('cancel-create-team-btn').addEventListener('click', closeCreateTeamModal);
-    document.getElementById('save-create-team-btn').addEventListener('click', createTeam);
-    document.getElementById('cancel-join-team-btn').addEventListener('click', closeJoinTeamModal);
-    document.getElementById('save-join-team-btn').addEventListener('click', joinTeam);
-    document.getElementById('cancel-edit-name-btn').addEventListener('click', closeEditDisplayNameModal);
-    document.getElementById('save-edit-name-btn').addEventListener('click', editDisplayName);
-    document.getElementById('close-team-dashboard-btn').addEventListener('click', closeTeamDashboard);
-    document.getElementById('cancel-edit-team-name-btn').addEventListener('click', closeEditTeamNameModal);
-    document.getElementById('save-edit-team-name-btn').addEventListener('click', editTeamName);
+    document.getElementById('cancel-create-team-btn')?.addEventListener('click', closeCreateTeamModal);
+    document.getElementById('save-create-team-btn')?.addEventListener('click', createTeam);
+    document.getElementById('cancel-join-team-btn')?.addEventListener('click', closeJoinTeamModal);
+    document.getElementById('save-join-team-btn')?.addEventListener('click', joinTeam);
+    document.getElementById('cancel-edit-name-btn')?.addEventListener('click', closeEditDisplayNameModal);
+    document.getElementById('save-edit-name-btn')?.addEventListener('click', editDisplayName);
+    document.getElementById('close-team-dashboard-btn')?.addEventListener('click', closeTeamDashboard);
+    document.getElementById('cancel-edit-team-name-btn')?.addEventListener('click', closeEditTeamNameModal);
+    document.getElementById('save-edit-team-name-btn')?.addEventListener('click', editTeamName);
 
     if (DOM.closeAdminDashboardBtn) {
-        DOM.closeAdminDashboardBtn.addEventListener('click', () => {
+        DOM.closeAdminDashboardBtn?.addEventListener('click', () => {
             DOM.adminDashboardModal.classList.remove('visible');
         });
     }
 
-    DOM.teamDashboardContent.addEventListener('click', (e) => {
+    DOM.teamDashboardContent?.addEventListener('click', (e) => {
         const kickBtn = e.target.closest('.kick-member-btn');
         if (kickBtn) {
             const memberId = kickBtn.dataset.kickMemberId;
@@ -4476,11 +4507,11 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('cancel-kick-btn').addEventListener('click', closeKickMemberModal);
-    document.getElementById('confirm-kick-btn').addEventListener('click', kickMember);
+    document.getElementById('cancel-kick-btn')?.addEventListener('click', closeKickMemberModal);
+    document.getElementById('confirm-kick-btn')?.addEventListener('click', kickMember);
 
     // Delegated event listener for the team section
-    DOM.teamSection.addEventListener('click', (e) => {
+    DOM.teamSection?.addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (!button) return;
 
@@ -4531,7 +4562,7 @@ function setupEventListeners() {
     });
 
     // Format room code input & Validate
-    DOM.roomCodeInput.addEventListener('input', (e) => {
+    DOM.roomCodeInput?.addEventListener('input', (e) => {
         const input = e.target;
         input.value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
 
@@ -4551,16 +4582,16 @@ function setupEventListeners() {
     // Pro Duration Modal Listeners
     const proDurationModal = document.getElementById('pro-duration-modal');
     if (proDurationModal) {
-        document.getElementById('cancel-pro-duration-btn').addEventListener('click', () => {
+        document.getElementById('cancel-pro-duration-btn')?.addEventListener('click', () => {
             proDurationModal.classList.remove('visible');
             state.adminTargetUserId = null;
         });
 
-        document.getElementById('pro-till-revoked-btn').addEventListener('click', async () => {
+        document.getElementById('pro-till-revoked-btn')?.addEventListener('click', async () => {
             await setProStatus(state.adminTargetUserId, null);
         });
 
-        document.getElementById('pro-save-date-btn').addEventListener('click', async () => {
+        document.getElementById('pro-save-date-btn')?.addEventListener('click', async () => {
             const dateVal = document.getElementById('pro-expiry-date').value;
             if (!dateVal) {
                 showMessage(i18n.t("tracker.pleaseSelectDate"), "error");
@@ -4600,7 +4631,7 @@ function renderAdminButton() {
     const footer = document.getElementById('main-footer');
     if (footer) {
         footer.insertBefore(btn, footer.firstChild);
-        btn.addEventListener('click', openAdminDashboard);
+        btn?.addEventListener('click', openAdminDashboard);
     }
 }
 
@@ -4679,18 +4710,18 @@ async function refreshAdminUserList(reset = true) {
         const { functions, httpsCallable } = await getFunctionsInstance();
         const getAllUsers = httpsCallable(functions, 'getAllUsers');
         const result = await getAllUsers({ nextPageToken: state.adminNextPageToken, limit: 100 });
-        
+
         const newUsers = result.data.users;
         const nextToken = result.data.nextPageToken;
-        
+
         // Deduplicate just in case
         const currentUsers = state.adminUsers || [];
         const existingIds = new Set(currentUsers.map(u => u.uid));
         const uniqueNewUsers = newUsers.filter(u => !existingIds.has(u.uid));
-        
+
         const updatedUsers = [...currentUsers, ...uniqueNewUsers];
-        
-        setState({ 
+
+        setState({
             adminUsers: updatedUsers,
             adminNextPageToken: nextToken
         });
@@ -4738,7 +4769,7 @@ function renderAdminUserList(users, searchQuery = '') {
 
         // Add event listener for search
         const searchInput = searchContainer.querySelector('#admin-user-search');
-        searchInput.addEventListener('input', debounce((e) => {
+        searchInput?.addEventListener('input', debounce((e) => {
             renderAdminUserList(state.adminUsers, e.target.value.trim());
         }, 300));
     }
@@ -4769,7 +4800,7 @@ function renderAdminUserList(users, searchQuery = '') {
         `;
         DOM.adminUserList.appendChild(grantCard);
 
-        grantCard.querySelector('#grant-pro-btn').addEventListener('click', async (e) => {
+        grantCard.querySelector('#grant-pro-btn')?.addEventListener('click', async (e) => {
             const btn = e.target;
             setButtonLoadingState(btn, true);
             await grantProByEmail(searchQuery);
@@ -4906,7 +4937,7 @@ function renderAdminUserList(users, searchQuery = '') {
 
     // Add event listeners
     DOM.adminUserList.querySelectorAll('.toggle-role-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn?.addEventListener('click', async (e) => {
             const uid = btn.dataset.uid;
             const email = btn.dataset.email;
             const isPending = btn.dataset.pending === 'true';
@@ -4970,8 +5001,8 @@ function renderAdminUserList(users, searchQuery = '') {
             </button>
         `;
         DOM.adminUserList.appendChild(loadMoreContainer);
-        
-        loadMoreContainer.querySelector('#admin-load-more-btn').addEventListener('click', () => {
+
+        loadMoreContainer.querySelector('#admin-load-more-btn')?.addEventListener('click', () => {
             refreshAdminUserList(false);
         });
     }
@@ -5014,7 +5045,7 @@ function setupSplashTapListener() {
         }
         if (DOM.splashScreen) {
             DOM.splashScreen.style.cursor = 'pointer';
-            DOM.splashScreen.addEventListener('click', dismissSplashScreen, { once: true });
+            DOM.splashScreen?.addEventListener('click', dismissSplashScreen, { once: true });
         }
     });
 }
@@ -5047,9 +5078,9 @@ function dismissSplashScreen() {
         }
     };
 
-    DOM.splashScreen.addEventListener('transitionend', handleSplashTransitionEnd);
+    DOM.splashScreen?.addEventListener('transitionend', handleSplashTransitionEnd);
     if (DOM.splashText) {
-         DOM.splashText.addEventListener('animationend', handleTextAnimationEnd);
+         DOM.splashText?.addEventListener('animationend', handleTextAnimationEnd);
 
          // Fallback safety
          setTimeout(() => {
@@ -5102,7 +5133,7 @@ async function init() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document?.addEventListener('DOMContentLoaded', init);
 function mergeUserData(cloudState, guestData) {
     const mergedYearlyData = JSON.parse(JSON.stringify(cloudState.yearlyData || {}));
     const mergedLeaveTypes = [...(cloudState.leaveTypes || [])];
@@ -5202,6 +5233,78 @@ async function subscribeToAppConfig() {
     });
 }
 
+// --- TOG Tracker Integration ---
+
+function toggleAppMode() {
+    if (DOM.appView.classList.contains('hidden')) {
+        switchToTrackerMode();
+    } else {
+        switchToTogMode();
+    }
+}
+
+function switchToTrackerMode() {
+    switchView(DOM.appView, DOM.togView);
+    if (DOM.navTogBtn) {
+        DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">TOGtracker</span>`;
+        DOM.navTogBtn.title = "Switch to TOGtracker";
+    }
+}
+
+function switchToTogMode() {
+    initTog(state.userId, db, auth, i18n);
+    switchView(DOM.togView, DOM.appView);
+    if (DOM.navTogBtn) {
+        DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">TrackerBuddy</span>`;
+        DOM.navTogBtn.title = "Switch to TrackerBuddy";
+    }
+}
+
+window.openSharedMonthPicker = function(initialDate, callback) {
+    state.pickerYear = initialDate.getFullYear();
+    state.pickerCallback = callback;
+    renderMonthPicker();
+    DOM.monthPickerModal.classList.add('visible');
+}
+
+function setupTbUserMenu(user) {
+    if (!DOM.tbUserAvatarBtn || !DOM.tbUserDropdown) return;
+
+    // Set Avatar
+    if (user) {
+        const letter = (user.email || 'U').charAt(0).toUpperCase();
+        DOM.tbMenuAvatar.innerText = letter;
+        DOM.tbMenuEmail.innerText = user.email || 'User';
+    } else {
+        DOM.tbMenuAvatar.innerText = 'U';
+        DOM.tbMenuEmail.innerText = 'Guest';
+    }
+
+    // Toggle
+    DOM.tbUserAvatarBtn.onclick = (e) => {
+        e.stopPropagation();
+        const isClosed = DOM.tbUserDropdown.classList.contains('opacity-0');
+        if (isClosed) {
+            DOM.tbUserDropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+        } else {
+            DOM.tbUserDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+        }
+    };
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (DOM.tbMenuContainer && !DOM.tbMenuContainer.contains(e.target)) {
+            DOM.tbUserDropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+        }
+    });
+}
+
+function confirmResetAllData() {
+    state.pendingSwipeAction = 'resetAllData';
+    DOM.swipeConfirmModal.classList.add('visible');
+    resetSwipeConfirm();
+}
+
 function setupSwipeConfirm() {
     const track = DOM.swipeTrack;
     const thumb = DOM.swipeThumb;
@@ -5254,7 +5357,12 @@ function setupSwipeConfirm() {
             // Perform Action after brief delay
             setTimeout(() => {
                 DOM.swipeConfirmModal.classList.remove('visible');
-                deleteLeaveType();
+                if (state.pendingSwipeAction === 'resetAllData') {
+                    resetAllData();
+                } else {
+                    deleteLeaveType(); // Default/Old behavior
+                }
+                state.pendingSwipeAction = null;
             }, 300);
         } else {
             // Reset
@@ -5267,33 +5375,33 @@ function setupSwipeConfirm() {
     };
 
     // Mouse Events
-    thumb.addEventListener('mousedown', (e) => {
+    thumb?.addEventListener('mousedown', (e) => {
         e.preventDefault(); // Prevent text selection
         startDrag(e.clientX);
     });
-    document.addEventListener('mousemove', (e) => {
+    document?.addEventListener('mousemove', (e) => {
         if (isDragging) onMove(e.clientX);
     });
-    document.addEventListener('mouseup', (e) => {
+    document?.addEventListener('mouseup', (e) => {
         if (isDragging) endDrag(e.clientX);
     });
 
     // Touch Events
-    thumb.addEventListener('touchstart', (e) => {
+    thumb?.addEventListener('touchstart', (e) => {
         // e.preventDefault(); // Might block scrolling if not careful, but needed here?
         // Using touch-action: none in CSS on track instead.
         startDrag(e.touches[0].clientX);
     }, { passive: true });
 
-    track.addEventListener('touchmove', (e) => {
+    track?.addEventListener('touchmove', (e) => {
         if (isDragging) onMove(e.touches[0].clientX);
     }, { passive: true });
 
-    document.addEventListener('touchend', (e) => {
+    document?.addEventListener('touchend', (e) => {
         if (isDragging) endDrag(e.changedTouches[0].clientX);
     });
 
-    DOM.cancelSwipeBtn.addEventListener('click', () => {
+    DOM.cancelSwipeBtn?.addEventListener('click', () => {
         DOM.swipeConfirmModal.classList.remove('visible');
     });
 }

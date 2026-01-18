@@ -330,5 +330,23 @@
     "fuchsia": "紫红",
     "pink": "粉",
     "gray": "灰"
+  },
+  "tog": {
+    "title": "TOG 追踪器",
+    "memory": "记忆",
+    "timeToTog": "时间转 TOG",
+    "togToTime": "TOG 转时间",
+    "visibleDays": "可见天数",
+    "monthlyTotal": "TOG (月总计)",
+    "monthlyAvg": "TOG (月平均)",
+    "jumpToToday": "跳到今天",
+    "wkAvg": "周平均",
+    "total": "总计",
+    "calcFirst": "先计算！",
+    "inserted": "已插入！",
+    "restored": "恢复成功",
+    "invalidJson": "无效的 JSON 文件",
+    "resetComplete": "重置完成",
+    "weekly": "每周"
   }
 }

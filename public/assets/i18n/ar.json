@@ -330,5 +330,23 @@
     "fuchsia": "فوشيا",
     "pink": "وردي",
     "gray": "رمادي"
+  },
+  "tog": {
+    "title": "متتبع TOG",
+    "memory": "ذاكرة",
+    "timeToTog": "الوقت إلى TOG",
+    "togToTime": "TOG إلى الوقت",
+    "visibleDays": "الأيام المرئية",
+    "monthlyTotal": "TOG (المجموع الشهري)",
+    "monthlyAvg": "TOG (المعدل الشهري)",
+    "jumpToToday": "الانتقال إلى اليوم",
+    "wkAvg": "معدل أسبوعي",
+    "total": "المجموع",
+    "calcFirst": "احسب أولاً!",
+    "inserted": "تم الإدراج!",
+    "restored": "تمت الاستعادة بنجاح",
+    "invalidJson": "ملف JSON غير صالح",
+    "resetComplete": "اكتملت إعادة التعيين",
+    "weekly": "أسبوعي"
   }
 }

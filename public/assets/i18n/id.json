@@ -330,5 +330,23 @@
     "fuchsia": "Fuchsia",
     "pink": "Merah Muda",
     "gray": "Abu-abu"
+  },
+  "tog": {
+    "title": "Pelacak TOG",
+    "memory": "Memori",
+    "timeToTog": "WAKTU KE TOG",
+    "togToTime": "TOG KE WAKTU",
+    "visibleDays": "Hari Terlihat",
+    "monthlyTotal": "TOG (Total Bulanan)",
+    "monthlyAvg": "TOG (Rata-rata Bulanan)",
+    "jumpToToday": "Lompat ke Hari Ini",
+    "wkAvg": "Rata-rata Mingguan",
+    "total": "Total",
+    "calcFirst": "Hitung dulu!",
+    "inserted": "Disisipkan!",
+    "restored": "Berhasil Dipulihkan",
+    "invalidJson": "File JSON Tidak Valid",
+    "resetComplete": "Reset Selesai",
+    "weekly": "Mingguan"
   }
 }

@@ -330,5 +330,23 @@
     "fuchsia": "บานเย็น",
     "pink": "ชมพู",
     "gray": "เทา"
+  },
+  "tog": {
+    "title": "ตัวติดตาม TOG",
+    "memory": "หน่วยความจำ",
+    "timeToTog": "เวลาเป็น TOG",
+    "togToTime": "TOG เป็นเวลา",
+    "visibleDays": "วันที่มองเห็น",
+    "monthlyTotal": "TOG (รวมรายเดือน)",
+    "monthlyAvg": "TOG (เฉลี่ยรายเดือน)",
+    "jumpToToday": "ไปที่วันนี้",
+    "wkAvg": "เฉลี่ยต่อสัปดาห์",
+    "total": "รวม",
+    "calcFirst": "คำนวณก่อน!",
+    "inserted": "แทรกแล้ว!",
+    "restored": "กู้คืนสำเร็จ",
+    "invalidJson": "ไฟล์ JSON ไม่ถูกต้อง",
+    "resetComplete": "รีเซ็ตเสร็จสมบูรณ์",
+    "weekly": "รายสัปดาห์"
   }
 }

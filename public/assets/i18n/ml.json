@@ -330,5 +330,23 @@
     "fuchsia": "മജന്ത",
     "pink": "പിങ്ക്",
     "gray": "ചാരനിറം"
+  },
+  "tog": {
+    "title": "TOG ട്രാക്കർ",
+    "memory": "മെമ്മറി",
+    "timeToTog": "സമയം TOG-ലേക്ക്",
+    "togToTime": "TOG സമയത്തിലേക്ക്",
+    "visibleDays": "ദൃശ്യമായ ദിവസങ്ങൾ",
+    "monthlyTotal": "TOG (പ്രതിമാസ ആകെ)",
+    "monthlyAvg": "TOG (പ്രതിമാസ ശരാശരി)",
+    "jumpToToday": "ഇന്നത്തേക്ക് പോകൂ",
+    "wkAvg": "പ്രതിവാര ശരാശരി",
+    "total": "ആകെ",
+    "calcFirst": "ആദ്യം കണക്കാക്കൂ!",
+    "inserted": "ചേർത്തു!",
+    "restored": "വിജയകരമായി പുനഃസ്ഥാപിച്ചു",
+    "invalidJson": "അസാധുവായ JSON ഫയൽ",
+    "resetComplete": "റീസെറ്റ് പൂർത്തിയായി",
+    "weekly": "പ്രതിവാര"
   }
 }
