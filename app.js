@@ -27,7 +27,7 @@ import {
     getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 } from './services/firebase.js';
-import { initTog, performReset as performTogReset } from './tog.js';
+import { initTog, performReset as performTogReset, renderCalendar as renderTogCalendar } from './tog.js';
 
 const i18n = new TranslationService(() => {
     updateView();
@@ -49,6 +49,9 @@ const i18n = new TranslationService(() => {
     }
     if (DOM.monthPickerModal?.classList.contains('visible')) {
         renderMonthPicker();
+    }
+    if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
+        renderTogCalendar();
     }
 });
 
