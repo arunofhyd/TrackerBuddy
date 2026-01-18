@@ -127,8 +127,28 @@ function subscribeToData(userId) {
             const data = docSnap.data();
             const cloudTogData = data.togData || {};
 
+            // Flatten nested structure (year/month/data)
+            let flatCloudData = {};
+            for (const key in cloudTogData) {
+                // Keep root properties like _dayVisibility or legacy flat keys
+                if (typeof cloudTogData[key] !== 'object' || Array.isArray(cloudTogData[key]) || key.startsWith('_')) {
+                    flatCloudData[key] = cloudTogData[key];
+                } else {
+                    // Assume it's a year map -> month map -> data
+                    const yearData = cloudTogData[key];
+                    for (const monthKey in yearData) {
+                        const monthData = yearData[monthKey];
+                        if (typeof monthData === 'object') {
+                            for (const dateKey in monthData) {
+                                flatCloudData[dateKey] = monthData[dateKey];
+                            }
+                        }
+                    }
+                }
+            }
+
             // Merge strategy: Cloud wins
-            state.storedData = { ...state.storedData, ...cloudTogData };
+            state.storedData = { ...state.storedData, ...flatCloudData };
 
             if(state.storedData._dayVisibility) {
                 state.dayVisibility = state.storedData._dayVisibility;
@@ -170,7 +190,7 @@ function renderHeader(user) {
 function getAvatarContent(user) {
     if (!user) {
         // Guest - Simple user icon SVG
-        return `<div class="bg-gray-200 dark:bg-slate-800 w-full h-full flex items-center justify-center text-slate-500 dark:text-slate-400">
+        return `<div style="background-color: #0071e3;" class="w-full h-full flex items-center justify-center text-white">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>`;
     }
@@ -189,7 +209,7 @@ function getAvatarContent(user) {
     const color1 = "#" + "00000".substring(0, 6 - c1.length) + c1;
     const color2 = "#" + "00000".substring(0, 6 - c2.length) + c2;
 
-    return `<div style="background: linear-gradient(135deg, ${color1}, ${color2});" class="w-full h-full flex items-center justify-center text-white font-bold text-sm shadow-inner">
+    return `<div style="background-color: #0071e3;" class="w-full h-full flex items-center justify-center text-white font-bold text-sm shadow-inner">
         ${letter}
     </div>`;
 }
@@ -232,7 +252,22 @@ async function saveData(key, value) {
 
     if(state.userId && state.db) {
         const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
-        const fieldPath = `togData.${key}`;
+
+        let fieldPath;
+        if (key.startsWith('_')) {
+             fieldPath = `togData.${key}`;
+        } else {
+             // Parse date from key
+             let datePart = key.startsWith('bonus_') ? key.replace('bonus_', '') : key;
+             const [year, month] = datePart.split('-');
+
+             if (!year || !month) {
+                 fieldPath = `togData.${key}`;
+             } else {
+                 fieldPath = `togData.${year}.${month}.${key}`;
+             }
+        }
+
         try {
             if(value === "") {
                 await updateDoc(userRef, { [fieldPath]: deleteField() });
@@ -241,9 +276,26 @@ async function saveData(key, value) {
             }
         } catch(e) {
             console.warn("Update failed, trying set/merge", e);
-            const payload = { togData: { [key]: value } };
-            if (value === "") delete payload.togData[key];
-            await setDoc(userRef, { togData: state.storedData }, { merge: true });
+
+            // Reconstruct nested object for setDoc
+            const payload = { togData: {} };
+            const parts = fieldPath.split('.'); // e.g. ["togData", "2023", "10", "key"]
+
+            let current = payload.togData;
+            for (let i = 1; i < parts.length - 1; i++) {
+                const part = parts[i];
+                if (!current[part]) current[part] = {};
+                current = current[part];
+            }
+            const lastPart = parts[parts.length - 1];
+
+            if (value === "") {
+                current[lastPart] = deleteField();
+            } else {
+                current[lastPart] = value;
+            }
+
+            await setDoc(userRef, payload, { merge: true });
         }
     }
 }
@@ -275,8 +327,8 @@ export function renderCalendar(preserveFocus = false) {
         const isVisible = state.dayVisibility[idx];
         const btn = document.createElement('button');
         const activeClass = isVisible
-            ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
-            : "bg-slate-50 text-slate-300 border-slate-100 dark:bg-slate-900 dark:text-slate-700 dark:border-slate-800";
+            ? "bg-blue-100 text-blue-700 border-blue-200 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+            : "bg-slate-50 text-slate-300 border-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-700";
 
         // Added flex-shrink-0 to prevent squeezing
         btn.className = `flex-shrink-0 flex items-center justify-center w-8 h-8 rounded text-[10px] font-bold border transition-colors ${activeClass}`;
