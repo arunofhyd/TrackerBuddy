@@ -330,5 +330,23 @@
     "fuchsia": "फुकिया",
     "pink": "गुलाबी",
     "gray": "धूसर"
+  },
+  "tog": {
+    "title": "TOG ट्रैकर",
+    "memory": "मेमोरी",
+    "timeToTog": "समय से TOG",
+    "togToTime": "TOG से समय",
+    "visibleDays": "दृश्यमान दिन",
+    "monthlyTotal": "TOG (मासिक योग)",
+    "monthlyAvg": "TOG (मासिक औसत)",
+    "jumpToToday": "आज पर जाएं",
+    "wkAvg": "साप्ताहिक औसत",
+    "total": "योग",
+    "calcFirst": "पहले गणना करें!",
+    "inserted": "डाला गया!",
+    "restored": "सफलतापूर्वक बहाल किया गया",
+    "invalidJson": "अमान्य JSON फ़ाइल",
+    "resetComplete": "रीसेट पूर्ण",
+    "weekly": "साप्ताहिक"
   }
 }

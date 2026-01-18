@@ -330,5 +330,23 @@
     "fuchsia": "மெஜந்தா",
     "pink": "பிங்க்",
     "gray": "சாம்பல்"
+  },
+  "tog": {
+    "title": "TOG டிராக்கர்",
+    "memory": "நினைவகம்",
+    "timeToTog": "நேரம் TOGக்கு",
+    "togToTime": "TOG நேரத்திற்கு",
+    "visibleDays": "தெரியும் நாட்கள்",
+    "monthlyTotal": "TOG (மாதாந்திர மொத்தம்)",
+    "monthlyAvg": "TOG (மாதாந்திர சராசரி)",
+    "jumpToToday": "இன்றுக்கு செல்",
+    "wkAvg": "வாராந்திர சராசரி",
+    "total": "மொத்தம்",
+    "calcFirst": "முதலில் கணக்கிடுங்கள்!",
+    "inserted": "செருகப்பட்டது!",
+    "restored": "வெற்றிகரமாக மீட்டமைக்கப்பட்டது",
+    "invalidJson": "தவறான JSON கோப்பு",
+    "resetComplete": "மீட்டமைப்பு முடிந்தது",
+    "weekly": "வாராந்திர"
   }
 }

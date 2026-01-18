@@ -330,5 +330,23 @@
     "fuchsia": "フクシア",
     "pink": "ピンク",
     "gray": "グレー"
+  },
+  "tog": {
+    "title": "TOG トラッカー",
+    "memory": "メモリ",
+    "timeToTog": "時間をTOGへ",
+    "togToTime": "TOGを時間へ",
+    "visibleDays": "表示日",
+    "monthlyTotal": "TOG (月間合計)",
+    "monthlyAvg": "TOG (月間平均)",
+    "jumpToToday": "今日へジャンプ",
+    "wkAvg": "週間平均",
+    "total": "合計",
+    "calcFirst": "先に計算してください！",
+    "inserted": "挿入しました！",
+    "restored": "正常に復元されました",
+    "invalidJson": "無効なJSONファイル",
+    "resetComplete": "リセット完了",
+    "weekly": "週次"
   }
 }

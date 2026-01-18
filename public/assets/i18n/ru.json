@@ -330,5 +330,23 @@
     "fuchsia": "Фуксия",
     "pink": "Розовый",
     "gray": "Серый"
+  },
+  "tog": {
+    "title": "Трекер TOG",
+    "memory": "Память",
+    "timeToTog": "ВРЕМЯ В TOG",
+    "togToTime": "TOG ВО ВРЕМЯ",
+    "visibleDays": "Видимые дни",
+    "monthlyTotal": "TOG (Мес. итог)",
+    "monthlyAvg": "TOG (Мес. среднее)",
+    "jumpToToday": "Перейти к сегодня",
+    "wkAvg": "Сред. нед.",
+    "total": "Всего",
+    "calcFirst": "Сначала посчитайте!",
+    "inserted": "Вставлено!",
+    "restored": "Успешно восстановлено",
+    "invalidJson": "Неверный файл JSON",
+    "resetComplete": "Сброс завершен",
+    "weekly": "Еженедельно"
   }
 }

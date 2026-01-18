@@ -11,16 +11,18 @@ let state = {
     db: null,
     auth: null,
     unsubscribe: null,
-    isInitialized: false
+    isInitialized: false,
+    i18n: null
 };
 
 const STORAGE_KEY = 'tog_tracker_v1';
 const DOM = {};
 
-export function initTog(userId, db, auth) {
+export function initTog(userId, db, auth, i18n) {
     state.userId = userId;
     state.db = db;
     state.auth = auth;
+    state.i18n = i18n;
 
     cacheDOM();
 
@@ -355,7 +357,9 @@ export function renderCalendar(preserveFocus = false) {
     }
 
     // 1. Toggles
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const daysKey = (state.i18n?.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
+    const dayNames = state.i18n?.getValue(daysKey) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
     DOM.dayToggles.innerHTML = '';
     dayNames.forEach((name, idx) => {
         const isVisible = state.dayVisibility[idx];
@@ -389,14 +393,14 @@ export function renderCalendar(preserveFocus = false) {
     });
     const wkDiv = document.createElement('div');
     wkDiv.className = "text-center text-xs font-bold text-emerald-500 uppercase py-1 border-l border-slate-100 dark:border-slate-800";
-    wkDiv.innerText = "Weekly";
+    wkDiv.innerText = state.i18n?.t('tog.weekly') || "Weekly";
     DOM.headerRow.appendChild(wkDiv);
 
     // 4. Body
     DOM.calendarGrid.innerHTML = '';
     const year = state.viewDate.getFullYear();
     const month = state.viewDate.getMonth();
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthNames = state.i18n?.getValue('common.months') || ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     if(DOM.monthLabel) DOM.monthLabel.innerText = `${monthNames[month]} ${year}`;
 
     const firstDayOfMonth = new Date(year, month, 1);
@@ -492,11 +496,11 @@ export function renderCalendar(preserveFocus = false) {
         statCard.innerHTML = `
             <div class="flex flex-col gap-2 text-center">
                 <div>
-                    <span class="text-[9px] uppercase font-bold text-slate-400 block">Wk Avg</span>
+                    <span class="text-[9px] uppercase font-bold text-slate-400 block">${state.i18n?.t('tog.wkAvg') || "Wk Avg"}</span>
                     <span class="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">${weekAvg.toFixed(2)}</span>
                 </div>
                 <div class="border-t border-slate-200 dark:border-slate-700 pt-1">
-                    <span class="text-[9px] uppercase font-bold text-slate-400 block">Total</span>
+                    <span class="text-[9px] uppercase font-bold text-slate-400 block">${state.i18n?.t('tog.total') || "Total"}</span>
                     <span class="text-sm font-mono font-bold text-slate-700 dark:text-slate-300">${weekTotal.toFixed(2)}</span>
                 </div>
             </div>
@@ -520,9 +524,9 @@ export function renderCalendar(preserveFocus = false) {
 function handleInputChange(key, value) { saveData(key, value); }
 
 function insertValue(key, type) {
-    if(state.lastCalculatedDecimal == 0) { showToast("Calculate first!", 'error'); return; }
+    if(state.lastCalculatedDecimal == 0) { showToast(state.i18n?.t('tog.calcFirst') || "Calculate first!", 'error'); return; }
     saveData(key, state.lastCalculatedDecimal);
-    showToast("Inserted!", 'success');
+    showToast(state.i18n?.t('tog.inserted') || "Inserted!", 'success');
 }
 
 function changeMonth(offset) {
@@ -585,15 +589,15 @@ function handleRestore(e) {
 
             if(state.userId) {
                 // Save whole object for restore
-                const userRef = doc(db, COLLECTIONS.USERS, state.userId);
+                const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
                 await updateDoc(userRef, { togData: state.storedData });
             }
 
             renderCalendar();
-            showToast("Restored Successfully", "success");
+            showToast(state.i18n?.t('tog.restored') || "Restored Successfully", "success");
         } catch(err) {
             console.error(err);
-            showToast("Invalid JSON File", "error");
+            showToast(state.i18n?.t('tog.invalidJson') || "Invalid JSON File", "error");
         }
     };
     reader.readAsText(file);
@@ -615,5 +619,9 @@ export async function performReset(userId, db) {
          await updateDoc(userRef, { togData: deleteField() });
     }
     renderCalendar();
-    showToast("Reset Complete", "success");
+    if (state.i18n) {
+        showToast(state.i18n.t('tog.resetComplete'), "success");
+    } else {
+        showToast("Reset Complete", "success");
+    }
 }

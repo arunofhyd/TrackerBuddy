@@ -330,5 +330,23 @@
     "fuchsia": "자주",
     "pink": "분홍",
     "gray": "회색"
+  },
+  "tog": {
+    "title": "TOG 추적기",
+    "memory": "메모리",
+    "timeToTog": "시간을 TOG로",
+    "togToTime": "TOG를 시간으로",
+    "visibleDays": "표시된 요일",
+    "monthlyTotal": "TOG (월 합계)",
+    "monthlyAvg": "TOG (월 평균)",
+    "jumpToToday": "오늘로 이동",
+    "wkAvg": "주간 평균",
+    "total": "합계",
+    "calcFirst": "먼저 계산하세요!",
+    "inserted": "삽입됨!",
+    "restored": "성공적으로 복원됨",
+    "invalidJson": "잘못된 JSON 파일",
+    "resetComplete": "초기화 완료",
+    "weekly": "주간"
   }
 }

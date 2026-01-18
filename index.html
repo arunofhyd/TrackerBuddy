@@ -186,23 +186,18 @@
 <div id="tog-view" class="view-container w-full max-w-[1400px] mx-auto hidden space-y-6 p-4">
     <!-- TOG Tracker Header -->
     <div class="flex flex-row items-center justify-between relative z-20">
-        <div>
-            <h1 class="text-xl font-bold tracking-tight">TOG Tracker</h1>
+        <button id="tog-theme-toggle-btn" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:scale-95" title="Toggle Theme" data-i18n-title="a11y.toggleTheme">
+            <!-- Sun Icon (Show in Dark Mode) -->
+            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <!-- Moon Icon (Show in Light Mode) -->
+            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+
+        <div class="absolute left-1/2 transform -translate-x-1/2">
+            <h1 class="text-xl font-bold tracking-tight" data-i18n="tog.title">TOG Tracker</h1>
         </div>
 
         <div class="flex items-center gap-3">
-            <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
-                <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Memory</span>
-                <span id="tog-globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
-            </div>
-
-            <button id="tog-theme-toggle-btn" class="w-9 h-9 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors active:scale-95" title="Toggle Theme">
-                <!-- Sun Icon (Show in Dark Mode) -->
-                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <!-- Moon Icon (Show in Light Mode) -->
-                <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
-
             <!-- User Avatar & Menu -->
             <div class="relative" id="tog-user-menu-container">
                 <button id="tog-user-avatar-btn" class="w-9 h-9 rounded-full flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700 transition-transform hover:scale-105 overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm">
@@ -218,15 +213,15 @@
                         </div>
                         <button id="tog-backup-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
                             <i class="fas fa-file-export w-4 text-center"></i>
-                            <span>Backup Data (JSON)</span>
+                            <span data-i18n="dashboard.backupData">Backup Data</span>
                         </button>
                         <button id="tog-restore-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
                             <i class="fas fa-file-import w-4 text-center"></i>
-                            <span>Restore Data</span>
+                            <span data-i18n="dashboard.restoreData">Restore Data</span>
                         </button>
                         <button id="tog-reset-btn" class="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors">
                             <i class="fas fa-trash-alt w-4 text-center"></i>
-                            <span>Reset All Data</span>
+                            <span data-i18n="dashboard.resetAllData">Reset All Data</span>
                         </button>
                     </div>
                 </div>
@@ -235,9 +230,9 @@
     </div>
 
     <!-- TOG Calculators -->
-    <div class="grid md:grid-cols-2 gap-4">
-        <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400">TIME TO TOG</div>
+    <div class="flex flex-col md:flex-row gap-4 items-center">
+        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
+            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.timeToTog">TIME TO TOG</div>
             <input type="number" id="tog-c1_h" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
             <span class="text-slate-300">:</span>
             <input type="number" id="tog-c1_m" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
@@ -246,8 +241,13 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400">TOG TO TIME</div>
+        <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
+            <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider" data-i18n="tog.memory">Memory</span>
+            <span id="tog-globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
+        </div>
+
+        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
+            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.togToTime">TOG TO TIME</div>
             <input type="number" id="tog-c2_d" class="input-field w-24 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
             <div class="flex-1 text-right">
                 <span id="tog-res_time" class="font-mono font-bold text-lg text-emerald-600 dark:text-emerald-400">0h 0m</span>
@@ -263,7 +263,7 @@
 
             <div class="text-center w-48">
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-blue-600 transition-colors" id="tog-monthLabel">...</h2>
-                <button id="tog-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider">Jump to Today</button>
+                <button id="tog-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider" data-i18n="tog.jumpToToday">Jump to Today</button>
             </div>
 
             <button id="tog-next-month-btn" class="btn-outline border-slate-200 text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 px-2 h-9"><i class="fas fa-chevron-right w-4 h-4"></i></button>
@@ -272,19 +272,19 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-t border-b border-slate-100 dark:border-slate-800 py-3">
 
             <div class="flex flex-col items-center md:items-start gap-1">
-                <span class="text-[10px] uppercase font-bold text-slate-400">Visible Days</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400" data-i18n="tog.visibleDays">Visible Days</span>
                 <div id="tog-dayToggles" class="flex gap-1">
                 </div>
             </div>
 
             <div class="flex gap-6 items-center bg-slate-50 dark:bg-slate-800/50 px-5 py-2 rounded-lg border border-slate-100 dark:border-slate-800">
                 <div class="text-center md:text-right">
-                    <span class="block text-[9px] uppercase font-bold text-slate-400">TOG (Monthly Total)</span>
+                    <span class="block text-[9px] uppercase font-bold text-slate-400" data-i18n="tog.monthlyTotal">TOG (Monthly Total)</span>
                     <span id="tog-monthTotal" class="text-lg font-bold text-slate-900 dark:text-white leading-none">0.0</span>
                 </div>
                 <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
                 <div class="text-center md:text-right">
-                    <span class="block text-[9px] uppercase font-bold text-slate-400">TOG (Monthly Avg)</span>
+                    <span class="block text-[9px] uppercase font-bold text-slate-400" data-i18n="tog.monthlyAvg">TOG (Monthly Avg)</span>
                     <span id="tog-monthAvg" class="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none">0.0</span>
                 </div>
             </div>

@@ -5249,7 +5249,7 @@ function switchToTrackerMode() {
 }
 
 function switchToTogMode() {
-    initTog(state.userId, db, auth);
+    initTog(state.userId, db, auth, i18n);
     switchView(DOM.togView, DOM.appView);
     if (DOM.navTogBtn) {
         DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">TrackerBuddy</span>`;
