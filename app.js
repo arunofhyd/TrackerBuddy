@@ -354,6 +354,7 @@ async function handleUserLogin(user) {
 
     // Initialize TOG Tracker
     initTog(user.uid);
+    DOM.navTogBtn.classList.remove('hidden');
 
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, async () => {
@@ -1131,6 +1132,7 @@ function loadOfflineData() {
     });
 
     initTog(null);
+    DOM.navTogBtn.classList.remove('hidden');
 
     // Switch directly to app view
     switchView(DOM.appView, DOM.loginView, updateView);
@@ -1476,6 +1478,8 @@ function handleUserLogout() {
     if (state.unsubscribeFromFirestore) {
         state.unsubscribeFromFirestore();
     }
+
+    if (DOM.navTogBtn) DOM.navTogBtn.classList.add('hidden');
 
     // Clean up team subscriptions
     cleanupTeamSubscriptions();

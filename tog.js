@@ -1,4 +1,4 @@
-import { db, doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
+import { auth, db, doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
 import { COLLECTIONS } from './constants.js';
 
 let state = {
@@ -115,16 +115,34 @@ function subscribeToData(userId) {
             // Update local storage for redundancy/offline fallback
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
 
+            // If data doesn't have email, try to get it from Auth
+            if (!data.email && auth.currentUser) {
+                data.email = auth.currentUser.email;
+            }
+            // If data doesn't have uid, add it
+            if (!data.uid) {
+                data.uid = userId;
+            }
+
             renderHeader(data);
 
             renderCalendar();
+        } else {
+            // Document doesn't exist yet, but user is logged in
+            if (auth.currentUser) {
+                renderHeader({ email: auth.currentUser.email, uid: auth.currentUser.uid });
+            }
         }
     });
 }
 
 function renderHeader(user) {
-    if(DOM.userEmail) DOM.userEmail.innerText = user ? user.email : "Guest Session";
-    if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(user);
+    // Fallback if user is null (Guest) or if user object is incomplete
+    const email = user ? (user.email || (auth.currentUser ? auth.currentUser.email : "Guest Session")) : "Guest Session";
+    const displayUser = user || (auth.currentUser ? { email: auth.currentUser.email, uid: auth.currentUser.uid } : null);
+
+    if(DOM.userEmail) DOM.userEmail.innerText = email;
+    if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(displayUser);
 }
 
 function getAvatarContent(user) {
@@ -238,7 +256,8 @@ export function renderCalendar(preserveFocus = false) {
             ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-800"
             : "bg-slate-50 text-slate-300 border-slate-100 dark:bg-slate-900 dark:text-slate-700 dark:border-slate-800";
 
-        btn.className = `flex items-center justify-center w-8 h-8 rounded text-[10px] font-bold border transition-colors ${activeClass}`;
+        // Added flex-shrink-0 to prevent squeezing
+        btn.className = `flex-shrink-0 flex items-center justify-center w-8 h-8 rounded text-[10px] font-bold border transition-colors ${activeClass}`;
         btn.onclick = () => toggleDay(idx);
         btn.innerText = name.charAt(0);
         DOM.dayToggles.appendChild(btn);

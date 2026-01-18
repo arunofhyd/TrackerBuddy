@@ -964,6 +964,7 @@ body.dark #tog-view input.input-field { background-color: transparent !important
 
 /* Fix Visible Days Buttons Squeezing */
 #tog-dayToggles { flex-wrap: wrap; }
+#tog-dayToggles button { min-width: 2rem; flex-shrink: 0; }
 
 .main-gradient-text {
     background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
