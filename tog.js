@@ -69,6 +69,16 @@ function bindEvents() {
     document.getElementById('tog-next-month-btn')?.addEventListener('click', () => changeMonth(1));
     document.getElementById('tog-today-btn')?.addEventListener('click', goToToday);
 
+    // Month Picker
+    DOM.monthLabel.addEventListener('click', () => {
+        if (window.openSharedMonthPicker) {
+            window.openSharedMonthPicker(state.viewDate, (newDate) => {
+                state.viewDate = newDate;
+                renderCalendar();
+            });
+        }
+    });
+
     // Avatar Menu
     if(DOM.avatarBtn) {
         DOM.avatarBtn.addEventListener('click', (e) => {

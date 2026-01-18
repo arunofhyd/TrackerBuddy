@@ -959,6 +959,9 @@ body.dark .role-badge.pending {
 #tog-view .day-footer { height: 24px; display: flex; align-items: center; justify-content: center; border-top-width: 1px; background-color: #fefce8; } /* yellow-50 */
 body.dark #tog-view .day-footer { background-color: rgba(113, 63, 18, 0.2); } /* yellow-900/20 */
 
+/* Month Label Hover Effect */
+#tog-monthLabel:hover { cursor: pointer; color: #3b82f6; transition: color 0.2s ease-in-out; }
+
 /* Fix Input Backgrounds in Dark Mode */
 body.dark #tog-view input.input-field { background-color: transparent !important; }
 
