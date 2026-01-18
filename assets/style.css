@@ -965,6 +965,10 @@ body.dark #tog-view .day-footer { background-color: rgba(113, 63, 18, 0.2); } /*
 /* Fix Input Backgrounds in Dark Mode */
 body.dark #tog-view input.input-field { background-color: transparent !important; }
 
+/* Explicit Bonus Input Color Fix */
+.tog-bonus-input { color: #a16207 !important; } /* text-yellow-700 */
+body.dark .tog-bonus-input { color: #eab308 !important; } /* text-yellow-500 */
+
 /* Fix Visible Days Buttons Squeezing */
 #tog-dayToggles { flex-wrap: wrap; }
 #tog-dayToggles button { min-width: 2rem; flex-shrink: 0; }

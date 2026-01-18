@@ -127,13 +127,12 @@ function subscribeToData(userId) {
             const data = docSnap.data();
             const cloudTogData = data.togData || {};
 
-            // Flatten nested structure (year/month/data)
+            // Flatten nested structure (year/month/data) and prioritize over legacy
             let flatCloudData = {};
+
+            // 1. Process nested data first (Priority)
             for (const key in cloudTogData) {
-                // Keep root properties like _dayVisibility or legacy flat keys
-                if (typeof cloudTogData[key] !== 'object' || Array.isArray(cloudTogData[key]) || key.startsWith('_')) {
-                    flatCloudData[key] = cloudTogData[key];
-                } else {
+                if (typeof cloudTogData[key] === 'object' && !Array.isArray(cloudTogData[key]) && !key.startsWith('_')) {
                     // Assume it's a year map -> month map -> data
                     const yearData = cloudTogData[key];
                     for (const monthKey in yearData) {
@@ -149,6 +148,19 @@ function subscribeToData(userId) {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // 2. Process legacy/root keys (only if not already set by nested)
+            for (const key in cloudTogData) {
+                // Check if it's a root property we want to keep
+                if (key.startsWith('_') || typeof cloudTogData[key] !== 'object' || Array.isArray(cloudTogData[key])) {
+                    // If it's a date key (legacy), only add if we haven't seen it in nested data
+                    // Note: This check is simple; if 'key' exists in flatCloudData, we skip it.
+                    // This assumes legacy keys match the flatCloudData keys (YYYY-MM-DD or bonus_YYYY-MM-DD).
+                    if (flatCloudData[key] === undefined) {
+                        flatCloudData[key] = cloudTogData[key];
                     }
                 }
             }
@@ -278,9 +290,16 @@ async function saveData(key, value) {
                  const fieldPath = `togData.${key}`;
                  await updateDoc(userRef, { [fieldPath]: value === "" ? deleteField() : value });
              } else {
-                 // Construct the day object from state
-                 const mainVal = state.storedData[datePart];
-                 const bonusVal = state.storedData[`bonus_${datePart}`];
+                 // Construct the day object from state, but override with current input value
+                 let mainVal = state.storedData[datePart];
+                 let bonusVal = state.storedData[`bonus_${datePart}`];
+
+                 // Override the specific field being updated right now
+                 if (key === datePart) {
+                     mainVal = value;
+                 } else if (key === `bonus_${datePart}`) {
+                     bonusVal = value;
+                 }
 
                  const dayObj = {};
                  if (mainVal !== undefined && mainVal !== "") dayObj.main = mainVal;
@@ -381,11 +400,11 @@ export function renderCalendar(preserveFocus = false) {
     if(DOM.monthLabel) DOM.monthLabel.innerText = `${monthNames[month]} ${year}`;
 
     const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
     const startDate = getMonday(firstDayOfMonth);
-    const endDate = new Date(lastDayOfMonth);
-    const endDay = endDate.getDay();
-    if (endDay !== 0) endDate.setDate(endDate.getDate() + (7 - endDay));
+
+    // Force 6 weeks (42 days) to ensure consistent row count
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 41);
 
     const todayKey = formatDateKey(new Date());
 
@@ -454,7 +473,7 @@ export function renderCalendar(preserveFocus = false) {
                             </button>
                             <input type="number" step="0.1"
                                 data-key="${dateKey}" data-type="bonus"
-                                class="input-field bg-transparent border-none font-mono font-bold text-center text-xs w-full text-yellow-700 dark:text-yellow-500 placeholder-yellow-200"
+                                class="input-field bg-transparent border-none font-mono font-bold text-center text-xs w-full text-yellow-700 dark:text-yellow-500 placeholder-yellow-200 tog-bonus-input"
                                 value="${bonusVal}" placeholder="-" onchange="window.tog_handleInputChange('${bonusKey}', this.value)">
                         </div>
                     </div>
