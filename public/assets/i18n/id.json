@@ -96,7 +96,8 @@
     "stats": "Statistik",
     "teams": "Tim",
     "resetConfirmCloud": "Ini akan menghapus semua data cloud Anda secara permanen. Ini tidak dapat dibatalkan.",
-    "resetConfirmLocal": "Ini akan menghapus semua data lokal Anda secara permanen. Ini tidak dapat dibatalkan."
+    "resetConfirmLocal": "Ini akan menghapus semua data lokal Anda secara permanen. Ini tidak dapat dibatalkan.",
+    "swipeToResetTracker": "GESER UNTUK RESET TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Keluar pencarian",
@@ -347,6 +348,8 @@
     "restored": "Berhasil Dipulihkan",
     "invalidJson": "File JSON Tidak Valid",
     "resetComplete": "Reset Selesai",
-    "weekly": "Mingguan"
+    "weekly": "Mingguan",
+    "swipeToReset": "GESER UNTUK RESET TOG",
+    "resetConfirm": "Ini akan menghapus semua data TOG Anda secara permanen. Tindakan ini tidak dapat dibatalkan."
   }
 }

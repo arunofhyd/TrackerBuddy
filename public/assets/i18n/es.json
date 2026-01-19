@@ -96,7 +96,8 @@
     "stats": "Estadísticas",
     "teams": "Equipos",
     "resetConfirmCloud": "Se borrarán TODOS tus datos en la nube. Irreversible.",
-    "resetConfirmLocal": "Se borrarán TODOS tus datos locales. Irreversible."
+    "resetConfirmLocal": "Se borrarán TODOS tus datos locales. Irreversible.",
+    "swipeToResetTracker": "DESLIZA PARA RESETEAR TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Salir de búsqueda",
@@ -347,6 +348,8 @@
     "restored": "Restaurado con éxito",
     "invalidJson": "Archivo JSON inválido",
     "resetComplete": "Restablecimiento completo",
-    "weekly": "Semanal"
+    "weekly": "Semanal",
+    "swipeToReset": "DESLIZA PARA RESETEAR TOG",
+    "resetConfirm": "Esto eliminará permanentemente todos tus datos de TOG. Esta acción no se puede deshacer."
   }
 }

@@ -96,7 +96,8 @@
     "stats": "Статистика",
     "teams": "Команды",
     "resetConfirmCloud": "Удалит ВСЕ данные из облака навсегда.",
-    "resetConfirmLocal": "Удалит ВСЕ локальные данные навсегда."
+    "resetConfirmLocal": "Удалит ВСЕ локальные данные навсегда.",
+    "swipeToResetTracker": "СВАЙП ДЛЯ СБРОСА TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Выйти из поиска",
@@ -347,6 +348,8 @@
     "restored": "Успешно восстановлено",
     "invalidJson": "Неверный файл JSON",
     "resetComplete": "Сброс завершен",
-    "weekly": "Еженедельно"
+    "weekly": "Еженедельно",
+    "swipeToReset": "СВАЙП ДЛЯ СБРОСА TOG",
+    "resetConfirm": "Это навсегда удалит все ваши данные TOG. Это действие нельзя отменить."
   }
 }

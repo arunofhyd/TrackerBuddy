@@ -96,7 +96,8 @@
     "stats": "Thống kê",
     "teams": "Nhóm",
     "resetConfirmCloud": "Sẽ xóa sạch dữ liệu trên mây. Không thể khôi phục.",
-    "resetConfirmLocal": "Sẽ xóa sạch dữ liệu trên máy. Không thể khôi phục."
+    "resetConfirmLocal": "Sẽ xóa sạch dữ liệu trên máy. Không thể khôi phục.",
+    "swipeToResetTracker": "VUỐT ĐỂ ĐẶT LẠI TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Thoát tìm kiếm",
@@ -347,6 +348,8 @@
     "restored": "Khôi phục thành công",
     "invalidJson": "Tệp JSON không hợp lệ",
     "resetComplete": "Đặt lại hoàn tất",
-    "weekly": "Hàng tuần"
+    "weekly": "Hàng tuần",
+    "swipeToReset": "VUỐT ĐỂ ĐẶT LẠI TOG",
+    "resetConfirm": "Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu TOG của bạn. Không thể hoàn tác."
   }
 }

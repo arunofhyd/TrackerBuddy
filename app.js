@@ -53,6 +53,22 @@ const i18n = new TranslationService(() => {
     if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
         renderTogCalendar();
     }
+    // Update swipe modal text if visible
+    if (DOM.swipeConfirmModal?.classList.contains('visible')) {
+        if (state.pendingSwipeAction === 'performTrackerReset') {
+            if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('dashboard.swipeToResetTracker');
+            const desc = DOM.swipeConfirmModal.querySelector('p');
+            if (desc) desc.textContent = state.isOnlineMode ? i18n.t('dashboard.resetConfirmCloud') : i18n.t('dashboard.resetConfirmLocal');
+        } else if (state.pendingSwipeAction === 'performTogReset') {
+            if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('tog.swipeToReset');
+            const desc = DOM.swipeConfirmModal.querySelector('p');
+            if (desc) desc.textContent = i18n.t('tog.resetConfirm');
+        } else if (state.pendingSwipeAction === 'deleteLeaveType') {
+             if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('admin.swipeToDelete');
+             const desc = DOM.swipeConfirmModal.querySelector('p');
+             if (desc) desc.textContent = i18n.t('admin.swipeToDeleteDesc');
+        }
+    }
 });
 
 // --- Global App State ---
@@ -5307,7 +5323,7 @@ function setupTbUserMenu(user) {
 
 function confirmTrackerReset() {
     state.pendingSwipeAction = 'performTrackerReset';
-    if (DOM.swipeText) DOM.swipeText.textContent = "Swipe to Reset TrackerBuddy";
+    if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('dashboard.swipeToResetTracker');
     const desc = DOM.swipeConfirmModal.querySelector('p');
     if (desc) desc.textContent = state.isOnlineMode ? i18n.t('dashboard.resetConfirmCloud') : i18n.t('dashboard.resetConfirmLocal');
     DOM.swipeConfirmModal.classList.add('visible');
@@ -5316,9 +5332,9 @@ function confirmTrackerReset() {
 
 function confirmTogReset() {
     state.pendingSwipeAction = 'performTogReset';
-    if (DOM.swipeText) DOM.swipeText.textContent = "Swipe to Reset TOG";
+    if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('tog.swipeToReset');
     const desc = DOM.swipeConfirmModal.querySelector('p');
-    if (desc) desc.textContent = "This will permanently delete all your TOG data. This action cannot be undone.";
+    if (desc) desc.textContent = i18n.t('tog.resetConfirm');
     DOM.swipeConfirmModal.classList.add('visible');
     resetSwipeConfirm();
 }

@@ -96,7 +96,8 @@
     "stats": "통계",
     "teams": "팀",
     "resetConfirmCloud": "모든 클라우드 데이터가 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
-    "resetConfirmLocal": "모든 로컬 데이터가 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다."
+    "resetConfirmLocal": "모든 로컬 데이터가 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+    "swipeToResetTracker": "밀어서 TRACKERBUDDY 재설정"
   },
   "a11y": {
     "exitSearch": "검색 종료",
@@ -347,6 +348,8 @@
     "restored": "성공적으로 복원됨",
     "invalidJson": "잘못된 JSON 파일",
     "resetComplete": "초기화 완료",
-    "weekly": "주간"
+    "weekly": "주간",
+    "swipeToReset": "밀어서 TOG 재설정",
+    "resetConfirm": "이 작업은 모든 TOG 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다."
   }
 }
