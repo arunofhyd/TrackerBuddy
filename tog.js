@@ -343,10 +343,10 @@ async function saveData(key, value) {
 }
 
 // --- Calendar ---
-function getMonday(d) {
+function getSunday(d) {
     d = new Date(d);
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const diff = d.getDate() - day;
     return new Date(d.setDate(diff));
 }
 
@@ -364,7 +364,7 @@ export function renderCalendar(preserveFocus = false) {
 
     // 1. Toggles
     const daysKey = (state.i18n?.getValue('common.shortDays')) ? 'common.shortDays' : 'common.days';
-    const dayNames = state.i18n?.getValue(daysKey) || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayNames = state.i18n?.getValue(daysKey) || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     DOM.dayToggles.innerHTML = '';
     dayNames.forEach((name, idx) => {
@@ -410,7 +410,7 @@ export function renderCalendar(preserveFocus = false) {
     if(DOM.monthLabel) DOM.monthLabel.innerText = `${monthNames[month]} ${year}`;
 
     const firstDayOfMonth = new Date(year, month, 1);
-    const startDate = getMonday(firstDayOfMonth);
+    const startDate = getSunday(firstDayOfMonth);
 
     // Force 6 weeks (42 days) to ensure consistent row count
     const endDate = new Date(startDate);
