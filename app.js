@@ -1643,14 +1643,21 @@ function handleUserLogout() {
     }
 
     // 2. Fade out App View manually
+    let viewToFade = null;
     if (DOM.appView && !DOM.appView.classList.contains('hidden')) {
-        DOM.appView.style.transition = 'opacity 0.5s ease-out';
-        DOM.appView.style.opacity = '0';
+        viewToFade = DOM.appView;
+    } else if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
+        viewToFade = DOM.togView;
+    }
+
+    if (viewToFade) {
+        viewToFade.style.transition = 'opacity 0.5s ease-out';
+        viewToFade.style.opacity = '0';
 
         // Wait for fade out to complete (500ms)
         setTimeout(() => {
-            // 3. Hide App View completely after fade
-            DOM.appView.classList.add('hidden');
+            // 3. Hide View completely after fade
+            viewToFade.classList.add('hidden');
 
             // 4. Perform state cleanup and switch to login
             performLogoutCleanup();
