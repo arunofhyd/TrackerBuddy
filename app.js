@@ -1084,6 +1084,10 @@ async function saveData(action) {
             successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
             break;
         case ACTION_TYPES.UPDATE_TIME:
+            // Sanitize time key to prevent Firestore nesting issues
+            if (action.payload.newTimeKey) {
+                action.payload.newTimeKey = action.payload.newTimeKey.replace(/[./]/g, ':');
+            }
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
             if (successMessage === null) {
                 return;
