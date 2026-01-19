@@ -957,10 +957,33 @@ body.dark .role-badge.pending {
 #tog-view .day-header { padding: 4px 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; }
 #tog-view .day-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px; }
 #tog-view .day-footer { height: 24px; display: flex; align-items: center; justify-content: center; border-top-width: 1px; background-color: #fefce8; } /* yellow-50 */
-body.dark #tog-view .day-footer { background-color: rgba(113, 63, 18, 0.2); } /* yellow-900/20 */
+body.dark #tog-view .day-footer { background-color: #2e2005; }
 
 /* Month Label Hover Effect */
 #tog-monthLabel:hover { cursor: pointer; color: #3b82f6; transition: color 0.2s ease-in-out; }
+
+/* Leave Legend Container */
+#tog-leave-legend-container {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(10px);
+    overflow: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.3s ease;
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+    /* Hide scrollbar initially */
+}
+#tog-leave-legend-container.visible {
+    opacity: 1;
+    max-height: 60px;
+    transform: translateY(0);
+    margin-bottom: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+#tog-leave-legend-container::-webkit-scrollbar { display: none; }
+#tog-leave-legend-container { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Fix Input Backgrounds in Dark Mode */
 body.dark #tog-view input.input-field { background-color: transparent !important; }

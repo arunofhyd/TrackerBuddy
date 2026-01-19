@@ -77,6 +77,7 @@ function cacheDOM() {
     DOM.resetBtn = document.getElementById('tog-reset-btn');
     DOM.restoreInput = document.getElementById('tog-restore-input');
     DOM.trackerLogoBtn = document.getElementById('tog-tracker-logo-btn');
+    DOM.leaveLegendContainer = document.getElementById('tog-leave-legend-container');
 }
 
 function bindEvents() {
@@ -144,13 +145,45 @@ function toggleTrackerOverlay() {
     if (DOM.trackerLogoBtn) {
         if (state.showTrackerData) {
             // Blue shadow (Blue 500 is #3b82f6), increased prominence
-            DOM.trackerLogoBtn.style.boxShadow = '0 0 20px 8px rgba(59, 130, 246, 0.6)';
+            DOM.trackerLogoBtn.style.boxShadow = '0 0 17px 7px rgba(59, 130, 246, 0.5)';
         } else {
             DOM.trackerLogoBtn.style.boxShadow = 'none';
         }
     }
 
+    if (DOM.leaveLegendContainer) {
+        if (state.showTrackerData) {
+            DOM.leaveLegendContainer.classList.add('visible');
+            renderLeaveLegend();
+        } else {
+            DOM.leaveLegendContainer.classList.remove('visible');
+        }
+    }
+
     renderCalendar(true);
+}
+
+function renderLeaveLegend() {
+    if (!DOM.leaveLegendContainer) return;
+
+    DOM.leaveLegendContainer.innerHTML = '';
+    const currentYear = state.viewDate.getFullYear();
+    const yearData = state.trackerYearlyData[currentYear] || {};
+    const overrides = yearData.leaveOverrides || {};
+
+    const visibleTypes = state.trackerLeaveTypes.filter(lt => {
+        if (overrides[lt.id]?.hidden) return false;
+        if (lt.limitYear && lt.limitYear !== currentYear) return false;
+        return true;
+    });
+
+    visibleTypes.forEach(lt => {
+        const pill = document.createElement('div');
+        pill.className = 'flex-shrink-0 truncate max-w-40 px-3 py-1.5 rounded-full text-sm font-semibold text-white shadow';
+        pill.style.backgroundColor = lt.color;
+        pill.innerText = lt.name;
+        DOM.leaveLegendContainer.appendChild(pill);
+    });
 }
 
 function subscribeToData(userId) {
@@ -380,6 +413,10 @@ export function renderCalendar(preserveFocus = false) {
     if (preserveFocus && document.activeElement && document.activeElement.dataset.key) {
         focusedKey = document.activeElement.dataset.key;
         focusedType = document.activeElement.dataset.type;
+    }
+
+    if (state.showTrackerData) {
+        renderLeaveLegend();
     }
 
     // 1. Toggles
