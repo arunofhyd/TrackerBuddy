@@ -159,6 +159,7 @@ function initUI() {
         overviewLeaveDaysList: document.getElementById('overview-leave-days-list'),
         overviewNoLeavesMessage: document.getElementById('overview-no-leaves-message'),
         addNewSlotBtn: document.getElementById('add-new-slot-btn'),
+        tbHelpBtn: document.getElementById('tb-help-btn'),
         // Search DOM References (Spotlight)
         spotlightModal: document.getElementById('spotlight-modal'),
         spotlightInput: document.getElementById('spotlight-input'),
@@ -4478,6 +4479,11 @@ function setupEventListeners() {
             DOM.helpModal.classList.add('visible');
         });
     }
+    if (DOM.tbHelpBtn) {
+        DOM.tbHelpBtn?.addEventListener('click', () => {
+            DOM.helpModal.classList.add('visible');
+        });
+    }
     if (DOM.closeHelpBtn) {
         DOM.closeHelpBtn?.addEventListener('click', () => {
             DOM.helpModal.classList.remove('visible');
@@ -5428,7 +5434,7 @@ function setupTbUserMenu(user) {
         DOM.tbMenuAvatar.innerText = letter;
         DOM.tbMenuEmail.innerText = user.email || 'User';
     } else {
-        DOM.tbMenuAvatar.innerText = 'U';
+        DOM.tbMenuAvatar.innerHTML = '<i class="fas fa-user"></i>';
         DOM.tbMenuEmail.innerText = 'Guest';
     }
 
