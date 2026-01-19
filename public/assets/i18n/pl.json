@@ -96,7 +96,8 @@
     "stats": "Statystyki",
     "teams": "Zespoły",
     "resetConfirmCloud": "To trwale usunie wszystkie Twoje dane w chmurze. Tej operacji nie można cofnąć.",
-    "resetConfirmLocal": "To trwale usunie wszystkie Twoje dane lokalne. Tej operacji nie można cofnąć."
+    "resetConfirmLocal": "To trwale usunie wszystkie Twoje dane lokalne. Tej operacji nie można cofnąć.",
+    "swipeToResetTracker": "PRZESUŃ ABY ZRESETOWAĆ TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Wyjdź z wyszukiwania",
@@ -347,6 +348,8 @@
     "restored": "Pomyślnie przywrócono",
     "invalidJson": "Nieprawidłowy plik JSON",
     "resetComplete": "Reset zakończony",
-    "weekly": "Tygodniowo"
+    "weekly": "Tygodniowo",
+    "swipeToReset": "PRZESUŃ ABY ZRESETOWAĆ TOG",
+    "resetConfirm": "To trwale usunie wszystkie dane TOG. Tej operacji nie można cofnąć."
   }
 }

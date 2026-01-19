@@ -96,7 +96,8 @@
     "stats": "Statistik",
     "teams": "Pasukan",
     "resetConfirmCloud": "Padam semua data di Awan? Tidak boleh dikembalikan.",
-    "resetConfirmLocal": "Padam semua data tempatan? Tidak boleh dikembalikan."
+    "resetConfirmLocal": "Padam semua data tempatan? Tidak boleh dikembalikan.",
+    "swipeToResetTracker": "LERET UNTUK TETAP SEMULA TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Tutup carian",
@@ -347,6 +348,8 @@
     "restored": "Berjaya Dipulihkan",
     "invalidJson": "Fail JSON Tidak Sah",
     "resetComplete": "Set Semula Selesai",
-    "weekly": "Mingguan"
+    "weekly": "Mingguan",
+    "swipeToReset": "LERET UNTUK TETAP SEMULA TOG",
+    "resetConfirm": "Ini akan memadamkan semua data TOG anda secara kekal. Tindakan ini tidak boleh dibatalkan."
   }
 }

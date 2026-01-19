@@ -96,7 +96,8 @@
     "stats": "Statistiken",
     "teams": "Teams",
     "resetConfirmCloud": "Dies wird alle deine Cloud-Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden.",
-    "resetConfirmLocal": "Dies wird alle deine lokalen Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden."
+    "resetConfirmLocal": "Dies wird alle deine lokalen Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden.",
+    "swipeToResetTracker": "WISCHEN ZUM ZURÜCKSETZEN VON TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Suche verlassen",
@@ -347,6 +348,8 @@
     "restored": "Erfolgreich wiederhergestellt",
     "invalidJson": "Ungültige JSON-Datei",
     "resetComplete": "Zurücksetzen abgeschlossen",
-    "weekly": "Wöchentlich"
+    "weekly": "Wöchentlich",
+    "swipeToReset": "WISCHEN ZUM ZURÜCKSETZEN VON TOG",
+    "resetConfirm": "Dies löscht dauerhaft alle Ihre TOG-Daten. Diese Aktion kann nicht rückgängig gemacht werden."
   }
 }

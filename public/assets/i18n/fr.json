@@ -96,7 +96,8 @@
     "stats": "Stats",
     "teams": "Équipes",
     "resetConfirmCloud": "Cela supprimera définitivement toutes vos données cloud. Cette action est irréversible.",
-    "resetConfirmLocal": "Cela supprimera définitivement toutes vos données locales. Cette action est irréversible."
+    "resetConfirmLocal": "Cela supprimera définitivement toutes vos données locales. Cette action est irréversible.",
+    "swipeToResetTracker": "GLISSER POUR RÉINITIALISER TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Quitter la recherche",
@@ -347,6 +348,8 @@
     "restored": "Restauré avec succès",
     "invalidJson": "Fichier JSON invalide",
     "resetComplete": "Réinitialisation terminée",
-    "weekly": "Hebdomadaire"
+    "weekly": "Hebdomadaire",
+    "swipeToReset": "GLISSER POUR RÉINITIALISER TOG",
+    "resetConfirm": "Cela supprimera définitivement toutes vos données TOG. Cette action est irréversible."
   }
 }

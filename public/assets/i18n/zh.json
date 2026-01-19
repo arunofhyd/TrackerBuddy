@@ -96,7 +96,8 @@
     "stats": "统计",
     "teams": "团队",
     "resetConfirmCloud": "将永久删除云端所有数据，不可恢复。",
-    "resetConfirmLocal": "将永久删除本地所有数据，不可恢复。"
+    "resetConfirmLocal": "将永久删除本地所有数据，不可恢复。",
+    "swipeToResetTracker": "滑动以重置 TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "退出搜索",
@@ -347,6 +348,8 @@
     "restored": "恢复成功",
     "invalidJson": "无效的 JSON 文件",
     "resetComplete": "重置完成",
-    "weekly": "每周"
+    "weekly": "每周",
+    "swipeToReset": "滑动以重置 TOG",
+    "resetConfirm": "这将永久删除您的所有 TOG 数据。此操作无法撤消。"
   }
 }

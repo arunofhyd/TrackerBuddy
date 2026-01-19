@@ -96,7 +96,8 @@
     "stats": "Stats",
     "teams": "Teams",
     "resetConfirmCloud": "This will permanently delete all your activity data from the cloud. This action cannot be undone.",
-    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone."
+    "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone.",
+    "swipeToResetTracker": "SWIPE TO RESET TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "Exit search view",
@@ -347,6 +348,8 @@
     "restored": "Restored Successfully",
     "invalidJson": "Invalid JSON File",
     "resetComplete": "Reset Complete",
-    "weekly": "Weekly"
+    "weekly": "Weekly",
+    "swipeToReset": "SWIPE TO RESET TOG",
+    "resetConfirm": "This will permanently delete all your TOG data. This action cannot be undone."
   }
 }

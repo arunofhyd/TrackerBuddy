@@ -96,7 +96,8 @@
     "stats": "Statistieken",
     "teams": "Teams",
     "resetConfirmCloud": "Dit verwijdert permanent al je cloudgegevens. Dit kan niet ongedaan worden gemaakt.",
-    "resetConfirmLocal": "Dit verwijdert permanent al je lokale gegevens. Dit kan niet ongedaan worden gemaakt."
+    "resetConfirmLocal": "Dit verwijdert permanent al je lokale gegevens. Dit kan niet ongedaan worden gemaakt.",
+    "swipeToResetTracker": "VEEG OM TRACKERBUDDY TE RESETTEN"
   },
   "a11y": {
     "exitSearch": "Zoeken sluiten",
@@ -347,6 +348,8 @@
     "restored": "Succesvol hersteld",
     "invalidJson": "Ongeldig JSON-bestand",
     "resetComplete": "Reset voltooid",
-    "weekly": "Wekelijks"
+    "weekly": "Wekelijks",
+    "swipeToReset": "VEEG OM TOG TE RESETTEN",
+    "resetConfirm": "Dit verwijdert al uw TOG-gegevens permanent. Deze actie kan niet ongedaan worden gemaakt."
   }
 }

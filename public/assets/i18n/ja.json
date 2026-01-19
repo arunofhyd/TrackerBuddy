@@ -96,7 +96,8 @@
     "stats": "統計",
     "teams": "チーム",
     "resetConfirmCloud": "クラウド上の全データを完全に削除します。元に戻せません。",
-    "resetConfirmLocal": "ローカルの全データを完全に削除します。元に戻せません。"
+    "resetConfirmLocal": "ローカルの全データを完全に削除します。元に戻せません。",
+    "swipeToResetTracker": "スワイプしてTRACKERBUDDYをリセット"
   },
   "a11y": {
     "exitSearch": "検索を終了",
@@ -347,6 +348,8 @@
     "restored": "正常に復元されました",
     "invalidJson": "無効なJSONファイル",
     "resetComplete": "リセット完了",
-    "weekly": "週次"
+    "weekly": "週次",
+    "swipeToReset": "スワイプしてTOGをリセット",
+    "resetConfirm": "これにより、すべてのTOGデータが完全に削除されます。この操作は取り消せません。"
   }
 }

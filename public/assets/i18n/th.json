@@ -96,7 +96,8 @@
     "stats": "สถิติ",
     "teams": "ทีม",
     "resetConfirmCloud": "ลบข้อมูลบน Cloud ทั้งหมด กู้คืนไม่ได้นะ",
-    "resetConfirmLocal": "ลบข้อมูลในเครื่องทั้งหมด กู้คืนไม่ได้นะ"
+    "resetConfirmLocal": "ลบข้อมูลในเครื่องทั้งหมด กู้คืนไม่ได้นะ",
+    "swipeToResetTracker": "ปัดเพื่อรีเซ็ต TRACKERBUDDY"
   },
   "a11y": {
     "exitSearch": "ปิดค้นหา",
@@ -347,6 +348,8 @@
     "restored": "กู้คืนสำเร็จ",
     "invalidJson": "ไฟล์ JSON ไม่ถูกต้อง",
     "resetComplete": "รีเซ็ตเสร็จสมบูรณ์",
-    "weekly": "รายสัปดาห์"
+    "weekly": "รายสัปดาห์",
+    "swipeToReset": "ปัดเพื่อรีเซ็ต TOG",
+    "resetConfirm": "สิ่งนี้จะลบข้อมูล TOG ของคุณทั้งหมดอย่างถาวร การกระทำนี้ไม่สามารถย้อนกลับได้"
   }
 }
