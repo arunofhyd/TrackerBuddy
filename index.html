@@ -233,6 +233,16 @@
                             <span data-i18n="dashboard.resetAllData">Reset All Data</span>
                         </button>
                         <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                        <div class="px-3 py-1 text-[10px] font-bold uppercase text-slate-400">View Options</div>
+                        <button id="tog-toggle-converters-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
+                            <i class="fas fa-calculator w-4 text-center"></i>
+                            <span>Toggle Converters</span>
+                        </button>
+                        <button id="tog-toggle-visible-days-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
+                            <i class="fas fa-calendar-week w-4 text-center"></i>
+                            <span>Toggle Visible Days</span>
+                        </button>
+                        <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                         <button id="tog-logout-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
                             <i class="fas fa-sign-out-alt w-4 text-center"></i>
                             <span data-i18n="a11y.signOut">Sign Out</span>
@@ -245,8 +255,10 @@
         <div class="flex flex-col md:grid md:grid-cols-3 items-center gap-4 mb-6 border-t border-b border-slate-100 dark:border-slate-800 py-3">
 
             <div class="flex flex-col items-center md:items-start gap-1 md:justify-self-start">
-                <span class="text-[10px] uppercase font-bold text-slate-400" data-i18n="tog.visibleDays">Visible Days</span>
-                <div id="tog-dayToggles" class="flex gap-1">
+                <div id="tog-visible-days-wrapper" class="tog-reveal-section visible">
+                    <span class="text-[10px] uppercase font-bold text-slate-400" data-i18n="tog.visibleDays">Visible Days</span>
+                    <div id="tog-dayToggles" class="flex gap-1">
+                    </div>
                 </div>
             </div>
 
@@ -281,32 +293,35 @@
     </div>
 
     <!-- TOG Calculators -->
-    <div class="flex flex-col md:flex-row gap-4 items-center">
-        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.timeToTog">TIME TO TOG</div>
-        <div class="w-full flex flex-1 items-center justify-between gap-4">
-            <div class="flex items-center gap-2">
-                <input type="number" id="tog-c1_h" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
-                <span class="text-slate-300">:</span>
-                <input type="number" id="tog-c1_m" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
+    <div id="tog-converters-wrapper" class="tog-reveal-section visible">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            <!-- Time to Tog -->
+            <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-slate-400" data-i18n="tog.timeToTog">TIME TO TOG</span>
+                    <span id="tog-res_decimal" class="font-mono font-bold text-xl text-blue-600 dark:text-blue-400">0.0</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="tog-c1_h" class="flex-1 input-field bg-slate-50 border border-slate-200 text-slate-900 rounded p-2 text-center text-lg font-bold dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
+                    <span class="text-slate-300 font-bold">:</span>
+                    <input type="number" id="tog-c1_m" class="flex-1 input-field bg-slate-50 border border-slate-200 text-slate-900 rounded p-2 text-center text-lg font-bold dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
+                </div>
             </div>
-            <div class="text-right">
-                <span id="tog-res_decimal" class="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">0.0</span>
-            </div>
-            </div>
-        </div>
 
-        <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
-            <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider" data-i18n="tog.memory">Memory</span>
-            <span id="tog-globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
-        </div>
+            <!-- Memory (Center) -->
+            <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1" data-i18n="tog.memory">Memory</span>
+                <span id="tog-globalMemory" class="font-mono font-bold text-3xl text-blue-600 dark:text-blue-400">0.0</span>
+            </div>
 
-        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.togToTime">TOG TO TIME</div>
-            <div class="w-full flex flex-1 items-center justify-between gap-4">
-                <input type="number" id="tog-c2_d" class="input-field w-24 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
-                <div class="text-right">
-                    <span id="tog-res_time" class="font-mono font-bold text-lg text-emerald-600 dark:text-emerald-400">0h 0m</span>
+            <!-- Tog to Time -->
+            <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl shadow-sm flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-slate-400" data-i18n="tog.togToTime">TOG TO TIME</span>
+                    <span id="tog-res_time" class="font-mono font-bold text-xl text-emerald-600 dark:text-emerald-400">0h 0m</span>
+                </div>
+                <div class="w-full">
+                    <input type="number" id="tog-c2_d" class="w-full input-field bg-slate-50 border border-slate-200 text-slate-900 rounded p-2 text-center text-lg font-bold dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
                 </div>
             </div>
         </div>

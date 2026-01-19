@@ -15,7 +15,9 @@ let state = {
     i18n: null,
     trackerYearlyData: {},
     trackerLeaveTypes: [],
-    showTrackerData: false
+    showTrackerData: false,
+    showConverters: true,
+    showVisibleDays: true
 };
 
 const STORAGE_KEY = 'tog_tracker_v1';
@@ -78,6 +80,11 @@ function cacheDOM() {
     DOM.restoreInput = document.getElementById('tog-restore-input');
     DOM.trackerLogoBtn = document.getElementById('tog-tracker-logo-btn');
     DOM.leaveLegendContainer = document.getElementById('tog-leave-legend-container');
+
+    DOM.convertersWrapper = document.getElementById('tog-converters-wrapper');
+    DOM.visibleDaysWrapper = document.getElementById('tog-visible-days-wrapper');
+    DOM.toggleConvertersBtn = document.getElementById('tog-toggle-converters-btn');
+    DOM.toggleVisibleDaysBtn = document.getElementById('tog-toggle-visible-days-btn');
 }
 
 function bindEvents() {
@@ -122,6 +129,9 @@ function bindEvents() {
 
     DOM.trackerLogoBtn?.addEventListener('click', toggleTrackerOverlay);
 
+    DOM.toggleConvertersBtn?.addEventListener('click', toggleConverters);
+    DOM.toggleVisibleDaysBtn?.addEventListener('click', toggleVisibleDays);
+
     document.getElementById('tog-logout-btn')?.addEventListener('click', () => {
         if(window.appSignOut) window.appSignOut();
     });
@@ -137,6 +147,24 @@ export function updateLeaveData(yearlyData, leaveTypes) {
     if (state.showTrackerData) {
         renderCalendar(true);
     }
+}
+
+function toggleConverters() {
+    state.showConverters = !state.showConverters;
+    if (DOM.convertersWrapper) {
+        if (state.showConverters) DOM.convertersWrapper.classList.add('visible');
+        else DOM.convertersWrapper.classList.remove('visible');
+    }
+    closeDropdown();
+}
+
+function toggleVisibleDays() {
+    state.showVisibleDays = !state.showVisibleDays;
+    if (DOM.visibleDaysWrapper) {
+        if (state.showVisibleDays) DOM.visibleDaysWrapper.classList.add('visible');
+        else DOM.visibleDaysWrapper.classList.remove('visible');
+    }
+    closeDropdown();
 }
 
 function toggleTrackerOverlay() {
