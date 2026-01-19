@@ -143,8 +143,8 @@ function toggleTrackerOverlay() {
 
     if (DOM.trackerLogoBtn) {
         if (state.showTrackerData) {
-            // Blue shadow (Blue 500 is #3b82f6)
-            DOM.trackerLogoBtn.style.boxShadow = '0 0 15px 5px rgba(59, 130, 246, 0.5)';
+            // Blue shadow (Blue 500 is #3b82f6), increased prominence
+            DOM.trackerLogoBtn.style.boxShadow = '0 0 20px 8px rgba(59, 130, 246, 0.6)';
         } else {
             DOM.trackerLogoBtn.style.boxShadow = 'none';
         }
@@ -485,30 +485,19 @@ export function renderCalendar(preserveFocus = false) {
                     if (trackerDayData?.leave) {
                         const leaveType = state.trackerLeaveTypes.find(lt => lt.id === trackerDayData.leave.typeId);
                         if (leaveType) {
-                            // Apply background with 25% opacity
-                            // We use rgba to ensure opacity, or just a linear gradient for overlay
-                            // Since cardBg handles light/dark mode, modifying it might be complex if we want to keep dark mode colors.
-                            // However, request asks for "leave colour fills ... appear".
-                            // Setting backgroundColor style directly overrides tailwind bg classes.
-                            // To get 25% opacity of the leave color, we need to parse the color or assume it's hex/rgba.
-                            // If it's hex, we can convert. If it's named color, it's harder.
-                            // Assuming hex for now based on typical color pickers.
-                            // Let's rely on CSS variables or inline styles.
-                            // But opacity property affects the whole element content. We want background opacity.
-                            // We can use a pseudo-element or just set background-color with alpha if possible.
-                            // Simplest approach: Use style attribute for background-color.
-                            // But we need to mix it with the base theme?
-                            // "appear with 25% opacity" implies the color itself is 25% opaque overlaying the base?
-                            // Or the background BECOMES the color at 25% opacity?
-                            // Let's assume background-color = color + '40' (hex for 25%).
-                            // Note: leaveType.color is likely hex (e.g. #FF0000).
-                            if (leaveType.color.startsWith('#')) {
-                                let alphaHex = '40'; // ~25%
-                                overlayStyle = `background-color: ${leaveType.color}${alphaHex} !important;`;
+                            // Convert hex to RGBA for consistency if possible, assuming hex color from picker
+                            const hex = leaveType.color.startsWith('#') ? leaveType.color : '#3b82f6';
+                            const alphaHex = '40'; // 25% opacity
+
+                            if (trackerDayData.leave.dayType === 'half') {
+                                // Half day: Linear gradient
+                                // "half filled cells of the same leave type colour"
+                                // We use the color with 25% opacity (alphaHex) for the filled part
+                                const colorWithOpacity = `${hex}${alphaHex}`;
+                                overlayStyle = `background-image: linear-gradient(to bottom right, ${colorWithOpacity} 50%, transparent 50%) !important;`;
                             } else {
-                                // Fallback: try to set it with opacity via style if it's not hex (e.g. rgb) - tricky without complex parsing.
-                                // Assuming hex from color picker.
-                                overlayStyle = `background-color: ${leaveType.color}; opacity: 0.8;`; // Fallback if can't set alpha
+                                // Full day
+                                overlayStyle = `background-color: ${hex}${alphaHex} !important;`;
                             }
                         }
                     }
