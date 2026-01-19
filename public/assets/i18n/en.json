@@ -97,7 +97,8 @@
     "teams": "Teams",
     "resetConfirmCloud": "This will permanently delete all your activity data from the cloud. This action cannot be undone.",
     "resetConfirmLocal": "This will permanently delete all your local activity data. This action cannot be undone.",
-    "swipeToResetTracker": "SWIPE TO RESET TRACKERBUDDY"
+    "swipeToResetTracker": "SWIPE TO RESET TRACKERBUDDY",
+    "storage": "Storage"
   },
   "a11y": {
     "exitSearch": "Exit search view",

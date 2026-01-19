@@ -97,7 +97,8 @@
     "teams": "Teams",
     "resetConfirmCloud": "Dies wird alle deine Cloud-Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden.",
     "resetConfirmLocal": "Dies wird alle deine lokalen Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden.",
-    "swipeToResetTracker": "WISCHEN ZUM ZURÜCKSETZEN VON TRACKERBUDDY"
+    "swipeToResetTracker": "WISCHEN ZUM ZURÜCKSETZEN VON TRACKERBUDDY",
+    "storage": "Speicher"
   },
   "a11y": {
     "exitSearch": "Suche verlassen",

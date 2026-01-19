@@ -97,7 +97,8 @@
     "teams": "Nhóm",
     "resetConfirmCloud": "Sẽ xóa sạch dữ liệu trên mây. Không thể khôi phục.",
     "resetConfirmLocal": "Sẽ xóa sạch dữ liệu trên máy. Không thể khôi phục.",
-    "swipeToResetTracker": "VUỐT ĐỂ ĐẶT LẠI TRACKERBUDDY"
+    "swipeToResetTracker": "VUỐT ĐỂ ĐẶT LẠI TRACKERBUDDY",
+    "storage": "Dung lượng"
   },
   "a11y": {
     "exitSearch": "Thoát tìm kiếm",

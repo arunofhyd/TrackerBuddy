@@ -97,7 +97,8 @@
     "teams": "ടീമുകൾ",
     "resetConfirmCloud": "ക്ലൗഡ് ഡാറ്റ എല്ലാം കളയണോ? തിരിച്ചെടുക്കാനാവില്ല.",
     "resetConfirmLocal": "ഫോണിലെ ഡാറ്റ എല്ലാം കളയണോ? തിരിച്ചെടുക്കാനാവില്ല.",
-    "swipeToResetTracker": "TRACKERBUDDY റീസെറ്റ് ചെയ്യാൻ സ്വൈപ്പ് ചെയ്യുക"
+    "swipeToResetTracker": "TRACKERBUDDY റീസെറ്റ് ചെയ്യാൻ സ്വൈപ്പ് ചെയ്യുക",
+    "storage": "സംഭരണം"
   },
   "a11y": {
     "exitSearch": "തിരയൽ അടയ്ക്കുക",

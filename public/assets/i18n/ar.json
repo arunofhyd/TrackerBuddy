@@ -97,7 +97,8 @@
     "teams": "الفرق",
     "resetConfirmCloud": "سيؤدي هذا إلى حذف جميع بياناتك السحابية بشكل دائم. لا يمكن التراجع.",
     "resetConfirmLocal": "سيؤدي هذا إلى حذف جميع بياناتك المحلية بشكل دائم. لا يمكن التراجع.",
-    "swipeToResetTracker": "اسحب لإعادة تعيين TRACKERBUDDY"
+    "swipeToResetTracker": "اسحب لإعادة تعيين TRACKERBUDDY",
+    "storage": "التخزين"
   },
   "a11y": {
     "exitSearch": "خروج من البحث",

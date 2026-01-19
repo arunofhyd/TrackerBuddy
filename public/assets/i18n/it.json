@@ -97,7 +97,8 @@
     "teams": "Team",
     "resetConfirmCloud": "Cancella TUTTO dal cloud. Irreversibile.",
     "resetConfirmLocal": "Cancella TUTTO dal dispositivo. Irreversibile.",
-    "swipeToResetTracker": "SCORRI PER RESETTARE TRACKERBUDDY"
+    "swipeToResetTracker": "SCORRI PER RESETTARE TRACKERBUDDY",
+    "storage": "Archiviazione"
   },
   "a11y": {
     "exitSearch": "Esci dalla ricerca",
