@@ -703,27 +703,32 @@ function renderDailyActivities() {
         DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
 
         const rows = dailyActivitiesArray.map((activity, index) => {
-            const isFirst = index === 0;
-            const isLast = index === dailyActivitiesArray.length - 1;
+            try {
+                const isFirst = index === 0;
+                const isLast = index === dailyActivitiesArray.length - 1;
 
-            return html`
-            <tr class="hover:bg-gray-100 transition-colors duration-150" data-time="${activity.time}">
-                <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
-                <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
-                    <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
-                </td>
-                <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex gap-1 justify-center items-center">
-                    <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
-                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                    </button>
-                    <button class="icon-btn move-down-btn" aria-label="Move Down" ?disabled=${isLast}>
-                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
-                        <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </td>
-            </tr>`;
+                return html`
+                <tr class="hover:bg-gray-100 transition-colors duration-150" data-time="${activity.time}">
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
+                        <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
+                    </td>
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex gap-1 justify-center items-center">
+                        <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
+                        <button class="icon-btn move-down-btn" aria-label="Move Down" ?disabled=${isLast}>
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
+                            <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                </tr>`;
+            } catch (err) {
+                Logger.error(`Error rendering activity row for ${activity?.time}:`, err);
+                return html``;
+            }
         });
 
         render(html`${rows}`, DOM.dailyActivityTableBody);
