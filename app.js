@@ -683,7 +683,16 @@ function renderDailyActivities() {
         if (hasStoredActivities) {
             dailyActivitiesArray = Object.keys(dailyActivitiesMap)
                 .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
-                .map(timeKey => ({ time: timeKey, ...dailyActivitiesMap[timeKey] }))
+                .map(timeKey => {
+                    const activityData = dailyActivitiesMap[timeKey];
+                    // Defensive check to prevent render crashes if data is corrupted
+                    if (!activityData || typeof activityData !== 'object') {
+                        Logger.warn(`Invalid activity data for time ${timeKey}`, activityData);
+                        return null;
+                    }
+                    return { time: timeKey, ...activityData };
+                })
+                .filter(Boolean)
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
             for (let h = 8; h <= 17; h++) {
@@ -1027,12 +1036,12 @@ function handleUpdateTime(dayDataCopy, payload) {
         showMessage(i18n.t("messages.timeEmpty"), 'error');
         return null;
     }
-    if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
+    if (Object.prototype.hasOwnProperty.call(dayDataCopy, newTimeKey) && oldTimeKey !== newTimeKey) {
         showMessage(i18n.t("messages.timeExists").replace('{time}', newTimeKey), 'error');
         return null;
     }
 
-    if (oldTimeKey !== newTimeKey && dayDataCopy.hasOwnProperty(oldTimeKey)) {
+    if (oldTimeKey !== newTimeKey && Object.prototype.hasOwnProperty.call(dayDataCopy, oldTimeKey)) {
         dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
         delete dayDataCopy[oldTimeKey];
     }
