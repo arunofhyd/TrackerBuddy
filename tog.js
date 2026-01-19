@@ -350,7 +350,12 @@ function getSunday(d) {
     return new Date(d.setDate(diff));
 }
 
-function formatDateKey(d) { return d.toISOString().split('T')[0]; }
+function formatDateKey(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 export function renderCalendar(preserveFocus = false) {
     if(!DOM.calendarGrid) return;
