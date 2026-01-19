@@ -97,7 +97,8 @@
     "teams": "Teams",
     "resetConfirmCloud": "Dit verwijdert permanent al je cloudgegevens. Dit kan niet ongedaan worden gemaakt.",
     "resetConfirmLocal": "Dit verwijdert permanent al je lokale gegevens. Dit kan niet ongedaan worden gemaakt.",
-    "swipeToResetTracker": "VEEG OM TRACKERBUDDY TE RESETTEN"
+    "swipeToResetTracker": "VEEG OM TRACKERBUDDY TE RESETTEN",
+    "storage": "Opslag"
   },
   "a11y": {
     "exitSearch": "Zoeken sluiten",

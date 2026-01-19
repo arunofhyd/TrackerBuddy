@@ -97,7 +97,8 @@
     "teams": "チーム",
     "resetConfirmCloud": "クラウド上の全データを完全に削除します。元に戻せません。",
     "resetConfirmLocal": "ローカルの全データを完全に削除します。元に戻せません。",
-    "swipeToResetTracker": "スワイプしてTRACKERBUDDYをリセット"
+    "swipeToResetTracker": "スワイプしてTRACKERBUDDYをリセット",
+    "storage": "ストレージ"
   },
   "a11y": {
     "exitSearch": "検索を終了",

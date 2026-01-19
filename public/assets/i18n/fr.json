@@ -97,7 +97,8 @@
     "teams": "Équipes",
     "resetConfirmCloud": "Cela supprimera définitivement toutes vos données cloud. Cette action est irréversible.",
     "resetConfirmLocal": "Cela supprimera définitivement toutes vos données locales. Cette action est irréversible.",
-    "swipeToResetTracker": "GLISSER POUR RÉINITIALISER TRACKERBUDDY"
+    "swipeToResetTracker": "GLISSER POUR RÉINITIALISER TRACKERBUDDY",
+    "storage": "Stockage"
   },
   "a11y": {
     "exitSearch": "Quitter la recherche",

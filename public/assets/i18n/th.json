@@ -97,7 +97,8 @@
     "teams": "ทีม",
     "resetConfirmCloud": "ลบข้อมูลบน Cloud ทั้งหมด กู้คืนไม่ได้นะ",
     "resetConfirmLocal": "ลบข้อมูลในเครื่องทั้งหมด กู้คืนไม่ได้นะ",
-    "swipeToResetTracker": "ปัดเพื่อรีเซ็ต TRACKERBUDDY"
+    "swipeToResetTracker": "ปัดเพื่อรีเซ็ต TRACKERBUDDY",
+    "storage": "พื้นที่จัดเก็บ"
   },
   "a11y": {
     "exitSearch": "ปิดค้นหา",

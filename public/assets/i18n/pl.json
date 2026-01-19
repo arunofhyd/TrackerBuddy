@@ -97,7 +97,8 @@
     "teams": "Zespoły",
     "resetConfirmCloud": "To trwale usunie wszystkie Twoje dane w chmurze. Tej operacji nie można cofnąć.",
     "resetConfirmLocal": "To trwale usunie wszystkie Twoje dane lokalne. Tej operacji nie można cofnąć.",
-    "swipeToResetTracker": "PRZESUŃ ABY ZRESETOWAĆ TRACKERBUDDY"
+    "swipeToResetTracker": "PRZESUŃ ABY ZRESETOWAĆ TRACKERBUDDY",
+    "storage": "Pamięć"
   },
   "a11y": {
     "exitSearch": "Wyjdź z wyszukiwania",

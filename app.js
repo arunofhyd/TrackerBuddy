@@ -764,6 +764,54 @@ function renderMonthPicker() {
     render(html`${months}`, DOM.monthGrid);
 }
 
+// --- Storage Usage Indicator ---
+function calculateDataSize(data) {
+    try {
+        const json = JSON.stringify(data);
+        return new Blob([json]).size;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function formatBytes(bytes, decimals = 1) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+function renderStorageUsage(byteSize) {
+    const container = document.getElementById('storage-usage-container');
+    const bar = document.getElementById('storage-usage-bar');
+    const text = document.getElementById('storage-text');
+
+    if (!container || !bar || !text) return;
+
+    const limitBytes = 950 * 1024; // 950 KB safe buffer
+    const percentage = Math.min(100, (byteSize / limitBytes) * 100);
+
+    // UI displays "Usage / 928KB" as requested
+    const displayLimit = "928 KB";
+    text.textContent = `${formatBytes(byteSize)} / ${displayLimit}`;
+
+    bar.style.width = `${percentage}%`;
+
+    // Color coding: Green < 70%, Yellow 70-90%, Red > 90%
+    bar.className = 'h-1.5 rounded-full transition-all duration-500';
+    if (percentage > 90) {
+        bar.classList.add('bg-red-500');
+    } else if (percentage > 70) {
+        bar.classList.add('bg-yellow-500');
+    } else {
+        bar.classList.add('bg-green-500');
+    }
+
+    container.classList.remove('hidden');
+}
+
 
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, COLLECTIONS.USERS, userId);
@@ -774,6 +822,8 @@ async function subscribeToData(userId, callback) {
         }
 
         let data = docSnapshot.exists() ? docSnapshot.data() : {};
+
+        renderStorageUsage(calculateDataSize(data));
 
         // Last Write Wins: Ignore if server data is older than our local optimistic state
         if (data.lastUpdated && data.lastUpdated < state.lastUpdated) {
@@ -1084,6 +1134,8 @@ async function saveData(action) {
         lastUpdated: timestamp
     };
 
+    renderStorageUsage(calculateDataSize(dataToSave));
+
     // If migrating away from old structure, implicitly remove old field
     if (state.isOnlineMode && state.yearlyData.activities) {
         dataToSave.activities = deleteField();
@@ -1124,6 +1176,7 @@ function loadDataFromLocalStorage() {
 
 function saveDataToLocalStorage(data) {
     try {
+        renderStorageUsage(calculateDataSize(data));
         localStorage.setItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA, JSON.stringify(data));
     } catch (error) {
         Logger.error("Error saving local data:", error);
@@ -1149,6 +1202,8 @@ async function saveDataToFirestore(data, partialUpdate = null) {
 function loadOfflineData() {
     localStorage.setItem(LOCAL_STORAGE_KEYS.SESSION_MODE, 'offline');
     const data = loadDataFromLocalStorage(); // This now handles migration
+
+    renderStorageUsage(calculateDataSize(data));
 
     const year = state.currentMonth.getFullYear();
     const yearlyData = data.yearlyData || {};

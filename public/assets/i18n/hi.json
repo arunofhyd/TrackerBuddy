@@ -97,7 +97,8 @@
     "teams": "टीमें",
     "resetConfirmCloud": "यह आपके सभी क्लाउड डेटा को स्थायी रूप से हटा देगा। इसे पूर्ववत नहीं किया जा सकता है।",
     "resetConfirmLocal": "यह आपके सभी स्थानीय डेटा को स्थायी रूप से हटा देगा। इसे पूर्ववत नहीं किया जा सकता है।",
-    "swipeToResetTracker": "TRACKERBUDDY रीसेट करने के लिए स्वाइप करें"
+    "swipeToResetTracker": "TRACKERBUDDY रीसेट करने के लिए स्वाइप करें",
+    "storage": "स्टोरेज"
   },
   "a11y": {
     "exitSearch": "खोज से बाहर निकलें",

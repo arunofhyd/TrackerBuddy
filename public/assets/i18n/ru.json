@@ -97,7 +97,8 @@
     "teams": "Команды",
     "resetConfirmCloud": "Удалит ВСЕ данные из облака навсегда.",
     "resetConfirmLocal": "Удалит ВСЕ локальные данные навсегда.",
-    "swipeToResetTracker": "СВАЙП ДЛЯ СБРОСА TRACKERBUDDY"
+    "swipeToResetTracker": "СВАЙП ДЛЯ СБРОСА TRACKERBUDDY",
+    "storage": "Хранилище"
   },
   "a11y": {
     "exitSearch": "Выйти из поиска",

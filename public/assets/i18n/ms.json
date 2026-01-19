@@ -97,7 +97,8 @@
     "teams": "Pasukan",
     "resetConfirmCloud": "Padam semua data di Awan? Tidak boleh dikembalikan.",
     "resetConfirmLocal": "Padam semua data tempatan? Tidak boleh dikembalikan.",
-    "swipeToResetTracker": "LERET UNTUK TETAP SEMULA TRACKERBUDDY"
+    "swipeToResetTracker": "LERET UNTUK TETAP SEMULA TRACKERBUDDY",
+    "storage": "Penyimpanan"
   },
   "a11y": {
     "exitSearch": "Tutup carian",

@@ -97,7 +97,8 @@
     "teams": "Tim",
     "resetConfirmCloud": "Ini akan menghapus semua data cloud Anda secara permanen. Ini tidak dapat dibatalkan.",
     "resetConfirmLocal": "Ini akan menghapus semua data lokal Anda secara permanen. Ini tidak dapat dibatalkan.",
-    "swipeToResetTracker": "GESER UNTUK RESET TRACKERBUDDY"
+    "swipeToResetTracker": "GESER UNTUK RESET TRACKERBUDDY",
+    "storage": "Penyimpanan"
   },
   "a11y": {
     "exitSearch": "Keluar pencarian",
