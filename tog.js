@@ -66,6 +66,7 @@ function cacheDOM() {
     DOM.avatarBtn = document.getElementById('tog-user-avatar-btn');
     DOM.dropdown = document.getElementById('tog-user-dropdown');
     DOM.menuContainer = document.getElementById('tog-user-menu-container');
+    DOM.menuAvatar = document.getElementById('tog-menu-avatar');
     DOM.userEmail = document.getElementById('tog-menu-user-email');
 
     DOM.backupBtn = document.getElementById('tog-backup-btn');
@@ -112,6 +113,10 @@ function bindEvents() {
     DOM.resetBtn?.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('tog-reset-request'));
         closeDropdown();
+    });
+
+    document.getElementById('tog-logout-btn')?.addEventListener('click', () => {
+        if(window.appSignOut) window.appSignOut();
     });
 
     // Make window functions for inline HTML clicks (legacy support)
@@ -201,38 +206,19 @@ function subscribeToData(userId) {
 
 function renderHeader(user) {
     // Fallback if user is null (Guest) or if user object is incomplete
-    const email = user ? (user.email || (state.auth && state.auth.currentUser ? state.auth.currentUser.email : "Guest Session")) : "Guest Session";
+    const email = user ? (user.email || (state.auth && state.auth.currentUser ? state.auth.currentUser.email : "Guest")) : "Guest";
     const displayUser = user || (state.auth && state.auth.currentUser ? { email: state.auth.currentUser.email, uid: state.auth.currentUser.uid } : null);
 
     if(DOM.userEmail) DOM.userEmail.innerText = email;
-    if(DOM.avatarBtn) DOM.avatarBtn.innerHTML = getAvatarContent(displayUser);
-}
 
-function getAvatarContent(user) {
-    if (!user) {
-        // Guest - Simple user icon SVG
-        return `<div style="background-color: #0071e3;" class="w-full h-full flex items-center justify-center text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>`;
+    // Update Menu Avatar content (Blue circle with initial or Guest icon)
+    if(DOM.menuAvatar) {
+        if (displayUser && displayUser.email) {
+            DOM.menuAvatar.innerText = displayUser.email.charAt(0).toUpperCase();
+        } else {
+            DOM.menuAvatar.innerHTML = '<i class="fas fa-user"></i>';
+        }
     }
-
-    const email = user.email || "?";
-    const letter = email.charAt(0).toUpperCase();
-
-    // Generate deterministic color based on UID (reusing logic from prompt)
-    const uid = user.uid || email;
-    let hash = 0;
-    for (let i = 0; i < uid.length; i++) {
-        hash = uid.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const c1 = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-    const c2 = ((hash >> 4) & 0x00FFFFFF).toString(16).toUpperCase();
-    const color1 = "#" + "00000".substring(0, 6 - c1.length) + c1;
-    const color2 = "#" + "00000".substring(0, 6 - c2.length) + c2;
-
-    return `<div style="background-color: #0071e3;" class="w-full h-full flex items-center justify-center text-white font-bold text-sm shadow-inner">
-        ${letter}
-    </div>`;
 }
 
 // --- Logic ---
