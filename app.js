@@ -670,53 +670,92 @@ function renderCalendar() {
 }
 
 function renderDailyActivities() {
-    const dateKey = getYYYYMMDD(state.selectedDate);
-    const currentActivities = state.currentYearData.activities || {};
-    const dailyActivitiesMap = currentActivities[dateKey] || {};
-    let dailyActivitiesArray = [];
-
-    DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
-
-    const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
-
-    if (hasStoredActivities) {
-        dailyActivitiesArray = Object.keys(dailyActivitiesMap)
-            .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
-            .map(timeKey => ({ time: timeKey, ...dailyActivitiesMap[timeKey] }))
-            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
-        for (let h = 8; h <= 17; h++) {
-            dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
+    try {
+        if (!DOM.dailyActivityTableBody) {
+             console.warn("dailyActivityTableBody not found");
+             return;
         }
+
+        const dateKey = getYYYYMMDD(state.selectedDate);
+        const currentYearData = state.currentYearData || { activities: {}, leaveOverrides: {} };
+        const currentActivities = currentYearData.activities || {};
+        const dailyActivitiesMap = currentActivities[dateKey] || {};
+        let dailyActivitiesArray = [];
+
+        if (DOM.dailyNoteInput) {
+             DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
+        }
+
+        const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
+
+        if (hasStoredActivities) {
+            dailyActivitiesArray = Object.keys(dailyActivitiesMap)
+                .filter(timeKey => timeKey !== '_userCleared' && timeKey !== 'note' && timeKey !== 'leave')
+                .map(timeKey => {
+                    const activityData = dailyActivitiesMap[timeKey];
+                    // Defensive check to prevent render crashes if data is corrupted
+                    if (!activityData || typeof activityData !== 'object') {
+                        // Logger.warn(`Invalid activity data for time ${timeKey}`, activityData);
+                        return null;
+                    }
+
+                    // Ensure text and order exist, defaulting if missing (handles corruption)
+                    return {
+                        time: timeKey,
+                        ...activityData, // Spread first so defaults can overwrite invalid values
+                        text: typeof activityData.text === 'string' ? activityData.text : '',
+                        order: typeof activityData.order === 'number' ? activityData.order : 0
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => a.order - b.order);
+        } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
+            for (let h = 8; h <= 17; h++) {
+                dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
+            }
+        }
+
+        if (DOM.noDailyActivitiesMessage) {
+            DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
+        }
+
+        const rows = dailyActivitiesArray.map((activity, index) => {
+            try {
+                const isFirst = index === 0;
+                const isLast = index === dailyActivitiesArray.length - 1;
+
+                return html`
+                <tr class="hover:bg-gray-100 transition-colors duration-150" data-time="${activity.time}">
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
+                        <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
+                    </td>
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex gap-1 justify-center items-center">
+                        <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                        </button>
+                        <button class="icon-btn move-down-btn" aria-label="Move Down" ?disabled=${isLast}>
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
+                            <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                </tr>`;
+            } catch (err) {
+                Logger.error(`Error rendering activity row for ${activity?.time}:`, err);
+                return html``;
+            }
+        });
+
+        render(html`${rows}`, DOM.dailyActivityTableBody);
+    } catch (error) {
+        Logger.error("Error rendering daily activities:", error);
+        // Fallback or empty state
+        if (DOM.noDailyActivitiesMessage) DOM.noDailyActivitiesMessage.classList.remove('hidden');
+        if (DOM.dailyActivityTableBody) DOM.dailyActivityTableBody.innerHTML = '';
+        showMessage(i18n.t("messages.renderError") || "Error displaying activities", 'error');
     }
-
-    DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
-
-    const rows = dailyActivitiesArray.map((activity, index) => {
-        const isFirst = index === 0;
-        const isLast = index === dailyActivitiesArray.length - 1;
-
-        return html`
-        <tr class="hover:bg-gray-100 transition-colors duration-150" data-time="${activity.time}">
-            <td class="py-2 px-2 sm:py-3 sm:px-4 whitespace-nowrap text-sm text-gray-900 cursor-text time-editable" data-time="${activity.time}" contenteditable="true">${activity.time}</td>
-            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm text-gray-900">
-                <div class="activity-text-editable" data-time="${activity.time}" contenteditable="true" .innerHTML="${formatTextForDisplay(activity.text, state.searchQuery)}"></div>
-            </td>
-            <td class="py-2 px-2 sm:py-3 sm:px-4 text-sm flex gap-1 justify-center items-center">
-                <button class="icon-btn move-up-btn" aria-label="Move Up" ?disabled=${isFirst}>
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                </button>
-                <button class="icon-btn move-down-btn" aria-label="Move Down" ?disabled=${isLast}>
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <button class="icon-btn delete-btn delete" aria-label="Delete Activity">
-                    <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-            </td>
-        </tr>`;
-    });
-
-    render(html`${rows}`, DOM.dailyActivityTableBody);
 }
 
 function renderMonthPicker() {
@@ -1019,12 +1058,12 @@ function handleUpdateTime(dayDataCopy, payload) {
         showMessage(i18n.t("messages.timeEmpty"), 'error');
         return null;
     }
-    if (dayDataCopy[newTimeKey] && oldTimeKey !== newTimeKey) {
+    if (Object.prototype.hasOwnProperty.call(dayDataCopy, newTimeKey) && oldTimeKey !== newTimeKey) {
         showMessage(i18n.t("messages.timeExists").replace('{time}', newTimeKey), 'error');
         return null;
     }
 
-    if (oldTimeKey !== newTimeKey && dayDataCopy.hasOwnProperty(oldTimeKey)) {
+    if (oldTimeKey !== newTimeKey && Object.prototype.hasOwnProperty.call(dayDataCopy, oldTimeKey)) {
         dayDataCopy[newTimeKey] = dayDataCopy[oldTimeKey];
         delete dayDataCopy[oldTimeKey];
     }
@@ -1076,6 +1115,11 @@ async function saveData(action) {
             successMessage = handleUpdateActivityText(dayDataCopy, action.payload);
             break;
         case ACTION_TYPES.UPDATE_TIME:
+            // Sanitize time key to prevent Firestore nesting issues
+            if (action.payload.newTimeKey) {
+                // Trim and replace invalid characters
+                action.payload.newTimeKey = action.payload.newTimeKey.trim().replace(/[./]/g, ':');
+            }
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
             if (successMessage === null) {
                 return;
@@ -1916,8 +1960,11 @@ function handleInlineEditBlur(event) {
 
 function handleInlineEditKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
+        const target = event.target;
         event.preventDefault();
-        event.currentTarget.blur();
+        // Manually trigger save, then blur (safe to call twice due to state check)
+        handleInlineEditBlur({ currentTarget: target });
+        target.blur();
     }
 }
 
@@ -3620,7 +3667,10 @@ function renderTeamDashboard() {
 // --- OPTIMIZATION: Event Delegation Setup for Daily View ---
 function setupDailyViewEventListeners() {
     const tableBody = DOM.dailyActivityTableBody;
-    if (!tableBody) return;
+    if (!tableBody) {
+        Logger.error("Table body not found in setupDailyViewEventListeners");
+        return;
+    }
 
     tableBody?.addEventListener('click', async e => {
         const target = e.target;
@@ -3669,12 +3719,12 @@ document?.addEventListener('click', (e) => {
     }
 });
 
-    tableBody?.addEventListener('blur', e => {
+    tableBody?.addEventListener('focusout', e => {
         const target = e.target;
         if (target.matches('.activity-text-editable, .time-editable')) {
             handleInlineEditBlur({ currentTarget: target });
         }
-    }, true);
+    });
 
     tableBody?.addEventListener('keydown', e => {
         const target = e.target;
@@ -3939,146 +3989,171 @@ function setupEventListeners() {
         triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await waitForDOMUpdate();
+        try {
+            await waitForDOMUpdate();
 
-        const oldYear = state.currentMonth.getFullYear();
-        let newDate;
+            const oldYear = state.currentMonth.getFullYear();
+            let newDate;
 
-        if (state.currentView === VIEW_MODES.MONTH) {
-            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() - 1));
-            setState({ currentMonth: newDate });
-        } else {
-            // Check if we are in search navigation mode (Day View + Active Search Results)
-            if (state.searchResultDates.length > 0) {
-                const currentKey = getYYYYMMDD(state.selectedDate);
-                // searchResultDates is always sorted ascending (oldest to newest)
-                const currentIndex = state.searchResultDates.indexOf(currentKey);
-
-                let newIndex;
-                if (currentIndex === -1) {
-                    // Not in list, find closest previous date
-                     // Since list is sorted ascending, we look for the last date smaller than current
-                    newIndex = -1;
-                     for (let i = state.searchResultDates.length - 1; i >= 0; i--) {
-                         if (state.searchResultDates[i] < currentKey) {
-                             newIndex = i;
-                             break;
-                         }
-                     }
-                     if (newIndex === -1 && state.searchResultDates.length > 0) {
-                         // If no previous date, wrap to end or stay? Let's wrap to end for better UX
-                         newIndex = state.searchResultDates.length - 1;
-                     }
-                } else {
-                    newIndex = currentIndex - 1;
-                    if (newIndex < 0) {
-                        // Wrap around
-                         newIndex = state.searchResultDates.length - 1;
-                    }
-                }
-
-                if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
-                    newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                    showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
-                } else {
-                    // Fallback to standard nav if empty (shouldn't happen due to check)
-                     newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
-                }
+            if (state.currentView === VIEW_MODES.MONTH) {
+                // Avoid mutating state.currentMonth in place
+                newDate = new Date(state.currentMonth);
+                newDate.setMonth(newDate.getMonth() - 1);
+                setState({ currentMonth: newDate });
             } else {
-                 newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() - 1));
+                // Check if we are in search navigation mode (Day View + Active Search Results)
+                if (state.searchResultDates.length > 0) {
+                    const currentKey = getYYYYMMDD(state.selectedDate);
+                    // searchResultDates is always sorted ascending (oldest to newest)
+                    const currentIndex = state.searchResultDates.indexOf(currentKey);
+
+                    let newIndex;
+                    if (currentIndex === -1) {
+                        // Not in list, find closest previous date
+                        // Since list is sorted ascending, we look for the last date smaller than current
+                        newIndex = -1;
+                        for (let i = state.searchResultDates.length - 1; i >= 0; i--) {
+                            if (state.searchResultDates[i] < currentKey) {
+                                newIndex = i;
+                                break;
+                            }
+                        }
+                        if (newIndex === -1 && state.searchResultDates.length > 0) {
+                            // If no previous date, wrap to end or stay? Let's wrap to end for better UX
+                            newIndex = state.searchResultDates.length - 1;
+                        }
+                    } else {
+                        newIndex = currentIndex - 1;
+                        if (newIndex < 0) {
+                            // Wrap around
+                            newIndex = state.searchResultDates.length - 1;
+                        }
+                    }
+
+                    if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
+                        newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
+                        showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
+                    } else {
+                        // Fallback to standard nav if empty (shouldn't happen due to check)
+                        newDate = new Date(state.selectedDate);
+                        newDate.setDate(newDate.getDate() - 1);
+                    }
+                } else {
+                    newDate = new Date(state.selectedDate);
+                    newDate.setDate(newDate.getDate() - 1);
+                }
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
             }
-            setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
-        }
 
-        const newYear = newDate.getFullYear();
-        if (newYear !== oldYear) {
-            setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
-        }
+            const newYear = newDate.getFullYear();
+            if (newYear !== oldYear) {
+                setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
+            }
 
-        updateView();
-        setButtonLoadingState(button, false);
+            updateView();
+        } catch (error) {
+            Logger.error("Error navigating previous:", error);
+            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+        } finally {
+            setButtonLoadingState(button, false);
+        }
     });
 
     document.getElementById('next-btn')?.addEventListener('click', async (e) => {
         triggerHapticFeedback('medium');
         const button = e.currentTarget;
         setButtonLoadingState(button, true);
-        await waitForDOMUpdate();
+        try {
+            await waitForDOMUpdate();
 
-        const oldYear = state.currentMonth.getFullYear();
-        let newDate;
+            const oldYear = state.currentMonth.getFullYear();
+            let newDate;
 
-        if (state.currentView === VIEW_MODES.MONTH) {
-            newDate = new Date(state.currentMonth.setMonth(state.currentMonth.getMonth() + 1));
-            setState({ currentMonth: newDate });
-        } else {
-            // Check if we are in search navigation mode (Day View + Active Search Results)
-             if (state.searchResultDates.length > 0) {
-                 const currentKey = getYYYYMMDD(state.selectedDate);
-                 // searchResultDates is always sorted ascending (oldest to newest)
-                 const currentIndex = state.searchResultDates.indexOf(currentKey);
+            if (state.currentView === VIEW_MODES.MONTH) {
+                newDate = new Date(state.currentMonth);
+                newDate.setMonth(newDate.getMonth() + 1);
+                setState({ currentMonth: newDate });
+            } else {
+                // Check if we are in search navigation mode (Day View + Active Search Results)
+                if (state.searchResultDates.length > 0) {
+                    const currentKey = getYYYYMMDD(state.selectedDate);
+                    // searchResultDates is always sorted ascending (oldest to newest)
+                    const currentIndex = state.searchResultDates.indexOf(currentKey);
 
-                 let newIndex;
-                 if (currentIndex === -1) {
-                     // Not in list, find closest next date
-                     newIndex = -1;
-                     for (let i = 0; i < state.searchResultDates.length; i++) {
-                         if (state.searchResultDates[i] > currentKey) {
-                             newIndex = i;
-                             break;
-                         }
-                     }
-                      if (newIndex === -1 && state.searchResultDates.length > 0) {
-                          // Wrap to start
-                          newIndex = 0;
-                      }
-                 } else {
-                     newIndex = currentIndex + 1;
-                     if (newIndex >= state.searchResultDates.length) {
-                         // Wrap around
-                          newIndex = 0;
-                     }
-                 }
+                    let newIndex;
+                    if (currentIndex === -1) {
+                        // Not in list, find closest next date
+                        newIndex = -1;
+                        for (let i = 0; i < state.searchResultDates.length; i++) {
+                            if (state.searchResultDates[i] > currentKey) {
+                                newIndex = i;
+                                break;
+                            }
+                        }
+                        if (newIndex === -1 && state.searchResultDates.length > 0) {
+                            // Wrap to start
+                            newIndex = 0;
+                        }
+                    } else {
+                        newIndex = currentIndex + 1;
+                        if (newIndex >= state.searchResultDates.length) {
+                            // Wrap around
+                            newIndex = 0;
+                        }
+                    }
 
-                 if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
-                     newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
-                     showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
-                 } else {
-                      newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
-                 }
-             } else {
-                 newDate = new Date(state.selectedDate.setDate(state.selectedDate.getDate() + 1));
-             }
-            setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+                    if (newIndex >= 0 && newIndex < state.searchResultDates.length) {
+                        newDate = new Date(state.searchResultDates[newIndex] + 'T00:00:00');
+                        showMessage(i18n.t("search.msgResultView").replace('{current}', newIndex + 1).replace('{total}', state.searchResultDates.length), 'info');
+                    } else {
+                        newDate = new Date(state.selectedDate);
+                        newDate.setDate(newDate.getDate() + 1);
+                    }
+                } else {
+                    newDate = new Date(state.selectedDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                }
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+
+            const newYear = newDate.getFullYear();
+            if (newYear !== oldYear) {
+                setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
+            }
+
+            updateView();
+        } catch (error) {
+            Logger.error("Error navigating next:", error);
+            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+        } finally {
+            setButtonLoadingState(button, false);
         }
-
-        const newYear = newDate.getFullYear();
-        if (newYear !== oldYear) {
-            setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
-        }
-
-        updateView();
-        setButtonLoadingState(button, false);
     });
     DOM.todayBtnDay?.addEventListener('click', async () => {
         setButtonLoadingState(DOM.todayBtnDay, true);
-        await waitForDOMUpdate();
-        const today = new Date();
-        const currentYear = state.currentMonth.getFullYear();
-        const newYear = today.getFullYear();
+        try {
+            await waitForDOMUpdate();
+            const today = new Date();
+            const currentYear = state.currentMonth.getFullYear();
+            const newYear = today.getFullYear();
 
-        const newState = {
-            selectedDate: today,
-            currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
-        };
+            const newState = {
+                selectedDate: today,
+                currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
+            };
 
-        if (newYear !== currentYear) {
-            newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
+            if (newYear !== currentYear) {
+                newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
+            }
+
+            setState(newState);
+            updateView();
+        } catch (error) {
+            Logger.error("Error navigating to today:", error);
+            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+        } finally {
+            setButtonLoadingState(DOM.todayBtnDay, false);
         }
-
-        setState(newState);
-        updateView();
-        setButtonLoadingState(DOM.todayBtnDay, false);
     });
 
     DOM.currentPeriodDisplay?.addEventListener('click', () => {
