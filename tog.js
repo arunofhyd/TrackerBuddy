@@ -12,7 +12,10 @@ let state = {
     auth: null,
     unsubscribe: null,
     isInitialized: false,
-    i18n: null
+    i18n: null,
+    trackerYearlyData: {},
+    trackerLeaveTypes: [],
+    showTrackerData: false
 };
 
 const STORAGE_KEY = 'tog_tracker_v1';
@@ -73,6 +76,7 @@ function cacheDOM() {
     DOM.restoreBtn = document.getElementById('tog-restore-btn');
     DOM.resetBtn = document.getElementById('tog-reset-btn');
     DOM.restoreInput = document.getElementById('tog-restore-input');
+    DOM.trackerLogoBtn = document.getElementById('tog-tracker-logo-btn');
 }
 
 function bindEvents() {
@@ -115,6 +119,8 @@ function bindEvents() {
         closeDropdown();
     });
 
+    DOM.trackerLogoBtn?.addEventListener('click', toggleTrackerOverlay);
+
     document.getElementById('tog-logout-btn')?.addEventListener('click', () => {
         if(window.appSignOut) window.appSignOut();
     });
@@ -122,6 +128,29 @@ function bindEvents() {
     // Make window functions for inline HTML clicks (legacy support)
     window.tog_insertValue = insertValue;
     window.tog_handleInputChange = handleInputChange;
+}
+
+export function updateLeaveData(yearlyData, leaveTypes) {
+    state.trackerYearlyData = yearlyData || {};
+    state.trackerLeaveTypes = leaveTypes || [];
+    if (state.showTrackerData) {
+        renderCalendar(true);
+    }
+}
+
+function toggleTrackerOverlay() {
+    state.showTrackerData = !state.showTrackerData;
+
+    if (DOM.trackerLogoBtn) {
+        if (state.showTrackerData) {
+            // Blue shadow (Blue 500 is #3b82f6)
+            DOM.trackerLogoBtn.style.boxShadow = '0 0 15px 5px rgba(59, 130, 246, 0.5)';
+        } else {
+            DOM.trackerLogoBtn.style.boxShadow = 'none';
+        }
+    }
+
+    renderCalendar(true);
 }
 
 function subscribeToData(userId) {
@@ -444,13 +473,53 @@ export function renderCalendar(preserveFocus = false) {
                 }
 
                 const baseOpacity = isCurrentMonth ? 'opacity-100' : 'opacity-40 hover:opacity-100 transition-opacity';
-                const cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
+                let cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
                 const cardBorder = isToday ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700';
                 const dayText = isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium';
                 const footerBg = 'bg-yellow-50 dark:bg-yellow-900/10';
 
+                let overlayStyle = '';
+                if (state.showTrackerData) {
+                    const currentYear = currentLoopDate.getFullYear();
+                    const trackerDayData = state.trackerYearlyData[currentYear]?.activities?.[dateKey];
+                    if (trackerDayData?.leave) {
+                        const leaveType = state.trackerLeaveTypes.find(lt => lt.id === trackerDayData.leave.typeId);
+                        if (leaveType) {
+                            // Apply background with 25% opacity
+                            // We use rgba to ensure opacity, or just a linear gradient for overlay
+                            // Since cardBg handles light/dark mode, modifying it might be complex if we want to keep dark mode colors.
+                            // However, request asks for "leave colour fills ... appear".
+                            // Setting backgroundColor style directly overrides tailwind bg classes.
+                            // To get 25% opacity of the leave color, we need to parse the color or assume it's hex/rgba.
+                            // If it's hex, we can convert. If it's named color, it's harder.
+                            // Assuming hex for now based on typical color pickers.
+                            // Let's rely on CSS variables or inline styles.
+                            // But opacity property affects the whole element content. We want background opacity.
+                            // We can use a pseudo-element or just set background-color with alpha if possible.
+                            // Simplest approach: Use style attribute for background-color.
+                            // But we need to mix it with the base theme?
+                            // "appear with 25% opacity" implies the color itself is 25% opaque overlaying the base?
+                            // Or the background BECOMES the color at 25% opacity?
+                            // Let's assume background-color = color + '40' (hex for 25%).
+                            // Note: leaveType.color is likely hex (e.g. #FF0000).
+                            if (leaveType.color.startsWith('#')) {
+                                let alphaHex = '40'; // ~25%
+                                overlayStyle = `background-color: ${leaveType.color}${alphaHex} !important;`;
+                            } else {
+                                // Fallback: try to set it with opacity via style if it's not hex (e.g. rgb) - tricky without complex parsing.
+                                // Assuming hex from color picker.
+                                overlayStyle = `background-color: ${leaveType.color}; opacity: 0.8;`; // Fallback if can't set alpha
+                            }
+                        }
+                    }
+                }
+
                 const card = document.createElement('div');
-                card.className = `day-card min-h-[100px] border ${cardBorder} ${cardBg} ${baseOpacity}`;
+                card.className = `day-card min-h-[100px] border ${cardBorder} ${!overlayStyle ? cardBg : ''} ${baseOpacity}`;
+                if (overlayStyle) {
+                     card.style.cssText = overlayStyle;
+                }
+
                 // Restored structure exactly from prompt source
                 card.innerHTML = `
                     <div class="day-header">
