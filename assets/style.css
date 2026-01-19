@@ -986,6 +986,26 @@ body.dark #tog-view .day-footer { background-color: #2e2005; }
 #tog-leave-legend-container::-webkit-scrollbar { display: none; }
 #tog-leave-legend-container { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Reveal Animation Utility */
+.tog-reveal-section {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(10px);
+    overflow: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.3s ease, margin-top 0.3s ease, margin-bottom 0.3s ease;
+}
+.tog-reveal-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+    /* max-height needs to be sufficient for content. Overridden by specific ID if needed or large default. */
+    max-height: 500px;
+}
+
+/* Specific overrides for visible days to prevent large jumps if needed, though 500px is safe given overflow hidden */
+#tog-visible-days-wrapper.visible {
+    max-height: 100px;
+}
+
 /* Fix Input Backgrounds in Dark Mode */
 body.dark #tog-view input.input-field { background-color: transparent !important; }
 
