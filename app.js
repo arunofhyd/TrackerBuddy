@@ -671,12 +671,20 @@ function renderCalendar() {
 
 function renderDailyActivities() {
     try {
+        if (!DOM.dailyActivityTableBody) {
+             console.warn("dailyActivityTableBody not found");
+             return;
+        }
+
         const dateKey = getYYYYMMDD(state.selectedDate);
-        const currentActivities = state.currentYearData.activities || {};
+        const currentYearData = state.currentYearData || { activities: {}, leaveOverrides: {} };
+        const currentActivities = currentYearData.activities || {};
         const dailyActivitiesMap = currentActivities[dateKey] || {};
         let dailyActivitiesArray = [];
 
-        DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
+        if (DOM.dailyNoteInput) {
+             DOM.dailyNoteInput.value = dailyActivitiesMap.note || '';
+        }
 
         const hasStoredActivities = Object.keys(dailyActivitiesMap).filter(key => key !== '_userCleared' && key !== 'note' && key !== 'leave').length > 0;
 
@@ -687,20 +695,29 @@ function renderDailyActivities() {
                     const activityData = dailyActivitiesMap[timeKey];
                     // Defensive check to prevent render crashes if data is corrupted
                     if (!activityData || typeof activityData !== 'object') {
-                        Logger.warn(`Invalid activity data for time ${timeKey}`, activityData);
+                        // Logger.warn(`Invalid activity data for time ${timeKey}`, activityData);
                         return null;
                     }
-                    return { time: timeKey, ...activityData };
+
+                    // Ensure text and order exist, defaulting if missing (handles corruption)
+                    return {
+                        time: timeKey,
+                        ...activityData, // Spread first so defaults can overwrite invalid values
+                        text: typeof activityData.text === 'string' ? activityData.text : '',
+                        order: typeof activityData.order === 'number' ? activityData.order : 0
+                    };
                 })
                 .filter(Boolean)
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                .sort((a, b) => a.order - b.order);
         } else if (dailyActivitiesMap._userCleared !== true && state.selectedDate.getDay() !== 0) {
             for (let h = 8; h <= 17; h++) {
                 dailyActivitiesArray.push({ time: `${String(h).padStart(2, '0')}:00-${String(h + 1).padStart(2, '0')}:00`, text: "", order: h - 8 });
             }
         }
 
-        DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
+        if (DOM.noDailyActivitiesMessage) {
+            DOM.noDailyActivitiesMessage.classList.toggle('hidden', dailyActivitiesArray.length > 0);
+        }
 
         const rows = dailyActivitiesArray.map((activity, index) => {
             try {
@@ -735,8 +752,8 @@ function renderDailyActivities() {
     } catch (error) {
         Logger.error("Error rendering daily activities:", error);
         // Fallback or empty state
-        DOM.noDailyActivitiesMessage.classList.remove('hidden');
-        DOM.dailyActivityTableBody.innerHTML = '';
+        if (DOM.noDailyActivitiesMessage) DOM.noDailyActivitiesMessage.classList.remove('hidden');
+        if (DOM.dailyActivityTableBody) DOM.dailyActivityTableBody.innerHTML = '';
         showMessage(i18n.t("messages.renderError") || "Error displaying activities", 'error');
     }
 }
@@ -1100,7 +1117,8 @@ async function saveData(action) {
         case ACTION_TYPES.UPDATE_TIME:
             // Sanitize time key to prevent Firestore nesting issues
             if (action.payload.newTimeKey) {
-                action.payload.newTimeKey = action.payload.newTimeKey.replace(/[./]/g, ':');
+                // Trim and replace invalid characters
+                action.payload.newTimeKey = action.payload.newTimeKey.trim().replace(/[./]/g, ':');
             }
             successMessage = handleUpdateTime(dayDataCopy, action.payload);
             if (successMessage === null) {
