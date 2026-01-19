@@ -968,7 +968,8 @@ body.dark #tog-view .day-footer { background-color: #2e2005; }
     max-height: 0;
     transform: translateY(10px);
     overflow: hidden;
-    transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.3s ease;
+    margin-bottom: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.3s ease, margin-bottom 0.3s ease;
     display: flex;
     gap: 8px;
     white-space: nowrap;
