@@ -1151,7 +1151,7 @@ function loadOfflineData() {
     DOM.navTogBtn.classList.remove('hidden');
 }
 
-async function resetAllData() {
+async function resetTrackerData() {
     const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
     setButtonLoadingState(button, true);
     await waitForDOMUpdate();
@@ -1163,17 +1163,15 @@ async function resetAllData() {
         leaveTypes: []
     };
 
-    // Also reset TOG data
-    await performTogReset(state.userId, db);
-
     if (state.isOnlineMode && state.userId) {
         try {
-            // Overwrite the user's document with a cleared state
-            await setDoc(doc(db, COLLECTIONS.USERS, state.userId), {
+            // Only update specific fields, preserving everything else (like togData, teamId)
+            const updates = {
                 yearlyData: {},
                 leaveTypes: []
-                // We leave team info intact
-            }, { merge: false }); // merge:false replaces the document
+            };
+
+            await updateDoc(doc(db, COLLECTIONS.USERS, state.userId), updates);
 
             // This will trigger onSnapshot, which will update the local state.
             triggerTeamSync();
@@ -3836,12 +3834,12 @@ function setupEventListeners() {
     DOM.navTogBtn?.addEventListener('click', toggleAppMode);
 
     // TOG Events
-    document.addEventListener('tog-reset-request', confirmResetAllData);
+    document.addEventListener('tog-reset-request', confirmTogReset);
 
     // User Menu
     document.getElementById('tb-backup-btn')?.addEventListener('click', downloadCSV);
     document.getElementById('tb-restore-btn')?.addEventListener('click', () => DOM.uploadCsvBtn.click());
-    document.getElementById('tb-reset-btn')?.addEventListener('click', confirmResetAllData);
+    document.getElementById('tb-reset-btn')?.addEventListener('click', confirmTrackerReset);
     document.getElementById('tb-logout-btn')?.addEventListener('click', appSignOut);
 
     const passwordToggleBtn = document.getElementById('password-toggle-btn');
@@ -4172,9 +4170,9 @@ function setupEventListeners() {
         });
     }
 
-    document.getElementById('reset-data-btn')?.addEventListener('click', confirmResetAllData);
+    document.getElementById('reset-data-btn')?.addEventListener('click', confirmTrackerReset);
     document.getElementById('cancel-reset-btn')?.addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
-    document.getElementById('confirm-reset-btn')?.addEventListener('click', resetAllData);
+    document.getElementById('confirm-reset-btn')?.addEventListener('click', resetTrackerData);
 
     const uploadCsvInput = document.getElementById('upload-csv-input');
     DOM.uploadCsvBtn?.addEventListener('click', () => uploadCsvInput.click());
@@ -5299,8 +5297,16 @@ function setupTbUserMenu(user) {
     });
 }
 
-function confirmResetAllData() {
-    state.pendingSwipeAction = 'resetAllData';
+function confirmTrackerReset() {
+    state.pendingSwipeAction = 'resetTrackerData';
+    if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('common.swipeToReset') || "Swipe to Reset";
+    DOM.swipeConfirmModal.classList.add('visible');
+    resetSwipeConfirm();
+}
+
+function confirmTogReset() {
+    state.pendingSwipeAction = 'resetTogData';
+    if (DOM.swipeText) DOM.swipeText.textContent = "Swipe to Reset TOG";
     DOM.swipeConfirmModal.classList.add('visible');
     resetSwipeConfirm();
 }
@@ -5357,8 +5363,13 @@ function setupSwipeConfirm() {
             // Perform Action after brief delay
             setTimeout(() => {
                 DOM.swipeConfirmModal.classList.remove('visible');
-                if (state.pendingSwipeAction === 'resetAllData') {
-                    resetAllData();
+                if (state.pendingSwipeAction === 'resetTrackerData') {
+                    resetTrackerData();
+                } else if (state.pendingSwipeAction === 'resetTogData') {
+                    performTogReset(state.userId, db);
+                } else if (state.pendingSwipeAction === 'resetAllData') {
+                    // Legacy fallback
+                    resetTrackerData();
                 } else {
                     deleteLeaveType(); // Default/Old behavior
                 }
