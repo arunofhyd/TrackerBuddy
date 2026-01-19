@@ -942,7 +942,7 @@ body.dark .role-badge.pending {
 /* --- TOG Tracker Styles --- */
 #tog-view .input-field { transition: all 0.2s; outline: none; background-color: transparent; }
 #tog-view .btn-outline { transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
-#tog-view .icon-btn { padding: 2px; border-radius: 4px; transition: all 0.2s; cursor: pointer; }
+#tog-view .calendar-grid .icon-btn { padding: 2px; border-radius: 4px; transition: all 0.2s; cursor: pointer; }
 
 /* Grid Layout */
 #tog-view .calendar-grid {
