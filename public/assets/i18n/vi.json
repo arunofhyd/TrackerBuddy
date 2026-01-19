@@ -351,6 +351,9 @@
     "resetComplete": "Đặt lại hoàn tất",
     "weekly": "Hàng tuần",
     "swipeToReset": "VUỐT ĐỂ ĐẶT LẠI TOG",
-    "resetConfirm": "Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu TOG của bạn. Không thể hoàn tác."
+    "resetConfirm": "Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu TOG của bạn. Không thể hoàn tác.",
+    "viewOptions": "Tùy chọn hiển thị",
+    "toggleConverters": "Bật/tắt bộ chuyển đổi",
+    "toggleVisibleDays": "Bật/tắt ngày hiển thị"
   }
 }

@@ -351,6 +351,9 @@
     "resetComplete": "초기화 완료",
     "weekly": "주간",
     "swipeToReset": "밀어서 TOG 재설정",
-    "resetConfirm": "이 작업은 모든 TOG 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다."
+    "resetConfirm": "이 작업은 모든 TOG 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
+    "viewOptions": "보기 옵션",
+    "toggleConverters": "변환기 전환",
+    "toggleVisibleDays": "표시 일 전환"
   }
 }

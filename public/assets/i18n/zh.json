@@ -351,6 +351,9 @@
     "resetComplete": "重置完成",
     "weekly": "每周",
     "swipeToReset": "滑动以重置 TOG",
-    "resetConfirm": "这将永久删除您的所有 TOG 数据。此操作无法撤消。"
+    "resetConfirm": "这将永久删除您的所有 TOG 数据。此操作无法撤消。",
+    "viewOptions": "查看选项",
+    "toggleConverters": "切换转换器",
+    "toggleVisibleDays": "切换可见天数"
   }
 }

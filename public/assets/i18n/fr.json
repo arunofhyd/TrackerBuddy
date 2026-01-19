@@ -351,6 +351,9 @@
     "resetComplete": "Réinitialisation terminée",
     "weekly": "Hebdomadaire",
     "swipeToReset": "GLISSER POUR RÉINITIALISER TOG",
-    "resetConfirm": "Cela supprimera définitivement toutes vos données TOG. Cette action est irréversible."
+    "resetConfirm": "Cela supprimera définitivement toutes vos données TOG. Cette action est irréversible.",
+    "viewOptions": "Options d'affichage",
+    "toggleConverters": "Basculer les convertisseurs",
+    "toggleVisibleDays": "Basculer les jours visibles"
   }
 }

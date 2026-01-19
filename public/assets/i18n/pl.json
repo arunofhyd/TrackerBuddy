@@ -351,6 +351,9 @@
     "resetComplete": "Reset zakończony",
     "weekly": "Tygodniowo",
     "swipeToReset": "PRZESUŃ ABY ZRESETOWAĆ TOG",
-    "resetConfirm": "To trwale usunie wszystkie dane TOG. Tej operacji nie można cofnąć."
+    "resetConfirm": "To trwale usunie wszystkie dane TOG. Tej operacji nie można cofnąć.",
+    "viewOptions": "Opcje widoku",
+    "toggleConverters": "Przełącz konwertery",
+    "toggleVisibleDays": "Przełącz widoczne dni"
   }
 }

@@ -351,6 +351,9 @@
     "resetComplete": "Reset completato",
     "weekly": "Settimanale",
     "swipeToReset": "SCORRI PER RESETTARE TOG",
-    "resetConfirm": "Questo eliminerà permanentemente tutti i tuoi dati TOG. Questa azione non può essere annullata."
+    "resetConfirm": "Questo eliminerà permanentemente tutti i tuoi dati TOG. Questa azione non può essere annullata.",
+    "viewOptions": "Opzioni di visualizzazione",
+    "toggleConverters": "Attiva/disattiva convertitori",
+    "toggleVisibleDays": "Attiva/disattiva giorni visibili"
   }
 }
