@@ -1151,7 +1151,13 @@ function loadOfflineData() {
     DOM.navTogBtn.classList.remove('hidden');
 }
 
-async function resetTrackerData() {
+async function performTrackerReset() {
+    // Safety check: Ensure we are NOT in Tog View when resetting TrackerBuddy
+    if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
+        Logger.warn("Attempted to reset TrackerBuddy data while in Tog View. Aborting.");
+        return;
+    }
+
     const button = DOM.confirmResetModal.querySelector('#confirm-reset-btn');
     setButtonLoadingState(button, true);
     await waitForDOMUpdate();
@@ -4172,7 +4178,7 @@ function setupEventListeners() {
 
     document.getElementById('reset-data-btn')?.addEventListener('click', confirmTrackerReset);
     document.getElementById('cancel-reset-btn')?.addEventListener('click', () => DOM.confirmResetModal.classList.remove('visible'));
-    document.getElementById('confirm-reset-btn')?.addEventListener('click', resetTrackerData);
+    document.getElementById('confirm-reset-btn')?.addEventListener('click', performTrackerReset);
 
     const uploadCsvInput = document.getElementById('upload-csv-input');
     DOM.uploadCsvBtn?.addEventListener('click', () => uploadCsvInput.click());
@@ -4211,6 +4217,8 @@ function setupEventListeners() {
             }
         } else {
             // Use Swipe Confirm for Universal Delete
+            state.pendingSwipeAction = 'deleteLeaveType';
+            if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('admin.swipeToDelete');
             DOM.swipeConfirmModal.classList.add('visible');
             resetSwipeConfirm();
         }
@@ -5298,15 +5306,19 @@ function setupTbUserMenu(user) {
 }
 
 function confirmTrackerReset() {
-    state.pendingSwipeAction = 'resetTrackerData';
-    if (DOM.swipeText) DOM.swipeText.textContent = i18n.t('common.swipeToReset') || "Swipe to Reset";
+    state.pendingSwipeAction = 'performTrackerReset';
+    if (DOM.swipeText) DOM.swipeText.textContent = "Swipe to Reset TrackerBuddy";
+    const desc = DOM.swipeConfirmModal.querySelector('p');
+    if (desc) desc.textContent = state.isOnlineMode ? i18n.t('dashboard.resetConfirmCloud') : i18n.t('dashboard.resetConfirmLocal');
     DOM.swipeConfirmModal.classList.add('visible');
     resetSwipeConfirm();
 }
 
 function confirmTogReset() {
-    state.pendingSwipeAction = 'resetTogData';
+    state.pendingSwipeAction = 'performTogReset';
     if (DOM.swipeText) DOM.swipeText.textContent = "Swipe to Reset TOG";
+    const desc = DOM.swipeConfirmModal.querySelector('p');
+    if (desc) desc.textContent = "This will permanently delete all your TOG data. This action cannot be undone.";
     DOM.swipeConfirmModal.classList.add('visible');
     resetSwipeConfirm();
 }
@@ -5363,15 +5375,31 @@ function setupSwipeConfirm() {
             // Perform Action after brief delay
             setTimeout(() => {
                 DOM.swipeConfirmModal.classList.remove('visible');
-                if (state.pendingSwipeAction === 'resetTrackerData') {
-                    resetTrackerData();
-                } else if (state.pendingSwipeAction === 'resetTogData') {
+                if (state.pendingSwipeAction === 'performTrackerReset') {
+                    performTrackerReset();
+                } else if (state.pendingSwipeAction === 'performTogReset') {
                     performTogReset(state.userId, db);
-                } else if (state.pendingSwipeAction === 'resetAllData') {
-                    // Legacy fallback
-                    resetTrackerData();
+                } else if (state.pendingSwipeAction === 'deleteLeaveType') { // Explicit check
+                     deleteLeaveType();
                 } else {
-                    deleteLeaveType(); // Default/Old behavior
+                     // Default behavior only if explicit action matches or legacy handling if strictly needed,
+                     // but for safety, we should avoid default destructive actions.
+                     // However, deleteLeaveType was the implied default in original code.
+                     // To be safe, we only run deleteLeaveType if it was set (which we handle below).
+                     // If pendingSwipeAction is null or unknown, do nothing.
+                     if (!state.pendingSwipeAction) {
+                         deleteLeaveType(); // Keeping legacy default for now if it was relying on null?
+                         // Actually, deleteLeaveType logic sets confirmAction on the button,
+                         // BUT `DOM.deleteLeaveTypeBtn` listener sets `swipeConfirmModal` visible.
+                         // Let's check `DOM.deleteLeaveTypeBtn` listener.
+                         // It does: `DOM.swipeConfirmModal.classList.add('visible'); resetSwipeConfirm();`
+                         // It DOES NOT set `state.pendingSwipeAction`.
+                         // So it relies on the 'else' block.
+                         // We should update the listener to set the action.
+                     } else {
+                         // Unknown action, do nothing
+                         Logger.warn("Unknown swipe action:", state.pendingSwipeAction);
+                     }
                 }
                 state.pendingSwipeAction = null;
             }, 300);
