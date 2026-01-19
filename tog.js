@@ -12,7 +12,10 @@ let state = {
     auth: null,
     unsubscribe: null,
     isInitialized: false,
-    i18n: null
+    i18n: null,
+    trackerYearlyData: {},
+    trackerLeaveTypes: [],
+    showTrackerData: false
 };
 
 const STORAGE_KEY = 'tog_tracker_v1';
@@ -73,6 +76,7 @@ function cacheDOM() {
     DOM.restoreBtn = document.getElementById('tog-restore-btn');
     DOM.resetBtn = document.getElementById('tog-reset-btn');
     DOM.restoreInput = document.getElementById('tog-restore-input');
+    DOM.trackerLogoBtn = document.getElementById('tog-tracker-logo-btn');
 }
 
 function bindEvents() {
@@ -115,6 +119,8 @@ function bindEvents() {
         closeDropdown();
     });
 
+    DOM.trackerLogoBtn?.addEventListener('click', toggleTrackerOverlay);
+
     document.getElementById('tog-logout-btn')?.addEventListener('click', () => {
         if(window.appSignOut) window.appSignOut();
     });
@@ -122,6 +128,29 @@ function bindEvents() {
     // Make window functions for inline HTML clicks (legacy support)
     window.tog_insertValue = insertValue;
     window.tog_handleInputChange = handleInputChange;
+}
+
+export function updateLeaveData(yearlyData, leaveTypes) {
+    state.trackerYearlyData = yearlyData || {};
+    state.trackerLeaveTypes = leaveTypes || [];
+    if (state.showTrackerData) {
+        renderCalendar(true);
+    }
+}
+
+function toggleTrackerOverlay() {
+    state.showTrackerData = !state.showTrackerData;
+
+    if (DOM.trackerLogoBtn) {
+        if (state.showTrackerData) {
+            // Blue shadow (Blue 500 is #3b82f6), increased prominence
+            DOM.trackerLogoBtn.style.boxShadow = '0 0 20px 8px rgba(59, 130, 246, 0.6)';
+        } else {
+            DOM.trackerLogoBtn.style.boxShadow = 'none';
+        }
+    }
+
+    renderCalendar(true);
 }
 
 function subscribeToData(userId) {
@@ -444,13 +473,42 @@ export function renderCalendar(preserveFocus = false) {
                 }
 
                 const baseOpacity = isCurrentMonth ? 'opacity-100' : 'opacity-40 hover:opacity-100 transition-opacity';
-                const cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
+                let cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
                 const cardBorder = isToday ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700';
                 const dayText = isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium';
                 const footerBg = 'bg-yellow-50 dark:bg-yellow-900/10';
 
+                let overlayStyle = '';
+                if (state.showTrackerData) {
+                    const currentYear = currentLoopDate.getFullYear();
+                    const trackerDayData = state.trackerYearlyData[currentYear]?.activities?.[dateKey];
+                    if (trackerDayData?.leave) {
+                        const leaveType = state.trackerLeaveTypes.find(lt => lt.id === trackerDayData.leave.typeId);
+                        if (leaveType) {
+                            // Convert hex to RGBA for consistency if possible, assuming hex color from picker
+                            const hex = leaveType.color.startsWith('#') ? leaveType.color : '#3b82f6';
+                            const alphaHex = '40'; // 25% opacity
+
+                            if (trackerDayData.leave.dayType === 'half') {
+                                // Half day: Linear gradient
+                                // "half filled cells of the same leave type colour"
+                                // We use the color with 25% opacity (alphaHex) for the filled part
+                                const colorWithOpacity = `${hex}${alphaHex}`;
+                                overlayStyle = `background-image: linear-gradient(to bottom right, ${colorWithOpacity} 50%, transparent 50%) !important;`;
+                            } else {
+                                // Full day
+                                overlayStyle = `background-color: ${hex}${alphaHex} !important;`;
+                            }
+                        }
+                    }
+                }
+
                 const card = document.createElement('div');
-                card.className = `day-card min-h-[100px] border ${cardBorder} ${cardBg} ${baseOpacity}`;
+                card.className = `day-card min-h-[100px] border ${cardBorder} ${!overlayStyle ? cardBg : ''} ${baseOpacity}`;
+                if (overlayStyle) {
+                     card.style.cssText = overlayStyle;
+                }
+
                 // Restored structure exactly from prompt source
                 card.innerHTML = `
                     <div class="day-header">
