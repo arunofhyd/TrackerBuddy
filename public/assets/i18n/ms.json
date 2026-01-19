@@ -351,6 +351,9 @@
     "resetComplete": "Set Semula Selesai",
     "weekly": "Mingguan",
     "swipeToReset": "LERET UNTUK TETAP SEMULA TOG",
-    "resetConfirm": "Ini akan memadamkan semua data TOG anda secara kekal. Tindakan ini tidak boleh dibatalkan."
+    "resetConfirm": "Ini akan memadamkan semua data TOG anda secara kekal. Tindakan ini tidak boleh dibatalkan.",
+    "viewOptions": "Pilihan Paparan",
+    "toggleConverters": "Togol Penukar",
+    "toggleVisibleDays": "Togol Hari Kelihatan"
   }
 }

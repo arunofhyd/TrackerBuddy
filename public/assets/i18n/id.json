@@ -351,6 +351,9 @@
     "resetComplete": "Reset Selesai",
     "weekly": "Mingguan",
     "swipeToReset": "GESER UNTUK RESET TOG",
-    "resetConfirm": "Ini akan menghapus semua data TOG Anda secara permanen. Tindakan ini tidak dapat dibatalkan."
+    "resetConfirm": "Ini akan menghapus semua data TOG Anda secara permanen. Tindakan ini tidak dapat dibatalkan.",
+    "viewOptions": "Opsi Tampilan",
+    "toggleConverters": "Beralih Konverter",
+    "toggleVisibleDays": "Beralih Hari Terlihat"
   }
 }

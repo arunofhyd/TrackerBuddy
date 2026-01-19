@@ -351,6 +351,9 @@
     "resetComplete": "Reset Complete",
     "weekly": "Weekly",
     "swipeToReset": "SWIPE TO RESET TOG",
-    "resetConfirm": "This will permanently delete all your TOG data. This action cannot be undone."
+    "resetConfirm": "This will permanently delete all your TOG data. This action cannot be undone.",
+    "viewOptions": "View Options",
+    "toggleConverters": "Toggle Converters",
+    "toggleVisibleDays": "Toggle Visible Days"
   }
 }

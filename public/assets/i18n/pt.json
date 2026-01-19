@@ -351,6 +351,9 @@
     "resetComplete": "Redefinição completa",
     "weekly": "Semanalmente",
     "swipeToReset": "DESLIZE PARA REDEFINIR TOG",
-    "resetConfirm": "Isso excluirá permanentemente todos os seus dados TOG. Esta ação não pode ser desfeita."
+    "resetConfirm": "Isso excluirá permanentemente todos os seus dados TOG. Esta ação não pode ser desfeita.",
+    "viewOptions": "Opções de visualização",
+    "toggleConverters": "Alternar conversores",
+    "toggleVisibleDays": "Alternar dias visíveis"
   }
 }

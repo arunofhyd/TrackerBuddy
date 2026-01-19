@@ -351,6 +351,9 @@
     "resetComplete": "Reset voltooid",
     "weekly": "Wekelijks",
     "swipeToReset": "VEEG OM TOG TE RESETTEN",
-    "resetConfirm": "Dit verwijdert al uw TOG-gegevens permanent. Deze actie kan niet ongedaan worden gemaakt."
+    "resetConfirm": "Dit verwijdert al uw TOG-gegevens permanent. Deze actie kan niet ongedaan worden gemaakt.",
+    "viewOptions": "Weergaveopties",
+    "toggleConverters": "Converters wisselen",
+    "toggleVisibleDays": "Zichtbare dagen wisselen"
   }
 }

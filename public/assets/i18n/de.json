@@ -351,6 +351,9 @@
     "resetComplete": "Zurücksetzen abgeschlossen",
     "weekly": "Wöchentlich",
     "swipeToReset": "WISCHEN ZUM ZURÜCKSETZEN VON TOG",
-    "resetConfirm": "Dies löscht dauerhaft alle Ihre TOG-Daten. Diese Aktion kann nicht rückgängig gemacht werden."
+    "resetConfirm": "Dies löscht dauerhaft alle Ihre TOG-Daten. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "viewOptions": "Ansichtsoptionen",
+    "toggleConverters": "Umrechner umschalten",
+    "toggleVisibleDays": "Sichtbare Tage umschalten"
   }
 }
