@@ -229,32 +229,6 @@
         </div>
     </div>
 
-    <!-- TOG Calculators -->
-    <div class="flex flex-col md:flex-row gap-4 items-center">
-        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.timeToTog">TIME TO TOG</div>
-            <input type="number" id="tog-c1_h" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
-            <span class="text-slate-300">:</span>
-            <input type="number" id="tog-c1_m" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
-            <div class="flex-1 text-right">
-                <span id="tog-res_decimal" class="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">0.0</span>
-            </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
-            <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider" data-i18n="tog.memory">Memory</span>
-            <span id="tog-globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
-        </div>
-
-        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4 shadow-sm">
-            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.togToTime">TOG TO TIME</div>
-            <input type="number" id="tog-c2_d" class="input-field w-24 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
-            <div class="flex-1 text-right">
-                <span id="tog-res_time" class="font-mono font-bold text-lg text-emerald-600 dark:text-emerald-400">0h 0m</span>
-            </div>
-        </div>
-    </div>
-
     <!-- TOG Calendar -->
     <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 md:p-6 rounded-xl shadow-sm">
 
@@ -295,6 +269,34 @@
             </div>
 
             <div class="calendar-grid" id="tog-calendarGrid">
+            </div>
+        </div>
+    </div>
+
+    <!-- TOG Calculators -->
+    <div class="flex flex-col md:flex-row gap-4 items-center">
+        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm">
+            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.timeToTog">TIME TO TOG</div>
+            <div class="flex items-center gap-2">
+                <input type="number" id="tog-c1_h" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="H">
+                <span class="text-slate-300">:</span>
+                <input type="number" id="tog-c1_m" class="input-field w-16 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="M">
+            </div>
+            <div class="flex-1 w-full sm:w-auto text-right">
+                <span id="tog-res_decimal" class="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">0.0</span>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 transition-colors">
+            <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wider" data-i18n="tog.memory">Memory</span>
+            <span id="tog-globalMemory" class="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">0.0</span>
+        </div>
+
+        <div class="flex-1 w-full bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm">
+            <div class="min-w-[90px] text-xs font-bold uppercase text-slate-400" data-i18n="tog.togToTime">TOG TO TIME</div>
+            <input type="number" id="tog-c2_d" class="input-field w-24 bg-slate-50 border border-slate-200 text-slate-900 rounded p-1 text-center dark:bg-slate-950 dark:border-slate-700 dark:text-white" placeholder="5.2">
+            <div class="flex-1 w-full sm:w-auto text-right">
+                <span id="tog-res_time" class="font-mono font-bold text-lg text-emerald-600 dark:text-emerald-400">0h 0m</span>
             </div>
         </div>
     </div>
