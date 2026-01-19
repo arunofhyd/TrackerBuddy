@@ -227,6 +227,7 @@ function initUI() {
     setupSwipeConfirm();
 
     window.showAppMessage = showMessage;
+    window.appSignOut = appSignOut;
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -5298,7 +5299,12 @@ async function init() {
     }
 }
 
-document?.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
 function mergeUserData(cloudState, guestData) {
     const mergedYearlyData = JSON.parse(JSON.stringify(cloudState.yearlyData || {}));
     const mergedLeaveTypes = [...(cloudState.leaveTypes || [])];

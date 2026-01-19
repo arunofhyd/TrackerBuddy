@@ -187,13 +187,24 @@
     <!-- TOG Calendar -->
     <div class="bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 p-4 md:p-6 rounded-xl shadow-sm">
 
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-6 relative">
             <button id="tog-theme-toggle-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" title="Toggle Theme" data-i18n-title="a11y.toggleTheme">
                 <!-- Sun Icon (Show in Dark Mode) -->
                 <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <!-- Moon Icon (Show in Light Mode) -->
                 <svg class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
             </button>
+
+            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex justify-center items-center gap-4">
+                <button id="tog-prev-month-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+
+                <div class="text-center w-48">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-blue-600 transition-colors" id="tog-monthLabel">...</h2>
+                    <button id="tog-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider" data-i18n="tog.jumpToToday">Jump to Today</button>
+                </div>
+
+                <button id="tog-next-month-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+            </div>
 
             <div class="relative" id="tog-user-menu-container">
                 <button id="tog-user-avatar-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200">
@@ -229,17 +240,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="flex justify-center items-center gap-4 mb-6 relative">
-            <button id="tog-prev-month-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-
-            <div class="text-center w-48">
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white cursor-pointer hover:text-blue-600 transition-colors" id="tog-monthLabel">...</h2>
-                <button id="tog-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider" data-i18n="tog.jumpToToday">Jump to Today</button>
-            </div>
-
-            <button id="tog-next-month-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
         </div>
 
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 border-t border-b border-slate-100 dark:border-slate-800 py-3">
