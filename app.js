@@ -812,6 +812,8 @@ function renderMonthPicker() {
                 setState({ currentMonth: newMonth, selectedDate: newSelectedDate });
                 updateView();
                 DOM.monthPickerModal.classList.remove('visible');
+            }, () => {
+                // Cancelled - do nothing or close modal if you want, but usually stay in picker
             });
         }}>${name}</button>`;
     });
@@ -4427,32 +4429,28 @@ function setupEventListeners() {
 
             // Perform Archive Check Before Updating State
             if (newYear !== oldYear) {
-                await new Promise(resolve => {
+                await new Promise((resolve, reject) => {
                     checkArchivedNavigation(newYear.toString(), () => {
                         resolve();
+                    }, () => {
+                        reject(new Error("Navigation cancelled"));
                     });
                 });
                 // Re-calculate currentYearData in case loadArchivedYear updated state
                 setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
             }
 
-            // Only update date state if check passed (if prompt cancelled, we stay put effectively? No, checkArchivedNavigation doesn't block unless we await/return)
-            // Actually, checkArchivedNavigation callback is "proceedCallback".
-            // To properly BLOCK, I need to wrap the state update in the callback or structure this differently.
-            // Let's refactor slightly to be safer.
+            // If we are here, navigation is approved
+            if (state.currentView === VIEW_MODES.MONTH) {
+                setState({ currentMonth: newDate });
+            } else {
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
 
-            checkArchivedNavigation(newYear.toString(), () => {
-                if (state.currentView === VIEW_MODES.MONTH) {
-                    setState({ currentMonth: newDate });
-                } else {
-                    setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
-                }
-
-                if (newYear !== oldYear) {
-                    setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
-                }
-                updateView();
-            });
+            if (newYear !== oldYear) {
+                setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
+            }
+            updateView();
 
         } catch (error) {
             Logger.error("Error navigating previous:", error);
@@ -4520,18 +4518,26 @@ function setupEventListeners() {
             const newYear = newDate.getFullYear();
 
             // Check archive status before committing navigation
-            checkArchivedNavigation(newYear.toString(), () => {
-                if (state.currentView === VIEW_MODES.MONTH) {
-                    setState({ currentMonth: newDate });
-                } else {
-                    setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
-                }
+            if (newYear !== oldYear) {
+                await new Promise((resolve, reject) => {
+                    checkArchivedNavigation(newYear.toString(), () => {
+                        resolve();
+                    }, () => {
+                        reject(new Error("Navigation cancelled"));
+                    });
+                });
+            }
 
-                if (newYear !== oldYear) {
-                    setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
-                }
-                updateView();
-            });
+            if (state.currentView === VIEW_MODES.MONTH) {
+                setState({ currentMonth: newDate });
+            } else {
+                setState({ selectedDate: newDate, currentMonth: new Date(newDate.getFullYear(), newDate.getMonth(), 1) });
+            }
+
+            if (newYear !== oldYear) {
+                setState({ currentYearData: state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} } });
+            }
+            updateView();
 
         } catch (error) {
             Logger.error("Error navigating next:", error);
@@ -4548,19 +4554,27 @@ function setupEventListeners() {
             const currentYear = state.currentMonth.getFullYear();
             const newYear = today.getFullYear();
 
-            checkArchivedNavigation(newYear.toString(), () => {
-                const newState = {
-                    selectedDate: today,
-                    currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
-                };
+            if (newYear !== currentYear) {
+                await new Promise((resolve, reject) => {
+                    checkArchivedNavigation(newYear.toString(), () => {
+                        resolve();
+                    }, () => {
+                        reject(new Error("Navigation cancelled"));
+                    });
+                });
+            }
 
-                if (newYear !== currentYear) {
-                    newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
-                }
+            const newState = {
+                selectedDate: today,
+                currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
+            };
 
-                setState(newState);
-                updateView();
-            });
+            if (newYear !== currentYear) {
+                newState.currentYearData = state.yearlyData[newYear] || { activities: {}, leaveOverrides: {} };
+            }
+
+            setState(newState);
+            updateView();
         } catch (error) {
             Logger.error("Error navigating to today:", error);
             showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
@@ -6040,7 +6054,7 @@ function resetSwipeConfirm() {
     }, 350);
 }
 
-function showPromptModal(title, text, confirmText, onConfirm) {
+function showPromptModal(title, text, confirmText, onConfirm, onCancel) {
     if (!DOM.promptModal) return;
 
     DOM.promptModalTitle.textContent = title;
@@ -6052,8 +6066,13 @@ function showPromptModal(title, text, confirmText, onConfirm) {
         closePromptModal();
     };
 
+    const handleCancel = () => {
+        if (onCancel) onCancel();
+        closePromptModal();
+    };
+
     DOM.promptConfirmBtn.onclick = handleConfirm;
-    DOM.promptCancelBtn.onclick = closePromptModal;
+    DOM.promptCancelBtn.onclick = handleCancel;
 
     DOM.promptModal.classList.add('visible');
 }
@@ -6066,22 +6085,25 @@ function closePromptModal() {
     }
 }
 
-async function checkArchivedNavigation(targetYear, proceedCallback) {
+async function checkArchivedNavigation(targetYear, proceedCallback, cancelCallback) {
     // If year is archived AND NOT loaded in memory
     if (state.archivedSummaries && state.archivedSummaries[targetYear] && !state.yearlyData[targetYear]) {
 
         // Construct message using existing keys
         // "2023 Archived. Load?"
         const title = `${targetYear} (${i18n.t('admin.statusArchived')})`;
-        const text = i18n.t('admin.archiveDesc'); // "Manage your data history..." - maybe too long but accurate context
+        // "View leave details" is better than "Manage your data history..."
+        const text = i18n.t('tracker.viewLeaveDetails');
         const confirmText = i18n.t('admin.loadBtn');
 
         showPromptModal(title, text, confirmText, async () => {
             // User confirmed: Load data then proceed
             await loadArchivedYear(targetYear);
             proceedCallback();
+        }, () => {
+            // User cancelled
+            if (cancelCallback) cancelCallback();
         });
-        // If cancelled, we do nothing (navigation blocked)
     } else {
         // Safe to proceed
         proceedCallback();
