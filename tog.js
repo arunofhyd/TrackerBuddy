@@ -42,8 +42,12 @@ export function initTog(userId, db, auth, i18n) {
         try {
             state.storedData = JSON.parse(local);
             if(state.storedData._dayVisibility) state.dayVisibility = state.storedData._dayVisibility;
+            if(state.storedData._showConverters !== undefined) state.showConverters = state.storedData._showConverters;
+            if(state.storedData._showVisibleDays !== undefined) state.showVisibleDays = state.storedData._showVisibleDays;
         } catch(e) { console.error(e); }
     }
+
+    applyToggleState();
 
     if (userId && db) {
         subscribeToData(userId);
@@ -149,21 +153,28 @@ export function updateLeaveData(yearlyData, leaveTypes) {
     }
 }
 
-function toggleConverters() {
-    state.showConverters = !state.showConverters;
+function applyToggleState() {
     if (DOM.convertersWrapper) {
         if (state.showConverters) DOM.convertersWrapper.classList.add('visible');
         else DOM.convertersWrapper.classList.remove('visible');
     }
+    if (DOM.visibleDaysWrapper) {
+        if (state.showVisibleDays) DOM.visibleDaysWrapper.classList.add('visible');
+        else DOM.visibleDaysWrapper.classList.remove('visible');
+    }
+}
+
+function toggleConverters() {
+    state.showConverters = !state.showConverters;
+    applyToggleState();
+    saveData('_showConverters', state.showConverters);
     closeDropdown();
 }
 
 function toggleVisibleDays() {
     state.showVisibleDays = !state.showVisibleDays;
-    if (DOM.visibleDaysWrapper) {
-        if (state.showVisibleDays) DOM.visibleDaysWrapper.classList.add('visible');
-        else DOM.visibleDaysWrapper.classList.remove('visible');
-    }
+    applyToggleState();
+    saveData('_showVisibleDays', state.showVisibleDays);
     closeDropdown();
 }
 
@@ -268,6 +279,10 @@ function subscribeToData(userId) {
             if(state.storedData._dayVisibility) {
                 state.dayVisibility = state.storedData._dayVisibility;
             }
+            if(state.storedData._showConverters !== undefined) state.showConverters = state.storedData._showConverters;
+            if(state.storedData._showVisibleDays !== undefined) state.showVisibleDays = state.storedData._showVisibleDays;
+
+            applyToggleState();
 
             // Update local storage for redundancy/offline fallback
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
