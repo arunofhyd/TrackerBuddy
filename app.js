@@ -2757,16 +2757,18 @@ async function archiveYear(year, silent = false) {
                 showMessage(i18n.t("messages.archiveSuccess") || `Archived ${year} data`, 'success');
             }
 
-            // If current view is in archived year, switch to valid year
+            // If current view is in archived year, clear data and prompt
             if (state.currentMonth.getFullYear().toString() === year) {
-                 const today = new Date();
                  setState({
-                     currentMonth: today,
-                     selectedDate: today,
-                     currentYearData: state.yearlyData[today.getFullYear()] || { activities: {}, leaveOverrides: {} }
+                     currentYearData: { activities: {}, leaveOverrides: {} }
                  });
+                 // Prompt to load immediately since we are viewing it
+                 checkArchivedNavigation(year, () => {
+                     // If they load, state updates automatically via loadArchivedYear
+                 });
+            } else {
+                updateView();
             }
-            updateView();
             // Also refresh modal if open
             if (document.getElementById('archive-modal')?.classList.contains('visible')) {
                 renderArchiveModal();
@@ -4453,8 +4455,10 @@ function setupEventListeners() {
             updateView();
 
         } catch (error) {
-            Logger.error("Error navigating previous:", error);
-            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            if (error.message !== "Navigation cancelled") {
+                Logger.error("Error navigating previous:", error);
+                showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            }
         } finally {
             setButtonLoadingState(button, false);
         }
@@ -4540,8 +4544,10 @@ function setupEventListeners() {
             updateView();
 
         } catch (error) {
-            Logger.error("Error navigating next:", error);
-            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            if (error.message !== "Navigation cancelled") {
+                Logger.error("Error navigating next:", error);
+                showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            }
         } finally {
             setButtonLoadingState(button, false);
         }
@@ -4576,8 +4582,10 @@ function setupEventListeners() {
             setState(newState);
             updateView();
         } catch (error) {
-            Logger.error("Error navigating to today:", error);
-            showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            if (error.message !== "Navigation cancelled") {
+                Logger.error("Error navigating to today:", error);
+                showMessage(i18n.t("messages.renderError") || "Error navigating", 'error');
+            }
         } finally {
             setButtonLoadingState(DOM.todayBtnDay, false);
         }
