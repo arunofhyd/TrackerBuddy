@@ -6,6 +6,8 @@ export const createInitialState = () => ({
     selectedDate: new Date(),
     currentView: VIEW_MODES.MONTH,
     yearlyData: {}, // Holds all data, keyed by year
+    archivedSummaries: {}, // Metadata/summaries of archived years
+    loadedArchivedYears: new Set(), // Track which years are temporarily loaded from archive
     currentYearData: { activities: {}, leaveOverrides: {} }, // Data for the currently selected year
     userId: null,
     isOnlineMode: false,

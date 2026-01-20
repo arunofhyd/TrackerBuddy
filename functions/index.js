@@ -84,6 +84,16 @@ async function calculateAndSaveMemberSummary(userId, teamId, userData, memberInf
     const yearlyLeaveBalances = {};
     const systemYear = new Date().getFullYear().toString();
 
+    // 1. Load from Archived Summaries first
+    if (userData.archivedSummaries) {
+        Object.keys(userData.archivedSummaries).forEach(year => {
+            const summary = userData.archivedSummaries[year];
+            if (summary && summary.leaveBalances) {
+                yearlyLeaveBalances[year] = summary.leaveBalances;
+            }
+        });
+    }
+
     const relevantYears = new Set(Object.keys(yearlyData));
     if (leaveTypes.length > 0 && !relevantYears.has(systemYear)) {
         relevantYears.add(systemYear);

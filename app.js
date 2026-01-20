@@ -223,7 +223,10 @@ function initUI() {
         tbUserDropdown: document.getElementById('tb-user-dropdown'),
         tbMenuContainer: document.getElementById('tb-user-menu-container'),
         tbMenuAvatar: document.getElementById('tb-menu-avatar'),
-        tbMenuEmail: document.getElementById('tb-menu-user-email')
+        tbMenuEmail: document.getElementById('tb-menu-user-email'),
+        // Archive Modal
+        archiveModal: document.getElementById('archive-modal'),
+        archiveYearList: document.getElementById('archive-year-list')
     };
 
     setupMessageSwipe();
@@ -895,6 +898,7 @@ async function subscribeToData(userId, callback) {
 
         setState({
             yearlyData: yearlyData,
+            archivedSummaries: data.archivedSummaries || {},
             currentYearData: currentYearData,
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
@@ -1235,6 +1239,88 @@ function saveDataToLocalStorage(data) {
 
 async function saveDataToFirestore(data, partialUpdate = null) {
     if (!state.userId) return;
+
+    // Check for modifications to loaded archived years
+    const yearsToSaveToArchive = new Set();
+    const dataClone = JSON.parse(JSON.stringify(data));
+
+    if (dataClone.yearlyData) {
+        Object.keys(dataClone.yearlyData).forEach(year => {
+            if (state.loadedArchivedYears.has(year)) {
+                yearsToSaveToArchive.add(year);
+            }
+        });
+    }
+
+    // If partial update, extract year from keys like "yearlyData.2023.activities..."
+    if (partialUpdate) {
+        Object.keys(partialUpdate).forEach(key => {
+            const match = key.match(/^yearlyData\.(\d+)\./);
+            if (match && state.loadedArchivedYears.has(match[1])) {
+                yearsToSaveToArchive.add(match[1]);
+            }
+        });
+    }
+
+    if (yearsToSaveToArchive.size > 0) {
+        const batch = writeBatch(db);
+        const userDocRef = doc(db, COLLECTIONS.USERS, state.userId);
+
+        for (const year of yearsToSaveToArchive) {
+            // 1. Get the latest data for this year from state
+            const yearData = state.yearlyData[year];
+
+            // 2. Save to history subcollection (Full overwrite)
+            const historyRef = doc(db, `${COLLECTIONS.USERS}/${state.userId}/history/${year}`);
+            batch.set(historyRef, yearData);
+
+            // 3. Update summary in main doc
+            const leaveBalances = getLeaveBalancesForYear(year, yearData, state.leaveTypes);
+            const summary = {
+                leaveBalances,
+                archivedAt: new Date().toISOString()
+            };
+            batch.update(userDocRef, {
+                [`archivedSummaries.${year}`]: summary,
+                lastUpdated: Date.now()
+            });
+
+            // 4. Remove from payload intended for main doc
+            if (dataClone.yearlyData) {
+                delete dataClone.yearlyData[year];
+            }
+        }
+
+        // Handle remaining updates for main doc
+        if (partialUpdate) {
+            const newPartial = {};
+            let hasMainDocUpdates = false;
+            Object.keys(partialUpdate).forEach(key => {
+                const match = key.match(/^yearlyData\.(\d+)\./);
+                if (match && state.loadedArchivedYears.has(match[1])) {
+                    // Skip, handled by batch above
+                } else {
+                    newPartial[key] = partialUpdate[key];
+                    hasMainDocUpdates = true;
+                }
+            });
+
+            if (hasMainDocUpdates) {
+                batch.update(userDocRef, newPartial);
+            }
+        } else {
+            // Full data save (merge) - check if anything remains to be saved
+            if (Object.keys(dataClone).length > 0) {
+                // If yearlyData became empty object, we still might want to save other fields
+                // But avoid saving empty yearlyData: {} if it wasn't intended to wipe everything
+                // Actually, merge: true will just update provided fields.
+                batch.set(userDocRef, dataClone, { merge: true });
+            }
+        }
+
+        await batch.commit();
+        return;
+    }
 
     if (partialUpdate) {
         try {
@@ -2539,6 +2625,240 @@ async function moveLeaveType(typeId, direction) {
     await saveLeaveTypes();
 }
 
+function getLeaveBalancesForYear(year, yearData, leaveTypes) {
+    const balances = {};
+    const leaveCounts = {};
+    const activities = yearData.activities || {};
+    const overrides = yearData.leaveOverrides || {};
+
+    leaveTypes.forEach(lt => {
+        leaveCounts[lt.id] = 0;
+    });
+
+    Object.values(activities).forEach(dayData => {
+        if (dayData.leave) {
+            const leaveValue = dayData.leave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
+            if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
+                leaveCounts[dayData.leave.typeId] += leaveValue;
+            }
+        }
+    });
+
+    leaveTypes.forEach(lt => {
+        // Respect limitYear logic if present
+        if (lt.limitYear && String(lt.limitYear) !== String(year)) return;
+
+        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+        const used = leaveCounts[lt.id] || 0;
+
+        // Only include in summary if relevant (has allowance or usage)
+        if (totalDays > 0 || used > 0) {
+             balances[lt.id] = {
+                name: lt.name,
+                color: lt.color,
+                total: totalDays,
+                used: parseFloat(used.toFixed(2)),
+                balance: parseFloat((totalDays - used).toFixed(2))
+            };
+        }
+    });
+
+    return balances;
+}
+
+async function archiveYear(year) {
+    if (!state.yearlyData[year]) return;
+
+    const yearData = state.yearlyData[year];
+    const leaveBalances = getLeaveBalancesForYear(year, yearData, state.leaveTypes);
+    const summary = {
+        leaveBalances,
+        archivedAt: new Date().toISOString()
+    };
+
+    const historyPath = `${COLLECTIONS.USERS}/${state.userId}/history/${year}`;
+
+    try {
+        if (state.isOnlineMode && state.userId) {
+            const batch = writeBatch(db);
+            const userDocRef = doc(db, COLLECTIONS.USERS, state.userId);
+            const historyDocRef = doc(db, historyPath);
+
+            // Save to history subcollection
+            batch.set(historyDocRef, yearData);
+
+            // Update main doc: Add summary, remove detailed data
+            batch.update(userDocRef, {
+                [`archivedSummaries.${year}`]: summary,
+                [`yearlyData.${year}`]: deleteField(),
+                lastUpdated: Date.now()
+            });
+
+            await batch.commit();
+
+            const newYearlyData = { ...state.yearlyData };
+            delete newYearlyData[year];
+
+            const newArchivedSummaries = { ...state.archivedSummaries, [year]: summary };
+
+            setState({
+                yearlyData: newYearlyData,
+                archivedSummaries: newArchivedSummaries
+            });
+
+            showMessage(i18n.t("messages.archiveSuccess") || `Archived ${year} data`, 'success');
+
+            // If current view is in archived year, switch to valid year
+            if (state.currentMonth.getFullYear().toString() === year) {
+                 const today = new Date();
+                 setState({
+                     currentMonth: today,
+                     selectedDate: today,
+                     currentYearData: state.yearlyData[today.getFullYear()] || { activities: {}, leaveOverrides: {} }
+                 });
+            }
+            updateView();
+            // Also refresh modal if open
+            if (document.getElementById('archive-modal')?.classList.contains('visible')) {
+                renderArchiveModal();
+            }
+        }
+    } catch (error) {
+        Logger.error("Archive failed:", error);
+        showMessage(i18n.t("messages.archiveFailed") || "Archive failed", 'error');
+    }
+}
+
+async function loadArchivedYear(year) {
+    if (state.yearlyData[year]) return;
+
+    try {
+        if (state.isOnlineMode && state.userId) {
+            const historyDocRef = doc(db, `${COLLECTIONS.USERS}/${state.userId}/history/${year}`);
+            const docSnap = await getDoc(historyDocRef);
+
+            if (docSnap.exists()) {
+                const yearData = docSnap.data();
+                const newYearlyData = { ...state.yearlyData, [year]: yearData };
+
+                state.loadedArchivedYears.add(year);
+
+                setState({ yearlyData: newYearlyData });
+
+                const date = new Date(year, 0, 1);
+                setState({
+                    currentMonth: date,
+                    selectedDate: date,
+                    currentYearData: yearData
+                });
+                updateView();
+
+                showMessage(`Loaded ${year} data`, 'success');
+                // Also refresh modal if open
+                if (document.getElementById('archive-modal')?.classList.contains('visible')) {
+                    renderArchiveModal();
+                }
+            } else {
+                showMessage(`No data found for ${year}`, 'error');
+            }
+        }
+    } catch (error) {
+        Logger.error("Load archive failed:", error);
+        showMessage("Failed to load archived data", 'error');
+    }
+}
+
+function openArchiveModal() {
+    renderArchiveModal();
+    DOM.archiveModal.classList.add('visible');
+}
+
+function closeArchiveModal() {
+    DOM.archiveModal.classList.remove('visible');
+}
+
+function renderArchiveModal() {
+    if (!DOM.archiveYearList) return;
+    DOM.archiveYearList.innerHTML = '';
+
+    const allYears = new Set([
+        ...Object.keys(state.yearlyData),
+        ...Object.keys(state.archivedSummaries || {})
+    ]);
+
+    // Convert to numbers for sorting, but keep as strings for keys
+    const sortedYears = Array.from(allYears).sort((a, b) => parseInt(b) - parseInt(a));
+
+    if (sortedYears.length === 0) {
+        DOM.archiveYearList.innerHTML = `<p class="text-center text-gray-500 italic">${i18n.t("admin.noDataYears") || "No data available."}</p>`;
+        return;
+    }
+
+    sortedYears.forEach(year => {
+        const isLoaded = !!state.yearlyData[year];
+        const isArchived = !!state.archivedSummaries?.[year];
+
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm';
+
+        let statusBadge = '';
+        if (isLoaded && isArchived) {
+             statusBadge = `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">${i18n.t("admin.statusLoaded") || "Loaded (Archived)"}</span>`;
+        } else if (isLoaded) {
+             statusBadge = `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 border border-green-200">${i18n.t("admin.statusActive") || "Active"}</span>`;
+        } else {
+             statusBadge = `<span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 border border-gray-200">${i18n.t("admin.statusArchived") || "Archived"}</span>`;
+        }
+
+        let actionButton = '';
+        if (isLoaded) {
+            actionButton = `
+                <button class="archive-action-btn px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors" data-year="${year}" data-action="archive">
+                    ${i18n.t("admin.archiveBtn") || "Archive"}
+                </button>
+            `;
+        } else {
+            actionButton = `
+                <button class="archive-action-btn px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors" data-year="${year}" data-action="load">
+                    ${i18n.t("admin.loadBtn") || "Load"}
+                </button>
+            `;
+        }
+
+        item.innerHTML = `
+            <div>
+                <span class="text-lg font-bold text-gray-800 dark:text-gray-200 mr-2">${year}</span>
+                ${statusBadge}
+            </div>
+            ${actionButton}
+        `;
+
+        DOM.archiveYearList.appendChild(item);
+    });
+
+    // Event listeners
+    DOM.archiveYearList.querySelectorAll('.archive-action-btn').forEach(btn => {
+        btn?.addEventListener('click', async (e) => {
+            const year = e.currentTarget.dataset.year;
+            const action = e.currentTarget.dataset.action;
+
+            // Add loading state to button
+            e.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            e.currentTarget.disabled = true;
+
+            if (action === 'archive') {
+                await archiveYear(year);
+            } else {
+                await loadArchivedYear(year);
+            }
+
+            if (DOM.archiveModal.classList.contains('visible')) {
+                 renderArchiveModal();
+            }
+        });
+    });
+}
+
 function renderLeavePills() {
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
@@ -2559,31 +2879,29 @@ function renderLeavePills() {
 }
 
 function calculateLeaveBalances() {
-    const balances = {};
-    const leaveCounts = {};
     const year = state.currentMonth.getFullYear();
+    const yearData = state.yearlyData[year] || { activities: {}, leaveOverrides: {} };
+    // Reuse the helper, but map back to simple balance map if needed or use full object
+    // Existing code expects simple map: { typeId: balance }
+
+    const fullBalances = getLeaveBalancesForYear(year, yearData, state.leaveTypes);
+    const balances = {};
+
+    // Also need to handle types that might have been filtered out by getLeaveBalancesForYear (if 0 total and 0 used)
+    // but the UI might expect them if they are visible leave types.
+    // getLeaveBalancesForYear filters out irrelevant ones.
+    // However, existing calculateLeaveBalances returns balances for ALL visible types.
+
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
-    const currentActivities = state.currentYearData.activities || {};
-
     visibleLeaveTypes.forEach(lt => {
-        leaveCounts[lt.id] = 0;
-    });
-
-    Object.values(currentActivities).forEach(dayData => {
-        if (dayData.leave) {
-            const leaveValue = dayData.leave.dayType === LEAVE_DAY_TYPES.HALF ? 0.5 : 1;
-            if (leaveCounts.hasOwnProperty(dayData.leave.typeId)) {
-                leaveCounts[dayData.leave.typeId] += leaveValue;
-            }
+        if (fullBalances[lt.id]) {
+            balances[lt.id] = fullBalances[lt.id].balance;
+        } else {
+            // Fallback for types with 0 total and 0 used (if any)
+            const overrides = yearData.leaveOverrides || {};
+            const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
+            balances[lt.id] = totalDays;
         }
-    });
-
-    const yearData = state.yearlyData[year] || {};
-    const overrides = yearData.leaveOverrides || {};
-
-    visibleLeaveTypes.forEach(lt => {
-        const totalDays = overrides[lt.id]?.totalDays ?? lt.totalDays;
-        balances[lt.id] = totalDays - (leaveCounts[lt.id] || 0);
     });
 
     return balances;
@@ -3976,6 +4294,7 @@ function setupEventListeners() {
     document.addEventListener('tog-reset-request', confirmTogReset);
 
     // User Menu
+    document.getElementById('tb-archive-btn')?.addEventListener('click', openArchiveModal);
     document.getElementById('tb-backup-btn')?.addEventListener('click', downloadCSV);
     document.getElementById('tb-restore-btn')?.addEventListener('click', () => DOM.uploadCsvBtn.click());
     document.getElementById('tb-reset-btn')?.addEventListener('click', confirmTrackerReset);
@@ -4664,6 +4983,16 @@ function setupEventListeners() {
     if (DOM.closeAdminDashboardBtn) {
         DOM.closeAdminDashboardBtn?.addEventListener('click', () => {
             DOM.adminDashboardModal.classList.remove('visible');
+        });
+    }
+
+    // Archive Modal
+    document.getElementById('close-archive-modal-btn')?.addEventListener('click', closeArchiveModal);
+    if (DOM.archiveModal) {
+        DOM.archiveModal.addEventListener('click', (e) => {
+            if (e.target === DOM.archiveModal) {
+                closeArchiveModal();
+            }
         });
     }
 
