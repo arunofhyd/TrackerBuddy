@@ -2751,10 +2751,10 @@ function renderLeaveStats() {
             <div class="bg-white p-3 sm:p-4 rounded-lg shadow relative border-2" style="border-color: ${lt.color};">
                 <div class="flex justify-between items-start">
                     <div class="flex items-center min-w-0 pr-2">
-                        <h4 class="font-bold text-base sm:text-lg truncate min-w-0 mr-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
+                        <h4 class="font-bold text-base sm:text-lg truncate min-w-0 me-2" style="color: ${lt.color};" title="${lt.name}">${lt.name}</h4>
                     </div>
 
-                    <div class="flex items-center -mt-2 -mr-2 flex-shrink-0">
+                    <div class="flex items-center -mt-2 -me-2 flex-shrink-0">
                         <button class="info-leave-btn icon-btn text-gray-400 hover:text-blue-500 transition-colors flex-shrink-0" data-id="${lt.id}" title="${i18n.t('tracker.viewLeaveDetails')}" aria-label="${i18n.t('tracker.viewLeaveDetails')} for ${lt.name}" @click=${() => openLeaveOverviewModal(lt.id)}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -2820,10 +2820,10 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
     } else if (selectedType) {
         triggerHTML = `
             <span class="flex items-center w-full min-w-0">
-                <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
+                <span class="w-3 h-3 rounded-full me-2 flex-shrink-0" style="background-color: ${selectedType.color};"></span>
                 <span class="font-medium text-sm truncate min-w-0">${sanitizeHTML(selectedType.name)}</span>
             </span>
-            <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+            <i class="fas fa-chevron-down text-xs text-gray-500 ms-1 flex-shrink-0"></i>`;
     } else {
         triggerHTML = `<span class="font-medium text-sm text-gray-500">${i18n.t('tracker.selectType')}</span>`;
     }
@@ -2835,12 +2835,12 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
         <div class="leave-type-selector-panel">
             <div class="flex flex-col space-y-1">
                 <button type="button" data-id="remove" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center transition-all duration-200 active:scale-95">
-                    <i class="fas fa-times-circle w-3 h-3 mr-2 text-red-500"></i>
+                    <i class="fas fa-times-circle w-3 h-3 me-2 text-red-500"></i>
                     <span>${i18n.t('tracker.none')}</span>
                 </button>
                 ${visibleLeaveTypes.map(lt => `
                     <button type="button" data-id="${lt.id}" class="leave-type-option w-full text-left px-3 py-1.5 rounded-full text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center min-w-0 transition-all duration-200 active:scale-95">
-                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
+                        <span class="w-3 h-3 rounded-full me-2 flex-shrink-0" style="background-color: ${lt.color};"></span>
                         <span class="truncate min-w-0" title="${sanitizeHTML(lt.name)}">${sanitizeHTML(lt.name)}</span>
                     </button>
                 `).join('')}
@@ -2875,10 +2875,10 @@ function createLeaveTypeSelector(container, currentTypeId, onTypeChangeCallback)
 
                 newTriggerHTML = `
                     <span class="flex items-center w-full min-w-0">
-                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
+                        <span class="w-3 h-3 rounded-full me-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
                         <span class="font-medium text-sm truncate min-w-0">${sanitizeHTML(newType.name)}</span>
                     </span>
-                    <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                    <i class="fas fa-chevron-down text-xs text-gray-500 ms-1 flex-shrink-0"></i>`;
             }
             trigger.innerHTML = newTriggerHTML;
 
@@ -2945,10 +2945,10 @@ function renderLeaveCustomizationModal() {
             if (newType) {
                 newTriggerHTML = `
                     <span class="flex items-center w-full min-w-0">
-                        <span class="w-3 h-3 rounded-full mr-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
+                        <span class="w-3 h-3 rounded-full me-2 flex-shrink-0" style="background-color: ${newType.color};"></span>
                         <span class="font-medium text-sm truncate min-w-0">${newType.name}</span>
                     </span>
-                    <i class="fas fa-chevron-down text-xs text-gray-500 ml-1 flex-shrink-0"></i>`;
+                    <i class="fas fa-chevron-down text-xs text-gray-500 ms-1 flex-shrink-0"></i>`;
             }
         }
         if (newTriggerHTML) {
@@ -3185,9 +3185,9 @@ function renderTeamSection() {
     const teamIcon = document.getElementById('team-icon');
     if (teamIcon) {
         if (state.currentTeam) {
-            teamIcon.className = 'fa-solid fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
+            teamIcon.className = 'fa-solid fa-user w-5 h-5 me-2 mt-1 sm:mt-0.5';
         } else {
-            teamIcon.className = 'fa-regular fa-user w-5 h-5 mr-2 mt-1 sm:mt-0.5';
+            teamIcon.className = 'fa-regular fa-user w-5 h-5 me-2 mt-1 sm:mt-0.5';
         }
     }
 
@@ -3244,10 +3244,10 @@ function renderTeamSection() {
             <div class="space-y-4 sm:space-y-6">
                 <div class="text-center">
                     <h3 class="text-base sm:text-lg font-semibold mb-2 flex items-center justify-center">
-                        <i class="fa-solid fa-user-group w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600"></i>
+                        <i class="fa-solid fa-user-group w-4 h-4 sm:w-5 sm:h-5 me-2 text-blue-600"></i>
                         <span class="truncate">${sanitizeHTML(state.teamName || 'Your Team')}</span>
                         ${isAdmin ? html`
-                        <button id="open-edit-team-name-btn" class="icon-btn ml-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
+                        <button id="open-edit-team-name-btn" class="icon-btn ms-2 text-gray-500 hover:text-blue-600" title="Edit Team Name">
                             <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path></svg>
                         </button>
                         ` : ''}
@@ -3260,7 +3260,7 @@ function renderTeamSection() {
                     <div class="text-center">
                         <div class="room-code text-sm sm:text-base">
                             <span>${state.currentTeam}</span>
-                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ml-2" title="${i18n.t('team.copyCode')}">
+                            <button id="copy-room-code-btn" class="icon-btn hover:border hover:border-white ms-2" title="${i18n.t('team.copyCode')}">
                                 <i class="fa-regular fa-copy text-white"></i>
                             </button>
                         </div>
@@ -3271,28 +3271,28 @@ function renderTeamSection() {
                 <div class="flex flex-col md:flex-row gap-3 sm:gap-4">
                     ${isAdmin ? html`
                         <button id="team-dashboard-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#0071e3] text-white rounded-full hover:bg-[#0077ed] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             ${i18n.t('team.dashboard')}
                         </button>
                     ` : ''}
                     <button id="edit-display-name-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z"></path>
                         </svg>
                         ${i18n.t('tracker.changeName')}
                     </button>
                     ${isAdmin ? html`
                         <button id="delete-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             ${i18n.t('team.delete')}
                         </button>
                     ` : html`
                         <button id="leave-team-btn" class="w-full md:flex-1 px-3 py-2 sm:px-4 sm:py-3 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff4f44] transition-colors flex items-center justify-center text-sm sm:text-base active:scale-95 duration-200">
-                            <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 mr-2"></i>
+                            <i class="fa-solid fa-door-open w-4 h-4 sm:w-5 sm:h-5 me-2"></i>
                             ${i18n.t('team.leave')}
                         </button>
                     `}
@@ -3620,21 +3620,21 @@ function renderTeamDashboard() {
                         <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
                             ${member.displayName.charAt(0).toUpperCase()}
                         </div>
-                        <div class="ml-3">
+                        <div class="ms-3">
                             <h4 class="font-bold text-base sm:text-lg">${sanitizeHTML(member.displayName)}</h4>
                             <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400" data-i18n="${isAdmin ? 'teamAdmin' : 'member'}">${isAdmin ? i18n.t('team.roleAdmin') : i18n.t('team.roleMember')}</p>
                         </div>
                     </div>
                     <div class="flex items-center">
                         ${isAdmin ? `
-                        <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mr-2 sm:mr-4">
+                        <div class="w-6 h-6 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center me-2 sm:me-4">
                             <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                         </div>
                         ` : ''}
                         ${(state.teamRole === TEAM_ROLES.ADMIN && !isAdmin) ? `
-                        <button class="kick-member-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700 mr-2" title="Kick Member" data-kick-member-id="${member.userId}" data-kick-member-name="${member.displayName}">
+                        <button class="kick-member-btn icon-btn text-red-500 hover:text-red-700 dark:text-red-500 dark:hover:text-red-700 me-2" title="Kick Member" data-kick-member-id="${member.userId}" data-kick-member-name="${member.displayName}">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>
                         ` : ''}
@@ -3889,12 +3889,12 @@ function renderSearchResults(results) {
         results.sort((a, b) => new Date(b.date) - new Date(a.date));
         DOM.spotlightSortLabel.textContent = i18n.t('search.newestFirst');
         DOM.spotlightSortLabel.setAttribute('data-i18n', 'search.newestFirst');
-        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ml-2";
+        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-down ms-2";
     } else {
         results.sort((a, b) => new Date(a.date) - new Date(b.date));
         DOM.spotlightSortLabel.textContent = i18n.t('search.oldestFirst');
         DOM.spotlightSortLabel.setAttribute('data-i18n', 'search.oldestFirst');
-        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ml-2";
+        DOM.spotlightSortBtn.querySelector('i').className = "fas fa-sort-amount-up ms-2";
     }
 
     DOM.spotlightCount.textContent = `${results.length} ${i18n.t('search.results')}`;
@@ -3913,13 +3913,13 @@ function renderSearchResults(results) {
         let contentHtml = '';
 
         if (result.type === 'note') {
-            iconHtml = '<div class="text-yellow-500 mr-3 mt-1"><i class="fas fa-sticky-note"></i></div>';
+            iconHtml = '<div class="text-yellow-500 me-3 mt-1"><i class="fas fa-sticky-note"></i></div>';
             contentHtml = `<p class="font-medium text-gray-800">Note: <span class="font-normal text-gray-600">${sanitizeHTML(result.content)}</span></p>`;
         } else if (result.type === 'leave') {
-            iconHtml = `<div class="mr-3 mt-1" style="color: ${result.color};"><i class="fas fa-calendar-check"></i></div>`;
+            iconHtml = `<div class="me-3 mt-1" style="color: ${result.color};"><i class="fas fa-calendar-check"></i></div>`;
             contentHtml = `<p class="font-medium" style="color: ${result.color};">${sanitizeHTML(result.content)}</p>`;
         } else {
-            iconHtml = '<div class="text-blue-500 mr-3 mt-1"><i class="fas fa-clock"></i></div>';
+            iconHtml = '<div class="text-blue-500 me-3 mt-1"><i class="fas fa-clock"></i></div>';
             contentHtml = `
                 <div class="flex flex-col">
                     <span class="text-xs font-semibold text-gray-500 uppercase">${sanitizeHTML(result.time)}</span>
@@ -4267,7 +4267,7 @@ function setupEventListeners() {
                 // You could use a flag icon here if desired, but text is robust
                 option.innerHTML = `
                     <span class="text-base font-medium text-gray-800 dark:text-gray-200">${lang.name}</span>
-                    ${isActive ? '<i class="fas fa-check ml-auto text-blue-500"></i>' : ''}
+                    ${isActive ? '<i class="fas fa-check ms-auto text-blue-500"></i>' : ''}
                 `;
 
                 option?.addEventListener('click', () => {
@@ -5060,8 +5060,8 @@ function renderAdminUserList(users, searchQuery = '') {
         }
 
         item.innerHTML = `
-            <div class="flex items-center w-full sm:w-auto flex-grow min-w-0 mr-0 sm:mr-2 ${isPending ? 'opacity-70' : ''}">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
+            <div class="flex items-center w-full sm:w-auto flex-grow min-w-0 me-0 sm:me-2 ${isPending ? 'opacity-70' : ''}">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold me-3 flex-shrink-0">
                     ${(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                 </div>
                 <div class="min-w-0 flex-grow">
@@ -5079,7 +5079,7 @@ function renderAdminUserList(users, searchQuery = '') {
                     <span class="font-medium text-gray-500">${i18n.t('pro.joined')}</span> ${memberSince}
                 </div>
                 ${proSinceDate ? `
-                <div class="text-gray-400 ml-4 sm:ml-0 sm:mt-1 text-right">
+                <div class="text-gray-400 ms-4 sm:ms-0 sm:mt-1 text-right">
                     <span class="font-medium text-blue-500">${i18n.t('pro.label')}</span> ${proSinceDate}
                     ${proExpiryText ? `<div class="text-gray-300" style="font-size: 9px;">${proExpiryText}</div>` : ''}
                 </div>` : ''}

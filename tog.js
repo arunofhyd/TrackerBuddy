@@ -498,7 +498,7 @@ export function renderCalendar(preserveFocus = false) {
         DOM.headerRow.appendChild(div);
     });
     const wkDiv = document.createElement('div');
-    wkDiv.className = "text-center text-xs font-bold text-emerald-500 uppercase py-1 border-l border-slate-100 dark:border-slate-800";
+    wkDiv.className = "text-center text-xs font-bold text-emerald-500 uppercase py-1 border-s border-slate-100 dark:border-slate-800";
     wkDiv.innerText = state.i18n?.t('tog.weekly') || "Weekly";
     DOM.headerRow.appendChild(wkDiv);
 
@@ -606,7 +606,7 @@ export function renderCalendar(preserveFocus = false) {
                     </div>
                     <div class="day-footer ${footerBg}">
                         <div class="flex items-center w-full px-1">
-                            <button onclick="window.tog_insertValue('${bonusKey}', 'bonus')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 mr-1" title="Insert Memory">
+                            <button onclick="window.tog_insertValue('${bonusKey}', 'bonus')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 me-1" title="Insert Memory">
                                 <!-- lucide arrow-down-to-line replacement -->
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line w-3 h-3"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
                             </button>
