@@ -902,6 +902,15 @@ async function subscribeToData(userId, callback) {
         const year = state.currentMonth.getFullYear();
         const yearlyData = data.yearlyData || {};
 
+        // Merge loaded archived years into the incoming data to prevent them from being wiped
+        if (state.loadedArchivedYears.size > 0) {
+            state.loadedArchivedYears.forEach(archivedYear => {
+                if (!yearlyData[archivedYear] && state.yearlyData[archivedYear]) {
+                    yearlyData[archivedYear] = state.yearlyData[archivedYear];
+                }
+            });
+        }
+
         // Run auto-archive check in background (non-blocking)
         checkAndAutoArchive(yearlyData);
 
@@ -1293,8 +1302,8 @@ async function saveDataToFirestore(data, partialUpdate = null) {
         const userDocRef = doc(db, COLLECTIONS.USERS, state.userId);
 
         for (const year of yearsToSaveToArchive) {
-            // 1. Get the latest data for this year from state
-            const yearData = state.yearlyData[year];
+            // 1. Get the latest data for this year from the passed data object (safer than global state)
+            const yearData = dataClone.yearlyData[year] || state.yearlyData[year];
 
             // 2. Save to history subcollection (Full overwrite)
             const historyRef = doc(db, `${COLLECTIONS.USERS}/${state.userId}/history/${year}`);
@@ -2724,6 +2733,8 @@ async function archiveYear(year, silent = false) {
 
             const newYearlyData = { ...state.yearlyData };
             delete newYearlyData[year];
+
+            state.loadedArchivedYears.delete(year);
 
             const newArchivedSummaries = { ...state.archivedSummaries, [year]: summary };
 
