@@ -92,6 +92,7 @@
     "dayView": "ദിവസം",
     "restoreData": "ഇംപോർട്ട്",
     "backupData": "എക്സ്പോർട്ട്",
+    "storage": "സംഭരണം",
     "resetAllData": "റീസെറ്റ്",
     "stats": "കണക്കുകൾ",
     "teams": "ടീമുകൾ",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "മാറ്റാൻ കഴിഞ്ഞില്ല",
     "deleteGuestDataPrompt": "ഗസ്റ്റ് ഡാറ്റ കളയണോ?",
     "msgLoadLocalError": "ലോക്കൽ ഡാറ്റ കിട്ടിയില്ല",
-    "msgSaveLocalError": "ലോക്കൽ ഡാറ്റ സേവ് ആയില്ല"
+    "msgSaveLocalError": "ലോക്കൽ ഡാറ്റ സേവ് ആയില്ല",
+    "noDataYears": "ഡാറ്റ ലഭ്യമല്ല.",
+    "statusLoaded": "ലോഡുചെയ്തു (ആർക്കൈവുചെയ്തു)",
+    "statusActive": "സജീവം",
+    "statusArchived": "ആർക്കൈവുചെയ്തു",
+    "archiveBtn": "ആർക്കൈവ്",
+    "loadBtn": "ലോഡ്",
+    "archiveData": "ഡാറ്റ ആർക്കൈവ് ചെയ്യുക",
+    "archiveDesc": "നിങ്ങളുടെ ഡാറ്റ ചരിത്രം നിയന്ത്രിക്കുക. സ്ഥലം ലാഭിക്കാൻ കഴിഞ്ഞ വർഷങ്ങൾ ആർക്കൈവ് ചെയ്യുക അല്ലെങ്കിൽ വിശദാംശങ്ങൾ കാണാൻ ലോഡ് ചെയ്യുക."
   },
   "messages": {
     "saveError": "സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല",

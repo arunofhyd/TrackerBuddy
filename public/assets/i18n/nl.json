@@ -92,6 +92,7 @@
     "dayView": "Dagoverzicht",
     "restoreData": "Herstellen",
     "backupData": "Back-up",
+    "storage": "Opslag",
     "resetAllData": "Alles resetten",
     "stats": "Statistieken",
     "teams": "Teams",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Gegevensmigratie mislukt.",
     "deleteGuestDataPrompt": "Wil je de lokale gastgegevens verwijderen?",
     "msgLoadLocalError": "Fout bij laden lokale gegevens.",
-    "msgSaveLocalError": "Fout bij opslaan lokale gegevens."
+    "msgSaveLocalError": "Fout bij opslaan lokale gegevens.",
+    "noDataYears": "Geen gegevens beschikbaar.",
+    "statusLoaded": "Geladen (Gearchiveerd)",
+    "statusActive": "Actief",
+    "statusArchived": "Gearchiveerd",
+    "archiveBtn": "Archiveren",
+    "loadBtn": "Laden",
+    "archiveData": "Gegevens archiveren",
+    "archiveDesc": "Beheer uw gegevensgeschiedenis. Archiveer voorgaande jaren om ruimte te besparen of laad ze om details te bekijken."
   },
   "messages": {
     "saveError": "Fout bij opslaan gegevens.",

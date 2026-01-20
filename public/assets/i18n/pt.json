@@ -92,6 +92,7 @@
     "dayView": "Dia",
     "restoreData": "Importar",
     "backupData": "Exportar",
+    "storage": "Armazenamento",
     "resetAllData": "Limpar tudo",
     "stats": "Estatísticas",
     "teams": "Equipas",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Falha na migração.",
     "deleteGuestDataPrompt": "Apagar dados de convidado?",
     "msgLoadLocalError": "Erro a carregar localmente.",
-    "msgSaveLocalError": "Erro a guardar localmente."
+    "msgSaveLocalError": "Erro a guardar localmente.",
+    "noDataYears": "Sem dados disponíveis.",
+    "statusLoaded": "Carregado (Arquivado)",
+    "statusActive": "Ativo",
+    "statusArchived": "Arquivado",
+    "archiveBtn": "Arquivar",
+    "loadBtn": "Carregar",
+    "archiveData": "Arquivar Dados",
+    "archiveDesc": "Gerencie seu histórico de dados. Arquive anos passados para economizar espaço ou carregue-os para ver detalhes."
   },
   "messages": {
     "saveError": "Erro ao guardar.",

@@ -92,6 +92,7 @@
     "dayView": "Giorno",
     "restoreData": "Importa",
     "backupData": "Esporta",
+    "storage": "Archiviazione",
     "resetAllData": "Reset totale",
     "stats": "Statistiche",
     "teams": "Team",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Migrazione fallita.",
     "deleteGuestDataPrompt": "Cancellare i dati ospite?",
     "msgLoadLocalError": "Errore caricamento locale.",
-    "msgSaveLocalError": "Errore salvataggio locale."
+    "msgSaveLocalError": "Errore salvataggio locale.",
+    "noDataYears": "Nessun dato disponibile.",
+    "statusLoaded": "Caricato (Archiviato)",
+    "statusActive": "Attivo",
+    "statusArchived": "Archiviato",
+    "archiveBtn": "Archivia",
+    "loadBtn": "Carica",
+    "archiveData": "Archivia dati",
+    "archiveDesc": "Gestisci la cronologia dei tuoi dati. Archivia gli anni passati per risparmiare spazio o caricali per visualizzare i dettagli."
   },
   "messages": {
     "saveError": "Errore salvataggio.",

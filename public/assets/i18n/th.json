@@ -92,6 +92,7 @@
     "dayView": "รายวัน",
     "restoreData": "นำเข้า",
     "backupData": "ส่งออก",
+    "storage": "พื้นที่เก็บข้อมูล",
     "resetAllData": "ล้างข้อมูล",
     "stats": "สถิติ",
     "teams": "ทีม",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "ย้ายไม่ได้",
     "deleteGuestDataPrompt": "ลบข้อมูล Guest ทิ้งไหม?",
     "msgLoadLocalError": "โหลดข้อมูลเครื่องไม่ได้",
-    "msgSaveLocalError": "บันทึกลงเครื่องไม่ได้"
+    "msgSaveLocalError": "บันทึกลงเครื่องไม่ได้",
+    "noDataYears": "ไม่มีข้อมูล",
+    "statusLoaded": "โหลดแล้ว (เก็บถาวร)",
+    "statusActive": "ใช้งานอยู่",
+    "statusArchived": "เก็บถาวรแล้ว",
+    "archiveBtn": "เก็บถาวร",
+    "loadBtn": "โหลด",
+    "archiveData": "เก็บข้อมูลถาวร",
+    "archiveDesc": "จัดการประวัติข้อมูลของคุณ เก็บถาวรปีที่ผ่านมาเพื่อประหยัดพื้นที่ หรือโหลดเพื่อดูรายละเอียด"
   },
   "messages": {
     "saveError": "บันทึกไม่ได้",

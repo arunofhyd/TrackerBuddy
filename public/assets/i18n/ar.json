@@ -92,6 +92,7 @@
     "dayView": "يومي",
     "restoreData": "استعادة",
     "backupData": "نسخ احتياطي",
+    "storage": "التخزين",
     "resetAllData": "إعادة تعيين",
     "stats": "إحصائيات",
     "teams": "الفرق",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "فشل ترحيل البيانات.",
     "deleteGuestDataPrompt": "هل تريد حذف بيانات الضيف المحلية؟",
     "msgLoadLocalError": "خطأ في تحميل البيانات المحلية.",
-    "msgSaveLocalError": "خطأ في حفظ البيانات المحلية."
+    "msgSaveLocalError": "خطأ في حفظ البيانات المحلية.",
+    "noDataYears": "لا تتوفر بيانات.",
+    "statusLoaded": "تم التحميل (مؤرشف)",
+    "statusActive": "نشط",
+    "statusArchived": "مؤرشف",
+    "archiveBtn": "أرشفة",
+    "loadBtn": "تحميل",
+    "archiveData": "أرشفة البيانات",
+    "archiveDesc": "إدارة سجل بياناتك. أرشفة السنوات الماضية لتوفير المساحة أو تحميلها لعرض التفاصيل."
   },
   "messages": {
     "saveError": "خطأ في حفظ البيانات.",

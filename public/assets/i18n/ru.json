@@ -92,6 +92,7 @@
     "dayView": "День",
     "restoreData": "Импорт",
     "backupData": "Экспорт",
+    "storage": "Хранилище",
     "resetAllData": "Сброс",
     "stats": "Статистика",
     "teams": "Команды",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Ошибка переноса.",
     "deleteGuestDataPrompt": "Удалить локальные данные?",
     "msgLoadLocalError": "Ошибка чтения.",
-    "msgSaveLocalError": "Ошибка записи."
+    "msgSaveLocalError": "Ошибка записи.",
+    "noDataYears": "Нет данных.",
+    "statusLoaded": "Загружено (Архив)",
+    "statusActive": "Активно",
+    "statusArchived": "В архиве",
+    "archiveBtn": "Архивировать",
+    "loadBtn": "Загрузить",
+    "archiveData": "Архивация данных",
+    "archiveDesc": "Управление историей данных. Архивируйте прошлые годы для экономии места или загружайте их для просмотра."
   },
   "messages": {
     "saveError": "Ошибка сохранения.",

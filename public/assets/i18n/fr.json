@@ -92,6 +92,7 @@
     "dayView": "Vue Journalière",
     "restoreData": "Restaurer",
     "backupData": "Sauvegarder",
+    "storage": "Stockage",
     "resetAllData": "Tout réinitialiser",
     "stats": "Stats",
     "teams": "Équipes",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Échec de la migration des données.",
     "deleteGuestDataPrompt": "Voulez-vous supprimer les données d'invité locales ?",
     "msgLoadLocalError": "Erreur lors du chargement des données locales.",
-    "msgSaveLocalError": "Erreur lors de l'enregistrement des données locales."
+    "msgSaveLocalError": "Erreur lors de l'enregistrement des données locales.",
+    "noDataYears": "Aucune donnée disponible.",
+    "statusLoaded": "Chargé (Archivé)",
+    "statusActive": "Actif",
+    "statusArchived": "Archivé",
+    "archiveBtn": "Archiver",
+    "loadBtn": "Charger",
+    "archiveData": "Archiver les données",
+    "archiveDesc": "Gérez votre historique de données. Archivez les années passées pour économiser de l'espace ou chargez-les pour voir les détails."
   },
   "messages": {
     "saveError": "Erreur lors de l'enregistrement des données.",

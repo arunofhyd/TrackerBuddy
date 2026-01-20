@@ -92,6 +92,7 @@
     "dayView": "Day View",
     "restoreData": "Restore Data",
     "backupData": "Backup Data",
+    "storage": "Storage",
     "resetAllData": "Reset All Data",
     "stats": "Stats",
     "teams": "Teams",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Failed to migrate data.",
     "deleteGuestDataPrompt": "Do you want to delete the local guest data?",
     "msgLoadLocalError": "Error loading local data.",
-    "msgSaveLocalError": "Error saving local data."
+    "msgSaveLocalError": "Error saving local data.",
+    "noDataYears": "No data available.",
+    "statusLoaded": "Loaded (Archived)",
+    "statusActive": "Active",
+    "statusArchived": "Archived",
+    "archiveBtn": "Archive",
+    "loadBtn": "Load",
+    "archiveData": "Archive Data",
+    "archiveDesc": "Manage your data history. Archive past years to save space or load them to view details."
   },
   "messages": {
     "saveError": "Error saving data.",

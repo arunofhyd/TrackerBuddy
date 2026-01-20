@@ -92,6 +92,7 @@
     "dayView": "일별 보기",
     "restoreData": "복원",
     "backupData": "백업",
+    "storage": "저장소",
     "resetAllData": "모두 초기화",
     "stats": "통계",
     "teams": "팀",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "데이터 마이그레이션 실패.",
     "deleteGuestDataPrompt": "로컬 게스트 데이터를 삭제하시겠습니까?",
     "msgLoadLocalError": "로컬 데이터 로드 오류.",
-    "msgSaveLocalError": "로컬 데이터 저장 오류."
+    "msgSaveLocalError": "로컬 데이터 저장 오류.",
+    "noDataYears": "데이터 없음.",
+    "statusLoaded": "로드됨 (보관됨)",
+    "statusActive": "활성",
+    "statusArchived": "보관됨",
+    "archiveBtn": "보관",
+    "loadBtn": "로드",
+    "archiveData": "데이터 보관",
+    "archiveDesc": "데이터 기록을 관리하세요. 공간을 절약하기 위해 지난 해를 보관하거나 세부 정보를 보려면 로드하세요."
   },
   "messages": {
     "saveError": "데이터 저장 오류.",

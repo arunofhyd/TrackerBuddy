@@ -92,6 +92,7 @@
     "dayView": "日视图",
     "restoreData": "导入",
     "backupData": "导出",
+    "storage": "存储",
     "resetAllData": "清空数据",
     "stats": "统计",
     "teams": "团队",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "合并失败。",
     "deleteGuestDataPrompt": "删除游客数据？",
     "msgLoadLocalError": "本地读取失败。",
-    "msgSaveLocalError": "本地保存失败。"
+    "msgSaveLocalError": "本地保存失败。",
+    "noDataYears": "暂无数据。",
+    "statusLoaded": "已加载 (已归档)",
+    "statusActive": "活跃",
+    "statusArchived": "已归档",
+    "archiveBtn": "归档",
+    "loadBtn": "加载",
+    "archiveData": "数据归档",
+    "archiveDesc": "管理您的数据历史。归档往年数据以节省空间，或加载以查看详细信息。"
   },
   "messages": {
     "saveError": "保存出错。",

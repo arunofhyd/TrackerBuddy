@@ -92,6 +92,7 @@
     "dayView": "日表示",
     "restoreData": "復元",
     "backupData": "バックアップ",
+    "storage": "ストレージ",
     "resetAllData": "全データリセット",
     "stats": "統計",
     "teams": "チーム",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "データの移行に失敗しました。",
     "deleteGuestDataPrompt": "ローカルのゲストデータを削除しますか？",
     "msgLoadLocalError": "ローカルデータの読み込みエラー。",
-    "msgSaveLocalError": "ローカルデータの保存エラー。"
+    "msgSaveLocalError": "ローカルデータの保存エラー。",
+    "noDataYears": "データはありません。",
+    "statusLoaded": "ロード済み（アーカイブ）",
+    "statusActive": "アクティブ",
+    "statusArchived": "アーカイブ済み",
+    "archiveBtn": "アーカイブ",
+    "loadBtn": "ロード",
+    "archiveData": "データのアーカイブ",
+    "archiveDesc": "データ履歴を管理します。過去の年をアーカイブしてスペースを節約するか、ロードして詳細を表示します。"
   },
   "messages": {
     "saveError": "データの保存エラー。",

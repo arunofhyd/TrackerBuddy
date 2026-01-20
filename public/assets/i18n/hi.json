@@ -92,6 +92,7 @@
     "dayView": "दिन दृश्य",
     "restoreData": "पुनर्स्थापित करें",
     "backupData": "बैकअप",
+    "storage": "भंडारण",
     "resetAllData": "सभी डेटा रीसेट करें",
     "stats": "आँकड़े",
     "teams": "टीमें",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "डेटा स्थानांतरित करने में विफल।",
     "deleteGuestDataPrompt": "क्या आप स्थानीय अतिथि डेटा हटाना चाहते हैं?",
     "msgLoadLocalError": "स्थानीय डेटा लोड करने में त्रुटि।",
-    "msgSaveLocalError": "स्थानीय डेटा सहेजने में त्रुटि।"
+    "msgSaveLocalError": "स्थानीय डेटा सहेजने में त्रुटि।",
+    "noDataYears": "कोई डेटा उपलब्ध नहीं है।",
+    "statusLoaded": "लोड किया गया (संग्रहीत)",
+    "statusActive": "सक्रिय",
+    "statusArchived": "संग्रहीत",
+    "archiveBtn": "संग्रह करें",
+    "loadBtn": "लोड करें",
+    "archiveData": "डेटा संग्रह",
+    "archiveDesc": "अपना डेटा इतिहास प्रबंधित करें। जगह बचाने के लिए पिछले वर्षों को संग्रहित करें या विवरण देखने के लिए उन्हें लोड करें।"
   },
   "messages": {
     "saveError": "डेटा सहेजने में त्रुटि।",

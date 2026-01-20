@@ -92,6 +92,7 @@
     "dayView": "Tampilan Hari",
     "restoreData": "Pulihkan",
     "backupData": "Cadangkan",
+    "storage": "Penyimpanan",
     "resetAllData": "Atur Ulang Semua",
     "stats": "Statistik",
     "teams": "Tim",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Gagal memigrasikan data.",
     "deleteGuestDataPrompt": "Apakah Anda ingin menghapus data tamu lokal?",
     "msgLoadLocalError": "Kesalahan memuat data lokal.",
-    "msgSaveLocalError": "Kesalahan menyimpan data lokal."
+    "msgSaveLocalError": "Kesalahan menyimpan data lokal.",
+    "noDataYears": "Tidak ada data tersedia.",
+    "statusLoaded": "Dimuat (Diarsipkan)",
+    "statusActive": "Aktif",
+    "statusArchived": "Diarsipkan",
+    "archiveBtn": "Arsipkan",
+    "loadBtn": "Muat",
+    "archiveData": "Arsipkan Data",
+    "archiveDesc": "Kelola riwayat data Anda. Arsipkan tahun lalu untuk menghemat ruang atau muat untuk melihat detail."
   },
   "messages": {
     "saveError": "Kesalahan menyimpan data.",

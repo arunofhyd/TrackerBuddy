@@ -92,6 +92,7 @@
     "dayView": "Widok dnia",
     "restoreData": "Przywróć",
     "backupData": "Kopia zapasowa",
+    "storage": "Pamięć",
     "resetAllData": "Zresetuj wszystko",
     "stats": "Statystyki",
     "teams": "Zespoły",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Nie udało się przenieść danych.",
     "deleteGuestDataPrompt": "Czy chcesz usunąć lokalne dane gościa?",
     "msgLoadLocalError": "Błąd ładowania danych lokalnych.",
-    "msgSaveLocalError": "Błąd zapisywania danych lokalnych."
+    "msgSaveLocalError": "Błąd zapisywania danych lokalnych.",
+    "noDataYears": "Brak dostępnych danych.",
+    "statusLoaded": "Załadowano (Zarchiwizowano)",
+    "statusActive": "Aktywny",
+    "statusArchived": "Zarchiwizowano",
+    "archiveBtn": "Archiwizuj",
+    "loadBtn": "Załaduj",
+    "archiveData": "Archiwizuj dane",
+    "archiveDesc": "Zarządzaj historią danych. Archiwizuj minione lata, aby zaoszczędzić miejsce, lub załaduj je, aby zobaczyć szczegóły."
   },
   "messages": {
     "saveError": "Błąd zapisywania danych.",

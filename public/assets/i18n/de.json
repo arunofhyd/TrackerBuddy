@@ -92,6 +92,7 @@
     "dayView": "Tagesansicht",
     "restoreData": "Wiederherstellen",
     "backupData": "Sichern",
+    "storage": "Speicher",
     "resetAllData": "Alle Daten zurücksetzen",
     "stats": "Statistiken",
     "teams": "Teams",
@@ -296,7 +297,15 @@
     "msgMigratedFailed": "Fehler beim Migrieren der Daten.",
     "deleteGuestDataPrompt": "Möchtest du die lokalen Gastdaten löschen?",
     "msgLoadLocalError": "Fehler beim Laden der lokalen Daten.",
-    "msgSaveLocalError": "Fehler beim Speichern der lokalen Daten."
+    "msgSaveLocalError": "Fehler beim Speichern der lokalen Daten.",
+    "noDataYears": "Keine Daten verfügbar.",
+    "statusLoaded": "Geladen (Archiviert)",
+    "statusActive": "Aktiv",
+    "statusArchived": "Archiviert",
+    "archiveBtn": "Archivieren",
+    "loadBtn": "Laden",
+    "archiveData": "Daten archivieren",
+    "archiveDesc": "Verwalten Sie Ihren Datenverlauf. Archivieren Sie vergangene Jahre, um Platz zu sparen, oder laden Sie sie, um Details anzuzeigen."
   },
   "messages": {
     "saveError": "Fehler beim Speichern der Daten.",
