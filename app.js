@@ -860,6 +860,28 @@ function renderStorageUsage(byteSize) {
 }
 
 
+async function checkAndAutoArchive(yearlyData) {
+    if (!state.isOnlineMode || !state.userId) return;
+
+    // Auto-archive logic: Archive years strictly older than last year.
+    // Example: Current 2026 -> Last 2025 -> Archive 2024 and older.
+    const currentYear = new Date().getFullYear();
+    const thresholdYear = currentYear - 1;
+
+    const yearsToArchive = Object.keys(yearlyData).filter(year => {
+        const y = parseInt(year);
+        return !isNaN(y) && y < thresholdYear;
+    });
+
+    if (yearsToArchive.length > 0) {
+        Logger.info(`Auto-archiving detected for years: ${yearsToArchive.join(', ')}`);
+        // Process sequentially to avoid potential race conditions or Firestore rate limits
+        for (const year of yearsToArchive) {
+            await archiveYear(year, true); // Silent mode
+        }
+    }
+}
+
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, COLLECTIONS.USERS, userId);
     const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
@@ -879,6 +901,10 @@ async function subscribeToData(userId, callback) {
         
         const year = state.currentMonth.getFullYear();
         const yearlyData = data.yearlyData || {};
+
+        // Run auto-archive check in background (non-blocking)
+        checkAndAutoArchive(yearlyData);
+
         const currentYearData = yearlyData[year] || { activities: {}, leaveOverrides: {} };
 
         // Check for legacy isPro or new role field
@@ -2666,7 +2692,7 @@ function getLeaveBalancesForYear(year, yearData, leaveTypes) {
     return balances;
 }
 
-async function archiveYear(year) {
+async function archiveYear(year, silent = false) {
     if (!state.yearlyData[year]) return;
 
     const yearData = state.yearlyData[year];
@@ -2706,7 +2732,9 @@ async function archiveYear(year) {
                 archivedSummaries: newArchivedSummaries
             });
 
-            showMessage(i18n.t("messages.archiveSuccess") || `Archived ${year} data`, 'success');
+            if (!silent) {
+                showMessage(i18n.t("messages.archiveSuccess") || `Archived ${year} data`, 'success');
+            }
 
             // If current view is in archived year, switch to valid year
             if (state.currentMonth.getFullYear().toString() === year) {
@@ -2725,7 +2753,9 @@ async function archiveYear(year) {
         }
     } catch (error) {
         Logger.error("Archive failed:", error);
-        showMessage(i18n.t("messages.archiveFailed") || "Archive failed", 'error');
+        if (!silent) {
+            showMessage(i18n.t("messages.archiveFailed") || "Archive failed", 'error');
+        }
     }
 }
 
