@@ -607,8 +607,8 @@ export function renderCalendar(preserveFocus = false) {
                     <div class="day-footer ${footerBg}">
                         <div class="flex items-center w-full px-1">
                             <button onclick="window.tog_insertValue('${bonusKey}', 'bonus')" class="icon-btn text-yellow-500 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 mr-1" title="Insert Memory">
-                                <!-- lucide plus replacement -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3 h-3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                                <!-- lucide arrow-down-to-line replacement -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-to-line w-3 h-3"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
                             </button>
                             <input type="number" step="0.1"
                                 data-key="${dateKey}" data-type="bonus"
