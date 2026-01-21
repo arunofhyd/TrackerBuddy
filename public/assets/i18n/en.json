@@ -53,7 +53,10 @@
       "Thu",
       "Fri",
       "Sat"
-    ]
+    ],
+    "realTimeUpdates": "Real-time Updates",
+    "syncNow": "Sync Now",
+    "lastSynced": "Last synced"
   },
   "landing": {
     "splashText": "Tap to Begin",
@@ -317,7 +320,11 @@
     "emptyCSV": "The CSV file is empty or invalid.",
     "restoreSuccess": "Successfully restored {count} records.",
     "restoreError": "Error restoring data from CSV.",
-    "readError": "Error reading the file."
+    "readError": "Error reading the file.",
+    "realTimeEnabled": "Real-time updates enabled.",
+    "realTimeDisabled": "Real-time updates disabled.",
+    "syncSuccess": "Synced successfully.",
+    "syncFailed": "Sync failed."
   },
   "colors": {
     "red": "Red",

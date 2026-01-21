@@ -5559,33 +5559,31 @@ function setupTbUserMenu(user) {
 
     // Inject Real-time Controls if User is Logged In
     if (user && !document.getElementById('real-time-toggle-container')) {
-        const menuContainer = DOM.tbUserDropdown.querySelector('.py-1') || DOM.tbUserDropdown;
-        const insertTarget = menuContainer.children[0]; // Header usually
+        // Target the help button to insert before it
+        const helpBtn = document.getElementById('tb-help-btn');
 
-        const controlsDiv = document.createElement('div');
-        controlsDiv.innerHTML = `
-            <div id="real-time-toggle-container" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-700 dark:text-gray-200 font-medium">${i18n.t('common.realTimeUpdates') || 'Real-time Updates'}</span>
-                    <button id="real-time-toggle-btn" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-blue-500" role="switch" aria-checked="true">
-                        <span aria-hidden="true" class="toggle-knob pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
-                    </button>
+        if (helpBtn && helpBtn.parentNode) {
+            const controlsDiv = document.createElement('div');
+            controlsDiv.innerHTML = `
+                <div id="real-time-toggle-container" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-700 dark:text-gray-200 font-medium">${i18n.t('common.realTimeUpdates') || 'Real-time Updates'}</span>
+                        <button id="real-time-toggle-btn" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-blue-500" role="switch" aria-checked="true">
+                            <span aria-hidden="true" class="toggle-knob pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div id="tb-sync-container" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700" style="display: none;">
-                <button id="tb-sync-now-btn" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
-                    <i class="fas fa-sync-alt"></i>
-                    <span>${i18n.t('common.syncNow') || 'Sync Now'}</span>
-                </button>
-                <p id="tb-last-sync-text" class="text-xs text-center text-gray-500 mt-1"></p>
-            </div>
-        `;
+                <div id="tb-sync-container" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700" style="display: none;">
+                    <button id="tb-sync-now-btn" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>${i18n.t('common.syncNow') || 'Sync Now'}</span>
+                    </button>
+                    <p id="tb-last-sync-text" class="text-xs text-center text-gray-500 mt-1"></p>
+                </div>
+            `;
 
-        // Insert after the user info header
-        if (insertTarget && insertTarget.nextElementSibling) {
-            menuContainer.insertBefore(controlsDiv, insertTarget.nextElementSibling);
-        } else {
-            menuContainer.appendChild(controlsDiv);
+            // Insert before the help button (which corresponds to "How to Log Leave")
+            helpBtn.parentNode.insertBefore(controlsDiv, helpBtn);
         }
 
         // Initialize State
