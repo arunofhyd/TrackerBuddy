@@ -53,7 +53,10 @@
       "Do",
       "Fr",
       "Sa"
-    ]
+    ],
+    "realTimeUpdates": "Echtzeit-Updates",
+    "syncNow": "Jetzt synchronisieren",
+    "lastSynced": "Zuletzt synchronisiert"
   },
   "landing": {
     "splashText": "Tippen zum Starten",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Tägliche Aktivitäten mühelos protokollieren</strong>, Arbeitszeiten erfassen und Urlaubssalden verwalten.",
     "infoRestoreBackup": "<strong>Nahtloses Wiederherstellen und Sichern</strong> deiner Daten als CSV für Berichte.",
     "infoGuestOrSync": "<strong>Sofort loslegen</strong> als Gast oder anmelden, um Daten über Geräte hinweg zu synchronisieren.",
-    "infoTeamCollaboration": "<strong>Teams erstellen</strong>, um zusammenzuarbeiten und Teamurlaube gemeinsam zu verwalten."
+    "infoTeamCollaboration": "<strong>Teams erstellen</strong>, um zusammenzuarbeiten und Teamurlaube gemeinsam zu verwalten.",
+    "realTimeEnabled": "Echtzeit-Updates aktiviert.",
+    "realTimeDisabled": "Echtzeit-Updates deaktiviert.",
+    "syncSuccess": "Erfolgreich synchronisiert.",
+    "syncFailed": "Synchronisierung fehlgeschlagen."
   },
   "auth": {
     "email": "E-Mail",

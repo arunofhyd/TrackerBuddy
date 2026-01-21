@@ -53,7 +53,10 @@
       "Gio",
       "Ven",
       "Sab"
-    ]
+    ],
+    "realTimeUpdates": "Aggiornamenti in tempo reale",
+    "syncNow": "Sincronizza ora",
+    "lastSynced": "Ultima sincronizzazione"
   },
   "landing": {
     "splashText": "Tocca per iniziare",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Registra facilmente le tue attività quotidiane</strong>, traccia le ore di lavoro e gestisci i saldi ferie.",
     "infoRestoreBackup": "<strong>Ripristina e fai il backup</strong> dei tuoi dati in CSV per i report.",
     "infoGuestOrSync": "<strong>Inizia subito</strong> come Ospite o accedi per sincronizzare i tuoi dati su più dispositivi.",
-    "infoTeamCollaboration": "<strong>Crea team</strong> per collaborare e gestire le ferie del team insieme."
+    "infoTeamCollaboration": "<strong>Crea team</strong> per collaborare e gestire le ferie del team insieme.",
+    "realTimeEnabled": "Aggiornamenti in tempo reale abilitati.",
+    "realTimeDisabled": "Aggiornamenti in tempo reale disabilitati.",
+    "syncSuccess": "Sincronizzato con successo.",
+    "syncFailed": "Sincronizzazione fallita."
   },
   "auth": {
     "email": "Email",

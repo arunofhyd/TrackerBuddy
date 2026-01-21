@@ -53,7 +53,10 @@
       "Qui",
       "Sex",
       "Sáb"
-    ]
+    ],
+    "realTimeUpdates": "Atualizações em tempo real",
+    "syncNow": "Sincronizar agora",
+    "lastSynced": "Última sincronização"
   },
   "landing": {
     "splashText": "Toque para Começar",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Registe facilmente atividades diárias</strong>, acompanhe horas de trabalho e gira saldos de férias.",
     "infoRestoreBackup": "<strong>Restaure e faça cópias de segurança</strong> dos seus dados para CSV para relatórios.",
     "infoGuestOrSync": "<strong>Comece instantaneamente</strong> como Convidado ou inicie sessão para sincronizar entre dispositivos.",
-    "infoTeamCollaboration": "<strong>Crie equipas</strong> para colaborar e gerir as férias da equipa em conjunto."
+    "infoTeamCollaboration": "<strong>Crie equipas</strong> para colaborar e gerir as férias da equipa em conjunto.",
+    "realTimeEnabled": "Atualizações em tempo real ativadas.",
+    "realTimeDisabled": "Atualizações em tempo real desativadas.",
+    "syncSuccess": "Sincronizado com sucesso.",
+    "syncFailed": "Falha na sincronização."
   },
   "auth": {
     "email": "Email",

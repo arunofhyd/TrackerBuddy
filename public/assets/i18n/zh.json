@@ -53,7 +53,10 @@
       "周四",
       "周五",
       "周六"
-    ]
+    ],
+    "realTimeUpdates": "实时更新",
+    "syncNow": "立即同步",
+    "lastSynced": "上次同步"
   },
   "landing": {
     "splashText": "点击开始",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>轻松记录每一天</strong>，追踪工时，管理休假余额。",
     "infoRestoreBackup": "<strong>数据无忧</strong>。支持CSV格式导出与备份恢复。",
     "infoGuestOrSync": "<strong>即刻体验</strong>游客模式，或登录同步多端数据。",
-    "infoTeamCollaboration": "<strong>创建团队</strong>。协同管理团队休假与考勤。"
+    "infoTeamCollaboration": "<strong>创建团队</strong>。协同管理团队休假与考勤。",
+    "realTimeEnabled": "已启用实时更新。",
+    "realTimeDisabled": "已禁用实时更新。",
+    "syncSuccess": "同步成功。",
+    "syncFailed": "同步失败。"
   },
   "auth": {
     "email": "邮箱",

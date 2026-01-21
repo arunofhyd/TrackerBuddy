@@ -53,7 +53,10 @@
       "목",
       "금",
       "토"
-    ]
+    ],
+    "realTimeUpdates": "실시간 업데이트",
+    "syncNow": "지금 동기화",
+    "lastSynced": "마지막 동기화"
   },
   "landing": {
     "splashText": "탭하여 시작",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>일일 활동을 쉽게 기록하고</strong>, 근무 시간을 추적하며, 휴가 잔액을 관리하세요.",
     "infoRestoreBackup": "보고서를 위해 데이터를 CSV로 <strong>원활하게 복원 및 백업</strong>하세요.",
     "infoGuestOrSync": "게스트로 <strong>즉시 시작</strong>하거나 로그인하여 기기 간 데이터를 동기화하세요.",
-    "infoTeamCollaboration": "<strong>팀을 생성</strong>하여 협업하고 팀 휴가를 함께 관리하세요."
+    "infoTeamCollaboration": "<strong>팀을 생성</strong>하여 협업하고 팀 휴가를 함께 관리하세요.",
+    "realTimeEnabled": "실시간 업데이트가 활성화되었습니다.",
+    "realTimeDisabled": "실시간 업데이트가 비활성화되었습니다.",
+    "syncSuccess": "동기화 성공.",
+    "syncFailed": "동기화 실패."
   },
   "auth": {
     "email": "이메일",

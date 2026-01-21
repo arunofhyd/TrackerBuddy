@@ -53,7 +53,10 @@
       "Kha",
       "Jum",
       "Sab"
-    ]
+    ],
+    "realTimeUpdates": "Kemas Kini Masa Nyata",
+    "syncNow": "Segerakkan Sekarang",
+    "lastSynced": "Terakhir disegerakkan"
   },
   "landing": {
     "splashText": "Ketik untuk Mula",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Log Harian</strong> Pantau masa kerja dan cuti dengan mudah.",
     "infoRestoreBackup": "<strong>Sandaran Selamat</strong> Eksport dan pulihkan data melalui fail CSV.",
     "infoGuestOrSync": "<strong>Mula Segera</strong> Guna sebagai Tetamu atau log masuk untuk sinkronisasi.",
-    "infoTeamCollaboration": "<strong>Kerjasama Pasukan</strong> Urus cuti bersama pasukan anda."
+    "infoTeamCollaboration": "<strong>Kerjasama Pasukan</strong> Urus cuti bersama pasukan anda.",
+    "realTimeEnabled": "Kemas kini masa nyata didayakan.",
+    "realTimeDisabled": "Kemas kini masa nyata dilumpuhkan.",
+    "syncSuccess": "Berjaya disegerakkan.",
+    "syncFailed": "Penyegerakan gagal."
   },
   "auth": {
     "email": "E-mel",

@@ -53,7 +53,10 @@
       "Czw",
       "Pt",
       "Sob"
-    ]
+    ],
+    "realTimeUpdates": "Aktualizacje w czasie rzeczywistym",
+    "syncNow": "Synchronizuj teraz",
+    "lastSynced": "Ostatnia synchronizacja"
   },
   "landing": {
     "splashText": "Dotknij, aby rozpocząć",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Łatwo rejestruj codzienne aktywności</strong>, śledź godziny pracy i zarządzaj saldem urlopowym.",
     "infoRestoreBackup": "<strong>Bezproblemowo przywracaj i twórz kopie zapasowe</strong> danych do CSV dla raportów.",
     "infoGuestOrSync": "<strong>Zacznij natychmiast</strong> jako Gość lub zaloguj się, aby zsynchronizować dane między urządzeniami.",
-    "infoTeamCollaboration": "<strong>Twórz zespoły</strong>, aby współpracować i zarządzać urlopami zespołu."
+    "infoTeamCollaboration": "<strong>Twórz zespoły</strong>, aby współpracować i zarządzać urlopami zespołu.",
+    "realTimeEnabled": "Włączono aktualizacje w czasie rzeczywistym.",
+    "realTimeDisabled": "Wyłączono aktualizacje w czasie rzeczywistym.",
+    "syncSuccess": "Pomyślnie zsynchronizowano.",
+    "syncFailed": "Synchronizacja nie powiodła się."
   },
   "auth": {
     "email": "E-mail",

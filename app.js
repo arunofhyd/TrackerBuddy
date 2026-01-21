@@ -25,7 +25,8 @@ import {
     loadFirebaseModules,
     getFunctionsInstance,
     getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
-    getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager
+    getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+    enableNetwork, disableNetwork, waitForPendingWrites
 } from './services/firebase.js';
 import { initTog, performReset as performTogReset, renderCalendar as renderTogCalendar, updateLeaveData } from './tog.js';
 
@@ -383,6 +384,23 @@ async function handleUserLogin(user) {
 
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, async () => {
+        const realTimeEnabled = localStorage.getItem(LOCAL_STORAGE_KEYS.REAL_TIME_UPDATES) !== 'false';
+        if (!realTimeEnabled) {
+            setTimeout(async () => {
+                const currentPref = localStorage.getItem(LOCAL_STORAGE_KEYS.REAL_TIME_UPDATES) !== 'false';
+                if (!currentPref) {
+                    try {
+                        await disableNetwork(db);
+                        updateSyncUI();
+                    } catch (e) {
+                        Logger.error("Failed to disable network on login", e);
+                    }
+                }
+            }, 2000);
+        } else {
+            updateSyncUI();
+        }
+
         // Check for offline data to migrate ONCE, inside callback to ensure we have cloud data for merging
         const guestDataString = localStorage.getItem(LOCAL_STORAGE_KEYS.GUEST_USER_DATA);
         if (guestDataString) {
@@ -5441,6 +5459,211 @@ window.openSharedMonthPicker = function(initialDate, callback) {
     DOM.monthPickerModal.classList.add('visible');
 }
 
+function injectRealTimeControls(context) {
+    const isTb = context === 'trackerbuddy';
+    const containerId = isTb ? 'real-time-toggle-container-tb' : 'real-time-toggle-container-tog';
+    const toggleBtnId = isTb ? 'real-time-toggle-btn-tb' : 'real-time-toggle-btn-tog';
+    const syncContainerId = isTb ? 'tb-sync-container' : 'tog-sync-container';
+    const syncBtnId = isTb ? 'tb-sync-now-btn' : 'tog-sync-now-btn';
+    const lastSyncId = isTb ? 'tb-last-sync-text' : 'tog-last-sync-text';
+
+    // Check if already exists
+    if (document.getElementById(containerId)) return;
+
+    // Determine insertion point
+    let insertTarget = null;
+    let menuContainer = null;
+
+    if (isTb) {
+        // TrackerBuddy: Insert before Help button
+        insertTarget = document.getElementById('tb-help-btn');
+        if (insertTarget) menuContainer = insertTarget.parentNode;
+    } else {
+        // TOG: Insert after User Info (header)
+        const dropdown = document.getElementById('tog-user-dropdown');
+        if (dropdown) {
+            menuContainer = dropdown.querySelector('.p-2');
+            if (menuContainer && menuContainer.children.length > 0) {
+                // First child is header, insert after it
+                insertTarget = menuContainer.children[0].nextElementSibling;
+            }
+        }
+    }
+
+    if (!menuContainer) return;
+
+    const controlsDiv = document.createElement('div');
+    controlsDiv.id = containerId + '-wrapper'; // Wrapper to hold both elements
+    controlsDiv.innerHTML = `
+        <div id="${containerId}" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-bolt text-gray-500 dark:text-gray-400 text-sm"></i>
+                    <span class="text-sm text-gray-700 dark:text-gray-200 font-medium" data-i18n="common.realTimeUpdates">${i18n.t('common.realTimeUpdates') || 'Real-time Updates'}</span>
+                </div>
+                <button id="${toggleBtnId}" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-blue-500" role="switch" aria-checked="true">
+                    <span aria-hidden="true" class="toggle-knob pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5 rtl:-translate-x-5"></span>
+                </button>
+            </div>
+        </div>
+        <div id="${syncContainerId}" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700" style="display: none;">
+            <button id="${syncBtnId}" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
+                <i class="fas fa-sync-alt"></i>
+                <span data-i18n="common.syncNow">${i18n.t('common.syncNow') || 'Sync Now'}</span>
+            </button>
+            <p id="${lastSyncId}" class="text-xs text-center text-gray-500 mt-1"></p>
+        </div>
+    `;
+
+    if (isTb) {
+        menuContainer.insertBefore(controlsDiv, insertTarget);
+    } else {
+        if (insertTarget) {
+            menuContainer.insertBefore(controlsDiv, insertTarget);
+        } else {
+            menuContainer.appendChild(controlsDiv);
+        }
+    }
+
+    // Attach Listeners
+    const toggleBtn = document.getElementById(toggleBtnId);
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const current = localStorage.getItem(LOCAL_STORAGE_KEYS.REAL_TIME_UPDATES) !== 'false';
+            toggleRealTimeUpdates(!current);
+        });
+    }
+
+    const syncBtn = document.getElementById(syncBtnId);
+    if (syncBtn) {
+        syncBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            performSync();
+        });
+    }
+
+    // Initial UI Update
+    updateSyncUI();
+}
+
+async function toggleRealTimeUpdates(enabled) {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.REAL_TIME_UPDATES, enabled);
+
+    // Update both buttons if they exist
+    ['real-time-toggle-btn-tb', 'real-time-toggle-btn-tog'].forEach(id => {
+        const toggleBtn = document.getElementById(id);
+        if (toggleBtn) {
+            const knob = toggleBtn.querySelector('.toggle-knob');
+            if (enabled) {
+                toggleBtn.classList.remove('bg-gray-200');
+                toggleBtn.classList.add('bg-blue-500');
+                knob.classList.add('translate-x-5');
+                knob.classList.add('rtl:-translate-x-5');
+            } else {
+                toggleBtn.classList.remove('bg-blue-500');
+                toggleBtn.classList.add('bg-gray-200');
+                knob.classList.remove('translate-x-5');
+                knob.classList.remove('rtl:-translate-x-5');
+            }
+        }
+    });
+
+    if (enabled) {
+        try {
+            await enableNetwork(db);
+            showMessage(i18n.t('messages.realTimeEnabled') || "Real-time updates enabled", 'success');
+        } catch (e) {
+            Logger.error("Error enabling network:", e);
+            showMessage(i18n.t("messages.error") || "Error", 'error');
+        }
+    } else {
+        try {
+            await disableNetwork(db);
+            showMessage(i18n.t('messages.realTimeDisabled') || "Real-time updates disabled", 'success');
+        } catch (e) {
+            Logger.error("Error disabling network:", e);
+            showMessage(i18n.t("messages.error") || "Error", 'error');
+        }
+    }
+    updateSyncUI();
+}
+
+async function performSync() {
+    ['tb-sync-now-btn', 'tog-sync-now-btn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            const icon = btn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+            btn.disabled = true;
+        }
+    });
+
+    try {
+        await enableNetwork(db);
+        await waitForPendingWrites(db);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const now = new Date();
+        localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_SYNC_TIME, now.toISOString());
+
+        await disableNetwork(db);
+        showMessage(i18n.t('messages.syncSuccess') || "Synced successfully", 'success');
+    } catch (e) {
+        Logger.error("Sync failed:", e);
+        showMessage(i18n.t('messages.syncFailed') || "Sync failed", 'error');
+    } finally {
+        ['tb-sync-now-btn', 'tog-sync-now-btn'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                const icon = btn.querySelector('i');
+                if (icon) icon.classList.remove('fa-spin');
+                btn.disabled = false;
+            }
+        });
+        updateSyncUI();
+    }
+}
+
+function updateSyncUI() {
+    const isRealTime = localStorage.getItem(LOCAL_STORAGE_KEYS.REAL_TIME_UPDATES) !== 'false';
+    const lastSync = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_SYNC_TIME);
+    let lastSyncTextContent = `${i18n.t('common.lastSynced') || 'Last synced'}: -`;
+
+    if (lastSync) {
+        const date = new Date(lastSync);
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateStr = date.toLocaleDateString();
+        lastSyncTextContent = `${i18n.t('common.lastSynced') || 'Last synced'}: ${dateStr} ${timeStr}`;
+    }
+
+    // Update both TB and TOG interfaces
+    ['tb', 'tog'].forEach(prefix => {
+        const container = document.getElementById(`${prefix}-sync-container`);
+        const text = document.getElementById(`${prefix}-last-sync-text`);
+        const toggleBtn = document.getElementById(`real-time-toggle-btn-${prefix}`);
+
+        if (container) {
+            container.style.display = isRealTime ? 'none' : 'block';
+        }
+        if (text && !isRealTime) {
+            text.textContent = lastSyncTextContent;
+        }
+        if (toggleBtn) {
+            const knob = toggleBtn.querySelector('.toggle-knob');
+            if (isRealTime) {
+                toggleBtn.classList.add('bg-blue-500');
+                toggleBtn.classList.remove('bg-gray-200');
+                knob.classList.add('translate-x-5');
+            } else {
+                toggleBtn.classList.add('bg-gray-200');
+                toggleBtn.classList.remove('bg-blue-500');
+                knob.classList.remove('translate-x-5');
+            }
+        }
+    });
+}
+
 function setupTbUserMenu(user) {
     if (!DOM.tbUserAvatarBtn || !DOM.tbUserDropdown) return;
 
@@ -5453,6 +5676,11 @@ function setupTbUserMenu(user) {
         DOM.tbMenuAvatar.innerHTML = '<i class="fas fa-user"></i>';
         DOM.tbMenuEmail.innerText = 'Guest';
     }
+
+    // Inject Real-time Controls if User is Logged In (For TrackerBuddy)
+    injectRealTimeControls('trackerbuddy');
+    // Inject Real-time Controls if User is Logged In (For TOG Tracker)
+    injectRealTimeControls('tog');
 
     // Toggle
     DOM.tbUserAvatarBtn.onclick = (e) => {
