@@ -5498,18 +5498,18 @@ function injectRealTimeControls(context) {
         <div id="${containerId}" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <i class="fas fa-wifi text-gray-500 dark:text-gray-400 text-sm"></i>
-                    <span class="text-sm text-gray-700 dark:text-gray-200 font-medium">${i18n.t('common.realTimeUpdates') || 'Real-time Updates'}</span>
+                    <i class="fas fa-bolt text-gray-500 dark:text-gray-400 text-sm"></i>
+                    <span class="text-sm text-gray-700 dark:text-gray-200 font-medium" data-i18n="common.realTimeUpdates">${i18n.t('common.realTimeUpdates') || 'Real-time Updates'}</span>
                 </div>
                 <button id="${toggleBtnId}" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-blue-500" role="switch" aria-checked="true">
-                    <span aria-hidden="true" class="toggle-knob pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+                    <span aria-hidden="true" class="toggle-knob pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5 rtl:-translate-x-5"></span>
                 </button>
             </div>
         </div>
         <div id="${syncContainerId}" class="px-4 py-2 border-b border-gray-100 dark:border-gray-700" style="display: none;">
             <button id="${syncBtnId}" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
                 <i class="fas fa-sync-alt"></i>
-                <span>${i18n.t('common.syncNow') || 'Sync Now'}</span>
+                <span data-i18n="common.syncNow">${i18n.t('common.syncNow') || 'Sync Now'}</span>
             </button>
             <p id="${lastSyncId}" class="text-xs text-center text-gray-500 mt-1"></p>
         </div>
@@ -5559,10 +5559,12 @@ async function toggleRealTimeUpdates(enabled) {
                 toggleBtn.classList.remove('bg-gray-200');
                 toggleBtn.classList.add('bg-blue-500');
                 knob.classList.add('translate-x-5');
+                knob.classList.add('rtl:-translate-x-5');
             } else {
                 toggleBtn.classList.remove('bg-blue-500');
                 toggleBtn.classList.add('bg-gray-200');
                 knob.classList.remove('translate-x-5');
+                knob.classList.remove('rtl:-translate-x-5');
             }
         }
     });
