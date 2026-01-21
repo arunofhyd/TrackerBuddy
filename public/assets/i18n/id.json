@@ -53,7 +53,10 @@
       "Kam",
       "Jum",
       "Sab"
-    ]
+    ],
+    "realTimeUpdates": "Pembaruan Real-time",
+    "syncNow": "Sinkronkan Sekarang",
+    "lastSynced": "Terakhir disinkronkan"
   },
   "landing": {
     "splashText": "Ketuk untuk Mulai",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Catat aktivitas harian dengan mudah</strong>, lacak jam kerja, dan kelola saldo cuti.",
     "infoRestoreBackup": "<strong>Pulihkan dan cadangkan data Anda</strong> dengan mulus ke CSV untuk laporan.",
     "infoGuestOrSync": "<strong>Mulai instan</strong> sebagai Tamu, atau masuk untuk menyinkronkan data Anda di seluruh perangkat.",
-    "infoTeamCollaboration": "<strong>Buat tim</strong> untuk berkolaborasi dan mengelola cuti tim bersama."
+    "infoTeamCollaboration": "<strong>Buat tim</strong> untuk berkolaborasi dan mengelola cuti tim bersama.",
+    "realTimeEnabled": "Pembaruan real-time diaktifkan.",
+    "realTimeDisabled": "Pembaruan real-time dinonaktifkan.",
+    "syncSuccess": "Berhasil disinkronkan.",
+    "syncFailed": "Sinkronisasi gagal."
   },
   "auth": {
     "email": "Email",

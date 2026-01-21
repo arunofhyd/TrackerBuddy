@@ -64,7 +64,11 @@
     "infoLogActivities": "<strong>Effortlessly log daily activities</strong>, track work hours, and manage custom leave balances.",
     "infoRestoreBackup": "<strong>Seamlessly restore and backup</strong> your data to CSV for reports and backups.",
     "infoGuestOrSync": "<strong>Get started instantly</strong> as a Guest, or sign in to sync your data across devices.",
-    "infoTeamCollaboration": "<strong>Create or join teams</strong> to collaborate and manage team leave balances together."
+    "infoTeamCollaboration": "<strong>Create or join teams</strong> to collaborate and manage team leave balances together.",
+    "realTimeEnabled": "Real-time updates enabled.",
+    "realTimeDisabled": "Real-time updates disabled.",
+    "syncSuccess": "Synced successfully.",
+    "syncFailed": "Sync failed."
   },
   "auth": {
     "email": "Email",

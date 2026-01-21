@@ -53,7 +53,10 @@
       "Th 5",
       "Th 6",
       "Th 7"
-    ]
+    ],
+    "realTimeUpdates": "Cập nhật thời gian thực",
+    "syncNow": "Đồng bộ ngay",
+    "lastSynced": "Đồng bộ lần cuối"
   },
   "landing": {
     "splashText": "Chạm để bắt đầu",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Ghi lại mỗi ngày</strong>, theo dõi giờ làm và quản lý phép năm dễ dàng.",
     "infoRestoreBackup": "<strong>Sao lưu an toàn</strong>. Xuất và nhập dữ liệu bằng file CSV.",
     "infoGuestOrSync": "<strong>Dùng ngay</strong> với chế độ Khách hoặc đăng nhập để đồng bộ mọi nơi.",
-    "infoTeamCollaboration": "<strong>Tạo nhóm</strong>. Quản lý lịch nghỉ của cả team cùng nhau."
+    "infoTeamCollaboration": "<strong>Tạo nhóm</strong>. Quản lý lịch nghỉ của cả team cùng nhau.",
+    "realTimeEnabled": "Đã bật cập nhật thời gian thực.",
+    "realTimeDisabled": "Đã tắt cập nhật thời gian thực.",
+    "syncSuccess": "Đồng bộ thành công.",
+    "syncFailed": "Đồng bộ thất bại."
   },
   "auth": {
     "email": "Email",

@@ -53,7 +53,10 @@
       "Jue",
       "Vie",
       "Sáb"
-    ]
+    ],
+    "realTimeUpdates": "Actualizaciones en tiempo real",
+    "syncNow": "Sincronizar ahora",
+    "lastSynced": "Última sincronización"
   },
   "landing": {
     "splashText": "Empezar",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Registra tu día fácilmente</strong>, controla horas y gestiona tus vacaciones.",
     "infoRestoreBackup": "<strong>Copias de seguridad simples</strong>. Exporta e importa tus datos en CSV.",
     "infoGuestOrSync": "<strong>Empieza ya</strong> como invitado o inicia sesión para sincronizar tus dispositivos.",
-    "infoTeamCollaboration": "<strong>Crea tu equipo</strong>. Gestionad juntos las ausencias y vacaciones."
+    "infoTeamCollaboration": "<strong>Crea tu equipo</strong>. Gestionad juntos las ausencias y vacaciones.",
+    "realTimeEnabled": "Actualizaciones en tiempo real activadas.",
+    "realTimeDisabled": "Actualizaciones en tiempo real desactivadas.",
+    "syncSuccess": "Sincronizado con éxito.",
+    "syncFailed": "Error de sincronización."
   },
   "auth": {
     "email": "Correo electrónico",

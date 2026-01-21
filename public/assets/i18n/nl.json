@@ -53,7 +53,10 @@
       "Do",
       "Vr",
       "Za"
-    ]
+    ],
+    "realTimeUpdates": "Real-time updates",
+    "syncNow": "Nu synchroniseren",
+    "lastSynced": "Laatst gesynchroniseerd"
   },
   "landing": {
     "splashText": "Tik om te beginnen",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Log moeiteloos dagelijkse activiteiten</strong>, houd werkuren bij en beheer verlofsaldo's.",
     "infoRestoreBackup": "<strong>Herstel en maak naadloos back-ups</strong> van je gegevens naar CSV voor rapporten.",
     "infoGuestOrSync": "<strong>Begin direct</strong> als gast, of log in om je gegevens op verschillende apparaten te synchroniseren.",
-    "infoTeamCollaboration": "<strong>Maak teams</strong> om samen te werken en teamverlof samen te beheren."
+    "infoTeamCollaboration": "<strong>Maak teams</strong> om samen te werken en teamverlof samen te beheren.",
+    "realTimeEnabled": "Real-time updates ingeschakeld.",
+    "realTimeDisabled": "Real-time updates uitgeschakeld.",
+    "syncSuccess": "Succesvol gesynchroniseerd.",
+    "syncFailed": "Synchronisatie mislukt."
   },
   "auth": {
     "email": "E-mail",

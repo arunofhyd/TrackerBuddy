@@ -53,7 +53,10 @@
       "خميس",
       "جمعة",
       "سبت"
-    ]
+    ],
+    "realTimeUpdates": "تحديثات فورية",
+    "syncNow": "مزامنة الآن",
+    "lastSynced": "آخر مزامنة"
   },
   "landing": {
     "splashText": "انقر للبدء",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>سجل أنشطتك اليومية بسهولة</strong>، وتتبع ساعات العمل، وأرصدة الإجازات.",
     "infoRestoreBackup": "<strong>نسخ احتياطي واستعادة سلسة</strong> للبيانات عبر CSV للتقارير.",
     "infoGuestOrSync": "<strong>ابدأ فورًا</strong> كضيف، أو سجل الدخول للمزامنة عبر الأجهزة.",
-    "infoTeamCollaboration": "<strong>أنشئ فرقًا</strong> للتعاون وإدارة إجازات الفريق معًا."
+    "infoTeamCollaboration": "<strong>أنشئ فرقًا</strong> للتعاون وإدارة إجازات الفريق معًا.",
+    "realTimeEnabled": "تم تفعيل التحديثات الفورية.",
+    "realTimeDisabled": "تم تعطيل التحديثات الفورية.",
+    "syncSuccess": "تمت المزامنة بنجاح.",
+    "syncFailed": "فشلت المزامنة."
   },
   "auth": {
     "email": "البريد الإلكتروني",

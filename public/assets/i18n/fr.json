@@ -53,7 +53,10 @@
       "Jeu",
       "Ven",
       "Sam"
-    ]
+    ],
+    "realTimeUpdates": "Mises à jour en temps réel",
+    "syncNow": "Synchroniser maintenant",
+    "lastSynced": "Dernière synchro"
   },
   "landing": {
     "splashText": "Appuyez pour commencer",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>Enregistrez facilement vos activités quotidiennes</strong>, suivez vos heures de travail et gérez vos soldes de congés.",
     "infoRestoreBackup": "<strong>Restaurez et sauvegardez en toute transparence</strong> vos données au format CSV pour les rapports.",
     "infoGuestOrSync": "<strong>Commencez instantanément</strong> en tant qu'invité ou connectez-vous pour synchroniser vos données entre appareils.",
-    "infoTeamCollaboration": "<strong>Créez des équipes</strong> pour collaborer et gérer les congés de l'équipe ensemble."
+    "infoTeamCollaboration": "<strong>Créez des équipes</strong> pour collaborer et gérer les congés de l'équipe ensemble.",
+    "realTimeEnabled": "Mises à jour en temps réel activées.",
+    "realTimeDisabled": "Mises à jour en temps réel désactivées.",
+    "syncSuccess": "Synchronisation réussie.",
+    "syncFailed": "Échec de la synchronisation."
   },
   "auth": {
     "email": "E-mail",

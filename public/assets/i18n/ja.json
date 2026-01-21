@@ -53,7 +53,10 @@
       "木",
       "金",
       "土"
-    ]
+    ],
+    "realTimeUpdates": "リアルタイム更新",
+    "syncNow": "今すぐ同期",
+    "lastSynced": "最終同期"
   },
   "landing": {
     "splashText": "タップして開始",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>日々の活動を簡単に記録</strong>し、労働時間や休暇残高を管理。",
     "infoRestoreBackup": "データを<strong>シームレスに復元・バックアップ</strong>し、レポート用CSVを出力。",
     "infoGuestOrSync": "ゲストとして<strong>すぐに開始</strong>、またはサインインしてデバイス間で同期。",
-    "infoTeamCollaboration": "<strong>チームを作成</strong>して協力し、チームの休暇を一括管理。"
+    "infoTeamCollaboration": "<strong>チームを作成</strong>して協力し、チームの休暇を一括管理。",
+    "realTimeEnabled": "リアルタイム更新が有効になりました。",
+    "realTimeDisabled": "リアルタイム更新が無効になりました。",
+    "syncSuccess": "同期に成功しました。",
+    "syncFailed": "同期に失敗しました。"
   },
   "auth": {
     "email": "メールアドレス",

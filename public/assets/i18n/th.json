@@ -53,7 +53,10 @@
       "พฤ",
       "ศ",
       "ส"
-    ]
+    ],
+    "realTimeUpdates": "อัปเดตแบบเรียลไทม์",
+    "syncNow": "ซิงค์ทันที",
+    "lastSynced": "ซิงค์ล่าสุด"
   },
   "landing": {
     "splashText": "แตะเพื่อเริ่ม",
@@ -61,7 +64,11 @@
     "infoLogActivities": "<strong>บันทึกประจำวัน</strong> ติดตามเวลาทำงาน และวันลาพักร้อนง่ายๆ",
     "infoRestoreBackup": "<strong>สำรองข้อมูลหายห่วง</strong> ส่งออกและกู้คืนด้วยไฟล์ CSV",
     "infoGuestOrSync": "<strong>เริ่มได้ทันที</strong> แบบ Guest หรือล็อกอินเพื่อซิงค์ข้อมูล",
-    "infoTeamCollaboration": "<strong>สร้างทีม</strong> จัดการวันลาร่วมกันในทีม"
+    "infoTeamCollaboration": "<strong>สร้างทีม</strong> จัดการวันลาร่วมกันในทีม",
+    "realTimeEnabled": "เปิดใช้งานการอัปเดตแบบเรียลไทม์แล้ว",
+    "realTimeDisabled": "ปิดใช้งานการอัปเดตแบบเรียลไทม์แล้ว",
+    "syncSuccess": "ซิงค์สำเร็จแล้ว",
+    "syncFailed": "การซิงค์ล้มเหลว"
   },
   "auth": {
     "email": "อีเมล",
