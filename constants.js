@@ -56,7 +56,9 @@ export const LOCAL_STORAGE_KEYS = {
     SESSION_MODE: 'sessionMode',
     GUEST_USER_DATA: 'guestUserData',
     THEME: 'theme',
-    APP_LANGUAGE: 'appLanguage'
+    APP_LANGUAGE: 'appLanguage',
+    REAL_TIME_UPDATES: 'realTimeUpdates',
+    LAST_SYNC_TIME: 'lastSyncTime'
 };
 
 export const NOTIFICATION_SHAPE = 'rounded-full';
