@@ -28,7 +28,7 @@ import {
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
     enableNetwork, disableNetwork, waitForPendingWrites
 } from './services/firebase.js';
-import { initTog, performReset as performTogReset, renderCalendar as renderTogCalendar, updateLeaveData } from './tog.js';
+import { initTog, performReset as performTogReset, refreshTogUI, updateLeaveData } from './tog.js';
 
 const i18n = new TranslationService(() => {
     updateView();
@@ -52,8 +52,15 @@ const i18n = new TranslationService(() => {
         renderMonthPicker();
     }
     if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
-        renderTogCalendar();
+        refreshTogUI();
     }
+    // Update User ID Display if user is logged in
+    if (state.userId && DOM.userIdDisplay) {
+        DOM.userIdDisplay.textContent = i18n.t('dashboard.userIdPrefix') + state.userId;
+    }
+    // Refresh Color Picker (updates tooltips)
+    setupColorPicker();
+
     // Update swipe modal text if visible
     if (DOM.swipeConfirmModal?.classList.contains('visible')) {
         if (state.pendingSwipeAction === 'performTrackerReset') {
@@ -70,6 +77,9 @@ const i18n = new TranslationService(() => {
              if (desc) desc.textContent = i18n.t('admin.swipeToDeleteDesc');
         }
     }
+
+    // Update Real-time Updates / Sync Text
+    updateSyncUI();
 });
 
 // --- Global App State ---
