@@ -145,6 +145,11 @@ function bindEvents() {
     window.tog_handleInputChange = handleInputChange;
 }
 
+export function refreshTogUI() {
+    renderHeader();
+    renderCalendar(true);
+}
+
 export function updateLeaveData(yearlyData, leaveTypes) {
     state.trackerYearlyData = yearlyData || {};
     state.trackerLeaveTypes = leaveTypes || [];
@@ -311,8 +316,10 @@ function subscribeToData(userId) {
 
 function renderHeader(user) {
     // Fallback if user is null (Guest) or if user object is incomplete
-    const email = user ? (user.email || (state.auth && state.auth.currentUser ? state.auth.currentUser.email : "Guest")) : "Guest";
-    const displayUser = user || (state.auth && state.auth.currentUser ? { email: state.auth.currentUser.email, uid: state.auth.currentUser.uid } : null);
+    // If user argument is missing, try to use state.auth.currentUser directly
+    const effectiveUser = user || (state.auth && state.auth.currentUser);
+    const email = effectiveUser ? (effectiveUser.email || "Guest") : "Guest";
+    const displayUser = effectiveUser || null;
 
     if(DOM.userEmail) DOM.userEmail.innerText = email;
 
