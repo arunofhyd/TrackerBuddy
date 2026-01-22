@@ -5582,7 +5582,7 @@ async function toggleRealTimeUpdates(enabled) {
     if (enabled) {
         try {
             await enableNetwork(db);
-            showMessage(i18n.t('messages.realTimeEnabled') || "Real-time updates enabled", 'success');
+            showMessage(i18n.t('landing.realTimeEnabled') || "Real-time updates enabled", 'success');
         } catch (e) {
             Logger.error("Error enabling network:", e);
             showMessage(i18n.t("messages.error") || "Error", 'error');
@@ -5590,7 +5590,7 @@ async function toggleRealTimeUpdates(enabled) {
     } else {
         try {
             await disableNetwork(db);
-            showMessage(i18n.t('messages.realTimeDisabled') || "Real-time updates disabled", 'success');
+            showMessage(i18n.t('landing.realTimeDisabled') || "Real-time updates disabled", 'success');
         } catch (e) {
             Logger.error("Error disabling network:", e);
             showMessage(i18n.t("messages.error") || "Error", 'error');
@@ -5618,10 +5618,10 @@ async function performSync() {
         localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_SYNC_TIME, now.toISOString());
 
         await disableNetwork(db);
-        showMessage(i18n.t('messages.syncSuccess') || "Synced successfully", 'success');
+        showMessage(i18n.t('landing.syncSuccess') || "Synced successfully", 'success');
     } catch (e) {
         Logger.error("Sync failed:", e);
-        showMessage(i18n.t('messages.syncFailed') || "Sync failed", 'error');
+        showMessage(i18n.t('landing.syncFailed') || "Sync failed", 'error');
     } finally {
         ['tb-sync-now-btn', 'tog-sync-now-btn'].forEach(id => {
             const btn = document.getElementById(id);
@@ -5682,15 +5682,22 @@ function setupTbUserMenu(user) {
         const letter = (user.email || 'U').charAt(0).toUpperCase();
         DOM.tbMenuAvatar.innerText = letter;
         DOM.tbMenuEmail.innerText = user.email || 'User';
+
+        // Inject Real-time Controls if User is Logged In (For TrackerBuddy)
+        injectRealTimeControls('trackerbuddy');
+        // Inject Real-time Controls if User is Logged In (For TOG Tracker)
+        injectRealTimeControls('tog');
     } else {
         DOM.tbMenuAvatar.innerHTML = '<i class="fas fa-user"></i>';
         DOM.tbMenuEmail.innerText = 'Guest';
-    }
 
-    // Inject Real-time Controls if User is Logged In (For TrackerBuddy)
-    injectRealTimeControls('trackerbuddy');
-    // Inject Real-time Controls if User is Logged In (For TOG Tracker)
-    injectRealTimeControls('tog');
+        // Remove Real-time Controls if present (Guest Mode)
+        const tbWrapper = document.getElementById('real-time-toggle-container-tb-wrapper');
+        if (tbWrapper) tbWrapper.remove();
+
+        const togWrapper = document.getElementById('real-time-toggle-container-tog-wrapper');
+        if (togWrapper) togWrapper.remove();
+    }
 
     // Toggle
     DOM.tbUserAvatarBtn.onclick = (e) => {
