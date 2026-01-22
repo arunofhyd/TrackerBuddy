@@ -70,6 +70,9 @@ const i18n = new TranslationService(() => {
              if (desc) desc.textContent = i18n.t('admin.swipeToDeleteDesc');
         }
     }
+
+    // Update Real-time Updates / Sync Text
+    updateSyncUI();
 });
 
 // --- Global App State ---
