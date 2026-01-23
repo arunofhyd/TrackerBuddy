@@ -928,7 +928,8 @@ async function subscribeToData(userId, callback) {
             currentTeam: data.teamId || null,
             teamRole: data.teamRole || null,
             userRole: userRole,
-            lastViewMode: data.lastViewMode || null
+            lastViewMode: data.lastViewMode || null,
+            lastTrackerView: data.lastTrackerView || null
         });
 
         // Render admin button if applicable
@@ -4023,8 +4024,8 @@ function setupEventListeners() {
     passwordInput?.addEventListener('input', () => setInputErrorState(passwordInput, false));
     document.getElementById('theme-toggle-btn')?.addEventListener('click', toggleTheme);
     document.getElementById('tog-theme-toggle-btn')?.addEventListener('click', toggleTheme);
-    DOM.monthViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.MONTH }); updateView(); });
-    DOM.dayViewBtn?.addEventListener('click', () => { setState({ currentView: VIEW_MODES.DAY }); updateView(); });
+    DOM.monthViewBtn?.addEventListener('click', () => setTrackerView(VIEW_MODES.MONTH));
+    DOM.dayViewBtn?.addEventListener('click', () => setTrackerView(VIEW_MODES.DAY));
 
     document.getElementById('prev-btn')?.addEventListener('click', async (e) => {
         triggerHapticFeedback('medium');
@@ -5440,8 +5441,15 @@ async function subscribeToAppConfig() {
 
 function restoreLastView(viewToHide) {
     let lastView = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE);
-    if (state.userId && state.lastViewMode) {
-        lastView = state.lastViewMode;
+    let lastTrackerView = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_TRACKER_VIEW);
+
+    if (state.userId) {
+        if (state.lastViewMode) lastView = state.lastViewMode;
+        if (state.lastTrackerView) lastTrackerView = state.lastTrackerView;
+    }
+
+    if (lastTrackerView && (lastTrackerView === VIEW_MODES.MONTH || lastTrackerView === VIEW_MODES.DAY)) {
+        setState({ currentView: lastTrackerView });
     }
 
     if (lastView === 'tog') {
@@ -5456,6 +5464,15 @@ function toggleAppMode() {
         switchToTrackerMode();
     } else {
         switchToTogMode();
+    }
+}
+
+function setTrackerView(viewMode) {
+    setState({ currentView: viewMode });
+    updateView();
+    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_TRACKER_VIEW, viewMode);
+    if (state.userId && state.isOnlineMode) {
+        saveDataToFirestore(null, { lastTrackerView: viewMode }).catch(console.error);
     }
 }
 
