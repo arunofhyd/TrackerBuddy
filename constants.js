@@ -59,7 +59,8 @@ export const LOCAL_STORAGE_KEYS = {
     APP_LANGUAGE: 'appLanguage',
     REAL_TIME_UPDATES: 'realTimeUpdates',
     LAST_SYNC_TIME: 'lastSyncTime',
-    LAST_VIEW_MODE: 'lastViewMode'
+    LAST_VIEW_MODE: 'lastViewMode',
+    LAST_TRACKER_VIEW: 'lastTrackerView'
 };
 
 export const NOTIFICATION_SHAPE = 'rounded-full';
