@@ -452,7 +452,7 @@ async function handleUserLogin(user) {
 
         setupTbUserMenu(user);
         // Team data will now be loaded on-demand when the user expands the team section.
-        switchView(DOM.appView, DOM.loadingView, updateView);
+        restoreLastView(DOM.loadingView);
         // Toggle Nav Button
         DOM.navTogBtn.classList.remove('hidden');
     });
@@ -1295,7 +1295,7 @@ function loadOfflineData() {
     });
     setupTbUserMenu(null);
     // Switch directly to app view
-    switchView(DOM.appView, DOM.loginView, updateView);
+    restoreLastView(DOM.loginView);
     DOM.navTogBtn.classList.remove('hidden');
 }
 
@@ -5437,6 +5437,15 @@ async function subscribeToAppConfig() {
 
 // --- TOG Tracker Integration ---
 
+function restoreLastView(viewToHide) {
+    const lastView = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE);
+    if (lastView === 'tog') {
+        switchToTogMode(viewToHide);
+    } else {
+        switchToTrackerMode(viewToHide);
+    }
+}
+
 function toggleAppMode() {
     if (DOM.appView.classList.contains('hidden')) {
         switchToTrackerMode();
@@ -5445,17 +5454,19 @@ function toggleAppMode() {
     }
 }
 
-function switchToTrackerMode() {
-    switchView(DOM.appView, DOM.togView);
+function switchToTrackerMode(viewToHide = DOM.togView) {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE, 'tracker');
+    switchView(DOM.appView, viewToHide, updateView);
     if (DOM.navTogBtn) {
         DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">TOGtracker</span>`;
         DOM.navTogBtn.title = "Switch to TOGtracker";
     }
 }
 
-function switchToTogMode() {
+function switchToTogMode(viewToHide = DOM.appView) {
+    localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE, 'tog');
     initTog(state.userId, db, auth, i18n);
-    switchView(DOM.togView, DOM.appView);
+    switchView(DOM.togView, viewToHide);
     if (DOM.navTogBtn) {
         DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">TrackerBuddy</span>`;
         DOM.navTogBtn.title = "Switch to TrackerBuddy";
