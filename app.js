@@ -927,7 +927,8 @@ async function subscribeToData(userId, callback) {
             leaveTypes: data.leaveTypes || [],
             currentTeam: data.teamId || null,
             teamRole: data.teamRole || null,
-            userRole: userRole
+            userRole: userRole,
+            lastViewMode: data.lastViewMode || null
         });
 
         // Render admin button if applicable
@@ -5438,7 +5439,11 @@ async function subscribeToAppConfig() {
 // --- TOG Tracker Integration ---
 
 function restoreLastView(viewToHide) {
-    const lastView = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE);
+    let lastView = localStorage.getItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE);
+    if (state.userId && state.lastViewMode) {
+        lastView = state.lastViewMode;
+    }
+
     if (lastView === 'tog') {
         switchToTogMode(viewToHide);
     } else {
@@ -5456,6 +5461,9 @@ function toggleAppMode() {
 
 function switchToTrackerMode(viewToHide = DOM.togView) {
     localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE, 'tracker');
+    if (state.userId && state.isOnlineMode) {
+        saveDataToFirestore(null, { lastViewMode: 'tracker' }).catch(console.error);
+    }
     switchView(DOM.appView, viewToHide, updateView);
     if (DOM.navTogBtn) {
         DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">TOGtracker</span>`;
@@ -5465,6 +5473,9 @@ function switchToTrackerMode(viewToHide = DOM.togView) {
 
 function switchToTogMode(viewToHide = DOM.appView) {
     localStorage.setItem(LOCAL_STORAGE_KEYS.LAST_VIEW_MODE, 'tog');
+    if (state.userId && state.isOnlineMode) {
+        saveDataToFirestore(null, { lastViewMode: 'tog' }).catch(console.error);
+    }
     initTog(state.userId, db, auth, i18n);
     switchView(DOM.togView, viewToHide);
     if (DOM.navTogBtn) {
