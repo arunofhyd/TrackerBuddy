@@ -58,7 +58,8 @@ export const LOCAL_STORAGE_KEYS = {
     THEME: 'theme',
     APP_LANGUAGE: 'appLanguage',
     REAL_TIME_UPDATES: 'realTimeUpdates',
-    LAST_SYNC_TIME: 'lastSyncTime'
+    LAST_SYNC_TIME: 'lastSyncTime',
+    LAST_VIEW_MODE: 'lastViewMode'
 };
 
 export const NOTIFICATION_SHAPE = 'rounded-full';
