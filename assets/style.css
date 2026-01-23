@@ -5,7 +5,20 @@
 :root {
             --team-card-bg-color: #f7fafc;
             --team-dashboard-title-color: #2d3748;
+            --primary: 217 91% 60%;
         }
+
+/* Logo Glow Effect */
+.logo-glow {
+    /* Base glow: subtle shadow */
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.logo-glow:hover {
+    /* Hover state: intensified and larger shadow */
+    box-shadow: 0 0 50px hsl(var(--primary) / 0.7);
+}
         /* --- Base and Font Styles --- */
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #2d3748; transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; }
         .text-gray-800 { color: #1f2937; }
@@ -56,7 +69,6 @@
         .view-container { transition: opacity 0.3s ease-in-out; }
         /* --- Login Container Styles --- */
         .login-container { background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.3); color: #1f2937; }
-        .login-container .logo-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); }
         .login-container .title-text { color: #111827; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
         .login-container .subtitle-text { color: #6b7280; }
         .login-container .description-border { border-color: #e5e7eb; }
@@ -80,7 +92,6 @@
         .login-container .user-id-text { color: #9ca3af; }
         /* --- Dark Mode Login Container --- */
         body.dark .login-container { background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.9)); border: 1px solid rgba(75, 85, 99, 0.8); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1); color: #f9fafb; }
-        body.dark .login-container .logo-glow { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
         body.dark .login-container .title-text { color: #f9fafb; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); }
         body.dark .login-container .subtitle-text { color: #9ca3af; }
         body.dark .login-container .description-border { border-color: #4b5563; }
