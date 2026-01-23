@@ -11,13 +11,13 @@
 /* Logo Glow Effect */
 .logo-glow {
     /* Base glow: subtle shadow */
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
     transition: box-shadow 0.3s ease-in-out;
 }
 
 .logo-glow:hover {
     /* Hover state: intensified and larger shadow */
-    box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 50px hsl(var(--primary) / 0.7);
 }
         /* --- Base and Font Styles --- */
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #2d3748; transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; }
