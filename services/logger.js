@@ -1,3 +1,5 @@
+import { APP_NAME } from '../constants.js';
+
 /**
  * Centralized logger utility for the application.
  * Prepends [TrackerBuddy] to logs and provides standard logging methods.
@@ -11,9 +13,9 @@ const isProduction = (typeof import.meta !== 'undefined' && import.meta.env)
 export const Logger = {
     info: (msg, ...args) => {
         if (!isProduction) {
-            console.log(`[TrackerBuddy] ${msg}`, ...args);
+            console.log(`[${APP_NAME}] ${msg}`, ...args);
         }
     },
-    error: (msg, ...args) => console.error(`[TrackerBuddy] ${msg}`, ...args),
-    warn: (msg, ...args) => console.warn(`[TrackerBuddy] ${msg}`, ...args)
+    error: (msg, ...args) => console.error(`[${APP_NAME}] ${msg}`, ...args),
+    warn: (msg, ...args) => console.warn(`[${APP_NAME}] ${msg}`, ...args)
 };

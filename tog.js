@@ -1,6 +1,5 @@
 import { doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
-
-const COLLECTIONS = { USERS: 'users' };
+import { LOCAL_STORAGE_KEYS, TOG_BACKUP_PREFIX, COLLECTIONS } from './constants.js';
 
 let state = {
     viewDate: new Date(),
@@ -20,7 +19,6 @@ let state = {
     showVisibleDays: true
 };
 
-const STORAGE_KEY = 'tog_tracker_v1';
 const DOM = {};
 
 export function initTog(userId, db, auth, i18n) {
@@ -37,7 +35,7 @@ export function initTog(userId, db, auth, i18n) {
     }
 
     // Load local data first if available (for guest mode or offline)
-    const local = localStorage.getItem(STORAGE_KEY);
+    const local = localStorage.getItem(LOCAL_STORAGE_KEYS.TOG_DATA);
     if(local) {
         try {
             state.storedData = JSON.parse(local);
@@ -290,7 +288,7 @@ function subscribeToData(userId) {
             applyToggleState();
 
             // Update local storage for redundancy/offline fallback
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
+            localStorage.setItem(LOCAL_STORAGE_KEYS.TOG_DATA, JSON.stringify(state.storedData));
 
             // If data doesn't have email, try to get it from Auth
             if (!data.email && state.auth && state.auth.currentUser) {
@@ -367,7 +365,7 @@ async function saveData(key, value) {
     if(value === "") { delete state.storedData[key]; }
     else { state.storedData[key] = value; }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
+    localStorage.setItem(LOCAL_STORAGE_KEYS.TOG_DATA, JSON.stringify(state.storedData));
 
     // Update UI immediately (optimistic update) - mainly for Guest mode or immediate feedback
     // Pass true to preserve focus so user can continue typing/tabbing
@@ -710,7 +708,7 @@ function backupData() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `TOG_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `${TOG_BACKUP_PREFIX}${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     closeDropdown();
 }
@@ -727,7 +725,7 @@ function handleRestore(e) {
             state.storedData = { ...state.storedData, ...data };
             if(state.storedData._dayVisibility) state.dayVisibility = state.storedData._dayVisibility;
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.storedData));
+            localStorage.setItem(LOCAL_STORAGE_KEYS.TOG_DATA, JSON.stringify(state.storedData));
 
             if(state.userId) {
                 // Save whole object for restore
@@ -750,7 +748,7 @@ function handleRestore(e) {
 export async function performReset(userId, db) {
     state.storedData = { _dayVisibility: [true,true,true,true,true,true,true] };
     state.dayVisibility = [true,true,true,true,true,true,true];
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.TOG_DATA);
 
     // Use passed context or fallback to state
     const targetUserId = userId || state.userId;

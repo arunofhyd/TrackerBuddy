@@ -1,5 +1,7 @@
 const REGION = 'asia-south1';
 
+const APP_NAME = 'TrackerBuddy';
+
 const COLLECTIONS = {
     USERS: 'users',
     TEAMS: 'teams',
@@ -27,6 +29,7 @@ const LEAVE_DAY_TYPES = {
 
 module.exports = {
     REGION,
+    APP_NAME,
     COLLECTIONS,
     USER_ROLES,
     TEAM_ROLES,
