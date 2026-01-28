@@ -1,6 +1,6 @@
 export const REGION = 'asia-south1';
 
-export const APP_NAME = 'TruckerBuddy';
+export const APP_NAME = 'TrackerBuddy';
 export const TOG_APP_NAME = 'TOGtracker';
 export const BACKUP_PREFIX = 'TrackerBuddy_Backup_';
 export const TOG_BACKUP_PREFIX = 'TOG_Backup_';
