@@ -1,5 +1,10 @@
 export const REGION = 'asia-south1';
 
+export const APP_NAME = 'TrackerBuddy';
+export const TOG_APP_NAME = 'TOGtracker';
+export const BACKUP_PREFIX = 'TrackerBuddy_Backup_';
+export const TOG_BACKUP_PREFIX = 'TOG_Backup_';
+
 export const COLLECTIONS = {
     USERS: 'users',
     TEAMS: 'teams',
@@ -60,7 +65,8 @@ export const LOCAL_STORAGE_KEYS = {
     REAL_TIME_UPDATES: 'realTimeUpdates',
     LAST_SYNC_TIME: 'lastSyncTime',
     LAST_VIEW_MODE: 'lastViewMode',
-    LAST_TRACKER_VIEW: 'lastTrackerView'
+    LAST_TRACKER_VIEW: 'lastTrackerView',
+    TOG_DATA: 'tog_tracker_v1'
 };
 
 export const NOTIFICATION_SHAPE = 'rounded-full';

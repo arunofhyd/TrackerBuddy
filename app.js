@@ -14,7 +14,10 @@ import {
     ACTION_TYPES,
     COLOR_MAP,
     LOCAL_STORAGE_KEYS,
-    NOTIFICATION_SHAPE
+    NOTIFICATION_SHAPE,
+    APP_NAME,
+    TOG_APP_NAME,
+    BACKUP_PREFIX
 } from './constants.js';
 import { createInitialState } from './services/state.js';
 import { Logger } from './services/logger.js';
@@ -1302,9 +1305,9 @@ function loadOfflineData() {
 }
 
 async function performTrackerReset() {
-    // Safety check: Ensure we are NOT in Tog View when resetting TrackerBuddy
+    // Safety check: Ensure we are NOT in Tog View when resetting APP_NAME
     if (DOM.togView && !DOM.togView.classList.contains('hidden')) {
-        Logger.warn("Attempted to reset TrackerBuddy data while in Tog View. Aborting.");
+        Logger.warn(`Attempted to reset ${APP_NAME} data while in Tog View. Aborting.`);
         return;
     }
 
@@ -1521,7 +1524,7 @@ function downloadCSV() {
 
     const link = document.createElement("a");
     link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
-    link.download = `TrackerBuddy_Backup_${getYYYYMMDD(new Date())}.csv`;
+    link.download = `${BACKUP_PREFIX}${getYYYYMMDD(new Date())}.csv`;
 
     document.body.appendChild(link);
     link.click();
@@ -1659,7 +1662,7 @@ function handleUserLogout() {
     // Clean up team subscriptions
     cleanupTeamSubscriptions();
 
-    localStorage.removeItem('sessionMode');
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.SESSION_MODE);
 
     // 1. Reset splash screen to be visible behind the app (z-index -10)
     // IMPORTANT: Keep display: flex but z-index -10 so it acts as a wallpaper
@@ -1740,7 +1743,7 @@ async function initAuth() {
                 // Let handleUserLogout manage the transition to avoid glitches
                 return;
             }
-            const sessionMode = localStorage.getItem('sessionMode');
+            const sessionMode = localStorage.getItem(LOCAL_STORAGE_KEYS.SESSION_MODE);
             if (sessionMode === 'offline') {
                 loadOfflineData(); // Centralized offline data loading
             } else {
@@ -1909,12 +1912,12 @@ function applyTheme(theme) {
 function toggleTheme() {
     const isDark = document.body.classList.contains('dark');
     const newTheme = isDark ? 'light' : 'dark';
-    localStorage.setItem('theme', newTheme);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.THEME, newTheme);
     applyTheme(newTheme);
 }
 
 function loadTheme() {
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem(LOCAL_STORAGE_KEYS.THEME);
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     if (savedTheme) {
@@ -5483,8 +5486,8 @@ function switchToTrackerMode(viewToHide = DOM.togView) {
     }
     switchView(DOM.appView, viewToHide, updateView);
     if (DOM.navTogBtn) {
-        DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">TOGtracker</span>`;
-        DOM.navTogBtn.title = "Switch to TOGtracker";
+        DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">${TOG_APP_NAME}</span>`;
+        DOM.navTogBtn.title = `Switch to ${TOG_APP_NAME}`;
     }
 }
 
@@ -5496,8 +5499,8 @@ function switchToTogMode(viewToHide = DOM.appView) {
     initTog(state.userId, db, auth, i18n);
     switchView(DOM.togView, viewToHide);
     if (DOM.navTogBtn) {
-        DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">TrackerBuddy</span>`;
-        DOM.navTogBtn.title = "Switch to TrackerBuddy";
+        DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">${APP_NAME}</span>`;
+        DOM.navTogBtn.title = `Switch to ${APP_NAME}`;
     }
 }
 
@@ -5524,7 +5527,7 @@ function injectRealTimeControls(context) {
     let menuContainer = null;
 
     if (isTb) {
-        // TrackerBuddy: Insert before Help button
+        // APP_NAME: Insert before Help button
         insertTarget = document.getElementById('tb-help-btn');
         if (insertTarget) menuContainer = insertTarget.parentNode;
     } else {
@@ -5722,9 +5725,9 @@ function setupTbUserMenu(user) {
         DOM.tbMenuAvatar.innerText = letter;
         DOM.tbMenuEmail.innerText = user.email || 'User';
 
-        // Inject Real-time Controls if User is Logged In (For TrackerBuddy)
+        // Inject Real-time Controls if User is Logged In (For APP_NAME)
         injectRealTimeControls('trackerbuddy');
-        // Inject Real-time Controls if User is Logged In (For TOG Tracker)
+        // Inject Real-time Controls if User is Logged In (For TOG_APP_NAME)
         injectRealTimeControls('tog');
     } else {
         DOM.tbMenuAvatar.innerHTML = '<i class="fas fa-user"></i>';
