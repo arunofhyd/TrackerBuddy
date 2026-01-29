@@ -498,7 +498,8 @@ export function renderCalendar(preserveFocus = false) {
     dayNames.forEach((name, idx) => {
         if(!state.dayVisibility[idx]) return;
         const div = document.createElement('div');
-        div.className = "text-center text-xs font-bold text-slate-400 uppercase py-1";
+        const textColor = idx === 0 ? "text-red-500" : "text-slate-400";
+        div.className = `text-center text-xs font-bold ${textColor} uppercase py-1`;
         div.innerText = name;
         DOM.headerRow.appendChild(div);
     });
@@ -560,7 +561,10 @@ export function renderCalendar(preserveFocus = false) {
                 const baseOpacity = isCurrentMonth ? 'opacity-100' : 'opacity-40 hover:opacity-100 transition-opacity';
                 let cardBg = isToday ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-white dark:bg-slate-900';
                 const cardBorder = isToday ? 'border-blue-500 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700';
-                const dayText = isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium';
+                let dayText = isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400 font-medium';
+                if (currentLoopDate.getDay() === 0) {
+                    dayText = isToday ? 'text-red-500 font-bold' : 'text-red-500 font-medium';
+                }
                 const footerBg = 'bg-yellow-50 dark:bg-yellow-900/10';
 
                 let overlayStyle = '';
