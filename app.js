@@ -109,12 +109,23 @@ function initUI() {
     }
 
     DOM = {
+        // App Shell
+        appShell: document.getElementById('app-shell'),
+        sidebar: document.getElementById('main-sidebar'),
+        bottomNav: document.getElementById('bottom-nav'),
+        navButtons: document.querySelectorAll('[data-view]'),
+        currentViewLabel: document.getElementById('current-view-label'),
+        mainContentArea: document.getElementById('main-content-area'),
+        monthViewControls: document.getElementById('month-view-controls'),
+        dayViewTopControls: document.getElementById('day-view-top-controls'),
+        mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+
         splashScreen: document.getElementById('splash-screen'),
         splashText: document.querySelector('.splash-text'),
         splashLoading: document.getElementById('splash-loading'),
         tapToBegin: document.getElementById('tap-to-begin'),
         contentWrapper: document.getElementById('content-wrapper'),
-        footer: document.getElementById('main-footer'),
+        // footer: document.getElementById('main-footer'), // Removed in overhaul
         loginView: document.getElementById('login-view'),
         appView: document.getElementById('app-view'),
         togView: document.getElementById('tog-view'),
@@ -153,10 +164,10 @@ function initUI() {
         weekendApplyBtn: document.getElementById('weekend-apply-btn'),
         statsToggleBtn: document.getElementById('stats-toggle-btn'),
         leaveStatsSection: document.getElementById('leave-stats-section'),
-        statsArrowDown: document.getElementById('stats-arrow-down'),
-        statsArrowUp: document.getElementById('stats-arrow-up'),
-        monthViewControls: document.getElementById('month-view-controls'),
-        dayViewTopControls: document.getElementById('day-view-top-controls'),
+        // statsArrowDown: document.getElementById('stats-arrow-down'), // Deprecated
+        // statsArrowUp: document.getElementById('stats-arrow-up'),     // Deprecated
+        // monthViewControls: document.getElementById('month-view-controls'), // Already added above
+        // dayViewTopControls: document.getElementById('day-view-top-controls'), // Already added above
         leavePillsContainer: document.getElementById('leave-pills-container'),
         todayBtnDay: document.getElementById('today-btn-day'),
         addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
@@ -194,10 +205,10 @@ function initUI() {
         helpToggleBtn: document.getElementById('help-toggle-btn'),
         closeHelpBtn: document.getElementById('close-help-btn'),
         // Team Management DOM References
-        teamToggleBtn: document.getElementById('team-toggle-btn'),
+        // teamToggleBtn: document.getElementById('team-toggle-btn'), // Deprecated
         teamSection: document.getElementById('team-section'),
-        teamArrowDown: document.getElementById('team-arrow-down'),
-        teamArrowUp: document.getElementById('team-arrow-up'),
+        // teamArrowDown: document.getElementById('team-arrow-down'), // Deprecated
+        // teamArrowUp: document.getElementById('team-arrow-up'),     // Deprecated
         createTeamModal: document.getElementById('create-team-modal'),
         teamNameInput: document.getElementById('team-name-input'),
         teamAdminDisplayNameInput: document.getElementById('team-admin-display-name-input'),
@@ -242,9 +253,125 @@ function initUI() {
 
     setupMessageSwipe();
     setupSwipeConfirm();
+    setupNavigation(); // Initialize Navigation
+    setupMobileMenu(); // Initialize Mobile Menu
 
     window.showAppMessage = showMessage;
     window.appSignOut = appSignOut;
+}
+
+function setupNavigation() {
+    DOM.navButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const viewName = e.currentTarget.dataset.view;
+            if (viewName) handleNavigation(viewName);
+        });
+    });
+}
+
+function setupMobileMenu() {
+    if (DOM.mobileMenuBtn) {
+        DOM.mobileMenuBtn.addEventListener('click', () => {
+            DOM.sidebar.classList.toggle('open');
+        });
+    }
+
+    // Close sidebar when clicking a link (on mobile)
+    const links = DOM.sidebar.querySelectorAll('button, a');
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+                DOM.sidebar.classList.remove('open');
+            }
+        });
+    });
+
+    // Close sidebar when clicking outside (simple implementation)
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth < 768 &&
+            DOM.sidebar.classList.contains('open') &&
+            !DOM.sidebar.contains(e.target) &&
+            !DOM.mobileMenuBtn.contains(e.target)) {
+            DOM.sidebar.classList.remove('open');
+        }
+    });
+}
+
+function handleNavigation(viewName) {
+    // Update State
+    state.currentNav = viewName;
+
+    // Update Nav UI
+    DOM.navButtons.forEach(btn => {
+        if (btn.dataset.view === viewName) {
+            btn.classList.add('active', 'text-blue-600', 'bg-blue-50', 'dark:bg-blue-900/30', 'dark:text-blue-400');
+            if (btn.classList.contains('sidebar-link')) {
+                 // Sidebar specific active style
+                 btn.style.backgroundColor = 'var(--active-link-bg)';
+                 btn.style.color = 'var(--active-link-text)';
+            }
+        } else {
+            btn.classList.remove('active', 'text-blue-600', 'bg-blue-50', 'dark:bg-blue-900/30', 'dark:text-blue-400');
+             if (btn.classList.contains('sidebar-link')) {
+                 btn.style.backgroundColor = '';
+                 btn.style.color = '';
+            }
+        }
+    });
+
+    // Handle View Switching
+    if (viewName === 'tog') {
+        switchToTogMode();
+    } else {
+        // Ensure we are in tracker mode (shows #app-view)
+        // If app-view is hidden (e.g. initial load or coming from TOG), switch to it.
+        if (DOM.appView.classList.contains('hidden')) {
+            switchToTrackerMode();
+        }
+
+        // Hide/Show sections within App View
+        if (viewName === 'dashboard') {
+            DOM.mainContentArea.classList.remove('hidden');
+            DOM.monthViewControls.classList.remove('hidden');
+            DOM.teamSection.classList.remove('visible'); // Hide
+            DOM.teamSection.style.display = 'none';
+            DOM.leaveStatsSection.classList.remove('visible'); // Hide
+            DOM.leaveStatsSection.style.display = 'none';
+
+            // Restore context (Day vs Month) logic
+            updateView();
+            if (DOM.currentViewLabel) DOM.currentViewLabel.textContent = i18n.t('dashboard.title');
+
+        } else if (viewName === 'teams') {
+            DOM.mainContentArea.classList.add('hidden');
+            DOM.monthViewControls.classList.add('hidden');
+            DOM.dayViewTopControls.classList.add('hidden'); // Hide day controls too
+
+            DOM.teamSection.style.display = 'block';
+            setTimeout(() => DOM.teamSection.classList.add('visible'), 10);
+
+            DOM.leaveStatsSection.classList.remove('visible');
+            DOM.leaveStatsSection.style.display = 'none';
+
+            subscribeToTeamData(); // Ensure data is loaded
+            if (DOM.currentViewLabel) DOM.currentViewLabel.textContent = i18n.t('dashboard.teams');
+            DOM.currentPeriodDisplay.textContent = i18n.t('dashboard.teams'); // Override title
+
+        } else if (viewName === 'stats') {
+            DOM.mainContentArea.classList.add('hidden');
+            DOM.monthViewControls.classList.add('hidden');
+            DOM.dayViewTopControls.classList.add('hidden');
+
+            DOM.teamSection.classList.remove('visible');
+            DOM.teamSection.style.display = 'none';
+
+            DOM.leaveStatsSection.style.display = 'block';
+            setTimeout(() => DOM.leaveStatsSection.classList.add('visible'), 10);
+
+            if (DOM.currentViewLabel) DOM.currentViewLabel.textContent = i18n.t('dashboard.stats');
+            DOM.currentPeriodDisplay.textContent = i18n.t('dashboard.stats');
+        }
+    }
 }
 
 function setInputErrorState(inputElement, hasError) {
@@ -289,7 +416,8 @@ let transitionState = {
 };
 
 function switchView(viewToShow, viewToHide, callback) {
-    const mainContainer = document.querySelector('.main-container');
+    if (!viewToShow) { console.error("switchView: viewToShow is null"); return; }
+    // viewToHide can be null (e.g. initial load)
 
     // Cancel pending show for the view we are about to hide
     if (viewToHide && viewToHide._pendingShowRAF) {
@@ -300,11 +428,13 @@ function switchView(viewToShow, viewToHide, callback) {
     // Cancel pending transition to prevent race conditions
     if (transitionState.active) {
         clearTimeout(transitionState.timeoutId);
-        transitionState.element.removeEventListener('transitionend', transitionState.handler);
-        // Force finish the previous hide
-        transitionState.element.style.willChange = 'auto';
-        transitionState.element.classList.add('hidden');
-        transitionState.element.style.opacity = '0';
+        if (transitionState.element) {
+            transitionState.element.removeEventListener('transitionend', transitionState.handler);
+            // Force finish the previous hide
+            transitionState.element.style.willChange = 'auto';
+            transitionState.element.classList.add('hidden');
+            transitionState.element.style.opacity = '0';
+        }
         transitionState.active = false;
     }
 
@@ -319,7 +449,7 @@ function switchView(viewToShow, viewToHide, callback) {
                  DOM.splashScreen.style.transition = 'opacity 0.5s ease-out';
                  DOM.splashScreen.style.opacity = '0';
                  setTimeout(() => {
-                     DOM.splashScreen.style.display = 'none';
+                     if(DOM.splashScreen) DOM.splashScreen.style.display = 'none';
                  }, 500);
             } else {
                  if (DOM.splashScreen) DOM.splashScreen.style.display = 'none';
@@ -333,11 +463,6 @@ function switchView(viewToShow, viewToHide, callback) {
             // Ensure the view starts invisible for the fade-in
             viewToShow.style.opacity = '0';
             
-            if (viewToShow === DOM.appView) {
-                mainContainer.classList.add('is-app-view');
-            } else {
-                mainContainer.classList.remove('is-app-view');
-            }
             viewToShow.classList.remove('hidden');
 
             requestAnimationFrame(() => {
@@ -357,8 +482,10 @@ function switchView(viewToShow, viewToHide, callback) {
         
         const finishHide = () => {
              transitionState.active = false;
-             viewToHide.style.willChange = 'auto'; // Cleanup
-             viewToHide.classList.add('hidden');
+             if(viewToHide) {
+                 viewToHide.style.willChange = 'auto'; // Cleanup
+                 viewToHide.classList.add('hidden');
+             }
              // Only show the new view AFTER the old one is gone to prevent layout jumps
              showNewView();
         };
@@ -370,7 +497,7 @@ function switchView(viewToShow, viewToHide, callback) {
 
         transitionState.timeoutId = setTimeout(() => {
              if (transitionState.active) {
-                 viewToHide.removeEventListener('transitionend', transitionState.handler);
+                 if(viewToHide) viewToHide.removeEventListener('transitionend', transitionState.handler);
                  finishHide();
              }
         }, 350);
@@ -561,25 +688,39 @@ function setupMessageSwipe() {
 function updateView() {
     if (!DOM.appView || DOM.appView.classList.contains('hidden')) return;
 
+    // If we are navigating to something else (Stats/Teams), don't overwrite the view with Calendar logic
+    if (state.currentNav && state.currentNav !== 'dashboard') {
+        return; // handleNavigation handles rendering for others
+    }
+
     const isMonthView = state.currentView === VIEW_MODES.MONTH;
-    DOM.monthViewBtn.classList.toggle('btn-primary', isMonthView);
-    DOM.monthViewBtn.classList.toggle('btn-secondary', !isMonthView);
-    DOM.dayViewBtn.classList.toggle('btn-primary', !isMonthView);
-    DOM.dayViewBtn.classList.toggle('btn-secondary', isMonthView);
+
+    // Styling for top toggles
+    DOM.monthViewBtn.classList.toggle('bg-white', isMonthView);
+    DOM.monthViewBtn.classList.toggle('text-blue-600', isMonthView);
+    DOM.monthViewBtn.classList.toggle('shadow-sm', isMonthView);
+    DOM.monthViewBtn.classList.toggle('text-gray-500', !isMonthView);
+
+    DOM.dayViewBtn.classList.toggle('bg-white', !isMonthView);
+    DOM.dayViewBtn.classList.toggle('text-blue-600', !isMonthView);
+    DOM.dayViewBtn.classList.toggle('shadow-sm', !isMonthView);
+    DOM.dayViewBtn.classList.toggle('text-gray-500', isMonthView);
+
 
     DOM.calendarView.classList.toggle('hidden', !isMonthView);
     DOM.dailyView.classList.toggle('hidden', isMonthView);
 
     DOM.monthViewControls.classList.toggle('hidden', !isMonthView);
-    DOM.dayViewTopControls.classList.toggle('hidden', isMonthView); // Controls new day view controls
-    DOM.monthViewBottomControls.classList.toggle('hidden', !isMonthView);
+    DOM.dayViewTopControls.classList.toggle('hidden', isMonthView);
+
+    // We don't toggle bottom controls container anymore as it's just a wrapper
     DOM.dayViewBottomControls.classList.toggle('hidden', isMonthView);
 
     if (isMonthView) {
         DOM.currentPeriodDisplay.textContent = state.currentMonth.toLocaleDateString(i18n.currentLang, { month: 'long', year: 'numeric' });
         renderCalendar();
         renderLeavePills();
-        renderLeaveStats();
+        renderLeaveStats(); // We render them so they are ready if user switches tab
         renderTeamSection();
     } else {
         DOM.currentPeriodDisplay.textContent = formatDateForDisplay(getYYYYMMDD(state.selectedDate), i18n.currentLang);
@@ -589,37 +730,14 @@ function updateView() {
 }
 
 function renderActionButtons() {
-    // Logic for Floating Confirm Button visibility and Bottom Controls
+    // Logic for Floating Confirm Button visibility
     const hasSelection = state.leaveSelection.size > 0 && state.selectedLeaveTypeId;
     if (hasSelection) {
         DOM.floatingConfirmContainer.classList.add('visible');
     } else {
         DOM.floatingConfirmContainer.classList.remove('visible');
     }
-
-    // Toggle active state for Stats and Teams buttons
-    const isStatsVisible = DOM.leaveStatsSection.classList.contains('visible');
-    const isTeamVisible = DOM.teamSection.classList.contains('visible');
-
-    if (isStatsVisible) {
-         DOM.statsToggleBtn.classList.replace('btn-secondary', 'btn-primary');
-         DOM.statsArrowDown.classList.add('hidden');
-         DOM.statsArrowUp.classList.remove('hidden');
-    } else {
-         DOM.statsToggleBtn.classList.replace('btn-primary', 'btn-secondary');
-         DOM.statsArrowDown.classList.remove('hidden');
-         DOM.statsArrowUp.classList.add('hidden');
-    }
-
-    if (isTeamVisible) {
-         DOM.teamToggleBtn.classList.replace('btn-secondary', 'btn-primary');
-         DOM.teamArrowDown.classList.add('hidden');
-         DOM.teamArrowUp.classList.remove('hidden');
-    } else {
-         DOM.teamToggleBtn.classList.replace('btn-primary', 'btn-secondary');
-         DOM.teamArrowDown.classList.remove('hidden');
-         DOM.teamArrowUp.classList.add('hidden');
-    }
+    // Deprecated stats/team button toggles removed from here
 }
 
 function renderCalendar() {
@@ -1755,7 +1873,7 @@ async function initAuth() {
             }
         }
         DOM.contentWrapper.style.opacity = '1';
-        DOM.footer.style.opacity = '1';
+        // DOM.footer.style.opacity = '1';
     });
 }
 
@@ -5456,9 +5574,11 @@ function restoreLastView(viewToHide) {
     }
 
     if (lastView === 'tog') {
-        switchToTogMode(viewToHide);
+        // Toggle UI Update for Nav
+        handleNavigation('tog');
     } else {
-        switchToTrackerMode(viewToHide);
+        // Default to dashboard if just switching mode, unless we track sub-views in future
+        handleNavigation('dashboard');
     }
 }
 
@@ -5484,11 +5604,10 @@ function switchToTrackerMode(viewToHide = DOM.togView) {
     if (state.userId && state.isOnlineMode) {
         saveDataToFirestore(null, { lastViewMode: 'tracker' }).catch(console.error);
     }
-    switchView(DOM.appView, viewToHide, updateView);
-    if (DOM.navTogBtn) {
-        DOM.navTogBtn.innerHTML = `<i class="fas fa-clock text-base"></i><span class="hidden sm:inline">${TOG_APP_NAME}</span>`;
-        DOM.navTogBtn.title = `Switch to ${TOG_APP_NAME}`;
-    }
+    // We don't call updateView here directly as handleNavigation usually triggers it or sets state
+    switchView(DOM.appView, viewToHide, () => {
+        // updateView(); // Handled by navigation logic flow usually
+    });
 }
 
 function switchToTogMode(viewToHide = DOM.appView) {
@@ -5498,10 +5617,6 @@ function switchToTogMode(viewToHide = DOM.appView) {
     }
     initTog(state.userId, db, auth, i18n);
     switchView(DOM.togView, viewToHide);
-    if (DOM.navTogBtn) {
-        DOM.navTogBtn.innerHTML = `<i class="fas fa-chart-pie text-base"></i><span class="hidden sm:inline">${APP_NAME}</span>`;
-        DOM.navTogBtn.title = `Switch to ${APP_NAME}`;
-    }
 }
 
 window.openSharedMonthPicker = function(initialDate, callback) {
