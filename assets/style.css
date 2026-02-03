@@ -585,7 +585,7 @@ body.dark .stat-card-info p {
 .spotlight-results {
     max-height: 60vh;
     overflow-y: auto;
-    padding: 0.5rem 0;
+    padding: 0.5rem 1rem;
 }
 
 /* Dark Mode Overrides */
