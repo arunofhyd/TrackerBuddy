@@ -29,7 +29,7 @@ import {
     getFunctionsInstance,
     getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail,
     getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-    enableNetwork, disableNetwork, waitForPendingWrites
+    enableNetwork, disableNetwork, waitForPendingWrites, serverTimestamp
 } from './services/firebase.js';
 import { initTog, performReset as performTogReset, refreshTogUI, updateLeaveData } from './tog.js';
 
@@ -394,6 +394,15 @@ async function handleUserLogin(user) {
     DOM.userIdDisplay.textContent = i18n.t('dashboard.userIdPrefix') + user.uid;
 
     switchView(DOM.loadingView, DOM.loginView);
+
+    // Update lastSeen
+    try {
+        await updateDoc(doc(db, COLLECTIONS.USERS, user.uid), {
+            lastSeen: serverTimestamp()
+        });
+    } catch (e) {
+        // Silent fail or log if needed
+    }
 
     // Now, with the user document guaranteed to exist, subscribe to data.
     subscribeToData(user.uid, async () => {
@@ -5065,6 +5074,18 @@ function renderAdminUserList(users, searchQuery = '') {
              } catch(e) {}
         }
 
+        // Format Last Seen
+        let lastSeenDate = '-';
+        const lastSeenVal = user.lastSeen || user.lastSignInTime;
+        if (lastSeenVal) {
+            try {
+                const dateObj = new Date(lastSeenVal);
+                const dateStr = dateObj.toLocaleDateString(i18n.currentLang, { year: 'numeric', month: 'short', day: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString(i18n.currentLang, { hour: '2-digit', minute: '2-digit' });
+                lastSeenDate = `${dateStr} ${timeStr}`;
+            } catch (e) { }
+        }
+
         // Logic for button text
         let proButtonText = user.role === 'pro' ? i18n.t('pro.revoke') : i18n.t('pro.makePro');
         if (isPending && user.role === 'pro') {
@@ -5110,6 +5131,9 @@ function renderAdminUserList(users, searchQuery = '') {
             <div class="flex flex-row sm:flex-col justify-between sm:items-end w-full sm:w-auto sm:min-w-[80px] mt-2 sm:mt-0" style="font-size: 10px;">
                 <div class="text-gray-400">
                     <span class="font-medium text-gray-500">${i18n.t('pro.joined')}</span> ${memberSince}
+                </div>
+                <div class="text-gray-400 ms-4 sm:ms-0 sm:mt-1 text-right sm:text-right">
+                     <span class="font-medium text-gray-500">${i18n.t('pro.lastSeen')}</span> ${lastSeenDate}
                 </div>
                 ${proSinceDate ? `
                 <div class="text-gray-400 ms-4 sm:ms-0 sm:mt-1 text-right">

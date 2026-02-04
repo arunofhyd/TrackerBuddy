@@ -275,6 +275,7 @@
     "pendingSignup": "In attesa",
     "owner": "Proprietario",
     "joined": "Unito",
+    "lastSeen": "Ultimo accesso",
     "label": "Pro",
     "expired": "Scaduto",
     "expLabel": "Scad.",

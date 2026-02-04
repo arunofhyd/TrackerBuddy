@@ -681,6 +681,7 @@ exports.getAllUsers = onCall({ region: REGION, maxInstances: 10 }, async (reques
                 teamId: data.teamId,
                 proSince: data.proSince ? data.proSince.toDate().toISOString() : null,
                 proExpiry: data.proExpiry ? data.proExpiry.toDate().toISOString() : null,
+                lastSeen: data.lastSeen ? data.lastSeen.toDate().toISOString() : null,
                 status: 'active'
             };
         });

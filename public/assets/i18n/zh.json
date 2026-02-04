@@ -275,6 +275,7 @@
     "pendingSignup": "待注册",
     "owner": "所有者",
     "joined": "加入时间",
+    "lastSeen": "上次在线",
     "label": "Pro",
     "expired": "已过期",
     "expLabel": "有效期至",

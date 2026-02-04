@@ -275,6 +275,7 @@
     "pendingSignup": "Inscription en attente",
     "owner": "Propriétaire",
     "joined": "Rejoint le",
+    "lastSeen": "Dernière visite",
     "label": "Pro",
     "expired": "Expiré",
     "expLabel": "Exp.",

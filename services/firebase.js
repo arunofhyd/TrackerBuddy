@@ -16,7 +16,7 @@ const app = initializeApp(firebaseConfig);
 // Globals for Firebase modules (exported as live bindings)
 export let auth, db;
 export let getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail;
-export let getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, enableNetwork, disableNetwork, waitForPendingWrites;
+export let getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, enableNetwork, disableNetwork, waitForPendingWrites, serverTimestamp;
 
 let firebaseLoadedPromise = null;
 
@@ -29,7 +29,7 @@ export async function loadFirebaseModules() {
 
         const firestoreModule = await import("firebase/firestore");
         // Update exported bindings
-        ({ getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, enableNetwork, disableNetwork, waitForPendingWrites } = firestoreModule);
+        ({ getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, updateDoc, getDoc, writeBatch, addDoc, deleteField, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, enableNetwork, disableNetwork, waitForPendingWrites, serverTimestamp } = firestoreModule);
 
         auth = getAuth(app);
         db = initializeFirestore(app, {

@@ -275,6 +275,7 @@
     "pendingSignup": "登録待ち",
     "owner": "所有者",
     "joined": "参加済み",
+    "lastSeen": "最終オンライン",
     "label": "Pro",
     "expired": "期限切れ",
     "expLabel": "期限",
