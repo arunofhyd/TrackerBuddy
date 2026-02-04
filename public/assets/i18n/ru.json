@@ -275,6 +275,7 @@
     "pendingSignup": "Ожидает",
     "owner": "Владелец",
     "joined": "Вступил",
+    "lastSeen": "Был(а) в сети",
     "label": "Pro",
     "expired": "Истек",
     "expLabel": "До",

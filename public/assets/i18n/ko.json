@@ -275,6 +275,7 @@
     "pendingSignup": "가입 대기 중",
     "owner": "소유자",
     "joined": "가입함",
+    "lastSeen": "마지막 접속",
     "label": "프로",
     "expired": "만료됨",
     "expLabel": "만료",
