@@ -231,6 +231,10 @@ function initUI() {
         swipeText: document.getElementById('swipe-text'),
         swipeSuccessText: document.getElementById('swipe-success-text'),
         cancelSwipeBtn: document.getElementById('cancel-swipe-btn'),
+        // Calendar Context Menu
+        calendarContextMenu: document.getElementById('calendar-context-menu'),
+        contextEditLeaveBtn: document.getElementById('context-edit-leave-btn'),
+        contextDeleteLeaveBtn: document.getElementById('context-delete-leave-btn'),
         // Navigation & Menus
         navTogBtn: document.getElementById('nav-tog-btn'),
         tbUserAvatarBtn: document.getElementById('tb-user-avatar-btn'),
@@ -4485,9 +4489,114 @@ function setupEventListeners() {
         updateView();
     });
 
+    // Context Menu Logic
+    let longPressTimer;
+    const LONG_PRESS_DURATION = 500;
+
+    const showContextMenu = (e, dateKey, x, y) => {
+        if (state.selectedLeaveTypeId) return; // Don't show if in selection mode
+
+        // Ensure the day actually has a leave before showing
+        const year = new Date(dateKey + 'T00:00:00').getFullYear();
+        if (!state.yearlyData[year]?.activities?.[dateKey]?.leave) return;
+
+        e.preventDefault(); // Prevent standard right-click menu or other long-press behaviors
+        state.contextMenuDate = dateKey;
+
+        // Position the menu
+        // Keep it inside the viewport
+        const menuWidth = 160;
+        const menuHeight = 90; // Approx height for two items
+        let finalX = x;
+        let finalY = y;
+
+        if (x + menuWidth > window.innerWidth) finalX = window.innerWidth - menuWidth - 10;
+        if (y + menuHeight > window.innerHeight) finalY = window.innerHeight - menuHeight - 10;
+
+        DOM.calendarContextMenu.style.left = `${finalX}px`;
+        DOM.calendarContextMenu.style.top = `${finalY}px`;
+        DOM.calendarContextMenu.classList.remove('hidden');
+
+        // Small delay to allow display:block to apply before animating opacity
+        requestAnimationFrame(() => {
+            DOM.calendarContextMenu.classList.remove('opacity-0', 'scale-95');
+        });
+        triggerHapticFeedback('medium');
+    };
+
+    const hideContextMenu = () => {
+        if (!DOM.calendarContextMenu?.classList.contains('hidden')) {
+            DOM.calendarContextMenu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                DOM.calendarContextMenu.classList.add('hidden');
+                state.contextMenuDate = null;
+            }, 200);
+        }
+    };
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (DOM.calendarContextMenu && !DOM.calendarContextMenu.contains(e.target)) {
+            hideContextMenu();
+        }
+    });
+
+    DOM.calendarView?.addEventListener('contextmenu', (e) => {
+        const cell = e.target.closest('.calendar-day-cell.current-month');
+        if (!cell) return;
+        showContextMenu(e, cell.dataset.date, e.clientX, e.clientY);
+    });
+
+    DOM.calendarView?.addEventListener('touchstart', (e) => {
+        const cell = e.target.closest('.calendar-day-cell.current-month');
+        if (!cell) return;
+        // Don't start timer if we are in selection mode
+        if (state.selectedLeaveTypeId) return;
+
+        longPressTimer = setTimeout(() => {
+            const touch = e.touches[0];
+            showContextMenu(e, cell.dataset.date, touch.clientX, touch.clientY);
+        }, LONG_PRESS_DURATION);
+    }, { passive: false });
+
+    const cancelLongPress = () => {
+        if (longPressTimer) clearTimeout(longPressTimer);
+    };
+
+    DOM.calendarView?.addEventListener('touchend', cancelLongPress, { passive: true });
+    DOM.calendarView?.addEventListener('touchmove', cancelLongPress, { passive: true });
+    DOM.calendarView?.addEventListener('touchcancel', cancelLongPress, { passive: true });
+
+    // Context Menu Actions
+    DOM.contextEditLeaveBtn?.addEventListener('click', () => {
+        const dateKey = state.contextMenuDate;
+        hideContextMenu();
+        if (dateKey) {
+            // Enter edit mode
+            setState({ leaveSelection: new Set([dateKey]) });
+            openLeaveCustomizationModal();
+        }
+    });
+
+    DOM.contextDeleteLeaveBtn?.addEventListener('click', async () => {
+        const dateKey = state.contextMenuDate;
+        hideContextMenu();
+        if (dateKey) {
+            // Confirm and Delete
+            if (confirm(i18n.t("common.areYouSure") || "Are you sure?")) {
+                await deleteLeaveDay(dateKey);
+            }
+        }
+    });
+
+
     DOM.calendarView?.addEventListener('click', (e) => {
         const cell = e.target.closest('.calendar-day-cell.current-month');
         if (!cell) return;
+
+        // If context menu is open and they clicked the cell, it should just close the menu (handled by document click)
+        // Let's prevent standard click navigation if they just finished a long press
+        if (state.contextMenuDate) return;
 
         const dateKey = cell.dataset.date;
 
