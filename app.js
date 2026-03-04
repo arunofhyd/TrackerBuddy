@@ -899,20 +899,16 @@ function renderStorageUsage(byteSize) {
 
 async function subscribeToData(userId, callback) {
     const userDocRef = doc(db, COLLECTIONS.USERS, userId);
-    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-        // Prevent external updates from overwriting local state while user is typing
-        if (state.editingInlineTimeKey) {
-            return;
-        }
 
+    // Feature: Disable real-time updates for now
+    // const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => { ... });
+    // setState({ unsubscribeFromFirestore: unsubscribe });
+
+    try {
+        const docSnapshot = await getDoc(userDocRef);
         let data = docSnapshot.exists() ? docSnapshot.data() : {};
 
         renderStorageUsage(calculateDataSize(data));
-
-        // Last Write Wins: Ignore if server data is older than our local optimistic state
-        if (data.lastUpdated && data.lastUpdated < state.lastUpdated) {
-            return;
-        }
         
         const year = state.currentMonth.getFullYear();
         const yearlyData = data.yearlyData || {};
@@ -951,10 +947,11 @@ async function subscribeToData(userId, callback) {
 
         if (callback) {
             callback();
-            callback = null;
         }
-    });
-    setState({ unsubscribeFromFirestore: unsubscribe });
+    } catch (error) {
+        Logger.error("Failed to load user data:", error);
+        if (callback) callback();
+    }
 }
 
 async function subscribeToTeamData(callback) {
@@ -965,9 +962,15 @@ async function subscribeToTeamData(callback) {
 
     // Subscribe to team document
     const teamDocRef = doc(db, COLLECTIONS.TEAMS, state.currentTeam);
-    const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => {
-        if (doc.exists()) {
-            const teamData = doc.data();
+
+    // Feature: Disable real-time updates for now
+    // const unsubscribeTeam = onSnapshot(teamDocRef, (doc) => { ... });
+    // setState({ unsubscribeFromTeam: unsubscribeTeam });
+
+    try {
+        const docSnapshot = await getDoc(teamDocRef);
+        if (docSnapshot.exists()) {
+            const teamData = docSnapshot.data();
             const membersArray = Object.values(teamData.members || {});
             setState({
                 teamName: teamData.name,
@@ -985,9 +988,9 @@ async function subscribeToTeamData(callback) {
             setState({ currentTeam: null, teamRole: null, teamName: null, teamMembers: [], teamMembersData: {} });
             updateView();
         }
-    });
-
-    setState({ unsubscribeFromTeam: unsubscribeTeam });
+    } catch (error) {
+        Logger.error("Failed to load team data:", error);
+    }
 
     if (callback) callback();
 }
@@ -3085,6 +3088,9 @@ async function saveLoggedLeaves() {
     setButtonLoadingState(button, true);
     await waitForDOMUpdate();
 
+    // Capture the original data BEFORE any mutations so we can reliably check if fields existed
+    const originalYearlyDataForPersistence = JSON.parse(JSON.stringify(state.yearlyData));
+
     const year = state.currentMonth.getFullYear();
     const visibleLeaveTypes = getVisibleLeaveTypesForYear(year);
     const currentActivities = state.currentYearData.activities || {};
@@ -3150,9 +3156,6 @@ async function saveLoggedLeaves() {
             updatedActivities[dateKey].leave = { typeId, dayType };
         }
     });
-
-    // Capture the original data BEFORE state update so we can check if it existed
-    const originalYearlyDataForPersistence = state.yearlyData;
 
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
@@ -5464,18 +5467,23 @@ async function revokeProWhitelist(email) {
 async function subscribeToAppConfig() {
     await loadFirebaseModules();
     const configRef = doc(db, COLLECTIONS.CONFIG, COLLECTIONS.APP_CONFIG);
-    onSnapshot(configRef, (doc) => {
-        if (doc.exists()) {
-             const data = doc.data();
+
+    // Feature: Disable real-time updates for now
+    // onSnapshot(configRef, (doc) => { ... });
+
+    try {
+        const docSnapshot = await getDoc(configRef);
+        if (docSnapshot.exists()) {
+             const data = docSnapshot.data();
              setState({ superAdmins: data.superAdmins || [] });
         } else {
              setState({ superAdmins: [] });
         }
         renderAdminButton();
         renderTeamSection(); // Re-render team section as pro status depends on super admin check
-    }, (error) => {
+    } catch (error) {
         Logger.warn("Could not fetch app config (likely permission issue or missing doc):", error);
-    });
+    }
 }
 
 // --- TOG Tracker Integration ---
