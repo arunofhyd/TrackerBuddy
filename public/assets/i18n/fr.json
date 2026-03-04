@@ -133,7 +133,6 @@
     "changeName": "Changer le nom",
     "addNewLeaveType": "Ajouter un nouveau type de congé",
     "editLeaveType": "Modifier le type de congé",
-    "limitToCurrentYear": "Limiter à l'année en cours uniquement",
     "leaveName": "Nom du congé",
     "totalDaysPerYear": "Jours totaux par an",
     "color": "Couleur",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Veuillez sélectionner une date.",
     "includeWeekendsTitle": "Inclure les jours ?",
     "excludeWeekendsMessage": "Voulez-vous inclure ces jours ?",
-    "days": "jours"
+    "days": "jours",
+    "applyToAllYears": "Appliquer à toutes les années"
   },
   "search": {
     "placeholder": "Rechercher des activités, des notes...",

@@ -133,7 +133,6 @@
     "changeName": "이름 변경",
     "addNewLeaveType": "새 휴가 유형 추가",
     "editLeaveType": "휴가 유형 편집",
-    "limitToCurrentYear": "현재 연도로만 제한",
     "leaveName": "휴가 이름",
     "totalDaysPerYear": "연간 총 일수",
     "color": "색상",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "날짜를 선택하세요.",
     "includeWeekendsTitle": "요일 포함?",
     "excludeWeekendsMessage": "이 요일을 포함하시겠습니까?",
-    "days": "일"
+    "days": "일",
+    "applyToAllYears": "모든 연도에 적용"
   },
   "search": {
     "placeholder": "활동, 메모 검색...",

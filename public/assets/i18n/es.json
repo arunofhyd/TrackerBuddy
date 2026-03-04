@@ -133,7 +133,6 @@
     "changeName": "Renombrar",
     "addNewLeaveType": "Nuevo Tipo",
     "editLeaveType": "Editar Tipo",
-    "limitToCurrentYear": "Solo este año",
     "leaveName": "Nombre",
     "totalDaysPerYear": "Días Totales",
     "color": "Color",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Elige una fecha.",
     "includeWeekendsTitle": "¿Incluir días?",
     "excludeWeekendsMessage": "¿Quieres contar estos días?",
-    "days": "días"
+    "days": "días",
+    "applyToAllYears": "Aplicar a todos los años"
   },
   "search": {
     "placeholder": "Buscar...",

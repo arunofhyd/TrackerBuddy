@@ -133,7 +133,6 @@
     "changeName": "Rinomina",
     "addNewLeaveType": "Nuovo Tipo",
     "editLeaveType": "Modifica Tipo",
-    "limitToCurrentYear": "Solo quest'anno",
     "leaveName": "Nome",
     "totalDaysPerYear": "Giorni Totali",
     "color": "Colore",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Scegli una data.",
     "includeWeekendsTitle": "Weekend?",
     "excludeWeekendsMessage": "Includere questi giorni?",
-    "days": "giorni"
+    "days": "giorni",
+    "applyToAllYears": "Applica a tutti gli anni"
   },
   "search": {
     "placeholder": "Cerca...",

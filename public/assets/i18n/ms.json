@@ -133,7 +133,6 @@
     "changeName": "Tukar Nama",
     "addNewLeaveType": "Tambah Baru",
     "editLeaveType": "Edit Jenis",
-    "limitToCurrentYear": "Tahun ini sahaja",
     "leaveName": "Nama",
     "totalDaysPerYear": "Jumlah Hari",
     "color": "Warna",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Sila pilih tarikh",
     "includeWeekendsTitle": "Termasuk hujung minggu?",
     "excludeWeekendsMessage": "Kira Sabtu/Ahad juga?",
-    "days": "hari"
+    "days": "hari",
+    "applyToAllYears": "Gunakan untuk semua tahun"
   },
   "search": {
     "placeholder": "Cari...",

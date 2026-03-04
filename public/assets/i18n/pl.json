@@ -133,7 +133,6 @@
     "changeName": "Zmień nazwę",
     "addNewLeaveType": "Dodaj nowy typ urlopu",
     "editLeaveType": "Edytuj typ urlopu",
-    "limitToCurrentYear": "Ogranicz tylko do bieżącego roku",
     "leaveName": "Nazwa urlopu",
     "totalDaysPerYear": "Łączna liczba dni w roku",
     "color": "Kolor",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Proszę wybrać datę.",
     "includeWeekendsTitle": "Uwzględnić dni?",
     "excludeWeekendsMessage": "Czy chcesz uwzględnić te dni?",
-    "days": "dni"
+    "days": "dni",
+    "applyToAllYears": "Zastosuj do wszystkich lat"
   },
   "search": {
     "placeholder": "Szukaj aktywności, notatek...",

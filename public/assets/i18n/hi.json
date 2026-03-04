@@ -133,7 +133,6 @@
     "changeName": "नाम बदलें",
     "addNewLeaveType": "नया छुट्टी प्रकार जोड़ें",
     "editLeaveType": "छुट्टी प्रकार संपादित करें",
-    "limitToCurrentYear": "केवल वर्तमान वर्ष तक सीमित करें",
     "leaveName": "छुट्टी का नाम",
     "totalDaysPerYear": "प्रति वर्ष कुल दिन",
     "color": "रंग",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "कृपया एक तारीख चुनें।",
     "includeWeekendsTitle": "दिन शामिल करें?",
     "excludeWeekendsMessage": "क्या आप इन दिनों को शामिल करना चाहते हैं?",
-    "days": "दिन"
+    "days": "दिन",
+    "applyToAllYears": "सभी वर्षों पर लागू करें"
   },
   "search": {
     "placeholder": "गतिविधियाँ, नोट्स खोजें...",

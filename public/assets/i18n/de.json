@@ -133,7 +133,6 @@
     "changeName": "Name ändern",
     "addNewLeaveType": "Neuen Urlaubstyp hinzufügen",
     "editLeaveType": "Urlaubstyp bearbeiten",
-    "limitToCurrentYear": "Nur auf aktuelles Jahr beschränken",
     "leaveName": "Urlaubsname",
     "totalDaysPerYear": "Gesamttage pro Jahr",
     "color": "Farbe",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Bitte wähle ein Datum aus.",
     "includeWeekendsTitle": "Tage einschließen?",
     "excludeWeekendsMessage": "Möchtest du diese Tage einschließen?",
-    "days": "Tage"
+    "days": "Tage",
+    "applyToAllYears": "Auf alle Jahre anwenden"
   },
   "search": {
     "placeholder": "Suche nach Aktivitäten, Notizen...",

@@ -133,7 +133,6 @@
     "changeName": "名前を変更",
     "addNewLeaveType": "新しい休暇タイプを追加",
     "editLeaveType": "休暇タイプを編集",
-    "limitToCurrentYear": "今年のみに制限",
     "leaveName": "休暇名",
     "totalDaysPerYear": "年間総日数",
     "color": "色",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "日付を選択してください。",
     "includeWeekendsTitle": "含めますか？",
     "excludeWeekendsMessage": "これらの日を含めますか？",
-    "days": "日"
+    "days": "日",
+    "applyToAllYears": "すべての年に適用する"
   },
   "search": {
     "placeholder": "活動、メモを検索...",

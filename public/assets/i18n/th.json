@@ -133,7 +133,6 @@
     "changeName": "เปลี่ยนชื่อ",
     "addNewLeaveType": "เพิ่มประเภทใหม่",
     "editLeaveType": "แก้ไขประเภท",
-    "limitToCurrentYear": "เฉพาะปีนี้",
     "leaveName": "ชื่อ",
     "totalDaysPerYear": "จำนวนวันทั้งหมด",
     "color": "สี",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "เลือกวันที่ด้วย",
     "includeWeekendsTitle": "รวมเสาร์อาทิตย์?",
     "excludeWeekendsMessage": "นับรวมวันหยุดด้วยไหม?",
-    "days": "วัน"
+    "days": "วัน",
+    "applyToAllYears": "นำไปใช้กับทุกปี"
   },
   "search": {
     "placeholder": "ค้นหา...",
