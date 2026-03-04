@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "تضمين الأيام؟",
     "excludeWeekendsMessage": "هل تريد تضمين هذه الأيام؟",
     "days": "أيام",
-    "applyToAllYears": "تطبيق على كل السنوات"
+    "applyToAllYears": "تطبيق على كل السنوات",
+    "selectMore": "اختر المزيد"
   },
   "search": {
     "placeholder": "بحث في الأنشطة، الملاحظات...",

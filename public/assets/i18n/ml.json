@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "അവധി ദിവസങ്ങൾ?",
     "excludeWeekendsMessage": "ശനി/ഞായർ കൂട്ടണോ?",
     "days": "ദിവസങ്ങൾ",
-    "applyToAllYears": "എല്ലാ വർഷങ്ങൾക്കും ബാധകമാക്കുക"
+    "applyToAllYears": "എല്ലാ വർഷങ്ങൾക്കും ബാധകമാക്കുക",
+    "selectMore": "കൂടുതൽ തിരഞ്ഞെടുക്കുക"
   },
   "search": {
     "placeholder": "തിരയുക...",

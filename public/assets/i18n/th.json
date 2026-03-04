@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "รวมเสาร์อาทิตย์?",
     "excludeWeekendsMessage": "นับรวมวันหยุดด้วยไหม?",
     "days": "วัน",
-    "applyToAllYears": "นำไปใช้กับทุกปี"
+    "applyToAllYears": "นำไปใช้กับทุกปี",
+    "selectMore": "เลือกเพิ่มเติม"
   },
   "search": {
     "placeholder": "ค้นหา...",

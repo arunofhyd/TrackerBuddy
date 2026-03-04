@@ -180,7 +180,9 @@
     "pleaseSelectDate": "Please select a date.",
     "includeWeekendsTitle": "Include Days?",
     "excludeWeekendsMessage": "Do you want to include these days?",
-    "applyToAllYears": "Apply to all years"
+    "applyToAllYears": "Apply to all years",
+    "selectMore": "Select More",
+    "deleteLeaveEntry": "Delete Leave"
   },
   "search": {
     "placeholder": "Search activities, notes, or leave...",

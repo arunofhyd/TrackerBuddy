@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Uwzględnić dni?",
     "excludeWeekendsMessage": "Czy chcesz uwzględnić te dni?",
     "days": "dni",
-    "applyToAllYears": "Zastosuj do wszystkich lat"
+    "applyToAllYears": "Zastosuj do wszystkich lat",
+    "selectMore": "Wybierz więcej"
   },
   "search": {
     "placeholder": "Szukaj aktywności, notatek...",

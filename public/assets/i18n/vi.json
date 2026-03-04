@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Tính cả cuối tuần?",
     "excludeWeekendsMessage": "Có tính luôn thứ 7, CN không?",
     "days": "ngày",
-    "applyToAllYears": "Áp dụng cho tất cả các năm"
+    "applyToAllYears": "Áp dụng cho tất cả các năm",
+    "selectMore": "Chọn thêm"
   },
   "search": {
     "placeholder": "Tìm kiếm...",

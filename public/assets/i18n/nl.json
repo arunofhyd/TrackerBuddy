@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Dagen opnemen?",
     "excludeWeekendsMessage": "Wil je deze dagen opnemen?",
     "days": "dagen",
-    "applyToAllYears": "Toepassen op alle jaren"
+    "applyToAllYears": "Toepassen op alle jaren",
+    "selectMore": "Selecteer meer"
   },
   "search": {
     "placeholder": "Zoek activiteiten, notities...",

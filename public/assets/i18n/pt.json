@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Fim de semana?",
     "excludeWeekendsMessage": "Incluir estes dias?",
     "days": "dias",
-    "applyToAllYears": "Aplicar a todos os anos"
+    "applyToAllYears": "Aplicar a todos os anos",
+    "selectMore": "Selecionar Mais"
   },
   "search": {
     "placeholder": "Pesquisar...",

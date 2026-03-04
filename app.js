@@ -234,6 +234,7 @@ function initUI() {
         // Calendar Context Menu
         calendarContextMenu: document.getElementById('calendar-context-menu'),
         contextEditLeaveBtn: document.getElementById('context-edit-leave-btn'),
+        contextSelectMoreBtn: document.getElementById('context-select-more-btn'),
         contextDeleteLeaveBtn: document.getElementById('context-delete-leave-btn'),
         // Navigation & Menus
         navTogBtn: document.getElementById('nav-tog-btn'),
@@ -4519,18 +4520,18 @@ function setupEventListeners() {
 
         // Small delay to allow display:block to apply before animating opacity
         requestAnimationFrame(() => {
-            DOM.calendarContextMenu.classList.remove('opacity-0', 'scale-95');
+            DOM.calendarContextMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
         });
         triggerHapticFeedback('medium');
     };
 
     const hideContextMenu = () => {
         if (!DOM.calendarContextMenu?.classList.contains('hidden')) {
-            DOM.calendarContextMenu.classList.add('opacity-0', 'scale-95');
+            DOM.calendarContextMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
             setTimeout(() => {
                 DOM.calendarContextMenu.classList.add('hidden');
                 state.contextMenuDate = null;
-            }, 200);
+            }, 210);
         }
     };
 
@@ -4572,9 +4573,26 @@ function setupEventListeners() {
         const dateKey = state.contextMenuDate;
         hideContextMenu();
         if (dateKey) {
-            // Enter edit mode
+            // Enter edit mode directly into modal
             setState({ leaveSelection: new Set([dateKey]) });
             openLeaveCustomizationModal();
+        }
+    });
+
+    DOM.contextSelectMoreBtn?.addEventListener('click', () => {
+        const dateKey = state.contextMenuDate;
+        hideContextMenu();
+        if (dateKey) {
+            // Extract the leave type ID so we can enter selection mode for that specific type
+            const year = new Date(dateKey + 'T00:00:00').getFullYear();
+            const leaveData = state.yearlyData[year]?.activities?.[dateKey]?.leave;
+            if (leaveData) {
+                setState({
+                    selectedLeaveTypeId: leaveData.typeId,
+                    leaveSelection: new Set([dateKey])
+                });
+                updateView();
+            }
         }
     });
 
@@ -4582,10 +4600,8 @@ function setupEventListeners() {
         const dateKey = state.contextMenuDate;
         hideContextMenu();
         if (dateKey) {
-            // Confirm and Delete
-            if (confirm(i18n.t("common.areYouSure") || "Are you sure?")) {
-                await deleteLeaveDay(dateKey);
-            }
+            // Instant Delete without confirmation
+            await deleteLeaveDay(dateKey);
         }
     });
 

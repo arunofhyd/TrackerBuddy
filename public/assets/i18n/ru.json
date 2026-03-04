@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Выходные?",
     "excludeWeekendsMessage": "Включить эти дни?",
     "days": "дн.",
-    "applyToAllYears": "Применить ко всем годам"
+    "applyToAllYears": "Применить ко всем годам",
+    "selectMore": "Выбрать еще"
   },
   "search": {
     "placeholder": "Поиск...",

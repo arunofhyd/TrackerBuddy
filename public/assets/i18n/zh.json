@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "包含周末？",
     "excludeWeekendsMessage": "是否计入周末？",
     "days": "天",
-    "applyToAllYears": "应用于所有年份"
+    "applyToAllYears": "应用于所有年份",
+    "selectMore": "选择更多"
   },
   "search": {
     "placeholder": "搜索...",

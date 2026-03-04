@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "含めますか？",
     "excludeWeekendsMessage": "これらの日を含めますか？",
     "days": "日",
-    "applyToAllYears": "すべての年に適用する"
+    "applyToAllYears": "すべての年に適用する",
+    "selectMore": "さらに選択"
   },
   "search": {
     "placeholder": "活動、メモを検索...",
