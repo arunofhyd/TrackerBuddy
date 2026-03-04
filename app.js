@@ -2752,7 +2752,13 @@ async function deleteLeaveDay(dateKey) {
     try {
         const timestamp = Date.now();
         state.lastUpdated = timestamp;
-        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp });
+
+        const partialUpdate = {
+            [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField(),
+            lastUpdated: timestamp
+        };
+
+        await persistData({ yearlyData: updatedYearlyData, leaveTypes: state.leaveTypes, lastUpdated: timestamp }, partialUpdate);
         triggerTeamSync();
         showMessage(i18n.t("tracker.msgLeaveEntryDeleted"), 'success');
     } catch (error) {
@@ -3145,6 +3151,9 @@ async function saveLoggedLeaves() {
         }
     });
 
+    // Capture the original data BEFORE state update so we can check if it existed
+    const originalYearlyDataForPersistence = state.yearlyData;
+
     const updatedYearData = { ...state.currentYearData, activities: updatedActivities };
     const updatedYearlyData = { ...state.yearlyData, [year]: updatedYearData };
 
@@ -3161,7 +3170,7 @@ async function saveLoggedLeaves() {
 
             // Handle deletions
             state.initialLeaveSelection.forEach(dateKey => {
-                if (!datesInModal.has(dateKey) && state.yearlyData[year]?.activities[dateKey]?.leave) {
+                if (!datesInModal.has(dateKey) && originalYearlyDataForPersistence[year]?.activities[dateKey]?.leave) {
                     batch.update(userDocRef, {
                         [`yearlyData.${year}.activities.${dateKey}.leave`]: deleteField()
                     });
