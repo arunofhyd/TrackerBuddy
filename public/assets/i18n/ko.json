@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "요일 포함?",
     "excludeWeekendsMessage": "이 요일을 포함하시겠습니까?",
     "days": "일",
-    "applyToAllYears": "모든 연도에 적용"
+    "applyToAllYears": "모든 연도에 적용",
+    "selectMore": "더 선택"
   },
   "search": {
     "placeholder": "활동, 메모 검색...",

@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Sertakan Hari?",
     "excludeWeekendsMessage": "Apakah Anda ingin menyertakan hari-hari ini?",
     "days": "hari",
-    "applyToAllYears": "Terapkan untuk semua tahun"
+    "applyToAllYears": "Terapkan untuk semua tahun",
+    "selectMore": "Pilih Lebih Banyak"
   },
   "search": {
     "placeholder": "Cari aktivitas, catatan...",

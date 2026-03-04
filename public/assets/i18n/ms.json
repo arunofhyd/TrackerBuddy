@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "Termasuk hujung minggu?",
     "excludeWeekendsMessage": "Kira Sabtu/Ahad juga?",
     "days": "hari",
-    "applyToAllYears": "Gunakan untuk semua tahun"
+    "applyToAllYears": "Gunakan untuk semua tahun",
+    "selectMore": "Pilih Lebih Banyak"
   },
   "search": {
     "placeholder": "Cari...",

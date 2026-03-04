@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "दिन शामिल करें?",
     "excludeWeekendsMessage": "क्या आप इन दिनों को शामिल करना चाहते हैं?",
     "days": "दिन",
-    "applyToAllYears": "सभी वर्षों पर लागू करें"
+    "applyToAllYears": "सभी वर्षों पर लागू करें",
+    "selectMore": "और चुनें"
   },
   "search": {
     "placeholder": "गतिविधियाँ, नोट्स खोजें...",

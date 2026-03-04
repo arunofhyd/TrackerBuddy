@@ -180,7 +180,8 @@
     "includeWeekendsTitle": "¿Incluir días?",
     "excludeWeekendsMessage": "¿Quieres contar estos días?",
     "days": "días",
-    "applyToAllYears": "Aplicar a todos los años"
+    "applyToAllYears": "Aplicar a todos los años",
+    "selectMore": "Seleccionar más"
   },
   "search": {
     "placeholder": "Buscar...",
