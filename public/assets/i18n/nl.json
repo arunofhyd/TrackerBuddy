@@ -133,7 +133,6 @@
     "changeName": "Naam wijzigen",
     "addNewLeaveType": "Nieuw verloftype toevoegen",
     "editLeaveType": "Verloftype bewerken",
-    "limitToCurrentYear": "Beperken tot huidig jaar",
     "leaveName": "Verlofname",
     "totalDaysPerYear": "Totaal aantal dagen per jaar",
     "color": "Kleur",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Selecteer een datum.",
     "includeWeekendsTitle": "Dagen opnemen?",
     "excludeWeekendsMessage": "Wil je deze dagen opnemen?",
-    "days": "dagen"
+    "days": "dagen",
+    "applyToAllYears": "Toepassen op alle jaren"
   },
   "search": {
     "placeholder": "Zoek activiteiten, notities...",

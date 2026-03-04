@@ -2172,7 +2172,8 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = leaveType.name;
         DOM.leaveDaysInput.value = totalDays;
         selectColorInPicker(leaveType.color);
-        DOM.limitLeaveToYearBtn.dataset.limited = !!leaveType.limitYear;
+        // By default, changes are year-specific. User must click "Apply to all years" to make global changes.
+        DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.remove('hidden');
     } else {
         DOM.leaveTypeModalTitle.dataset.i18n = 'addNewLeaveType';
@@ -2181,6 +2182,7 @@ function openLeaveTypeModal(leaveType = null) {
         DOM.leaveNameInput.value = '';
         DOM.leaveDaysInput.value = '';
         selectColorInPicker(null);
+        // By default, creating a leave type is year-specific.
         DOM.limitLeaveToYearBtn.dataset.limited = 'false';
         DOM.deleteLeaveTypeBtn.classList.add('hidden');
     }
@@ -2220,7 +2222,7 @@ async function saveLeaveType() {
     const id = DOM.editingLeaveTypeId.value || `lt_${new Date().getTime()}`;
     const name = DOM.leaveNameInput.value.trim();
     const totalDays = parseFloat(DOM.leaveDaysInput.value);
-    const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+    const applyToAllYears = DOM.limitLeaveToYearBtn.dataset.limited === 'true'; // UI toggle means 'Apply to all years' now
     const selectedColorEl = DOM.leaveColorPicker.querySelector('.ring-blue-500');
     const color = selectedColorEl ? selectedColorEl.dataset.color : null;
 
@@ -2242,68 +2244,71 @@ async function saveLeaveType() {
     const newLeaveTypes = [...state.leaveTypes];
     const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
     const existingIndex = newLeaveTypes.findIndex(lt => lt.id === id);
-    const limitYear = limitToCurrentYear ? currentYear : null;
 
     if (existingIndex > -1) {
         // Editing existing leave type
         const globalLeaveType = newLeaveTypes[existingIndex];
 
-        // 1. Update Global Name & Color (Always Global per current architecture)
+        // Name and Color are always updated globally in this architecture
         globalLeaveType.name = name;
         globalLeaveType.color = color;
 
-        // 2. Handle Year Limitation Logic
-        if (limitToCurrentYear) {
-            // If checking "Limit to Current Year", we effectively want this leave type to be valid ONLY for this year.
-            // In our simple model, setting `limitYear` on the global object achieves this filter.
-            globalLeaveType.limitYear = currentYear;
-
-            // Handle Total Days Override for this specific year if it differs from global default (or if we treat global as default)
-            // If we are limiting to this year, the 'global' totalDays might effectively be this year's days.
-            globalLeaveType.totalDays = totalDays;
-
-            // Clean up overrides for this year since we just set the global default to match this year?
-            // Actually, if we limit to 2023, overrides for 2024 are irrelevant.
-            // But overrides for 2023 might be redundant if they match global.
-            if (updatedYearlyData[currentYear]?.leaveOverrides?.[id]) {
-                 delete updatedYearlyData[currentYear].leaveOverrides[id].totalDays;
-                 if (Object.keys(updatedYearlyData[currentYear].leaveOverrides[id]).length === 0) {
-                    delete updatedYearlyData[currentYear].leaveOverrides[id];
-                }
+        if (applyToAllYears) {
+            // Remove limitYear property if it exists to make it global
+            if (globalLeaveType.limitYear) {
+                delete globalLeaveType.limitYear;
             }
-        } else {
-            // If UNCHECKING (Universal), we remove the limit.
-            delete globalLeaveType.limitYear;
 
-            // We update the GLOBAL total days.
+            // Apply changes to totalDays globally
             globalLeaveType.totalDays = totalDays;
 
-            // And we implicitly want this to apply "as a whole".
-            // Standard behavior: Specific overrides > Global.
-            // User request: "controls... editing as a whole on all entries overall"
-            // This strongly implies resetting deviations.
-            // So, we should remove `totalDays` overrides for THIS leave type across ALL years.
+            // Since it's applied globally, remove all year-specific totalDays overrides for this leave type
             Object.keys(updatedYearlyData).forEach(y => {
                 if (updatedYearlyData[y].leaveOverrides && updatedYearlyData[y].leaveOverrides[id]) {
                     delete updatedYearlyData[y].leaveOverrides[id].totalDays;
-                    // If override object is empty (and not hidden), delete it
+                    // If override object is empty (and not hidden), clean it up
                     if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 0) {
                         delete updatedYearlyData[y].leaveOverrides[id];
-                    } else if (Object.keys(updatedYearlyData[y].leaveOverrides[id]).length === 1 && updatedYearlyData[y].leaveOverrides[id].hidden) {
-                        // Keep hidden flag if it exists?
-                        // If "Universal Function" means "Edit as a whole", maybe it should unhide too?
-                        // "Delete" handles hiding. "Edit" usually handles properties.
-                        // Let's assume unhiding isn't explicitly requested, but resetting days is.
                     }
                 }
             });
+        } else {
+            // Default logic: Changes apply to current year only
+            if (!updatedYearlyData[currentYear]) {
+                updatedYearlyData[currentYear] = { activities: {}, leaveOverrides: {} };
+            }
+            if (!updatedYearlyData[currentYear].leaveOverrides) {
+                updatedYearlyData[currentYear].leaveOverrides = {};
+            }
+            if (!updatedYearlyData[currentYear].leaveOverrides[id]) {
+                updatedYearlyData[currentYear].leaveOverrides[id] = {};
+            }
+
+            // Set override for this year specifically
+            updatedYearlyData[currentYear].leaveOverrides[id].totalDays = totalDays;
         }
     } else {
-        // Adding a new leave type - this is always a global addition
+        // Adding a new leave type
+        // In this app architecture, leave types must exist globally to be tracked properly.
         const newLeaveType = { id, name, totalDays, color };
-        if (limitYear) {
-            newLeaveType.limitYear = limitYear;
+
+        if (!applyToAllYears) {
+            // Created for this year specifically. Limit it to this year so it doesn't appear in other years.
+            newLeaveType.limitYear = currentYear;
+
+            if (!updatedYearlyData[currentYear]) {
+                updatedYearlyData[currentYear] = { activities: {}, leaveOverrides: {} };
+            }
+            if (!updatedYearlyData[currentYear].leaveOverrides) {
+                updatedYearlyData[currentYear].leaveOverrides = {};
+            }
+            if (!updatedYearlyData[currentYear].leaveOverrides[id]) {
+                updatedYearlyData[currentYear].leaveOverrides[id] = {};
+            }
+
+            updatedYearlyData[currentYear].leaveOverrides[id].totalDays = totalDays;
         }
+
         newLeaveTypes.push(newLeaveType);
     }
 
@@ -2372,11 +2377,11 @@ async function deleteLeaveType() {
     const id = DOM.editingLeaveTypeId.value;
     if (!id) return;
 
-    const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+    const applyToAllYears = DOM.limitLeaveToYearBtn.dataset.limited === 'true'; // Checked means "Apply to all years"
     const timestamp = Date.now();
     state.lastUpdated = timestamp;
 
-    if (limitToCurrentYear) {
+    if (!applyToAllYears) {
         // --- SCENARIO A: Limit to Current Year (Hide Only) ---
         const currentYear = state.currentMonth.getFullYear();
         const updatedYearlyData = JSON.parse(JSON.stringify(state.yearlyData));
@@ -4393,8 +4398,8 @@ function setupEventListeners() {
     document.getElementById('cancel-leave-type-btn')?.addEventListener('click', closeLeaveTypeModal);
     document.getElementById('save-leave-type-btn')?.addEventListener('click', saveLeaveType);
     DOM.deleteLeaveTypeBtn?.addEventListener('click', (e) => {
-        const limitToCurrentYear = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
-        if (limitToCurrentYear) {
+        const applyToAllYears = DOM.limitLeaveToYearBtn.dataset.limited === 'true';
+        if (!applyToAllYears) {
             // Use existing double-click confirm for local delete
             if (state.confirmAction['deleteLeaveType']) {
                 deleteLeaveType();

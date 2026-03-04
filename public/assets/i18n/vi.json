@@ -133,7 +133,6 @@
     "changeName": "Đổi tên",
     "addNewLeaveType": "Thêm loại mới",
     "editLeaveType": "Sửa loại",
-    "limitToCurrentYear": "Chỉ năm nay",
     "leaveName": "Tên",
     "totalDaysPerYear": "Tổng Số Ngày",
     "color": "Màu",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Chọn ngày đi.",
     "includeWeekendsTitle": "Tính cả cuối tuần?",
     "excludeWeekendsMessage": "Có tính luôn thứ 7, CN không?",
-    "days": "ngày"
+    "days": "ngày",
+    "applyToAllYears": "Áp dụng cho tất cả các năm"
   },
   "search": {
     "placeholder": "Tìm kiếm...",

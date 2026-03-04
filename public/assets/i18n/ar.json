@@ -133,7 +133,6 @@
     "changeName": "تغيير الاسم",
     "addNewLeaveType": "إضافة نوع جديد",
     "editLeaveType": "تعديل النوع",
-    "limitToCurrentYear": "تقييد بالسنة الحالية فقط",
     "leaveName": "اسم الإجازة",
     "totalDaysPerYear": "إجمالي الأيام",
     "color": "اللون",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "يرجى تحديد تاريخ.",
     "includeWeekendsTitle": "تضمين الأيام؟",
     "excludeWeekendsMessage": "هل تريد تضمين هذه الأيام؟",
-    "days": "أيام"
+    "days": "أيام",
+    "applyToAllYears": "تطبيق على كل السنوات"
   },
   "search": {
     "placeholder": "بحث في الأنشطة، الملاحظات...",

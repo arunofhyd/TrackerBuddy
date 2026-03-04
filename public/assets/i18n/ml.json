@@ -133,7 +133,6 @@
     "changeName": "പേര് മാറ്റുക",
     "addNewLeaveType": "പുതിയത് ചേർക്കുക",
     "editLeaveType": "എഡിറ്റ്",
-    "limitToCurrentYear": "ഈ വർഷം മാത്രം",
     "leaveName": "പേര്",
     "totalDaysPerYear": "ആകെ ദിവസങ്ങൾ",
     "color": "നിറം",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "തീയതി തിരഞ്ഞെടുക്കുക",
     "includeWeekendsTitle": "അവധി ദിവസങ്ങൾ?",
     "excludeWeekendsMessage": "ശനി/ഞായർ കൂട്ടണോ?",
-    "days": "ദിവസങ്ങൾ"
+    "days": "ദിവസങ്ങൾ",
+    "applyToAllYears": "എല്ലാ വർഷങ്ങൾക്കും ബാധകമാക്കുക"
   },
   "search": {
     "placeholder": "തിരയുക...",

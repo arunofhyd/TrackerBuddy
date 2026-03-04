@@ -133,7 +133,6 @@
     "changeName": "పేరు మార్చు",
     "addNewLeaveType": "కొత్త లీవ్ రకాన్ని జోడించు",
     "editLeaveType": "లీవ్ రకాన్ని సవరించు",
-    "limitToCurrentYear": "ప్రస్తుత సంవత్సరానికి మాత్రమే పరిమితం చేయి",
     "leaveName": "లీవ్ పేరు",
     "totalDaysPerYear": "సంవత్సరానికి మొత్తం రోజులు",
     "color": "రంగు",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "దయచేసి తేదీని ఎంచుకోండి.",
     "includeWeekendsTitle": "రోజులను చేర్చాలా?",
     "excludeWeekendsMessage": "మీరు ఈ రోజులను చేర్చాలనుకుంటున్నారా?",
-    "days": "రోజులు"
+    "days": "రోజులు",
+    "applyToAllYears": "అన్ని సంవత్సరాలకు వర్తించు"
   },
   "search": {
     "placeholder": "కార్యకలాపాలు, గమనికలను శోధించండి...",

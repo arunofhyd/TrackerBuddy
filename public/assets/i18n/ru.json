@@ -133,7 +133,6 @@
     "changeName": "Переименовать",
     "addNewLeaveType": "Новый тип",
     "editLeaveType": "Изменить тип",
-    "limitToCurrentYear": "Только этот год",
     "leaveName": "Название",
     "totalDaysPerYear": "Дней в году",
     "color": "Цвет",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Выберите дату.",
     "includeWeekendsTitle": "Выходные?",
     "excludeWeekendsMessage": "Включить эти дни?",
-    "days": "дн."
+    "days": "дн.",
+    "applyToAllYears": "Применить ко всем годам"
   },
   "search": {
     "placeholder": "Поиск...",

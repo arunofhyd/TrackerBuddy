@@ -133,7 +133,6 @@
     "changeName": "Ganti Nama",
     "addNewLeaveType": "Tambah Jenis Cuti Baru",
     "editLeaveType": "Edit Jenis Cuti",
-    "limitToCurrentYear": "Batasi hanya untuk tahun ini",
     "leaveName": "Nama Cuti",
     "totalDaysPerYear": "Total Hari per Tahun",
     "color": "Warna",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "Silakan pilih tanggal.",
     "includeWeekendsTitle": "Sertakan Hari?",
     "excludeWeekendsMessage": "Apakah Anda ingin menyertakan hari-hari ini?",
-    "days": "hari"
+    "days": "hari",
+    "applyToAllYears": "Terapkan untuk semua tahun"
   },
   "search": {
     "placeholder": "Cari aktivitas, catatan...",

@@ -133,7 +133,6 @@
     "changeName": "பெயரை மாற்று",
     "addNewLeaveType": "புதிய விடுப்பு வகையைச் சேர்",
     "editLeaveType": "விடுப்பு வகையைத் திருத்து",
-    "limitToCurrentYear": "நடப்பு ஆண்டிற்கு மட்டும் வரம்பிடவும்",
     "leaveName": "விடுப்பு பெயர்",
     "totalDaysPerYear": "ஆண்டுக்கான மொத்த நாட்கள்",
     "color": "நிறம்",
@@ -180,7 +179,8 @@
     "pleaseSelectDate": "தேதியைத் தேர்ந்தெடுக்கவும்.",
     "includeWeekendsTitle": "நாட்களைச் சேர்க்கவா?",
     "excludeWeekendsMessage": "இந்த நாட்களைச் சேர்க்க விரும்புகிறீர்களா?",
-    "days": "நாட்கள்"
+    "days": "நாட்கள்",
+    "applyToAllYears": "அனைத்து ஆண்டுகளுக்கும் விண்ணப்பிக்கவும்"
   },
   "search": {
     "placeholder": "செயல்பாடுகள், குறிப்புகளைத் தேடு...",

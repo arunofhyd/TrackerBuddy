@@ -133,7 +133,6 @@
     "changeName": "Change Name",
     "addNewLeaveType": "Add New Leave Type",
     "editLeaveType": "Edit Leave Type",
-    "limitToCurrentYear": "Limit to current year only",
     "leaveName": "Leave Name",
     "days": "days",
     "totalDaysPerYear": "Total Days",
@@ -180,7 +179,8 @@
     "msgUpdateSaveFailed": "Failed to save update.",
     "pleaseSelectDate": "Please select a date.",
     "includeWeekendsTitle": "Include Days?",
-    "excludeWeekendsMessage": "Do you want to include these days?"
+    "excludeWeekendsMessage": "Do you want to include these days?",
+    "applyToAllYears": "Apply to all years"
   },
   "search": {
     "placeholder": "Search activities, notes, or leave...",
