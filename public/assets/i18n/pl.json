@@ -202,9 +202,9 @@
     "addLeaveTitle": "Dodawanie urlopów",
     "addLeaveDesc": "Stuknij pigułkę urlopu na górze, aby wejść w tryb wyboru, następnie stuknij żądane dni w kalendarzu i naciśnij 'Potwierdź'.",
     "manageLeaveTitle": "Zarządzanie urlopami",
-    "manageLeaveDesc": "Kliknij prawym przyciskiem myszy (lub naciśnij i przytrzymaj na urządzeniu mobilnym) dowolny zapisany dzień w kalendarzu, aby otworzyć menu kontekstowe.",
-    "quickActionsTitle": "Szybkie akcje",
-    "quickActionsDesc": "Z menu możesz błyskawicznie usunąć, edytować lub wybrać więcej dni z łatwością."
+    "manageLeaveDesc": "Kliknij prawym przyciskiem myszy (lub naciśnij i przytrzymaj na urządzeniu mobilnym) dowolny zapisany dzień w kalendarzu, aby błyskawicznie usunąć, edytować lub wybrać więcej.",
+    "newLeaveTitle": "Nowy rodzaj urlopu",
+    "newLeaveDesc": "Stuknij przycisk '+' na górze, aby utworzyć niestandardową kategorię urlopu."
   },
   "team": {
     "name": "Nazwa zespołu",

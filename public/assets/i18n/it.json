@@ -202,9 +202,9 @@
     "addLeaveTitle": "Aggiungi assenze",
     "addLeaveDesc": "Tocca una pillola di assenza in alto per entrare nella modalità di selezione, quindi tocca i giorni desiderati sul calendario e premi 'Conferma'.",
     "manageLeaveTitle": "Gestisci assenze",
-    "manageLeaveDesc": "Fai clic con il tasto destro (o premi a lungo su mobile) su qualsiasi giorno registrato sul calendario per aprire il menu contestuale.",
-    "quickActionsTitle": "Azioni rapide",
-    "quickActionsDesc": "Dal menu, puoi eliminare, modificare o selezionare più giorni istantaneamente e con facilità."
+    "manageLeaveDesc": "Fai clic con il tasto destro (o premi a lungo su mobile) su qualsiasi giorno registrato sul calendario per eliminare, modificare o selezionare più giorni istantaneamente.",
+    "newLeaveTitle": "Nuovo tipo di assenza",
+    "newLeaveDesc": "Tocca il pulsante '+' in alto per creare una categoria di assenza personalizzata."
   },
   "team": {
     "name": "Nome Team",

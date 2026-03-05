@@ -203,9 +203,9 @@
     "addLeaveTitle": "Adding Leaves",
     "addLeaveDesc": "Tap a leave pill at the top to enter selection mode, then tap the desired days on the calendar and press 'Confirm'.",
     "manageLeaveTitle": "Managing Leaves",
-    "manageLeaveDesc": "Right-click (or long-press on mobile) any logged day on the calendar to open the context menu.",
-    "quickActionsTitle": "Quick Actions",
-    "quickActionsDesc": "From the menu, you can instantly Delete, Edit, or Select More days with ease."
+    "manageLeaveDesc": "Right-click (or long-press on mobile) any logged day on the calendar to instantly Delete, Edit, or Select More.",
+    "newLeaveTitle": "New Leave Type",
+    "newLeaveDesc": "Tap the '+' button at the top to create a custom leave category."
   },
   "team": {
     "name": "Team Name",

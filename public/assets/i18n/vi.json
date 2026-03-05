@@ -202,9 +202,9 @@
     "addLeaveTitle": "Thêm ngày nghỉ",
     "addLeaveDesc": "Nhấn vào viên thuốc ngày nghỉ ở trên cùng để vào chế độ chọn, sau đó nhấn vào các ngày mong muốn trên lịch và nhấn 'Xác nhận'.",
     "manageLeaveTitle": "Quản lý ngày nghỉ",
-    "manageLeaveDesc": "Nhấp chuột phải (hoặc nhấn giữ trên thiết bị di động) vào bất kỳ ngày nào đã được ghi nhận trên lịch để mở menu ngữ cảnh.",
-    "quickActionsTitle": "Thao tác nhanh",
-    "quickActionsDesc": "Từ menu, bạn có thể dễ dàng Xóa, Sửa, hoặc Chọn thêm ngày ngay lập tức."
+    "manageLeaveDesc": "Nhấp chuột phải (hoặc nhấn giữ trên thiết bị di động) vào bất kỳ ngày nào đã được ghi nhận trên lịch để Xóa, Sửa hoặc Chọn thêm ngay lập tức.",
+    "newLeaveTitle": "Loại ngày nghỉ mới",
+    "newLeaveDesc": "Nhấn vào nút '+' ở trên cùng để tạo một danh mục ngày nghỉ tùy chỉnh."
   },
   "team": {
     "name": "Tên Nhóm",

@@ -202,9 +202,9 @@
     "addLeaveTitle": "Urlaub hinzufügen",
     "addLeaveDesc": "Tippen Sie oben auf eine Urlaubs-Kapsel, um den Auswahlmodus aufzurufen, tippen Sie dann auf die gewünschten Tage im Kalender und drücken Sie auf 'Bestätigen'.",
     "manageLeaveTitle": "Urlaub verwalten",
-    "manageLeaveDesc": "Klicken Sie mit der rechten Maustaste (oder drücken Sie lange auf Mobilgeräten) auf einen beliebigen protokollierten Tag im Kalender, um das Kontextmenü zu öffnen.",
-    "quickActionsTitle": "Schnelle Aktionen",
-    "quickActionsDesc": "Über das Menü können Sie problemlos Tage löschen, bearbeiten oder weitere Tage auswählen."
+    "manageLeaveDesc": "Klicken Sie mit der rechten Maustaste (oder drücken Sie lange auf Mobilgeräten) auf einen beliebigen protokollierten Tag im Kalender, um ihn sofort zu löschen, zu bearbeiten oder mehr auszuwählen.",
+    "newLeaveTitle": "Neuer Urlaubstyp",
+    "newLeaveDesc": "Tippen Sie oben auf die '+'-Schaltfläche, um eine benutzerdefinierte Urlaubskategorie zu erstellen."
   },
   "team": {
     "name": "Teamname",

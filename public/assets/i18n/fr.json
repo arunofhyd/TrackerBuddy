@@ -202,9 +202,9 @@
     "addLeaveTitle": "Ajouter des congés",
     "addLeaveDesc": "Appuyez sur une pilule de congé en haut pour entrer en mode sélection, puis appuyez sur les jours souhaités sur le calendrier et appuyez sur 'Confirmer'.",
     "manageLeaveTitle": "Gérer les congés",
-    "manageLeaveDesc": "Faites un clic droit (ou un appui long sur mobile) sur n'importe quel jour enregistré sur le calendrier pour ouvrir le menu contextuel.",
-    "quickActionsTitle": "Actions rapides",
-    "quickActionsDesc": "Depuis le menu, vous pouvez instantanément Supprimer, Modifier ou Sélectionner Plus de jours en toute simplicité."
+    "manageLeaveDesc": "Faites un clic droit (ou un appui long sur mobile) sur n'importe quel jour enregistré sur le calendrier pour Supprimer, Modifier ou Sélectionner Plus instantanément.",
+    "newLeaveTitle": "Nouveau type de congé",
+    "newLeaveDesc": "Appuyez sur le bouton '+' en haut pour créer une catégorie de congé personnalisée."
   },
   "team": {
     "name": "Nom de l'équipe",
