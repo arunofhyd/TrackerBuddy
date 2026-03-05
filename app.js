@@ -5683,6 +5683,9 @@ window.openSharedMonthPicker = function(initialDate, callback) {
 }
 
 function injectRealTimeControls(context) {
+    // Feature: Disable real-time updates for now, simply return early to prevent injection
+    return;
+
     const isTb = context === 'trackerbuddy';
     const containerId = isTb ? 'real-time-toggle-container-tb' : 'real-time-toggle-container-tog';
     const toggleBtnId = isTb ? 'real-time-toggle-btn-tb' : 'real-time-toggle-btn-tog';

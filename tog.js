@@ -87,6 +87,153 @@ function cacheDOM() {
     DOM.visibleDaysWrapper = document.getElementById('tog-visible-days-wrapper');
     DOM.toggleConvertersBtn = document.getElementById('tog-toggle-converters-btn');
     DOM.toggleVisibleDaysBtn = document.getElementById('tog-toggle-visible-days-btn');
+
+    DOM.converterBtn = document.getElementById('tog-data-converter-btn');
+    DOM.converterModal = document.getElementById('tog-data-converter-modal');
+    DOM.converterInput = document.getElementById('tog-converter-input');
+    DOM.converterConvertBtn = document.getElementById('tog-converter-convert-btn');
+    DOM.converterDownloadBtn = document.getElementById('tog-converter-download-btn');
+    DOM.converterRestoreBtn = document.getElementById('tog-converter-restore-btn');
+    DOM.converterOutput = document.getElementById('tog-converter-output');
+    DOM.converterCancelBtn = document.getElementById('tog-converter-cancel-btn');
+}
+
+let convertedJSON = null;
+
+function openTogDataConverterModal() {
+    if (DOM.converterModal) {
+        DOM.converterModal.classList.add('visible');
+    }
+    if (DOM.converterInput) {
+        DOM.converterInput.value = '';
+    }
+    if (DOM.converterOutput) {
+        DOM.converterOutput.classList.add('hidden');
+        DOM.converterOutput.textContent = '';
+    }
+    if (DOM.converterRestoreBtn) {
+        DOM.converterRestoreBtn.disabled = true;
+        DOM.converterRestoreBtn.classList.add('hidden');
+    }
+    if (DOM.converterDownloadBtn) {
+        DOM.converterDownloadBtn.disabled = true;
+        DOM.converterDownloadBtn.classList.add('hidden');
+    }
+    convertedJSON = null;
+    closeDropdown();
+}
+
+function closeTogDataConverterModal() {
+    if (DOM.converterModal) {
+        DOM.converterModal.classList.remove('visible');
+    }
+}
+
+function convertTogData() {
+    if (!DOM.converterInput) return;
+
+    const text = DOM.converterInput.value;
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+    const result = {};
+
+    let currentYear = '';
+    let currentMonth = '';
+
+    const monthMap = {
+        "January": "01", "February": "02", "March": "03", "April": "04",
+        "May": "05", "June": "06", "July": "07", "August": "08",
+        "September": "09", "October": "10", "November": "11", "December": "12"
+    };
+
+    const monthYearRegex = /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$/i;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        const monthMatch = line.match(monthYearRegex);
+        if (monthMatch) {
+            let m = monthMatch[1].charAt(0).toUpperCase() + monthMatch[1].slice(1).toLowerCase();
+            currentMonth = monthMap[m];
+            currentYear = monthMatch[2];
+            continue;
+        }
+
+        if (/^\d{1,2}$/.test(line)) {
+            const currentDay = line.padStart(2, '0');
+
+            if (i + 1 < lines.length) {
+                const nextLine = lines[i + 1];
+                if (nextLine.endsWith('hr')) {
+                    const val = nextLine.replace('hr', '');
+                    if (currentYear && currentMonth) {
+                        const dateStr = `${currentYear}-${currentMonth}-${currentDay}`;
+                        result[dateStr] = val;
+                    }
+                }
+            }
+        }
+    }
+
+    if (Object.keys(result).length > 0) {
+        convertedJSON = result;
+        if (DOM.converterOutput) {
+            DOM.converterOutput.textContent = JSON.stringify(result, null, 2);
+            DOM.converterOutput.classList.remove('hidden');
+        }
+        if (DOM.converterRestoreBtn) {
+            DOM.converterRestoreBtn.disabled = false;
+            DOM.converterRestoreBtn.classList.remove('hidden');
+        }
+        if (DOM.converterDownloadBtn) {
+            DOM.converterDownloadBtn.disabled = false;
+            DOM.converterDownloadBtn.classList.remove('hidden');
+        }
+    } else {
+        if (DOM.converterOutput) {
+            DOM.converterOutput.textContent = "No valid 'hr' data found. Please check your input format.";
+            DOM.converterOutput.classList.remove('hidden');
+        }
+        if (DOM.converterRestoreBtn) {
+            DOM.converterRestoreBtn.disabled = true;
+            DOM.converterRestoreBtn.classList.add('hidden');
+        }
+        if (DOM.converterDownloadBtn) {
+            DOM.converterDownloadBtn.disabled = true;
+            DOM.converterDownloadBtn.classList.add('hidden');
+        }
+        convertedJSON = null;
+    }
+}
+
+function downloadConvertedTogData() {
+    if (!convertedJSON) return;
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(convertedJSON, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "converted_data.json");
+    document.body.appendChild(downloadAnchorNode); // Required for Firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+async function restoreConvertedTogData() {
+    if (!convertedJSON) return;
+
+    state.storedData = { ...state.storedData, ...convertedJSON };
+    if(state.storedData._dayVisibility) state.dayVisibility = state.storedData._dayVisibility;
+
+    localStorage.setItem(LOCAL_STORAGE_KEYS.TOG_DATA, JSON.stringify(state.storedData));
+
+    if(state.userId) {
+        const userRef = doc(state.db, COLLECTIONS.USERS, state.userId);
+        await updateDoc(userRef, { togData: state.storedData });
+    }
+
+    renderCalendar();
+    showToast(state.i18n?.t('tog.restored') || "Restored Successfully", "success");
+    closeTogDataConverterModal();
 }
 
 function bindEvents() {
@@ -133,6 +280,12 @@ function bindEvents() {
 
     DOM.toggleConvertersBtn?.addEventListener('click', toggleConverters);
     DOM.toggleVisibleDaysBtn?.addEventListener('click', toggleVisibleDays);
+
+    DOM.converterBtn?.addEventListener('click', openTogDataConverterModal);
+    DOM.converterConvertBtn?.addEventListener('click', convertTogData);
+    DOM.converterDownloadBtn?.addEventListener('click', downloadConvertedTogData);
+    DOM.converterRestoreBtn?.addEventListener('click', restoreConvertedTogData);
+    DOM.converterCancelBtn?.addEventListener('click', closeTogDataConverterModal);
 
     document.getElementById('tog-logout-btn')?.addEventListener('click', () => {
         if(window.appSignOut) window.appSignOut();
