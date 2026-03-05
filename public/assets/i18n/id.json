@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Tutup bantuan",
-    "step1Title": "1. Tambah Jenis Cuti",
-    "step1Desc": "Ketuk tombol '+' untuk membuat kategori cuti baru.",
-    "step2Title": "2. Pilih Jenis Cuti",
-    "step2Desc": "Ketuk salah satu pil jenis cuti di bagian atas untuk memulai mode pemilihan.",
-    "step3Title": "3. Pilih Tanggal",
-    "step3Desc": "Ketuk hari-hari di kalender yang ingin Anda tandai.",
-    "step4Title": "4. Konfirmasi",
-    "step4Desc": "Ketuk tombol 'Konfirmasi' yang mengambang untuk menyimpan perubahan Anda."
+    "addLeaveTitle": "Menambah Cuti",
+    "addLeaveDesc": "Ketuk pil cuti di bagian atas untuk masuk ke mode pilihan, lalu ketuk hari yang diinginkan di kalender dan tekan 'Konfirmasi'.",
+    "manageLeaveTitle": "Mengelola Cuti",
+    "manageLeaveDesc": "Klik kanan (atau tekan lama di ponsel) pada hari yang dicatat di kalender untuk langsung Menghapus, Mengedit, atau Memilih Lebih Banyak.",
+    "newLeaveTitle": "Jenis Cuti Baru",
+    "newLeaveDesc": "Ketuk tombol '+' di bagian atas untuk membuat kategori cuti kustom."
   },
   "team": {
     "name": "Nama Tim",

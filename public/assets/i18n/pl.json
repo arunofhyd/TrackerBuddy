@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Zamknij pomoc",
-    "step1Title": "1. Dodaj typ urlopu",
-    "step1Desc": "Dotknij przycisku '+', aby utworzyć nową kategorię urlopu.",
-    "step2Title": "2. Wybierz typ urlopu",
-    "step2Desc": "Dotknij jednej z pigułek typu urlopu na górze, aby rozpocząć tryb wyboru.",
-    "step3Title": "3. Wybierz daty",
-    "step3Desc": "Dotknij dni w kalendarzu, które chcesz zaznaczyć.",
-    "step4Title": "4. Potwierdź",
-    "step4Desc": "Dotknij pływającego przycisku 'Potwierdź', aby zapisać zmiany."
+    "addLeaveTitle": "Dodawanie urlopów",
+    "addLeaveDesc": "Stuknij pigułkę urlopu na górze, aby wejść w tryb wyboru, następnie stuknij żądane dni w kalendarzu i naciśnij 'Potwierdź'.",
+    "manageLeaveTitle": "Zarządzanie urlopami",
+    "manageLeaveDesc": "Kliknij prawym przyciskiem myszy (lub naciśnij i przytrzymaj na urządzeniu mobilnym) dowolny zapisany dzień w kalendarzu, aby błyskawicznie usunąć, edytować lub wybrać więcej.",
+    "newLeaveTitle": "Nowy rodzaj urlopu",
+    "newLeaveDesc": "Stuknij przycisk '+' na górze, aby utworzyć niestandardową kategorię urlopu."
   },
   "team": {
     "name": "Nazwa zespołu",

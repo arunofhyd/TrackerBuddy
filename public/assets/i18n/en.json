@@ -200,14 +200,12 @@
   },
   "help": {
     "close": "Close help",
-    "step1Title": "1. Add Leave Type",
-    "step1Desc": "Tap the '+' button to create a new leave category.",
-    "step2Title": "2. Select Leave Type",
-    "step2Desc": "Tap one of the leave pills at the top to start selection mode. (Tap again anytime to exit.)",
-    "step3Title": "3. Select Dates",
-    "step3Desc": "Tap the days on the calendar you want to mark.",
-    "step4Title": "4. Confirm",
-    "step4Desc": "Tap the floating 'Confirm' button to save your changes."
+    "addLeaveTitle": "Adding Leaves",
+    "addLeaveDesc": "Tap a leave pill at the top to enter selection mode, then tap the desired days on the calendar and press 'Confirm'.",
+    "manageLeaveTitle": "Managing Leaves",
+    "manageLeaveDesc": "Right-click (or long-press on mobile) any logged day on the calendar to instantly Delete, Edit, or Select More.",
+    "newLeaveTitle": "New Leave Type",
+    "newLeaveDesc": "Tap the '+' button at the top to create a custom leave category."
   },
   "team": {
     "name": "Team Name",

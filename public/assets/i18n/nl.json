@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Hulp sluiten",
-    "step1Title": "1. Verloftype toevoegen",
-    "step1Desc": "Tik op de '+' knop om een nieuwe verlofcategorie te maken.",
-    "step2Title": "2. Verloftype selecteren",
-    "step2Desc": "Tik op een van de verloftype-pillen bovenaan om de selectiemodus te starten.",
-    "step3Title": "3. Datums selecteren",
-    "step3Desc": "Tik op de dagen op de kalender die je wilt markeren.",
-    "step4Title": "4. Bevestigen",
-    "step4Desc": "Tik op de zwevende 'Bevestigen' knop om je wijzigingen op te slaan."
+    "addLeaveTitle": "Verlof toevoegen",
+    "addLeaveDesc": "Tik bovenaan op een verlofpil om de selectiemodus te openen, tik vervolgens op de gewenste dagen op de kalender en druk op 'Bevestigen'.",
+    "manageLeaveTitle": "Verlof beheren",
+    "manageLeaveDesc": "Klik met de rechtermuisknop (of druk lang op mobiel) op een geregistreerde dag in de kalender om direct te verwijderen, bewerken of meer te selecteren.",
+    "newLeaveTitle": "Nieuw verloftype",
+    "newLeaveDesc": "Tik bovenaan op de knop '+' om een aangepaste verlofcategorie te maken."
   },
   "team": {
     "name": "Teamnaam",

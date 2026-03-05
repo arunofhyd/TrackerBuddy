@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Fermer l'aide",
-    "step1Title": "1. Ajouter un type de congé",
-    "step1Desc": "Appuyez sur le bouton '+' pour créer une nouvelle catégorie de congé.",
-    "step2Title": "2. Sélectionner le type de congé",
-    "step2Desc": "Appuyez sur l'une des pilules de type de congé en haut pour démarrer le mode de sélection.",
-    "step3Title": "3. Sélectionner les dates",
-    "step3Desc": "Appuyez sur les jours du calendrier que vous souhaitez marquer.",
-    "step4Title": "4. Confirmer",
-    "step4Desc": "Appuyez sur le bouton flottant 'Confirmer' pour enregistrer vos modifications."
+    "addLeaveTitle": "Ajouter des congés",
+    "addLeaveDesc": "Appuyez sur une pilule de congé en haut pour entrer en mode sélection, puis appuyez sur les jours souhaités sur le calendrier et appuyez sur 'Confirmer'.",
+    "manageLeaveTitle": "Gérer les congés",
+    "manageLeaveDesc": "Faites un clic droit (ou un appui long sur mobile) sur n'importe quel jour enregistré sur le calendrier pour Supprimer, Modifier ou Sélectionner Plus instantanément.",
+    "newLeaveTitle": "Nouveau type de congé",
+    "newLeaveDesc": "Appuyez sur le bouton '+' en haut pour créer une catégorie de congé personnalisée."
   },
   "team": {
     "name": "Nom de l'équipe",

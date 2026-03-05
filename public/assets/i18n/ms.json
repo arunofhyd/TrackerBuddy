@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Tutup",
-    "step1Title": "1. Buat Jenis",
-    "step1Desc": "Klik '+' untuk tambah jenis cuti (cth: Sakit, Tahunan).",
-    "step2Title": "2. Pilih",
-    "step2Desc": "Klik nama jenis di atas untuk aktifkan.",
-    "step3Title": "3. Tandakan",
-    "step3Desc": "Klik tarikh pada kalendar.",
-    "step4Title": "4. Simpan",
-    "step4Desc": "Klik butang 'Simpan' yang terapung."
+    "addLeaveTitle": "Menambah Cuti",
+    "addLeaveDesc": "Ketik pil cuti di bahagian atas untuk memasuki mod pilihan, kemudian ketik hari yang dikehendaki pada kalendar dan tekan 'Sahkan'.",
+    "manageLeaveTitle": "Mengurus Cuti",
+    "manageLeaveDesc": "Klik kanan (atau tekan lama pada mudah alih) mana-mana hari yang dicatat pada kalendar untuk Memadam, Mengedit, atau Memilih Lebih Banyak dengan serta-merta.",
+    "newLeaveTitle": "Jenis Cuti Baru",
+    "newLeaveDesc": "Ketik butang '+' di bahagian atas untuk membuat kategori cuti tersuai."
   },
   "team": {
     "name": "Nama Pasukan",
