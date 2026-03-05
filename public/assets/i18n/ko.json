@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "도움말 닫기",
-    "step1Title": "1. 휴가 유형 추가",
-    "step1Desc": "새 휴가 범주를 만들려면 '+' 버튼을 탭하세요.",
-    "step2Title": "2. 휴가 유형 선택",
-    "step2Desc": "상단의 휴가 유형 알약을 탭하여 선택 모드를 시작하세요.",
-    "step3Title": "3. 날짜 선택",
-    "step3Desc": "달력에서 표시할 날짜를 탭하세요.",
-    "step4Title": "4. 확인",
-    "step4Desc": "떠 있는 '확인' 버튼을 탭하여 변경 사항을 저장하세요."
+    "addLeaveTitle": "휴가 추가",
+    "addLeaveDesc": "상단의 휴가 알약을 탭하여 선택 모드로 들어간 다음 달력에서 원하는 날짜를 탭하고 '확인'을 누릅니다.",
+    "manageLeaveTitle": "휴가 관리",
+    "manageLeaveDesc": "달력에 기록된 날짜를 마우스 오른쪽 버튼으로 클릭(또는 모바일에서는 길게 누르기)하여 상황에 맞는 메뉴를 엽니다.",
+    "quickActionsTitle": "빠른 작업",
+    "quickActionsDesc": "메뉴에서 삭제, 수정 또는 더 많은 날짜를 쉽게 선택할 수 있습니다."
   },
   "team": {
     "name": "팀 이름",

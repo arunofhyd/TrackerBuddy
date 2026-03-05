@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Đóng",
-    "step1Title": "1. Tạo loại nghỉ",
-    "step1Desc": "Bấm '+' để thêm Phép năm, Ốm, v.v.",
-    "step2Title": "2. Chọn loại",
-    "step2Desc": "Bấm vào tên loại nghỉ ở trên để kích hoạt.",
-    "step3Title": "3. Chọn ngày",
-    "step3Desc": "Bấm vào các ngày trên lịch.",
-    "step4Title": "4. Lưu lại",
-    "step4Desc": "Bấm nút 'Xác nhận' nổi ở góc."
+    "addLeaveTitle": "Thêm ngày nghỉ",
+    "addLeaveDesc": "Nhấn vào viên thuốc ngày nghỉ ở trên cùng để vào chế độ chọn, sau đó nhấn vào các ngày mong muốn trên lịch và nhấn 'Xác nhận'.",
+    "manageLeaveTitle": "Quản lý ngày nghỉ",
+    "manageLeaveDesc": "Nhấp chuột phải (hoặc nhấn giữ trên thiết bị di động) vào bất kỳ ngày nào đã được ghi nhận trên lịch để mở menu ngữ cảnh.",
+    "quickActionsTitle": "Thao tác nhanh",
+    "quickActionsDesc": "Từ menu, bạn có thể dễ dàng Xóa, Sửa, hoặc Chọn thêm ngày ngay lập tức."
   },
   "team": {
     "name": "Tên Nhóm",

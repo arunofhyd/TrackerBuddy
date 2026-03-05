@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Fechar",
-    "step1Title": "1. Criar tipo",
-    "step1Desc": "Toque no '+' para definir férias, baixas, etc.",
-    "step2Title": "2. Escolher",
-    "step2Desc": "Toque na etiqueta em cima para ativar.",
-    "step3Title": "3. Selecionar",
-    "step3Desc": "Toque nos dias no calendário.",
-    "step4Title": "4. Confirmar",
-    "step4Desc": "Toque no botão flutuante 'Confirmar'."
+    "addLeaveTitle": "Adicionar ausências",
+    "addLeaveDesc": "Toque em uma pílula de ausência na parte superior para entrar no modo de seleção, depois toque nos dias desejados no calendário e pressione 'Confirmar'.",
+    "manageLeaveTitle": "Gerenciar ausências",
+    "manageLeaveDesc": "Clique com o botão direito (ou pressione e segure no celular) em qualquer dia registrado no calendário para abrir o menu de contexto.",
+    "quickActionsTitle": "Ações rápidas",
+    "quickActionsDesc": "No menu, você pode excluir, editar ou selecionar mais dias instantaneamente com facilidade."
   },
   "team": {
     "name": "Nome da Equipa",

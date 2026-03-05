@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Hilfe schließen",
-    "step1Title": "1. Urlaubstyp hinzufügen",
-    "step1Desc": "Tippe auf den '+'-Button, um eine neue Urlaubskategorie zu erstellen.",
-    "step2Title": "2. Urlaubstyp auswählen",
-    "step2Desc": "Tippe oben auf einen der Urlaubstyp-Pills, um den Auswahlmodus zu starten.",
-    "step3Title": "3. Daten auswählen",
-    "step3Desc": "Tippe auf die Tage im Kalender, die du markieren möchtest.",
-    "step4Title": "4. Bestätigen",
-    "step4Desc": "Tippe auf den schwebenden 'Bestätigen'-Button, um deine Änderungen zu speichern."
+    "addLeaveTitle": "Urlaub hinzufügen",
+    "addLeaveDesc": "Tippen Sie oben auf eine Urlaubs-Kapsel, um den Auswahlmodus aufzurufen, tippen Sie dann auf die gewünschten Tage im Kalender und drücken Sie auf 'Bestätigen'.",
+    "manageLeaveTitle": "Urlaub verwalten",
+    "manageLeaveDesc": "Klicken Sie mit der rechten Maustaste (oder drücken Sie lange auf Mobilgeräten) auf einen beliebigen protokollierten Tag im Kalender, um das Kontextmenü zu öffnen.",
+    "quickActionsTitle": "Schnelle Aktionen",
+    "quickActionsDesc": "Über das Menü können Sie problemlos Tage löschen, bearbeiten oder weitere Tage auswählen."
   },
   "team": {
     "name": "Teamname",

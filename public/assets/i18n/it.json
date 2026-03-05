@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Chiudi",
-    "step1Title": "1. Crea tipo",
-    "step1Desc": "Premi '+' per aggiungere ferie, malattie, ecc.",
-    "step2Title": "2. Scegli",
-    "step2Desc": "Tocca l'etichetta in alto per attivare.",
-    "step3Title": "3. Seleziona",
-    "step3Desc": "Tocca i giorni sul calendario.",
-    "step4Title": "4. Conferma",
-    "step4Desc": "Premi il pulsante fluttuante 'Conferma'."
+    "addLeaveTitle": "Aggiungi assenze",
+    "addLeaveDesc": "Tocca una pillola di assenza in alto per entrare nella modalità di selezione, quindi tocca i giorni desiderati sul calendario e premi 'Conferma'.",
+    "manageLeaveTitle": "Gestisci assenze",
+    "manageLeaveDesc": "Fai clic con il tasto destro (o premi a lungo su mobile) su qualsiasi giorno registrato sul calendario per aprire il menu contestuale.",
+    "quickActionsTitle": "Azioni rapide",
+    "quickActionsDesc": "Dal menu, puoi eliminare, modificare o selezionare più giorni istantaneamente e con facilità."
   },
   "team": {
     "name": "Nome Team",

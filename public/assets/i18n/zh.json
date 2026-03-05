@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "关闭",
-    "step1Title": "1. 新建类型",
-    "step1Desc": "点 '+' 号添加年假、病假等。",
-    "step2Title": "2. 选中类型",
-    "step2Desc": "点击上方标签激活选择模式。",
-    "step3Title": "3. 选择日期",
-    "step3Desc": "在日历上点击日期。",
-    "step4Title": "4. 确认",
-    "step4Desc": "点击悬浮的“确定”按钮保存。"
+    "addLeaveTitle": "添加休假",
+    "addLeaveDesc": "点击顶部的休假药丸进入选择模式，然后在日历上点击所需的日期并按“确认”。",
+    "manageLeaveTitle": "管理休假",
+    "manageLeaveDesc": "在日历上右键单击（或在手机上长按）任何已记录的日期以打开上下文菜单。",
+    "quickActionsTitle": "快速操作",
+    "quickActionsDesc": "在菜单中，您可以轻松地删除、编辑或选择更多日期。"
   },
   "team": {
     "name": "团队名称",

@@ -199,14 +199,12 @@
   },
   "help": {
     "close": "Cerrar",
-    "step1Title": "1. Crea un tipo",
-    "step1Desc": "Dale al '+' para definir vacaciones, bajas, etc.",
-    "step2Title": "2. Elige el tipo",
-    "step2Desc": "Toca la etiqueta superior para activar la selección.",
-    "step3Title": "3. Marca los días",
-    "step3Desc": "Toca los días en el calendario.",
-    "step4Title": "4. Confirma",
-    "step4Desc": "Dale al botón flotante 'Confirmar' y listo."
+    "addLeaveTitle": "Agregar ausencias",
+    "addLeaveDesc": "Toca una píldora de ausencia en la parte superior para entrar en el modo de selección, luego toca los días deseados en el calendario y presiona 'Confirmar'.",
+    "manageLeaveTitle": "Gestionar ausencias",
+    "manageLeaveDesc": "Haz clic derecho (o mantén presionado en móviles) en cualquier día registrado en el calendario para abrir el menú contextual.",
+    "quickActionsTitle": "Acciones rápidas",
+    "quickActionsDesc": "Desde el menú, puedes Eliminar, Editar o Seleccionar Más días instantáneamente con facilidad."
   },
   "team": {
     "name": "Nombre del equipo",
