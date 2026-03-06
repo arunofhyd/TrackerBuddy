@@ -62,7 +62,10 @@ export function getYYYYMMDD(date) {
 export function formatDateForDisplay(dateString, locale = 'en-US') {
     const [y, m, d] = dateString.split('-').map(Number);
     const date = new Date(y, m - 1, d);
-    return date.toLocaleDateString(locale, { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' });
+    const options = { weekday: 'short', month: 'long', day: 'numeric' };
+    const dateWithoutYear = date.toLocaleDateString(locale, options);
+    const shortYear = `'${String(y).slice(-2)}`;
+    return `${dateWithoutYear}, ${shortYear}`;
 }
 
 /**
