@@ -161,7 +161,7 @@ function initUI() {
         monthViewControls: document.getElementById('month-view-controls'),
         dayViewTopControls: document.getElementById('day-view-top-controls'),
         leavePillsContainer: document.getElementById('leave-pills-container'),
-        todayBtnDay: document.getElementById('today-btn-day'),
+        todayBtnDay: document.getElementById('tb-today-btn'),
         addLeaveTypeBtn: document.getElementById('add-leave-type-btn'),
         uploadCsvBtn: document.getElementById('upload-csv-btn'),
         downloadCsvBtn: document.getElementById('download-csv-btn'),
