@@ -6,7 +6,7 @@ import { LOCAL_STORAGE_KEYS } from './constants.js';
 
 // Update this version string (e.g., 'v2', 'v3') whenever you change the content below
 // and want to force all users (even existing ones) to see the new messages.
-export const WELCOME_VERSION = 'v2';
+export const WELCOME_VERSION = 'v1';
 
 // The content to display on the Welcome Screen.
 // You can use standard i18n translation keys using the 'i18n' property,
