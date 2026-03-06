@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "使用指南",
     "addLeaveType": "管理假期类型",
-    "dailyNote": "每日备注 (限5字)",
+    "dailyNote": "每日备注",
     "today": "今天",
     "time": "时间",
     "activity": "活动",

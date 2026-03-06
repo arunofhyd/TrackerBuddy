@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "使い方",
     "addLeaveType": "休暇タイプを追加/編集",
-    "dailyNote": "日次メモ（最大5文字）",
+    "dailyNote": "日次メモ",
     "today": "今日",
     "time": "時間",
     "activity": "活動",

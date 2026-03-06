@@ -667,7 +667,10 @@ function renderCalendar() {
         const date = new Date(year, month, day);
         const dateKey = getYYYYMMDD(date);
         const dayData = currentActivities[dateKey] || {}; 
-        const noteText = dayData.note || '';
+        let noteText = dayData.note || '';
+        if (noteText.length > 8) {
+            noteText = noteText.substring(0, 8) + '...';
+        }
         const hasActivity = Object.keys(dayData).some(key => key !== '_userCleared' && key !== 'note' && key !== 'leave' && dayData[key].text?.trim());
         const leaveData = dayData.leave;
 

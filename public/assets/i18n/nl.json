@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "Hoe verlof te loggen",
     "addLeaveType": "Verloftypes Toevoegen/Bewerken",
-    "dailyNote": "Dagelijkse notitie (max 5 tekens)",
+    "dailyNote": "Dagelijkse notitie",
     "today": "Vandaag",
     "time": "Tijd",
     "activity": "Activiteit",
