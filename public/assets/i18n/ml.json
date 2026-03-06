@@ -361,6 +361,12 @@
     "resetConfirm": "ഇത് നിങ്ങളുടെ എല്ലാ TOG ഡാറ്റയും ശാശ്വതമായി ഇല്ലാതാക്കും. ഈ പ്രവർത്തനം പഴയപടിയാക്കാൻ കഴിയില്ല.",
     "viewOptions": "കാഴ്ച ഓപ്ഷനുകൾ",
     "toggleConverters": "കൺവെർട്ടറുകൾ മാറ്റുക",
-    "toggleVisibleDays": "ദൃശ്യമായ ദിവസങ്ങൾ മാറ്റുക"
+    "toggleVisibleDays": "ദൃശ്യമായ ദിവസങ്ങൾ മാറ്റുക",
+    "dataConverter": "Data Converter",
+    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
+    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
+    "convertData": "Convert Data",
+    "downloadJson": "Download JSON",
+    "restoreDirectly": "Restore directly into TOGtracker"
   }
 }
