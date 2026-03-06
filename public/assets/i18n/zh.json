@@ -69,7 +69,7 @@
     "realTimeDisabled": "已禁用实时更新。",
     "syncSuccess": "同步成功。",
     "syncFailed": "同步失败。",
-    "infoSecureSync": "跨设备<strong>云同步</strong>。高度安全。只有您可以读取/访问您的数据。"
+    "infoSecureSync": "<strong>云同步。</strong>高度安全，只有您可以访问您的数据。"
   },
   "auth": {
     "email": "邮箱",

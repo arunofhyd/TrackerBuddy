@@ -69,7 +69,7 @@
     "realTimeDisabled": "Echtzeit-Updates deaktiviert.",
     "syncSuccess": "Erfolgreich synchronisiert.",
     "syncFailed": "Synchronisierung fehlgeschlagen.",
-    "infoSecureSync": "<strong>Cloud-Synchronisierung</strong> zwischen Geräten. Hochsicher. Nur Sie können Ihre Daten lesen bzw. darauf zugreifen."
+    "infoSecureSync": "<strong>Cloud-Synchronisierung.</strong> Hochsicher und nur Sie können auf Ihre Daten zugreifen."
   },
   "auth": {
     "email": "E-Mail",

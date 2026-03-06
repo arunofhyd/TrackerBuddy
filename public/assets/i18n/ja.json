@@ -69,7 +69,7 @@
     "realTimeDisabled": "リアルタイム更新が無効になりました。",
     "syncSuccess": "同期に成功しました。",
     "syncFailed": "同期に失敗しました。",
-    "infoSecureSync": "デバイス間での<strong>クラウド同期</strong>。安全性が高い。データの読み取り/アクセスができるのはあなただけです。"
+    "infoSecureSync": "<strong>クラウド同期</strong> 安全性が高く、自分だけがデータにアクセスできます。"
   },
   "auth": {
     "email": "メールアドレス",

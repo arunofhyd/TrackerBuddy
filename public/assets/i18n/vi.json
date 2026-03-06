@@ -69,7 +69,7 @@
     "realTimeDisabled": "Đã tắt cập nhật thời gian thực.",
     "syncSuccess": "Đồng bộ thành công.",
     "syncFailed": "Đồng bộ thất bại.",
-    "infoSecureSync": "<strong>Đồng bộ hóa đám mây</strong> trên các thiết bị. An toàn cao. Chỉ bạn mới có thể đọc/truy cập dữ liệu của mình."
+    "infoSecureSync": "<strong>Đồng bộ hóa đám mây.</strong> Bảo mật cao và chỉ bạn mới có thể truy cập dữ liệu của mình."
   },
   "auth": {
     "email": "Email",
