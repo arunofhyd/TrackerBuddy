@@ -774,7 +774,7 @@ export function renderCalendar(preserveFocus = false) {
                             </button>
                             <input type="number" step="0.1"
                                 data-key="${dateKey}" data-type="bonus"
-                                class="input-field bg-transparent border-none font-mono font-bold text-center text-xs w-full text-yellow-700 dark:text-yellow-500 placeholder-yellow-200 tog-bonus-input"
+                                class="input-field bg-transparent border-none font-mono font-bold text-center text-xs w-full text-yellow-700 dark:text-yellow-500 placeholder-yellow-200 dark:placeholder-yellow-700 tog-bonus-input"
                                 value="${bonusVal}" placeholder="-" onchange="window.tog_handleInputChange('${bonusKey}', this.value)">
                         </div>
                     </div>
