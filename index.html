@@ -115,6 +115,36 @@
                 <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
             </div>
         </div>
+        <div id="welcome-view" class="view-container w-full max-w-md mx-auto hidden transition-opacity duration-700 opacity-0">
+            <div class="login-container rounded-xl shadow-2xl p-6 sm:p-8 text-center transform transition-all duration-300">
+                <img src="/assets/logo_rounded.webp" class="w-24 h-24 mb-4 mx-auto rounded-full object-cover logo-glow transition-all duration-300" alt="TrackerBuddy Logo" data-i18n-alt="app.title">
+                <h1 class="text-4xl sm:text-5xl font-extrabold title-text tracking-tight mb-4 break-words transition-colors duration-300">
+                    <span data-i18n="landing.welcomeTitle">Welcome to TrackerBuddy</span>
+                </h1>
+                <p class="subtitle-text text-sm sm:text-base transition-colors duration-300 mb-6" data-i18n="app.subtitle">Your all-in-one tracker.</p>
+                <div class="text-left description-text mb-8 border-t border-b description-border py-6 px-4 transition-colors duration-300">
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-blue-400 mt-1 me-3 flex-shrink-0"></i>
+                            <span data-i18n="landing.infoLogActivities"><strong>Effortlessly log daily activities</strong>, track work hours, and manage custom leave balances.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-file-csv text-blue-400 mt-1 me-3 flex-shrink-0"></i>
+                            <span data-i18n="landing.infoRestoreBackup"><strong>Seamlessly restore and backup</strong> your data to CSV for reports and backups.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-user-check text-blue-400 mt-1 me-3 flex-shrink-0"></i>
+                            <span data-i18n="landing.infoGuestOrSync"><strong>Get started instantly</strong> as a Guest, or sign in to sync your data across devices.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-cloud-upload-alt text-blue-400 mt-1 me-3 flex-shrink-0"></i>
+                            <span data-i18n="landing.infoSecureSync"><strong>Cloud sync</strong> across devices. Highly secure. Only you can ever read/access your data.</span>
+                        </li>
+                    </ul>
+                </div>
+                <button id="welcome-get-started-btn" class="w-full btn-primary py-3 sm:py-4 rounded-full text-base sm:text-lg font-bold flex items-center justify-center transition-all duration-200 transform hover:scale-105 active:scale-95"><span data-i18n="landing.getStarted">Get Started</span> <i class="fas fa-arrow-right ms-2"></i></button>
+            </div>
+        </div>
         <div id="login-view" class="view-container w-full max-w-md mx-auto hidden">
             <div class="login-container rounded-xl shadow-2xl p-6 sm:p-8 text-center transform transition-all duration-300">
                  <img src="/assets/logo_rounded.webp" class="w-24 h-24 mb-4 mx-auto rounded-full object-cover logo-glow transition-all duration-300" alt="TrackerBuddy Logo" data-i18n-alt="app.title">
@@ -143,6 +173,10 @@
                             <li class="flex items-start">
                                 <i class="fas fa-users text-blue-400 mt-1 me-3 flex-shrink-0"></i>
                                 <span data-i18n="landing.infoTeamCollaboration"><strong>Create or join teams</strong> to collaborate and manage team leave balances together.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-cloud-upload-alt text-blue-400 mt-1 me-3 flex-shrink-0"></i>
+                                <span data-i18n="landing.infoSecureSync"><strong>Cloud sync</strong> across devices. Highly secure. Only you can ever read/access your data.</span>
                             </li>
                         </ul>
                     </div>

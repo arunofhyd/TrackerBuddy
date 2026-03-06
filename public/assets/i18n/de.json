@@ -68,7 +68,8 @@
     "realTimeEnabled": "Echtzeit-Updates aktiviert.",
     "realTimeDisabled": "Echtzeit-Updates deaktiviert.",
     "syncSuccess": "Erfolgreich synchronisiert.",
-    "syncFailed": "Synchronisierung fehlgeschlagen."
+    "syncFailed": "Synchronisierung fehlgeschlagen.",
+    "infoSecureSync": "<strong>Cloud-Synchronisierung</strong> zwischen Geräten. Hochsicher. Nur Sie können Ihre Daten lesen bzw. darauf zugreifen."
   },
   "auth": {
     "email": "E-Mail",

@@ -68,7 +68,8 @@
     "realTimeEnabled": "Real-time updates enabled.",
     "realTimeDisabled": "Real-time updates disabled.",
     "syncSuccess": "Synced successfully.",
-    "syncFailed": "Sync failed."
+    "syncFailed": "Sync failed.",
+    "infoSecureSync": "<strong>Cloud sync</strong> across devices. Highly secure. Only you can ever read/access your data."
   },
   "auth": {
     "email": "Email",

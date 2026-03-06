@@ -115,6 +115,8 @@ function initUI() {
         tapToBegin: document.getElementById('tap-to-begin'),
         contentWrapper: document.getElementById('content-wrapper'),
         footer: document.getElementById('main-footer'),
+        welcomeView: document.getElementById('welcome-view'),
+        welcomeGetStartedBtn: document.getElementById('welcome-get-started-btn'),
         loginView: document.getElementById('login-view'),
         appView: document.getElementById('app-view'),
         togView: document.getElementById('tog-view'),
@@ -1768,8 +1770,14 @@ async function initAuth() {
                 loadOfflineData(); // Centralized offline data loading
             } else {
                 // User not logged in:
-                // 1. Prepare Login View (behind splash)
-                switchView(DOM.loginView, DOM.loadingView);
+                // 1. Prepare Welcome or Login View (behind splash)
+                if (!localStorage.getItem('hasVisitedBefore')) {
+                    // Trigger fade in class for smooth entry
+                    DOM.welcomeView.classList.replace('opacity-0', 'opacity-100');
+                    switchView(DOM.welcomeView, DOM.loadingView);
+                } else {
+                    switchView(DOM.loginView, DOM.loadingView);
+                }
                 // 2. Enable "Tap to Begin" interaction on Splash Screen
                 setupSplashTapListener();
             }
@@ -4028,6 +4036,16 @@ function renderSearchResults(results) {
 
 // --- Event Listener Setup ---
 function setupEventListeners() {
+    DOM.welcomeGetStartedBtn?.addEventListener('click', () => {
+        localStorage.setItem('hasVisitedBefore', 'true');
+
+        // Add a smooth fade-out class, let it animate, then switch
+        DOM.welcomeView.classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => {
+            switchView(DOM.loginView, DOM.welcomeView);
+        }, 700);
+    });
+
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
     DOM.emailSignupBtn?.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));
