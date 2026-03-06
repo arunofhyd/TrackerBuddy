@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "Comment enregistrer un congé",
     "addLeaveType": "Ajouter/Modifier des types de congés",
-    "dailyNote": "Note quotidienne (max 5 car.)",
+    "dailyNote": "Note quotidienne",
     "today": "Auj.",
     "time": "Heure",
     "activity": "Activité",

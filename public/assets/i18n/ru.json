@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "Как пользоваться",
     "addLeaveType": "Типы отпусков",
-    "dailyNote": "Заметка (макс 5 симв.)",
+    "dailyNote": "Заметка",
     "today": "Сегодня",
     "time": "Время",
     "activity": "Дело",

@@ -121,7 +121,7 @@
   "tracker": {
     "howToLog": "Cara Mencatat Cuti",
     "addLeaveType": "Tambah/Edit Jenis Cuti",
-    "dailyNote": "Catatan Harian (maks 5 karakter)",
+    "dailyNote": "Catatan Harian",
     "today": "Hari Ini",
     "time": "Waktu",
     "activity": "Aktivitas",
