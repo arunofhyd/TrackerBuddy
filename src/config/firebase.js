@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { REGION } from '../constants.js';
+import { REGION } from './constants.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3HKpNpDCMTlARevbpCarZGdOJJGUJ0Vc",

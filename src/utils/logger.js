@@ -1,4 +1,4 @@
-import { APP_NAME } from './constants.js';
+import { APP_NAME } from '../config/constants.js';
 
 /**
  * Centralized logger utility for the application.

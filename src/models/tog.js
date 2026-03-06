@@ -1,5 +1,5 @@
-import { doc, onSnapshot, setDoc, updateDoc, deleteField } from './services/firebase.js';
-import { LOCAL_STORAGE_KEYS, TOG_BACKUP_PREFIX, COLLECTIONS } from './constants.js';
+import { doc, onSnapshot, setDoc, updateDoc, deleteField } from '../config/firebase.js';
+import { LOCAL_STORAGE_KEYS, TOG_BACKUP_PREFIX, COLLECTIONS } from '../config/constants.js';
 
 let state = {
     viewDate: new Date(),

@@ -1,4 +1,4 @@
-import { VIEW_MODES, USER_ROLES } from '../constants.js';
+import { VIEW_MODES, USER_ROLES } from '../config/constants.js';
 
 export const createInitialState = () => ({
     previousActiveElement: null, // For focus management

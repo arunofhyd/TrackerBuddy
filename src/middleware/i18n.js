@@ -1,5 +1,5 @@
 // services/i18n.js
-import { LOCAL_STORAGE_KEYS } from '../constants.js';
+import { LOCAL_STORAGE_KEYS } from '../config/constants.js';
 
 /**
  * Service to handle application localization.

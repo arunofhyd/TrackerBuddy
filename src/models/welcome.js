@@ -1,4 +1,4 @@
-import { LOCAL_STORAGE_KEYS } from './constants.js';
+import { LOCAL_STORAGE_KEYS } from '../config/constants.js';
 
 // ==========================================
 // WELCOME SCREEN / NEWS BOARD CONFIGURATION
