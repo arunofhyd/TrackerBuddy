@@ -362,11 +362,11 @@
     "viewOptions": "Tùy chọn hiển thị",
     "toggleConverters": "Bật/tắt bộ chuyển đổi",
     "toggleVisibleDays": "Bật/tắt ngày hiển thị",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "Bộ chuyển đổi dữ liệu",
+    "dataConverterDesc": "Dán dữ liệu thô hàng tháng của bạn bên dưới.Hãy đảm bảo bạn bao gồm <b>Tháng và Năm</b> (ví dụ: 'Tháng 7 năm 2025').Công cụ sẽ chỉ trích xuất những ngày có giá trị \"giờ\" và định dạng chúng thành JSON YYYY-MM-DD.",
+    "dataConverterPlaceholder": "Dán dữ liệu thô của bạn vào đây... ví dụ:\ntháng 7 năm 2025\n1\n5,67 giờ\nQA...",
+    "convertData": "Chuyển đổi dữ liệu",
+    "downloadJson": "Tải xuống JSON",
+    "restoreDirectly": "Khôi phục trực tiếp vào TOGtracker"
   }
 }

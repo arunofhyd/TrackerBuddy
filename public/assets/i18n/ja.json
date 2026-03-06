@@ -362,11 +362,11 @@
     "viewOptions": "表示オプション",
     "toggleConverters": "コンバーターの切り替え",
     "toggleVisibleDays": "表示日の切り替え",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "データコンバータ",
+    "dataConverterDesc": "生の月次データを下に貼り付けます。必ず<b>月と年</b> を含めてください (例: 「2025 年 7 月」)。このツールは、「hr」値を持つ日付のみを抽出し、YYYY-MM-DD JSON にフォーマットします。",
+    "dataConverterPlaceholder": "ここに生データを貼り付けます...例:\n2025年7月\n1\n5.67時間\nQA...",
+    "convertData": "データの変換",
+    "downloadJson": "JSONをダウンロード",
+    "restoreDirectly": "TOGtracker に直接復元"
   }
 }

@@ -362,11 +362,11 @@
     "viewOptions": "خيارات العرض",
     "toggleConverters": "تبديل المحولات",
     "toggleVisibleDays": "تبديل الأيام المرئية",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "محول البيانات",
+    "dataConverterDesc": "الصق بياناتك الشهرية الخام أدناه.يُرجى التأكد من تضمين <b>الشهر والسنة</b> (على سبيل المثال، \"يوليو 2025\").ستقوم الأداة باستخراج التواريخ ذات القيم \"hr\" فقط وتنسيقها في YYYY-MM-DD JSON.",
+    "dataConverterPlaceholder": "الصق بياناتك الأولية هنا... على سبيل المثال.\nيوليو 2025\n1\n5.67 ساعة\nضمان الجودة...",
+    "convertData": "تحويل البيانات",
+    "downloadJson": "تحميل جيسون",
+    "restoreDirectly": "قم بالاستعادة مباشرة إلى TOGtracker"
   }
 }

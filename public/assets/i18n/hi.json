@@ -362,11 +362,11 @@
     "viewOptions": "दृश्य विकल्प",
     "toggleConverters": "कन्वर्टर्स टॉगल करें",
     "toggleVisibleDays": "दृश्यमान दिन टॉगल करें",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "डेटा परिवर्तक",
+    "dataConverterDesc": "अपना कच्चा मासिक डेटा नीचे चिपकाएँ।कृपया सुनिश्चित करें कि आप <b>महीना और वर्ष</b> शामिल करें (उदाहरण के लिए, 'जुलाई 2025')।टूल केवल \"घंटा\" मान वाली तारीखें निकालेगा और उन्हें YYYY-MM-DD JSON में प्रारूपित करेगा।",
+    "dataConverterPlaceholder": "अपना कच्चा डेटा यहां चिपकाएं... उदा.\nजुलाई 2025\n1\n5.67 घंटा\nप्रश्नोत्तरी...",
+    "convertData": "डेटा कनवर्ट करें",
+    "downloadJson": "JSON डाउनलोड करें",
+    "restoreDirectly": "सीधे TOGtracker में पुनर्स्थापित करें"
   }
 }

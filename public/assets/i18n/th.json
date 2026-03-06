@@ -362,11 +362,11 @@
     "viewOptions": "ตัวเลือกการดู",
     "toggleConverters": "สลับตัวแปลง",
     "toggleVisibleDays": "สลับวันที่มองเห็น",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "ตัวแปลงข้อมูล",
+    "dataConverterDesc": "วางข้อมูลดิบรายเดือนของคุณด้านล่างโปรดตรวจสอบว่าคุณระบุ<b>เดือนและปี</b> (เช่น \"กรกฎาคม 2025\")เครื่องมือจะแยกเฉพาะวันที่ที่มีค่า \"hr\" และจัดรูปแบบเป็น YYYY-MM-DD JSON",
+    "dataConverterPlaceholder": "วางข้อมูลดิบของคุณที่นี่... เช่น\nกรกฎาคม 2025\n1\n5.67น\nประกันคุณภาพ...",
+    "convertData": "แปลงข้อมูล",
+    "downloadJson": "ดาวน์โหลด JSON",
+    "restoreDirectly": "กู้คืนโดยตรงไปยัง TOGtracker"
   }
 }
