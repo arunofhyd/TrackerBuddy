@@ -361,6 +361,12 @@
     "resetConfirm": "Hành động này sẽ xóa vĩnh viễn tất cả dữ liệu TOG của bạn. Không thể hoàn tác.",
     "viewOptions": "Tùy chọn hiển thị",
     "toggleConverters": "Bật/tắt bộ chuyển đổi",
-    "toggleVisibleDays": "Bật/tắt ngày hiển thị"
+    "toggleVisibleDays": "Bật/tắt ngày hiển thị",
+    "dataConverter": "Data Converter",
+    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
+    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
+    "convertData": "Convert Data",
+    "downloadJson": "Download JSON",
+    "restoreDirectly": "Restore directly into TOGtracker"
   }
 }

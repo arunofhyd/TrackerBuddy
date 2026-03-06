@@ -361,6 +361,12 @@
     "resetConfirm": "Ini akan memadamkan semua data TOG anda secara kekal. Tindakan ini tidak boleh dibatalkan.",
     "viewOptions": "Pilihan Paparan",
     "toggleConverters": "Togol Penukar",
-    "toggleVisibleDays": "Togol Hari Kelihatan"
+    "toggleVisibleDays": "Togol Hari Kelihatan",
+    "dataConverter": "Data Converter",
+    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
+    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
+    "convertData": "Convert Data",
+    "downloadJson": "Download JSON",
+    "restoreDirectly": "Restore directly into TOGtracker"
   }
 }

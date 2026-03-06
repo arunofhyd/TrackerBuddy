@@ -244,7 +244,7 @@
                         </button>
                         <button id="tog-data-converter-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
                             <i class="fas fa-file-import w-4 text-center flex-shrink-0"></i>
-                            <span title="Data Converter">Data Converter</span>
+                            <span data-i18n="tog.dataConverter" data-i18n-title="tog.dataConverter" title="Data Converter">Data Converter</span>
                         </button>
                         <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                         <button id="tog-logout-btn" class="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg flex items-center gap-2 transition-colors">
@@ -531,20 +531,20 @@
 <div id="tog-data-converter-modal" class="smooth-modal fixed inset-0 flex items-center justify-center p-4 z-50 modal-backdrop">
     <div class="modal-container rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[85vh] flex flex-col bg-white dark:bg-gray-800">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Data Converter</h2>
-            <button id="tog-converter-cancel-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" aria-label="Close converter">
+            <h2 class="text-2xl font-bold" data-i18n="tog.dataConverter">Data Converter</h2>
+            <button id="tog-converter-cancel-btn" class="icon-btn rounded-full active:scale-95 transition-all duration-200" aria-label="Close converter" data-i18n-aria-label="common.close">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with "hr" values and format them into YYYY-MM-DD JSON.</p>
-        <textarea id="tog-converter-input" class="w-full h-48 p-3 border rounded-lg shadow-inner font-mono text-sm bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400" placeholder="Paste your raw data here... e.g.&#10;July 2025&#10;1&#10;5.67hr&#10;QA..."></textarea>
+        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400" data-i18n="tog.dataConverterDesc" data-i18n-html="true">Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with "hr" values and format them into YYYY-MM-DD JSON.</p>
+        <textarea id="tog-converter-input" class="w-full h-48 p-3 border rounded-lg shadow-inner font-mono text-sm bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 transition-all placeholder-gray-400" data-i18n-placeholder="tog.dataConverterPlaceholder" placeholder="Paste your raw data here... e.g.&#10;July 2025&#10;1&#10;5.67hr&#10;QA..."></textarea>
 
         <pre id="tog-converter-output" class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 rounded-lg overflow-x-auto text-xs hidden shadow-inner"></pre>
 
         <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-            <button id="tog-converter-convert-btn" class="px-5 py-2 btn-primary rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold">Convert Data</button>
-            <button id="tog-converter-download-btn" class="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hidden" disabled>Download JSON</button>
-            <button id="tog-converter-restore-btn" class="px-5 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hidden" disabled>Restore directly into TOGtracker</button>
+            <button id="tog-converter-convert-btn" class="px-5 py-2 btn-primary rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold" data-i18n="tog.convertData">Convert Data</button>
+            <button id="tog-converter-download-btn" class="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hidden" disabled data-i18n="tog.downloadJson">Download JSON</button>
+            <button id="tog-converter-restore-btn" class="px-5 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full active:scale-95 transition-all duration-200 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hidden" disabled data-i18n="tog.restoreDirectly">Restore directly into TOGtracker</button>
         </div>
     </div>
 </div>

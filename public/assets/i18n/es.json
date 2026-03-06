@@ -361,6 +361,12 @@
     "resetConfirm": "Esto eliminará permanentemente todos tus datos de TOG. Esta acción no se puede deshacer.",
     "viewOptions": "Opciones de vista",
     "toggleConverters": "Alternar convertidores",
-    "toggleVisibleDays": "Alternar días visibles"
+    "toggleVisibleDays": "Alternar días visibles",
+    "dataConverter": "Data Converter",
+    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
+    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
+    "convertData": "Convert Data",
+    "downloadJson": "Download JSON",
+    "restoreDirectly": "Restore directly into TOGtracker"
   }
 }
