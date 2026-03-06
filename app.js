@@ -32,6 +32,7 @@ import {
     enableNetwork, disableNetwork, waitForPendingWrites, serverTimestamp
 } from './services/firebase.js';
 import { initTog, performReset as performTogReset, refreshTogUI, updateLeaveData } from './tog.js';
+import { hasSeenWelcomeScreen, showWelcomeScreen, setupWelcomeScreenListener } from './welcome.js';
 
 const i18n = new TranslationService(() => {
     updateView();
@@ -1756,6 +1757,13 @@ function performLogoutCleanup() {
 async function initAuth() {
     await loadFirebaseModules();
     onAuthStateChanged(auth, (user) => {
+        // If the user hasn't seen the current version of the Welcome Screen, intercept the flow
+        if (!hasSeenWelcomeScreen()) {
+            showWelcomeScreen(DOM, switchView, setupSplashTapListener, user);
+            return;
+        }
+
+        // Standard Flow (User has seen the Welcome Screen)
         if (user) {
             // User is logged in: Proceed to login flow (which shows spinner -> app)
             // Splash screen remains up (z-index 100) showing loading spinner until app is ready.
@@ -1769,16 +1777,9 @@ async function initAuth() {
             if (sessionMode === 'offline') {
                 loadOfflineData(); // Centralized offline data loading
             } else {
-                // User not logged in:
-                // 1. Prepare Welcome or Login View (behind splash)
-                if (!localStorage.getItem('hasVisitedBefore')) {
-                    // Trigger fade in class for smooth entry
-                    DOM.welcomeView.classList.replace('opacity-0', 'opacity-100');
-                    switchView(DOM.welcomeView, DOM.loadingView);
-                } else {
-                    switchView(DOM.loginView, DOM.loadingView);
-                }
-                // 2. Enable "Tap to Begin" interaction on Splash Screen
+                // User not logged in: Prepare Login View (behind splash)
+                switchView(DOM.loginView, DOM.loadingView);
+                // Enable "Tap to Begin" interaction on Splash Screen
                 setupSplashTapListener();
             }
         }
@@ -4036,63 +4037,7 @@ function renderSearchResults(results) {
 
 // --- Event Listener Setup ---
 function setupEventListeners() {
-    DOM.welcomeGetStartedBtn?.addEventListener('click', () => {
-        localStorage.setItem('hasVisitedBefore', 'true');
-
-        // "Keynote-style" fluid 3D transform exit animation
-        const welcomeContainer = DOM.welcomeView.querySelector('.login-container');
-
-        // Prepare the container for 3D transforms
-        DOM.welcomeView.style.perspective = "1000px";
-        DOM.contentWrapper.style.perspective = "1000px";
-
-        // Apply smooth transition properties
-        welcomeContainer.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
-
-        // Animate out: scale down, fade, and slightly rotate
-        requestAnimationFrame(() => {
-            welcomeContainer.style.transform = 'translateZ(-200px) translateY(-50px) scale(0.9)';
-            welcomeContainer.style.opacity = '0';
-            DOM.welcomeView.style.opacity = '0';
-        });
-
-        setTimeout(() => {
-            // Clean up inline styles before switching
-            welcomeContainer.style.transform = '';
-            welcomeContainer.style.opacity = '';
-            welcomeContainer.style.transition = '';
-            DOM.welcomeView.style.perspective = "";
-            DOM.contentWrapper.style.perspective = "";
-
-            // Switch views natively
-            switchView(DOM.loginView, DOM.welcomeView);
-
-            // Animate Login view in
-            const loginContainer = DOM.loginView.querySelector('.login-container');
-            if (loginContainer) {
-                // Start Login state
-                loginContainer.style.transition = 'none';
-                loginContainer.style.transform = 'translateZ(100px) translateY(50px) scale(1.05)';
-                loginContainer.style.opacity = '0';
-
-                // Allow DOM to register the start state, then animate
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        loginContainer.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
-                        loginContainer.style.transform = 'translateZ(0) translateY(0) scale(1)';
-                        loginContainer.style.opacity = '1';
-
-                        // Cleanup after enter
-                        setTimeout(() => {
-                            loginContainer.style.transition = '';
-                            loginContainer.style.transform = '';
-                            loginContainer.style.opacity = '';
-                        }, 800);
-                    });
-                });
-            }
-        }, 600);
-    });
+    setupWelcomeScreenListener(DOM, switchView, handleUserLogin, loadOfflineData);
 
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
