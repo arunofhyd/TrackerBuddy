@@ -429,7 +429,10 @@
                 </div>
                 <div class="flex items-center justify-between w-full">
                     <button id="prev-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180" aria-label="Previous period" data-i18n-aria-label="a11y.previousPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 text-center mx-2 cursor-pointer transition-transform transform hover:scale-105"></h2>
+                    <div class="text-center mx-2 w-48">
+                        <h2 id="current-period-display" class="text-lg sm:text-xl font-bold text-gray-800 cursor-pointer transition-transform transform hover:scale-105"></h2>
+                        <button id="tb-today-btn" class="text-[10px] font-bold uppercase text-blue-500 hover:text-blue-700 mt-0.5 tracking-wider" data-i18n="tog.jumpToToday">Jump to Today</button>
+                    </div>
                     <button id="next-btn" class="btn-primary rounded-full flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 active:scale-95 transition-all duration-200 rtl:rotate-180" aria-label="Next period" data-i18n-aria-label="a11y.nextPeriod"><svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
                 </div>
                 <div id="month-view-controls" class="w-full h-14 bg-white border-2 border-gray-300 rounded-full relative overflow-hidden">
@@ -442,9 +445,8 @@
                 </div>
             </div>
                 <div id="day-view-top-controls" class="hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                        <div class="sm:w-1/2"><input type="text" id="daily-note-input" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-base sm:text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-full shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Daily Note" data-i18n-placeholder="tracker.dailyNote"></div>
-                        <div class="sm:w-1/2"><button id="today-btn-day" class="w-full px-3 py-2 sm:px-5 sm:py-3 text-sm sm:text-base font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-full active:scale-95 transition-all duration-200" data-i18n="tracker.today">Today</button></div>
+                    <div class="w-full">
+                        <input type="text" id="daily-note-input" class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-base sm:text-lg font-semibold text-gray-800 bg-gray-50 border-2 border-gray-200 rounded-full shadow-inner focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400 placeholder:font-medium" placeholder="Note" data-i18n-placeholder="tracker.dailyNote">
                     </div>
                 </div>
                 <input type="file" id="upload-csv-input" accept=".csv,text/csv,application/csv,application/x-csv,text/x-csv,text/comma-separated-values,text/x-comma-separated-values" class="opacity-0 w-0 h-0 absolute pointer-events-none">
