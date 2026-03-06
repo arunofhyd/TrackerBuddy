@@ -68,7 +68,8 @@
     "realTimeEnabled": "Pembaruan real-time diaktifkan.",
     "realTimeDisabled": "Pembaruan real-time dinonaktifkan.",
     "syncSuccess": "Berhasil disinkronkan.",
-    "syncFailed": "Sinkronisasi gagal."
+    "syncFailed": "Sinkronisasi gagal.",
+    "infoSecureSync": "<strong>Sinkronisasi cloud.</strong> Sangat aman dan hanya Anda yang dapat mengakses data Anda."
   },
   "auth": {
     "email": "Email",

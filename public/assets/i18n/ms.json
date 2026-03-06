@@ -68,7 +68,8 @@
     "realTimeEnabled": "Kemas kini masa nyata didayakan.",
     "realTimeDisabled": "Kemas kini masa nyata dilumpuhkan.",
     "syncSuccess": "Berjaya disegerakkan.",
-    "syncFailed": "Penyegerakan gagal."
+    "syncFailed": "Penyegerakan gagal.",
+    "infoSecureSync": "<strong>Penyegerakan awan.</strong> Sangat selamat dan hanya anda boleh mengakses data anda."
   },
   "auth": {
     "email": "E-mel",

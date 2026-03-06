@@ -68,7 +68,8 @@
     "realTimeEnabled": "Włączono aktualizacje w czasie rzeczywistym.",
     "realTimeDisabled": "Wyłączono aktualizacje w czasie rzeczywistym.",
     "syncSuccess": "Pomyślnie zsynchronizowano.",
-    "syncFailed": "Synchronizacja nie powiodła się."
+    "syncFailed": "Synchronizacja nie powiodła się.",
+    "infoSecureSync": "<strong>Synchronizacja w chmurze.</strong> Bardzo bezpieczne i tylko Ty masz dostęp do swoich danych."
   },
   "auth": {
     "email": "E-mail",

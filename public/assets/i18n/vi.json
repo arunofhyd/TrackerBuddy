@@ -68,7 +68,8 @@
     "realTimeEnabled": "Đã bật cập nhật thời gian thực.",
     "realTimeDisabled": "Đã tắt cập nhật thời gian thực.",
     "syncSuccess": "Đồng bộ thành công.",
-    "syncFailed": "Đồng bộ thất bại."
+    "syncFailed": "Đồng bộ thất bại.",
+    "infoSecureSync": "<strong>Đồng bộ hóa đám mây.</strong> Bảo mật cao và chỉ bạn mới có thể truy cập dữ liệu của mình."
   },
   "auth": {
     "email": "Email",

@@ -68,7 +68,8 @@
     "realTimeEnabled": "Atualizações em tempo real ativadas.",
     "realTimeDisabled": "Atualizações em tempo real desativadas.",
     "syncSuccess": "Sincronizado com sucesso.",
-    "syncFailed": "Falha na sincronização."
+    "syncFailed": "Falha na sincronização.",
+    "infoSecureSync": "<strong>Sincronização na nuvem.</strong> Altamente seguro e somente você pode acessar seus dados."
   },
   "auth": {
     "email": "Email",

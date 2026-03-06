@@ -68,7 +68,8 @@
     "realTimeEnabled": "실시간 업데이트가 활성화되었습니다.",
     "realTimeDisabled": "실시간 업데이트가 비활성화되었습니다.",
     "syncSuccess": "동기화 성공.",
-    "syncFailed": "동기화 실패."
+    "syncFailed": "동기화 실패.",
+    "infoSecureSync": "<strong>클라우드 동기화.</strong> 매우 안전하며 나만 데이터에 액세스할 수 있습니다."
   },
   "auth": {
     "email": "이메일",

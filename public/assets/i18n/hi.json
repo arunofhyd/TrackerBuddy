@@ -68,7 +68,8 @@
     "realTimeEnabled": "रीयल-टाइम अपडेट सक्षम।",
     "realTimeDisabled": "रीयल-टाइम अपडेट अक्षम।",
     "syncSuccess": "सफलतापूर्वक सिंक किया गया।",
-    "syncFailed": "सिंक विफल रहा।"
+    "syncFailed": "सिंक विफल रहा।",
+    "infoSecureSync": "<strong>क्लाउड सिंक।</strong> अत्यधिक सुरक्षित और केवल आप ही अपने डेटा तक पहुंच सकते हैं।"
   },
   "auth": {
     "email": "ईमेल",

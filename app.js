@@ -115,6 +115,8 @@ function initUI() {
         tapToBegin: document.getElementById('tap-to-begin'),
         contentWrapper: document.getElementById('content-wrapper'),
         footer: document.getElementById('main-footer'),
+        welcomeView: document.getElementById('welcome-view'),
+        welcomeGetStartedBtn: document.getElementById('welcome-get-started-btn'),
         loginView: document.getElementById('login-view'),
         appView: document.getElementById('app-view'),
         togView: document.getElementById('tog-view'),
@@ -1768,8 +1770,14 @@ async function initAuth() {
                 loadOfflineData(); // Centralized offline data loading
             } else {
                 // User not logged in:
-                // 1. Prepare Login View (behind splash)
-                switchView(DOM.loginView, DOM.loadingView);
+                // 1. Prepare Welcome or Login View (behind splash)
+                if (!localStorage.getItem('hasVisitedBefore')) {
+                    // Trigger fade in class for smooth entry
+                    DOM.welcomeView.classList.replace('opacity-0', 'opacity-100');
+                    switchView(DOM.welcomeView, DOM.loadingView);
+                } else {
+                    switchView(DOM.loginView, DOM.loadingView);
+                }
                 // 2. Enable "Tap to Begin" interaction on Splash Screen
                 setupSplashTapListener();
             }
@@ -4028,6 +4036,64 @@ function renderSearchResults(results) {
 
 // --- Event Listener Setup ---
 function setupEventListeners() {
+    DOM.welcomeGetStartedBtn?.addEventListener('click', () => {
+        localStorage.setItem('hasVisitedBefore', 'true');
+
+        // "Keynote-style" fluid 3D transform exit animation
+        const welcomeContainer = DOM.welcomeView.querySelector('.login-container');
+
+        // Prepare the container for 3D transforms
+        DOM.welcomeView.style.perspective = "1000px";
+        DOM.contentWrapper.style.perspective = "1000px";
+
+        // Apply smooth transition properties
+        welcomeContainer.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+
+        // Animate out: scale down, fade, and slightly rotate
+        requestAnimationFrame(() => {
+            welcomeContainer.style.transform = 'translateZ(-200px) translateY(-50px) scale(0.9)';
+            welcomeContainer.style.opacity = '0';
+            DOM.welcomeView.style.opacity = '0';
+        });
+
+        setTimeout(() => {
+            // Clean up inline styles before switching
+            welcomeContainer.style.transform = '';
+            welcomeContainer.style.opacity = '';
+            welcomeContainer.style.transition = '';
+            DOM.welcomeView.style.perspective = "";
+            DOM.contentWrapper.style.perspective = "";
+
+            // Switch views natively
+            switchView(DOM.loginView, DOM.welcomeView);
+
+            // Animate Login view in
+            const loginContainer = DOM.loginView.querySelector('.login-container');
+            if (loginContainer) {
+                // Start Login state
+                loginContainer.style.transition = 'none';
+                loginContainer.style.transform = 'translateZ(100px) translateY(50px) scale(1.05)';
+                loginContainer.style.opacity = '0';
+
+                // Allow DOM to register the start state, then animate
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        loginContainer.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+                        loginContainer.style.transform = 'translateZ(0) translateY(0) scale(1)';
+                        loginContainer.style.opacity = '1';
+
+                        // Cleanup after enter
+                        setTimeout(() => {
+                            loginContainer.style.transition = '';
+                            loginContainer.style.transform = '';
+                            loginContainer.style.opacity = '';
+                        }, 800);
+                    });
+                });
+            }
+        }, 600);
+    });
+
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
     DOM.emailSignupBtn?.addEventListener('click', () => signUpWithEmail(emailInput.value, passwordInput.value));

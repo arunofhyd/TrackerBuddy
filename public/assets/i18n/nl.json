@@ -68,7 +68,8 @@
     "realTimeEnabled": "Real-time updates ingeschakeld.",
     "realTimeDisabled": "Real-time updates uitgeschakeld.",
     "syncSuccess": "Succesvol gesynchroniseerd.",
-    "syncFailed": "Synchronisatie mislukt."
+    "syncFailed": "Synchronisatie mislukt.",
+    "infoSecureSync": "<strong>Cloudsynchronisatie.</strong> Zeer veilig en alleen jij hebt toegang tot je gegevens."
   },
   "auth": {
     "email": "E-mail",
