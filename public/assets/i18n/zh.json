@@ -362,11 +362,11 @@
     "viewOptions": "查看选项",
     "toggleConverters": "切换转换器",
     "toggleVisibleDays": "切换可见天数",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "数据转换器",
+    "dataConverterDesc": "在下面粘贴您的原始每月数据。请确保包含<b>月份和年份</b>（例如“2025 年 7 月”）。该工具将仅提取具有“hr”值的日期并将其格式化为 YYYY-MM-DD JSON。",
+    "dataConverterPlaceholder": "将您的原始数据粘贴到此处...例如\n2025 年 7 月\n1\n5.67小时\n质量保证...",
+    "convertData": "转换数据",
+    "downloadJson": "下载 JSON",
+    "restoreDirectly": "直接恢复到 TOGtracker"
   }
 }

@@ -362,11 +362,11 @@
     "viewOptions": "കാഴ്ച ഓപ്ഷനുകൾ",
     "toggleConverters": "കൺവെർട്ടറുകൾ മാറ്റുക",
     "toggleVisibleDays": "ദൃശ്യമായ ദിവസങ്ങൾ മാറ്റുക",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "ഡാറ്റ കൺവെർട്ടർ",
+    "dataConverterDesc": "നിങ്ങളുടെ അസംസ്‌കൃത പ്രതിമാസ ഡാറ്റ ചുവടെ ഒട്ടിക്കുക.നിങ്ങൾ <b>മാസവും വർഷവും</b> ഉൾപ്പെടുത്തിയിട്ടുണ്ടെന്ന് ഉറപ്പാക്കുക (ഉദാ. 'ജൂലൈ 2025').ഉപകരണം \"hr\" മൂല്യങ്ങളുള്ള തീയതികൾ മാത്രം എക്‌സ്‌ട്രാക്‌റ്റുചെയ്‌ത് അവയെ YYYY-MM-DD JSON ആയി ഫോർമാറ്റ് ചെയ്യും.",
+    "dataConverterPlaceholder": "നിങ്ങളുടെ റോ ഡാറ്റ ഇവിടെ ഒട്ടിക്കുക... ഉദാ.\nജൂലൈ 2025\n1\n5.67 മണിക്കൂർ\nQA...",
+    "convertData": "ഡാറ്റ പരിവർത്തനം ചെയ്യുക",
+    "downloadJson": "JSON ഡൗൺലോഡ് ചെയ്യുക",
+    "restoreDirectly": "TOGtracker-ലേക്ക് നേരിട്ട് പുനഃസ്ഥാപിക്കുക"
   }
 }

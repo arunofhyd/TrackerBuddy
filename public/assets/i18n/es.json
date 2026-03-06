@@ -362,11 +362,11 @@
     "viewOptions": "Opciones de vista",
     "toggleConverters": "Alternar convertidores",
     "toggleVisibleDays": "Alternar días visibles",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "Convertidor de datos",
+    "dataConverterDesc": "Pega tus datos mensuales sin procesar a continuación.Asegúrese de incluir el <b>Mes y Año</b> (por ejemplo, 'julio de 2025').La herramienta extraerá solo las fechas con valores \"hr\" y las formateará en AAAA-MM-DD JSON.",
+    "dataConverterPlaceholder": "Pegue sus datos sin procesar aquí... p.e.\njulio 2025\n1\n5,67 h\nControl de calidad...",
+    "convertData": "Convertir datos",
+    "downloadJson": "Descargar JSON",
+    "restoreDirectly": "Restaurar directamente en TOGtracker"
   }
 }

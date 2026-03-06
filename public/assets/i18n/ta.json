@@ -362,11 +362,11 @@
     "viewOptions": "காட்சி விருப்பங்கள்",
     "toggleConverters": "மாற்றிகளை நிலைமாற்று",
     "toggleVisibleDays": "தெரியும் நாட்களை நிலைமாற்று",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "தரவு மாற்றி",
+    "dataConverterDesc": "உங்கள் மூல மாதாந்திர தரவை கீழே ஒட்டவும்.<b>மாதம் மற்றும் ஆண்டு</b> (எ.கா. 'ஜூலை 2025') ஆகியவற்றைச் சேர்த்துள்ளீர்கள் என்பதை உறுதிப்படுத்தவும்.கருவி \"hr\" மதிப்புகளுடன் தேதிகளை மட்டும் பிரித்தெடுத்து அவற்றை YYYY-MM-DD JSON ஆக வடிவமைக்கும்.",
+    "dataConverterPlaceholder": "உங்கள் மூலத் தரவை இங்கே ஒட்டவும்... எ.கா.\nஜூலை 2025\n1\n5.67 மணி\nQA...",
+    "convertData": "தரவை மாற்றவும்",
+    "downloadJson": "JSON ஐப் பதிவிறக்கவும்",
+    "restoreDirectly": "நேரடியாக TOGtracker இல் மீட்டமைக்கவும்"
   }
 }

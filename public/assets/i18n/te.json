@@ -362,11 +362,11 @@
     "viewOptions": "వీక్షణ ఎంపికలు",
     "toggleConverters": "కన్వర్టర్లను మార్చండి",
     "toggleVisibleDays": "కనిపించే రోజులను మార్చండి",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "డేటా కన్వర్టర్",
+    "dataConverterDesc": "మీ ముడి నెలవారీ డేటాను దిగువన అతికించండి.దయచేసి మీరు <b>నెల మరియు సంవత్సరాన్ని</b> చేర్చారని నిర్ధారించుకోండి (ఉదా., 'జూలై 2025').సాధనం \"hr\" విలువలతో తేదీలను మాత్రమే సంగ్రహిస్తుంది మరియు వాటిని YYYY-MM-DD JSONగా ఫార్మాట్ చేస్తుంది.",
+    "dataConverterPlaceholder": "మీ ముడి డేటాను ఇక్కడ అతికించండి... ఉదా.\nజూలై 2025\n1\n5.67గం\nQA...",
+    "convertData": "డేటాను మార్చండి",
+    "downloadJson": "JSONని డౌన్‌లోడ్ చేయండి",
+    "restoreDirectly": "నేరుగా TOGtrackerలోకి పునరుద్ధరించండి"
   }
 }

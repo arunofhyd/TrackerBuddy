@@ -362,11 +362,11 @@
     "viewOptions": "보기 옵션",
     "toggleConverters": "변환기 전환",
     "toggleVisibleDays": "표시 일 전환",
-    "dataConverter": "Data Converter",
-    "dataConverterDesc": "Paste your raw monthly data below. Please ensure you include the <b>Month and Year</b> (e.g., 'July 2025'). The tool will extract only the dates with \"hr\" values and format them into YYYY-MM-DD JSON.",
-    "dataConverterPlaceholder": "Paste your raw data here... e.g.\nJuly 2025\n1\n5.67hr\nQA...",
-    "convertData": "Convert Data",
-    "downloadJson": "Download JSON",
-    "restoreDirectly": "Restore directly into TOGtracker"
+    "dataConverter": "데이터 변환기",
+    "dataConverterDesc": "아래에 원시 월별 데이터를 붙여넣으세요.<b>월 및 연도</b>를 포함했는지 확인하세요(예: '2025년 7월').이 도구는 \"hr\" 값이 있는 날짜만 추출하여 YYYY-MM-DD JSON 형식으로 지정합니다.",
+    "dataConverterPlaceholder": "여기에 원시 데이터를 붙여넣으세요. 예:\n2025년 7월\n1\n5.67시간\n품질보증...",
+    "convertData": "데이터 변환",
+    "downloadJson": "JSON 다운로드",
+    "restoreDirectly": "TOGtracker로 직접 복원"
   }
 }
